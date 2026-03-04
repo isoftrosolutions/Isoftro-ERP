@@ -8,15 +8,19 @@ if (!defined('APP_NAME')) {
     require_once __DIR__ . '/../../../config/config.php';
 }
 
-$pageTitle = 'Conversion Report';
-require_once VIEWS_PATH . '/layouts/header_1.php';
-require_once __DIR__ . '/sidebar.php';
+if (!isset($_GET['partial'])) {
+    $pageTitle = 'Conversion Report';
+    require_once VIEWS_PATH . '/layouts/header_1.php';
+    require_once __DIR__ . '/sidebar.php';
+}
 ?>
 
-<?php renderFrontDeskHeader(); ?>
-<?php renderFrontDeskSidebar('inquiries'); ?>
-
-<main class="main" id="mainContent">
+<?php
+if (!isset($_GET['partial'])) {
+    renderFrontDeskHeader();
+    renderFrontDeskSidebar('inquiries');
+}
+?>
     <div class="pg">
         <!-- Page Header -->
         <div class="pg-head">
@@ -98,8 +102,6 @@ require_once __DIR__ . '/sidebar.php';
             </div>
         </div>
     </div>
-</main>
-
 <script>
 async function loadReportData() {
     try {
@@ -176,8 +178,9 @@ document.addEventListener('DOMContentLoaded', loadReportData);
 </script>
 
 <?php
-renderSuperAdminCSS();
-echo '<script src="' . APP_URL . '/public/assets/js/frontdesk.js"></script>';
+if (!isset($_GET['partial'])) {
+    renderSuperAdminCSS();
+    echo '<script src="' . APP_URL . '/public/assets/js/frontdesk.js"></script>';
+    echo '</body></html>';
+}
 ?>
-</body>
-</html>

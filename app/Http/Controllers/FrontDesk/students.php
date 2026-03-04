@@ -24,30 +24,12 @@ if (file_exists(__DIR__ . '/../../../vendor/autoload.php')) {
 use App\Helpers\MailHelper;
 
 
-// ── Auth check ──────────────────────────────────────────────
-if (!isLoggedIn()) {
-    http_response_code(401);
-    echo json_encode(['success' => false, 'message' => 'Unauthorized. Please login.']);
-    exit;
-}
-
-$user      = $_SESSION['userData'] ?? [];
-$role      = $user['role'] ?? '';
-$tenantId  = $user['tenant_id'] ?? null;
-
-if (!$tenantId) {
-    http_response_code(400);
-    echo json_encode(['success' => false, 'message' => 'Tenant context missing.']);
-    exit;
-}
-
-// Only frontdesk and instituteadmin may use this endpoint
-$allowedRoles = ['frontdesk', 'instituteadmin'];
-if (!in_array($role, $allowedRoles)) {
-    http_response_code(403);
-    echo json_encode(['success' => false, 'message' => 'Access denied. Front desk or Admin role required.']);
-    exit;
-}
+// CSRF and role check via Middleware
+require_once app_path('Http/Middleware/FrontDeskMiddleware.php');
+$auth = FrontDeskMiddleware::check();
+$tenantId = $auth['tenant_id'];
+$role = $auth['role'];
+$userId = $auth['user_id'];
 
 $method = $_SERVER['REQUEST_METHOD'];
 
@@ -68,36 +50,38 @@ try {
                       LEFT JOIN courses c  ON b.course_id = c.id
                       WHERE  s.id = :sid AND s.tenant_id = :tid AND s.deleted_at IS NULL";
             $params = ['sid' => $id, 'tid' => $tenantId];
-        } else {
-            // Optimized column list for the main table/list
-            $query = "SELECT s.id, s.roll_no, s.full_name, s.phone, s.registration_status, 
-                             s.admission_date, s.photo_url, s.created_at,
-                             b.name AS batch_name, c.name AS course_name
-                      FROM   students s
-                      LEFT JOIN batches b  ON s.batch_id = b.id
-                      LEFT JOIN courses c  ON b.course_id = c.id
-                      WHERE  s.tenant_id = :tid
-                        AND  s.deleted_at IS NULL";
-            $params = ['tid' => $tenantId];
+            // Pagination
+            $page = max(1, (int)($_GET['page'] ?? 1));
+            $limit = max(1, min(100, (int)($_GET['limit'] ?? 20)));
+            $offset = ($page - 1) * $limit;
 
-            // Search
+            // Count total first (with same filters)
+            $countQuery = "SELECT COUNT(*) FROM students s WHERE s.tenant_id = :tid AND s.deleted_at IS NULL";
+            $countParams = ['tid' => $tenantId];
             if (!empty($_GET['search'])) {
-                $s = '%' . $_GET['search'] . '%';
-                $query .= " AND (s.full_name LIKE :s OR s.roll_no LIKE :s OR s.phone LIKE :s OR s.email LIKE :s)";
-                $params['s'] = $s;
+                $countQuery .= " AND (s.full_name LIKE :s OR s.roll_no LIKE :s OR s.phone LIKE :s OR s.email LIKE :s)";
+                $countParams['s'] = '%' . $_GET['search'] . '%';
             }
-
-            // Status filter
             if (!empty($_GET['registration_status'])) {
-                $query .= " AND s.registration_status = :rs";
-                $params['rs'] = $_GET['registration_status'];
+                $countQuery .= " AND s.registration_status = :rs";
+                $countParams['rs'] = $_GET['registration_status'];
             }
+            $totalStmt = $db->prepare($countQuery);
+            $totalStmt->execute($countParams);
+            $totalRecords = (int)$totalStmt->fetchColumn();
 
-            $query .= " ORDER BY s.created_at DESC LIMIT 500";
+            $query .= " ORDER BY s.created_at DESC LIMIT :limit OFFSET :offset";
+            $params['limit'] = $limit;
+            $params['offset'] = $offset;
         }
 
         $stmt = $db->prepare($query);
-        $stmt->execute($params);
+        // Bind parameters manually to ensure correct types for LIMIT/OFFSET
+        foreach ($params as $key => $val) {
+            $type = is_int($val) ? PDO::PARAM_INT : PDO::PARAM_STR;
+            $stmt->bindValue(":{$key}", $val, $type);
+        }
+        $stmt->execute();
 
 
         if (!empty($_GET['id'])) {
@@ -105,7 +89,14 @@ try {
             echo json_encode(['success' => true, 'data' => $row]);
         } else {
             $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            echo json_encode(['success' => true, 'data' => $rows, 'total' => count($rows)]);
+            echo json_encode([
+                'success' => true, 
+                'data' => $rows, 
+                'total' => $totalRecords,
+                'page' => $page,
+                'limit' => $limit,
+                'total_pages' => ceil($totalRecords / $limit)
+            ]);
         }
         exit;
     }
@@ -156,8 +147,8 @@ try {
         $academicQual = $input['academic_qualifications'] ?? $input['academic_qualification'] ?? '[]';
         if (is_array($academicQual)) $academicQual = json_encode($academicQual);
 
-        // Validate batch belongs to this tenant
-        $stmt = $db->prepare("SELECT id FROM batches WHERE id = :bid AND tenant_id = :tid AND deleted_at IS NULL");
+        // Validate batch belongs to this tenant and is active/upcoming
+        $stmt = $db->prepare("SELECT id FROM batches WHERE id = :bid AND tenant_id = :tid AND status IN ('active', 'upcoming') AND deleted_at IS NULL");
         $stmt->execute(['bid' => $batchId, 'tid' => $tenantId]);
         if (!$stmt->fetch()) {
             echo json_encode(['success' => false, 'message' => 'Invalid batch selected.']);
@@ -238,17 +229,18 @@ try {
         ]);
         $studentId = $db->lastInsertId();
 
-        $db->commit();
         $studentId = $db->lastInsertId();
-
         $db->commit();
 
         // ── Fire-and-forget: send login credentials to student ──
         MailHelper::sendStudentCredentials($db, $tenantId, [
             'full_name'      => $fullName,
             'email'          => $email,
-            'plain_password' => $password,   // plain text before hashing, captured above
+            'plain_password' => $password, 
         ]);
+
+        // Security: clear plain password from memory
+        unset($password);
 
         echo json_encode([
             'success'    => true,
@@ -342,7 +334,7 @@ try {
         // Handle batch update (if course/batch was switched)
         $batchId = !empty($input['batch_id']) ? (int)$input['batch_id'] : null;
         if ($batchId) {
-            $stmt = $db->prepare("SELECT id FROM batches WHERE id = :bid AND tenant_id = :tid AND deleted_at IS NULL");
+            $stmt = $db->prepare("SELECT id FROM batches WHERE id = :bid AND tenant_id = :tid AND status IN ('active', 'upcoming') AND deleted_at IS NULL");
             $stmt->execute(['bid' => $batchId, 'tid' => $tenantId]);
             if (!$stmt->fetch()) $batchId = null; // ignore invalid batch
         }
@@ -411,11 +403,12 @@ try {
 
 } catch (PDOException $e) {
     if (isset($db) && $db->inTransaction()) $db->rollBack();
-    error_log("FrontDesk Students Error: " . $e->getMessage());
-    echo json_encode(['success' => false, 'message' => 'Database error: ' . $e->getMessage()]);
+    error_log("FrontDesk Students DB Error: " . $e->getMessage());
+    echo json_encode(['success' => false, 'message' => 'A database error occurred. Please try again.']);
 } catch (Exception $e) {
     if (isset($db) && $db->inTransaction()) $db->rollBack();
-    echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    error_log("FrontDesk Students Error: " . $e->getMessage());
+    echo json_encode(['success' => false, 'message' => 'An unexpected error occurred.']);
 }
 
 // ── Helper ───────────────────────────────────────────────────

@@ -8,15 +8,19 @@ if (!defined('APP_NAME')) {
     require_once __DIR__ . '/../../../config/config.php';
 }
 
-$pageTitle = 'Follow-Up Reminders';
-require_once VIEWS_PATH . '/layouts/header_1.php';
-require_once __DIR__ . '/sidebar.php';
+if (!isset($_GET['partial'])) {
+    $pageTitle = 'Follow-Up Reminders';
+    require_once VIEWS_PATH . '/layouts/header_1.php';
+    require_once __DIR__ . '/sidebar.php';
+}
 ?>
 
-<?php renderFrontDeskHeader(); ?>
-<?php renderFrontDeskSidebar('inquiries'); ?>
-
-<main class="main" id="mainContent">
+<?php
+if (!isset($_GET['partial'])) {
+    renderFrontDeskHeader();
+    renderFrontDeskSidebar('inquiries');
+}
+?>
     <div class="pg">
         <!-- Page Header -->
         <div class="pg-head">
@@ -63,8 +67,6 @@ require_once __DIR__ . '/sidebar.php';
             </div>
         </div>
     </div>
-</main>
-
 <style>
 .followup-item { display: flex; align-items: center; gap: 16px; padding: 20px; border-bottom: 1px solid #f1f5f9; transition: all 0.2s; }
 .followup-item:hover { background: #f8fafc; }
@@ -172,8 +174,9 @@ document.addEventListener('DOMContentLoaded', loadFollowups);
 </script>
 
 <?php
-renderSuperAdminCSS();
-echo '<script src="' . APP_URL . '/public/assets/js/frontdesk.js"></script>';
+if (!isset($_GET['partial'])) {
+    renderSuperAdminCSS();
+    echo '<script src="' . APP_URL . '/public/assets/js/frontdesk.js"></script>';
+    echo '</body></html>';
+}
 ?>
-</body>
-</html>

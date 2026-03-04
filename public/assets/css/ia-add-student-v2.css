@@ -1,0 +1,225 @@
+/* Nexus Form Controls & UI Components */
+
+/* Field Wrapper */
+.nexus-field {
+    margin-bottom: var(--space-4);
+    position: relative;
+}
+
+.nexus-field-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--nexus-text);
+    margin-bottom: var(--space-2);
+}
+
+.nexus-field-label .required {
+    color: var(--nexus-error);
+    margin-left: 2px;
+}
+
+.nexus-field-help {
+    font-size: 12px;
+    color: var(--nexus-text-muted);
+    margin-top: var(--space-1);
+}
+
+/* Input Base */
+.nexus-input,
+.nexus-select,
+.nexus-textarea {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid var(--nexus-border);
+    border-radius: var(--radius-md);
+    font-size: 14px;
+    font-family: inherit;
+    background: var(--nexus-surface);
+    transition: all 0.2s ease;
+    color: var(--nexus-text);
+}
+
+.nexus-input:focus,
+.nexus-select:focus,
+.nexus-textarea:focus {
+    outline: none;
+    border-color: var(--nexus-primary);
+    box-shadow: var(--shadow-focus);
+}
+
+.nexus-input.error {
+    border-color: var(--nexus-error);
+    background: #FEF2F2;
+}
+
+.nexus-input.valid {
+    border-color: var(--nexus-success);
+}
+
+/* Photo Upload Component */
+.nexus-photo-upload-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.nexus-photo-upload {
+    position: relative;
+    width: 160px;
+    height: 160px;
+    border-radius: 24px;
+    border: 2px dashed var(--nexus-border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    overflow: hidden;
+    background: var(--nexus-background);
+}
+
+.nexus-photo-upload:hover {
+    border-color: var(--nexus-primary);
+    background: var(--nexus-primary-light);
+}
+
+.nexus-photo-upload.has-image {
+    border-style: solid;
+    border-color: var(--nexus-primary);
+}
+
+.nexus-photo-preview {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Progress Indicator */
+.nexus-progress {
+    display: flex;
+    align-items: center;
+    margin-bottom: var(--space-6);
+    padding: var(--space-4) var(--space-5);
+    background: var(--nexus-surface);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    overflow-x: auto;
+}
+
+.nexus-progress-step {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--nexus-text-muted);
+    white-space: nowrap;
+}
+
+.nexus-progress-step.active {
+    color: var(--nexus-primary);
+}
+
+.nexus-progress-step .step-number {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--nexus-border);
+    color: var(--nexus-text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    transition: all 0.3s ease;
+}
+
+.nexus-progress-step.active .step-number {
+    background: var(--nexus-primary);
+    color: white;
+    box-shadow: 0 0 0 4px var(--nexus-primary-light);
+}
+
+.nexus-progress-step.completed .step-number {
+    background: var(--nexus-success);
+    color: white;
+}
+
+.nexus-progress-connector {
+    flex: 1;
+    min-width: 20px;
+    height: 2px;
+    background: var(--nexus-border);
+    margin: 0 var(--space-3);
+}
+
+.nexus-progress-connector.completed {
+    background: var(--nexus-success);
+}
+
+/* Recovery Dialog */
+.nexus-recovery-dialog {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    backdrop-filter: blur(4px);
+}
+
+.nexus-recovery-content {
+    background: white;
+    padding: var(--space-6);
+    border-radius: var(--radius-xl);
+    max-width: 400px;
+    width: 90%;
+    text-align: center;
+    box-shadow: var(--shadow-lg);
+}
+
+.nexus-recovery-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-3);
+    margin-top: var(--space-5);
+}
+
+/* Search Select Dropdown */
+.nexus-search-select {
+    position: relative;
+}
+
+.nexus-search-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid var(--nexus-border);
+    border-radius: var(--radius-md);
+    margin-top: var(--space-1);
+    box-shadow: var(--shadow-lg);
+    z-index: 1000;
+    max-height: 250px;
+    overflow-y: auto;
+    display: none;
+}
+
+.nexus-search-dropdown.visible {
+    display: block;
+}
+
+.nexus-search-item {
+    padding: 10px 16px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.nexus-search-item:hover {
+    background: var(--nexus-primary-light);
+    color: var(--nexus-primary);
+}

@@ -9,122 +9,104 @@ if (!defined('APP_NAME')) {
     require_once __DIR__ . '/../../../config/config.php';
 }
 
-$pageTitle = 'All Students';
-require_once VIEWS_PATH . '/layouts/header_1.php';
-require_once __DIR__ . '/sidebar.php';
+if (!isset($_GET['partial'])) {
+    $pageTitle = 'All Students';
+    require_once VIEWS_PATH . '/layouts/header_1.php';
+    require_once __DIR__ . '/sidebar.php';
+}
 ?>
 
-<?php renderFrontDeskHeader(); ?>
-<?php renderFrontDeskSidebar('students'); ?>
-
-<main class="main" id="mainContent">
+<?php
+if (!isset($_GET['partial'])) {
+    renderFrontDeskHeader();
+    renderFrontDeskSidebar('students');
+}
+?>
 <div class="pg">
 
     <!-- Page Header -->
     <div class="pg-head">
-        <div class="pg-left">
-            <div class="pg-ico" style="background:linear-gradient(135deg,#3B82F6,#2563EB);">
-                <i class="fa-solid fa-users"></i>
-            </div>
-            <div>
-                <h1 class="pg-title">All Students</h1>
-                <p class="pg-sub">Manage registrations, track status, complete profiles</p>
-            </div>
+        <div>
+            <h1 class="pg-title">Students Registry</h1>
+            <p class="pg-sub">Manage admissions, track status, and complete profiles</p>
         </div>
         <div class="pg-acts">
-            <a href="<?= APP_URL ?>/dash/front-desk/admission-form" class="btn" style="background:linear-gradient(135deg,#10B981,#059669);color:#fff;border:none;text-decoration:none;display:flex;align-items:center;gap:8px;padding:10px 20px;border-radius:10px;font-weight:600;font-size:14px;">
+            <button class="btn bt" onclick="loadStudents()">
+                <i class="fa-solid fa-arrows-rotate"></i> Refresh
+            </button>
+            <a href="<?= APP_URL ?>/dash/front-desk/index?page=admissions-adm-form" class="btn bs">
                 <i class="fa-solid fa-user-plus"></i> New Admission
             </a>
         </div>
     </div>
 
-    <!-- Filters Bar -->
-    <div style="background:#fff;border-radius:14px;padding:16px 20px;box-shadow:0 1px 3px rgba(0,0,0,0.08);margin-bottom:20px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
-        <div style="flex:1;min-width:200px;position:relative;">
-            <i class="fa-solid fa-magnifying-glass" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#94a3b8;font-size:14px;"></i>
-            <input type="text" id="searchInput" class="fi" placeholder="Search by name, phone, roll no..."
-                style="padding-left:36px;" oninput="applyFilters()">
+    <!-- Stats Row -->
+    <div class="stat-grid mb">
+        <div class="stat-card">
+            <div class="stat-header"><span class="stat-label">Total Students</span></div>
+            <div class="stat-value" id="statTotal">...</div>
         </div>
-        <select id="statusFilter" class="fi" style="width:200px;" onchange="applyFilters()">
-            <option value="">All Statuses</option>
-            <option value="quick_registered">🟡 Quick Registered</option>
-            <option value="fully_registered">🟢 Fully Registered</option>
-        </select>
-        <button class="btn bt" onclick="loadStudents()">
-            <i class="fa-solid fa-arrows-rotate"></i> Refresh
-        </button>
-        <div style="font-size:13px;color:#64748b;">
-            Showing <strong id="showingCount">0</strong> students
+        <div class="stat-card">
+            <div class="stat-header"><span class="stat-label">Quick Registered</span></div>
+            <div class="stat-value" id="statQuick">...</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-header"><span class="stat-label">Fully Registered</span></div>
+            <div class="stat-value" id="statFull">...</div>
         </div>
     </div>
 
-    <!-- Stats Row -->
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px;" id="miniStats">
-        <div style="background:#fff;border-radius:12px;padding:16px 20px;box-shadow:0 1px 3px rgba(0,0,0,0.08);display:flex;align-items:center;gap:14px;">
-            <div style="width:40px;height:40px;background:linear-gradient(135deg,#3B82F6,#2563EB);border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;"><i class="fa-solid fa-users"></i></div>
-            <div><div style="font-size:22px;font-weight:700;color:#1a1a2e;"><div class="skeleton" style="width:40px;height:24px;" id="statTotal"></div></div><div style="font-size:12px;color:#64748b;">Total Students</div></div>
-        </div>
-        <div style="background:#fff;border-radius:12px;padding:16px 20px;box-shadow:0 1px 3px rgba(0,0,0,0.08);display:flex;align-items:center;gap:14px;">
-            <div style="width:40px;height:40px;background:linear-gradient(135deg,#F59E0B,#D97706);border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;"><i class="fa-solid fa-bolt"></i></div>
-            <div><div style="font-size:22px;font-weight:700;color:#1a1a2e;"><div class="skeleton" style="width:40px;height:24px;" id="statQuick"></div></div><div style="font-size:12px;color:#64748b;">Quick Registered</div></div>
-        </div>
-        <div style="background:#fff;border-radius:12px;padding:16px 20px;box-shadow:0 1px 3px rgba(0,0,0,0.08);display:flex;align-items:center;gap:14px;">
-            <div style="width:40px;height:40px;background:linear-gradient(135deg,#10B981,#059669);border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;"><i class="fa-solid fa-check-circle"></i></div>
-            <div><div style="font-size:22px;font-weight:700;color:#1a1a2e;"><div class="skeleton" style="width:40px;height:24px;" id="statFull"></div></div><div style="font-size:12px;color:#64748b;">Fully Registered</div></div>
+    <!-- Filters Bar -->
+    <div class="card mb" style="padding:16px 20px;">
+        <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+            <div style="flex:1;min-width:250px;position:relative;">
+                <i class="fa-solid fa-magnifying-glass" style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#94a3b8;font-size:14px;"></i>
+                <input type="text" id="searchInput" class="fi" placeholder="Search by name, phone, roll no..."
+                    style="padding-left:40px;" oninput="applyFilters()">
+            </div>
+            <select id="statusFilter" class="fi" style="width:200px;" onchange="applyFilters()">
+                <option value="">All Statuses</option>
+                <option value="quick_registered">Quick Registered</option>
+                <option value="fully_registered">Fully Registered</option>
+            </select>
+            <div style="font-size:13px;color:#64748b;font-weight:600;">
+                <span id="showingCount">0</span> Matches
+            </div>
         </div>
     </div>
 
     <!-- Students Table -->
-    <div style="background:#fff;border-radius:16px;box-shadow:0 1px 3px rgba(0,0,0,0.08);overflow:hidden;">
-        <div style="padding:16px 20px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;justify-content:space-between;">
-            <h3 style="font-size:15px;font-weight:700;margin:0;color:#1a1a2e;display:flex;align-items:center;gap:8px;">
-                <i class="fa-solid fa-list" style="color:#3B82F6;"></i> Students List
-            </h3>
-        </div>
-        <div style="overflow-x:auto;">
-            <table style="width:100%;border-collapse:collapse;" id="studentsTable">
+    <div class="card">
+        <div class="tw">
+            <table id="studentsTable">
                 <thead>
-                    <tr style="background:#f8fafc;">
-                        <th style="padding:12px 16px;text-align:left;font-size:12px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;">#</th>
-                        <th style="padding:12px 16px;text-align:left;font-size:12px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;">Student</th>
-                        <th style="padding:12px 16px;text-align:left;font-size:12px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;">Batch / Course</th>
-                        <th style="padding:12px 16px;text-align:left;font-size:12px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;">Phone</th>
-                        <th style="padding:12px 16px;text-align:left;font-size:12px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;">Registered</th>
-                        <th style="padding:12px 16px;text-align:left;font-size:12px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;">Status</th>
-                        <th style="padding:12px 16px;text-align:left;font-size:12px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;">Actions</th>
+                    <tr>
+                        <th width="50">#</th>
+                        <th>Student Details</th>
+                        <th>Program/Batch</th>
+                        <th>Contact</th>
+                        <th>Admission</th>
+                        <th>Status</th>
+                        <th style="text-align:right">Actions</th>
                     </tr>
                 </thead>
                 <tbody id="studentsBody">
-                    <?php for($i=0; $i<8; $i++): ?>
+                    <?php for($i=0; $i<6; $i++): ?>
                     <tr>
-                        <td style="padding:15px;"><div class="skeleton" style="width:20px;height:14px;"></div></td>
-                        <td style="padding:15px;">
-                            <div style="display:flex;align-items:center;gap:10px;">
-                                <div class="skeleton-circle skeleton" style="width:36px;height:36px;"></div>
-                                <div style="flex:1;">
-                                    <div class="skeleton-text skeleton" style="width:120px;height:14px;margin-bottom:6px;"></div>
-                                    <div class="skeleton-text skeleton" style="width:80px;height:10px;"></div>
-                                </div>
-                            </div>
-                        </td>
-                        <td style="padding:15px;">
-                            <div class="skeleton-text skeleton" style="width:100px;height:12px;margin-bottom:6px;"></div>
-                            <div class="skeleton-text skeleton" style="width:70px;height:10px;"></div>
-                        </td>
-                        <td style="padding:15px;"><div class="skeleton-text skeleton" style="width:90px;height:12px;"></div></td>
-                        <td style="padding:15px;"><div class="skeleton-text skeleton" style="width:70px;height:12px;"></div></td>
-                        <td style="padding:15px;"><div class="skeleton" style="width:60px;height:20px;border-radius:12px;"></div></td>
-                        <td style="padding:15px;"><div class="skeleton" style="width:80px;height:28px;border-radius:8px;"></div></td>
+                        <td colspan="7"><div class="skeleton" style="height:40px;"></div></td>
                     </tr>
                     <?php endfor; ?>
                 </tbody>
             </table>
         </div>
+        <!-- Pagination Bar -->
+        <div id="paginationBar" style="padding:16px 20px;border-top:1px solid #f1f5f9;display:flex;align-items:center;justify-content:space-between;">
+            <div style="font-size:13px;color:#64748b;" id="paginationInfo">Page 1 of 1</div>
+            <div style="display:flex;gap:8px;" id="paginationBtns"></div>
+        </div>
     </div>
 
 </div>
-</main>
-
 <!-- Student Profile Drawer -->
 <div id="profileDrawer" style="position:fixed;top:0;right:-480px;width:460px;height:100vh;background:#fff;z-index:8000;box-shadow:-4px 0 20px rgba(0,0,0,0.12);transition:right 0.3s ease;overflow-y:auto;"></div>
 <div id="drawerOverlay" onclick="closeDrawer()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:7999;"></div>
@@ -151,22 +133,41 @@ echo "window.currentUser = " . json_encode($user) . ";\n";
 echo "window.APP_URL = '" . APP_URL . "';\n";
 ?>
 
-let allStudents = [];
+let currentPage = 1;
+let totalPages = 1;
+let pageSize = 20;
 
-// ── Load All Students ─────────────────────────────────────────
-async function loadStudents() {
+// ── Load Students (Paginated) ─────────────────────────────────
+async function loadStudents(page = 1) {
+    currentPage = page;
+    const search = document.getElementById('searchInput').value;
+    const status = document.getElementById('statusFilter').value;
+    
     document.getElementById('studentsBody').innerHTML = `
         <tr><td colspan="7" style="text-align:center;padding:40px;color:#94a3b8;">
             <i class="fa-solid fa-spinner fa-spin" style="font-size:24px;margin-bottom:10px;display:block;"></i>Loading...
         </td></tr>`;
 
     try {
-        const res = await fetch(APP_URL + '/api/frontdesk/students');
+        const url = new URL(APP_URL + '/api/frontdesk/students');
+        url.searchParams.set('page', page);
+        url.searchParams.set('limit', pageSize);
+        if (search) url.searchParams.set('search', search);
+        if (status) url.searchParams.set('registration_status', status);
+
+        const res = await fetch(url.toString(), getHeaders());
         const data = await res.json();
+        
         if (!data.success) throw new Error(data.message);
+        
         allStudents = data.data || [];
-        applyFilters();
-        updateStats();
+        totalPages = data.total_pages || 1;
+        
+        document.getElementById('showingCount').textContent = data.total || 0;
+        document.getElementById('statTotal').textContent = data.total || 0;
+        
+        renderTable(allStudents);
+        renderPagination();
     } catch(e) {
         document.getElementById('studentsBody').innerHTML = `
             <tr><td colspan="7" style="text-align:center;padding:40px;color:#EF4444;">
@@ -177,32 +178,42 @@ async function loadStudents() {
     }
 }
 
-async function updateStats() {
-    const total = allStudents.length;
-    const quick = allStudents.filter(s => s.registration_status === 'quick_registered').length;
-    const full  = allStudents.filter(s => s.registration_status === 'fully_registered').length;
-    document.getElementById('statTotal').textContent = total;
-    document.getElementById('statQuick').textContent = quick;
-    document.getElementById('statFull').textContent  = full;
+function renderPagination() {
+    const info = document.getElementById('paginationInfo');
+    const btns = document.getElementById('paginationBtns');
+    
+    info.textContent = `Page ${currentPage} of ${totalPages}`;
+    
+    let html = '';
+    // Previous
+    html += `<button class="btn bt" style="padding:6px 12px;font-size:12px;" onclick="loadStudents(${currentPage - 1})" ${currentPage <= 1 ? 'disabled' : ''}>
+        <i class="fa-solid fa-chevron-left"></i>
+    </button>`;
+    
+    // Page numbers (simple version: show current and nearby)
+    let start = Math.max(1, currentPage - 2);
+    let end = Math.min(totalPages, start + 4);
+    if (end - start < 4) start = Math.max(1, end - 4);
+    
+    for (let i = start; i <= end; i++) {
+        const active = i === currentPage;
+        html += `<button class="btn ${active ? '' : 'bt'}" 
+            style="padding:6px 12px;font-size:12px;${active ? 'background:#3B82F6;color:#fff;border:none;' : ''}" 
+            onclick="loadStudents(${i})">${i}</button>`;
+    }
+    
+    // Next
+    html += `<button class="btn bt" style="padding:6px 12px;font-size:12px;" onclick="loadStudents(${currentPage + 1})" ${currentPage >= totalPages ? 'disabled' : ''}>
+        <i class="fa-solid fa-chevron-right"></i>
+    </button>`;
+    
+    btns.innerHTML = html;
 }
 
 // ── Apply Filters ─────────────────────────────────────────────
 function applyFilters() {
-    const search = document.getElementById('searchInput').value.toLowerCase();
-    const status = document.getElementById('statusFilter').value;
-
-    let filtered = allStudents.filter(s => {
-        const matchSearch = !search ||
-            (s.full_name || '').toLowerCase().includes(search) ||
-            (s.roll_no   || '').toLowerCase().includes(search) ||
-            (s.phone     || '').toLowerCase().includes(search) ||
-            (s.email     || '').toLowerCase().includes(search);
-        const matchStatus = !status || s.registration_status === status;
-        return matchSearch && matchStatus;
-    });
-
-    document.getElementById('showingCount').textContent = filtered.length;
-    renderTable(filtered);
+    // Reset to page 1 on filter change
+    loadStudents(1);
 }
 
 // ── Render Table ──────────────────────────────────────────────
@@ -372,8 +383,9 @@ window.addEventListener('DOMContentLoaded', async () => {
 </script>
 
 <?php
-renderSuperAdminCSS();
-echo '<script src="' . APP_URL . '/public/assets/js/frontdesk.js"></script>';
+if (!isset($_GET['partial'])) {
+    renderSuperAdminCSS();
+    echo '<script src="' . APP_URL . '/public/assets/js/frontdesk.js"></script>';
+    echo '</body></html>';
+}
 ?>
-</body>
-</html>

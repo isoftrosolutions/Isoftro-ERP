@@ -389,6 +389,10 @@ Route::any('/api/admin/exams', function() {
     require_once app_path('Http/Controllers/Admin/exams.php');
 });
 
+Route::any('/api/admin/salary', function() {
+    require_once app_path('Http/Controllers/Admin/staff_salary.php');
+});
+
 Route::any('/api/admin/staff', function() {
     require_once app_path('Http/Controllers/Admin/staff.php');
 });
@@ -456,10 +460,7 @@ Route::any('/api/frontdesk/fee-reports', function() {
     require_once app_path('Http/Controllers/Admin/FeeReports.php');
 });
 
-// Fee API Routes
-Route::any('/api/admin/fees', function() {
-    require_once app_path('Http/Controllers/Admin/fees.php');
-});
+
 
 Route::any('/api/student/fees', function() {
     require_once app_path('Http/Controllers/Student/fees.php');
@@ -476,6 +477,27 @@ Route::any('/api/student/classes', function() {
 
 Route::any('/api/student/attendance', function() {
     require_once app_path('Http/Controllers/Student/attendance.php');
+});
+
+// Phase 2 - New Front Desk Features (Reception Group)
+Route::any('/api/frontdesk/visitor-log', function() {
+    require_once app_path('Http/Controllers/FrontDesk/visitor_log.php');
+});
+
+Route::any('/api/frontdesk/appointments', function() {
+    require_once app_path('Http/Controllers/FrontDesk/appointments.php');
+});
+
+Route::any('/api/frontdesk/call-logs', function() {
+    require_once app_path('Http/Controllers/FrontDesk/call_logs.php');
+});
+
+Route::any('/api/frontdesk/complaints', function() {
+    require_once app_path('Http/Controllers/FrontDesk/complaints.php');
+});
+
+Route::any('/api/frontdesk/id-card-requests', function() {
+    require_once app_path('Http/Controllers/FrontDesk/id_cards.php');
 });
 
 Route::any('/api/student/assignments', function() {

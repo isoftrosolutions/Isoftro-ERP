@@ -15,6 +15,7 @@ use App\Helpers\MailHelper;
 
 
 header('Content-Type: application/json');
+ob_start();
 
 // Ensure user is logged in
 if (!isLoggedIn()) {
@@ -38,7 +39,7 @@ try {
         
         if ($type === 'teacher') {
             $stmt = $db->prepare("
-                SELECT u.id as user_id, u.email, u.phone, u.status, t.* 
+                SELECT u.id as user_id, u.email, u.phone, u.status, u.monthly_salary, t.* 
                 FROM users u 
                 JOIN teachers t ON u.id = t.user_id 
                 WHERE u.tenant_id = :tid AND u.role = 'teacher' AND u.deleted_at IS NULL
@@ -47,7 +48,7 @@ try {
             $data = $stmt->fetchAll();
         } else if ($type === 'frontdesk') {
             $stmt = $db->prepare("
-                SELECT id as user_id, email, name, phone, status, created_at 
+                SELECT id as user_id, email, name, phone, status, monthly_salary, created_at 
                 FROM users 
                 WHERE tenant_id = :tid AND role = 'frontdesk' AND deleted_at IS NULL
             ");
@@ -87,8 +88,8 @@ try {
 
         // 1. Create User
         $stmt = $db->prepare("
-            INSERT INTO users (tenant_id, role, email, password_hash, phone, name, status) 
-            VALUES (:tid, :role, :email, :pass, :phone, :name, 'active')
+            INSERT INTO users (tenant_id, role, email, password_hash, phone, name, status, monthly_salary) 
+            VALUES (:tid, :role, :email, :pass, :phone, :name, 'active', :salary)
         ");
         $stmt->execute([
             'tid' => $tenantId,
@@ -96,7 +97,8 @@ try {
             'email' => $email,
             'pass' => password_hash($password, PASSWORD_BCRYPT, ['cost' => 12]),
             'phone' => $phone,
-            'name' => $name
+            'name' => $name,
+            'salary' => $input['monthly_salary'] ?? 0
         ]);
         $userId = $db->lastInsertId();
 
@@ -104,12 +106,13 @@ try {
         if ($role === 'teacher') {
             $empId = $input['employee_id'] ?? 'TCH-' . str_pad($userId, 3, '0', STR_PAD_LEFT);
             $stmt = $db->prepare("
-                INSERT INTO teachers (tenant_id, user_id, full_name, phone, email, specialization, qualification, joined_date, status) 
-                VALUES (:tid, :uid, :name, :phone, :email, :spec, :qual, :jdate, 'active')
+                INSERT INTO teachers (tenant_id, user_id, employee_id, full_name, phone, email, specialization, qualification, joined_date, status) 
+                VALUES (:tid, :uid, :eid, :name, :phone, :email, :spec, :qual, :jdate, 'active')
             ");
             $stmt->execute([
                 'tid' => $tenantId,
                 'uid' => $userId,
+                'eid' => $empId,
                 'name' => $name,
                 'phone' => $phone,
                 'email' => $email,
@@ -184,6 +187,10 @@ try {
         if (!empty($input['status'])) {
             $updateFields[] = 'status = :status';
             $params['status'] = $input['status'];
+        }
+        if (isset($input['monthly_salary'])) {
+            $updateFields[] = 'monthly_salary = :salary';
+            $params['salary'] = $input['monthly_salary'];
         }
         if (!empty($input['password'])) {
             $updateFields[] = 'password_hash = :password';
@@ -267,6 +274,11 @@ try {
     }
 
 } catch (Exception $e) {
-    if ($db->inTransaction()) $db->rollBack();
+    if (isset($db) && $db->inTransaction()) $db->rollBack();
+    ob_clean();
     echo json_encode(['success' => false, 'message' => $e->getMessage()]);
 }
+
+// Output buffered JSON and exit
+ob_end_flush();
+exit;

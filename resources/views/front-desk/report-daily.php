@@ -8,17 +8,21 @@ if (!defined('APP_NAME')) {
     require_once __DIR__ . '/../../../config/config.php';
 }
 
-$pageTitle = 'Daily Operations Report';
-require_once VIEWS_PATH . '/layouts/header_1.php';
-require_once __DIR__ . '/sidebar.php';
+if (!isset($_GET['partial'])) {
+    $pageTitle = 'Daily Operations Report';
+    require_once VIEWS_PATH . '/layouts/header_1.php';
+    require_once __DIR__ . '/sidebar.php';
 
+}
 $date = isset($_GET['date']) ? $_GET['date'] : date('Y-m-d');
 ?>
 
-<?php renderFrontDeskHeader(); ?>
-<?php renderFrontDeskSidebar('reports'); ?>
-
-<main class="main" id="mainContent">
+<?php
+if (!isset($_GET['partial'])) {
+    renderFrontDeskHeader();
+    renderFrontDeskSidebar('reports');
+}
+?>
     <div class="pg">
         <!-- Breadcrumbs -->
         <div class="bc">
@@ -121,8 +125,6 @@ $date = isset($_GET['date']) ? $_GET['date'] : date('Y-m-d');
             </div>
         </div>
     </div>
-</main>
-
 <style>
 .fi { padding:10px 14px; border:1.5px solid #e2e8f0; border-radius:10px; font-size:14px; outline:none; transition:all 0.2s; background:#fff; box-sizing:border-box; }
 .btn { padding:10px 20px; border-radius:10px; font-weight:700; font-size:14px; cursor:pointer; border:none; transition:all 0.2s; display:inline-flex; align-items:center; gap:8px; }
@@ -137,8 +139,9 @@ $date = isset($_GET['date']) ? $_GET['date'] : date('Y-m-d');
 </style>
 
 <?php
-renderSuperAdminCSS();
-echo '<script src="' . APP_URL . '/public/assets/js/frontdesk.js"></script>';
+if (!isset($_GET['partial'])) {
+    renderSuperAdminCSS();
+    echo '<script src="' . APP_URL . '/public/assets/js/frontdesk.js"></script>';
+    echo '</body></html>';
+}
 ?>
-</body>
-</html>

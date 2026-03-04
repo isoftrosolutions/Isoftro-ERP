@@ -51,7 +51,6 @@ function getIASidebarConfig() {
                         ['id' => 'profiles',    'l' => 'Teacher List',         'icon' => 'fa-id-badge'],
                         ['id' => 'add',         'l' => 'Add Teacher',          'icon' => 'fa-user-plus'],
                         ['id' => 'allocation',  'l' => 'Subject Allocation',   'icon' => 'fa-book-open-reader'],
-                        ['id' => 'salary',      'l' => 'Salary Management',    'icon' => 'fa-wallet'],
                         ['id' => 'performance', 'l' => 'Performance Analytics','icon' => 'fa-chart-simple'],
                     ],
                 ],
@@ -141,8 +140,8 @@ function getIASidebarConfig() {
                     ],
                 ],
                 [
-                    'id' => 'salary',
-                    'label' => 'Teacher Salary',
+                    'id' => 'staff-salary',
+                    'label' => 'Staff Salary',
                     'icon' => 'fa-wallet',
                     'permission' => 'dashboard.view',
                 ],

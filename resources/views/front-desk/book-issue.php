@@ -8,15 +8,19 @@ if (!defined('APP_NAME')) {
     require_once __DIR__ . '/../../../config/config.php';
 }
 
-$pageTitle = 'Issue Book';
-require_once VIEWS_PATH . '/layouts/header_1.php';
-require_once __DIR__ . '/sidebar.php';
+if (!isset($_GET['partial'])) {
+    $pageTitle = 'Issue Book';
+    require_once VIEWS_PATH . '/layouts/header_1.php';
+    require_once __DIR__ . '/sidebar.php';
+}
 ?>
 
-<?php renderFrontDeskHeader(); ?>
-<?php renderFrontDeskSidebar('library'); ?>
-
-<main class="main" id="mainContent">
+<?php
+if (!isset($_GET['partial'])) {
+    renderFrontDeskHeader();
+    renderFrontDeskSidebar('library');
+}
+?>
     <div class="pg">
         <!-- Page Header -->
         <div class="pg-head">
@@ -113,8 +117,6 @@ require_once __DIR__ . '/sidebar.php';
             </div>
         </div>
     </div>
-</main>
-
 <style>
 .fl { display: block; font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.5px; }
 .fi { width:100%; padding:12px 14px; border:1.5px solid #e2e8f0; border-radius:10px; font-size:14px; outline:none; transition:all 0.2s; background:#fff; box-sizing:border-box; }
@@ -210,8 +212,9 @@ function handleIssue(e) {
 </script>
 
 <?php
-renderSuperAdminCSS();
-echo '<script src="' . APP_URL . '/public/assets/js/frontdesk.js"></script>';
+if (!isset($_GET['partial'])) {
+    renderSuperAdminCSS();
+    echo '<script src="' . APP_URL . '/public/assets/js/frontdesk.js"></script>';
+    echo '</body></html>';
+}
 ?>
-</body>
-</html>

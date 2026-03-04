@@ -104,13 +104,34 @@ class StudentService {
                     ->first();
 
                 if ($courseData) {
+                    // ISSUE-B3 FIX: Check batch capacity before enrolling
+                    $capacityRow = DB::selectOne(
+                        "SELECT b.max_strength,
+                                COUNT(e.id) AS enrolled
+                         FROM   batches b
+                         LEFT JOIN enrollments e ON e.batch_id = b.id AND e.status = 'active'
+                         WHERE  b.id = ?
+                         GROUP BY b.id",
+                        [$batchId]
+                    );
+                    if ($capacityRow && (int)$capacityRow->enrolled >= (int)$capacityRow->max_strength) {
+                        throw new Exception(
+                            "This batch is full (maximum {$capacityRow->max_strength} students). " .
+                            "Please select a different batch or contact admin to increase capacity."
+                        );
+                    }
+
+                    // ISSUE-V1 FIX: Generate human-readable enrollment_id
+                    $enrollmentCode = 'ENR-' . $tenantId . '-' . date('Y') . '-' . str_pad($studentId, 5, '0', STR_PAD_LEFT);
+
                     // 5a. Enrollment
                     $enrollmentId = DB::table('enrollments')->insertGetId([
-                        'tenant_id' => $tenantId,
-                        'student_id' => $studentId,
-                        'batch_id' => $batchId,
+                        'tenant_id'       => $tenantId,
+                        'student_id'      => $studentId,
+                        'batch_id'        => $batchId,
+                        'enrollment_id'   => $enrollmentCode,  // ISSUE-V1 FIX
                         'enrollment_date' => date('Y-m-d'),
-                        'status' => 'active'
+                        'status'          => 'active'
                     ]);
 
                     // 5b. Fee Summary

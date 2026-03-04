@@ -357,7 +357,7 @@
                 <div class="form-group">
                     <label class="form-label">Day of Week *</label>
                     <select class="form-select" id="slotDay" required>
-                        <option value="">Select Day</option>
+                        <option value=""> Select Day</option>
                         <option value="1">Sunday</option>
                         <option value="2">Monday</option>
                         <option value="3">Tuesday</option>

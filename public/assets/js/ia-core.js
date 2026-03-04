@@ -193,7 +193,7 @@ function _iaRenderPage() {
     const urlParams = new URLSearchParams(window.location.search);
     const nav = _IA.activeNav, sub = _IA.activeSub;
     if (nav==='overview') { _iaRenderDashboard(); return; }
-    if (nav==='students') { if(sub==='add') window.renderAddStudentForm?.(); else if(sub==='edit' || sub==='complete') window.renderEditStudentForm?.(urlParams.get('id')); else if(sub==='view') window.renderStudentProfile?.(urlParams.get('id')); else if(sub==='vault') window.renderDocumentVault?.(); else if(sub==='alumni') window.renderAlumniList?.(); else window.renderStudentList?.(); return; }
+    if (nav==='students') { if(sub==='add') window.renderAddStudentFormV2?.(); else if(sub==='edit' || sub==='complete') window.renderEditStudentForm?.(urlParams.get('id')); else if(sub==='view') window.renderStudentProfile?.(urlParams.get('id')); else if(sub==='vault') window.renderDocumentVault?.(); else if(sub==='alumni') window.renderAlumniList?.(); else window.renderStudentList?.(); return; }
     if (nav==='academic') {
         if (sub==='courses') { if(urlParams.get('id')) window.renderEditCourseForm?.(urlParams.get('id')); else if(urlParams.get('action')==='add') window.renderAddCourseForm?.(); else window.renderCourseList?.(); return; }
         if (sub==='batches') { if(urlParams.get('id')) window.renderEditBatchForm?.(urlParams.get('id')); else if(urlParams.get('action')==='add') window.renderAddBatchForm?.(); else window.renderBatchList?.(); return; }
@@ -247,6 +247,11 @@ function _iaRenderPage() {
         if (sub==='materials' || sub==='videos' || sub==='assignments') { window.renderStudyMaterials?.(sub); return; }
         if (sub==='categories') { window.renderLMSCategories?.(); return; }
     }
+    if (nav==='staff-salary') {
+        if (sub==='add' || sub==='edit') window.renderStaffSalaryForm?.(urlParams.get('id'));
+        else window.renderStaffSalary?.();
+        return;
+    }
     mc.innerHTML = `<div class="pg fu"><div class="card" style="text-align:center;padding:100px 40px;"><i class="fa-solid fa-cubes-stacked" style="font-size:3rem;color:var(--tl);margin-bottom:20px;"></i><h2>${(sub||nav).toUpperCase()} Module</h2><p style="color:var(--tb);margin-top:10px;">Coming soon in V3.1.</p></div></div>`;
 }
 
@@ -278,8 +283,7 @@ async function _iaRenderDashboard() {
 
     _iaRenderDashboardSkeleton();
 
-    // Use absolute URL defined globally in APP_URL
-    const endpoint = window.APP_URL ? window.APP_URL + '/api/admin/stats' : '/api/admin/stats';
+    const endpoint = window.APP_URL ? window.APP_URL + '/app/Http/Controllers/Admin/dashboard_stats.php' : '/app/Http/Controllers/Admin/dashboard_stats.php';
 
     try {
         const res = await fetch(endpoint);
@@ -287,268 +291,342 @@ async function _iaRenderDashboard() {
         if (!result.success) throw new Error(result.message);
         const s = result.data;
         
-        // Formatting helpers
-        const formatMoney = num => new Intl.NumberFormat('en-IN').format(num || 0);
-
-        // Calculate dynamic values for UI
-        const todayFee = s.today_fee || 0;
-        const outstanding = s.outstanding_dues || 0;
-        const ttlStudents = s.total_students || 0;
-        const attRate = s.attendance_rate || 0;
-
-        // Fee aging with real data (Combine 61-90 and 90+ into 60+)
-        const ag = s.fee_aging || {};
-        const ag0  = ag['0_30']   || {amount:0, count:0};
-        const ag31 = ag['31_60']  || {amount:0, count:0};
-        const ag61 = ag['61_90']  || {amount:0, count:0};
-        const ag90plus = ag['90plus'] || {amount:0, count:0};
-        
-        const ag60 = {
-            amount: ag61.amount + ag90plus.amount,
-            count: ag61.count + ag90plus.count
-        };
-
-        const totalAging = (ag0.amount + ag31.amount + ag60.amount) || 1;
-        const ag0pct  = Math.max(5, Math.round((ag0.amount  / totalAging) * 100));
-        const ag31pct = Math.max(5, Math.round((ag31.amount / totalAging) * 100));
-        const ag60pct = Math.max(5, Math.round((ag60.amount / totalAging) * 100));
-
-        // Next exam label
-        const nextExamLabel = s.next_exam ? `Next: ${s.next_exam.title}` : 'None scheduled';
+        const formatMoney = num => new Intl.NumberFormat('en-IN').format(Math.round(num || 0));
 
         mc.innerHTML = `
-        <!-- WELCOME BANNER -->
-        <div class="welcome-banner">
-            <div class="wb-left">
-                <div class="wb-greeting">${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>
-                <div class="wb-title">🌅 Good Morning, Admin!</div>
-                <div class="wb-quote">"Education is not the filling of a pail, but the lighting of a fire." — W.B. Yeats</div>
-            </div>
-            <div class="wb-stats" style="position:relative;z-index:2;">
-                <div class="wb-stat">
-                    <div class="wb-stat-val">${ttlStudents}</div>
-                    <div class="wb-stat-lbl">Total Students</div>
-                </div>
-                <div class="wb-stat">
-                    <div class="wb-stat-val">${s.active_batches ?? '—'}</div>
-                    <div class="wb-stat-lbl">Active Batches</div>
-                </div>
-                <div class="wb-stat">
-                    <div class="wb-stat-val">${s.total_teachers ?? '—'}</div>
-                    <div class="wb-stat-lbl">Teachers</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- KPI CARDS (6 cards matching HTML reference) -->
-        <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr);">
-            <div class="kpi-card green">
-                <div class="kpi-top">
-                    <div class="kpi-label">Active Students</div>
-                    <div class="kpi-icon green"><i class="fa-solid fa-users"></i></div>
-                </div>
-                <div class="kpi-val">${ttlStudents}</div>
-                <div class="kpi-sub"><i class="fa-solid fa-arrow-trend-up up"></i><span class="up">+${s.student_growth_percent||0}%</span> this month</div>
-                <div class="progress-bar-wrap" style="margin-top:10px">
-                    <div class="progress-bar"><div class="progress-bar-fill green" style="width:100%"></div></div>
-                </div>
-            </div>
-
-            <div class="kpi-card red">
-                <div class="kpi-top">
-                    <div class="kpi-label">Today's Attendance</div>
-                    <div class="kpi-icon red"><i class="fa-solid fa-calendar-check"></i></div>
-                </div>
-                <div class="kpi-val">${attRate}<small>%</small></div>
-                <div class="kpi-sub"><i class="fa-solid fa-circle-exclamation down"></i>&nbsp;${s.attendance?.present || 0}/${s.attendance?.total || 0} students present</div>
-                <div class="progress-bar-wrap" style="margin-top:10px">
-                    <div class="progress-bar"><div class="progress-bar-fill red" style="width:${attRate}%"></div></div>
-                </div>
-            </div>
-
-            <div class="kpi-card blue">
-                <div class="kpi-top">
-                    <div class="kpi-label">Today's Collection</div>
-                    <div class="kpi-icon blue"><i class="fa-solid fa-money-bill-wave"></i></div>
-                </div>
-                <div class="kpi-val">₹<small> ${formatMoney(todayFee)}</small></div>
-                <div class="kpi-sub"><i class="fa-solid fa-arrow-trend-up up"></i><span class="up">${s.today_fee_change_percent >= 0 ? '+' : ''}${s.today_fee_change_percent}%</span> since yesterday</div>
-                <div class="mini-chart" style="margin-top:8px">
-                    ${(s.revenue_trend || []).map(t => `<div class="mini-bar" style="height:${Math.max(20, Math.min(100, (t.amount / (Math.max(...s.revenue_trend.map(rt=>rt.amount))||1)) * 100))}%;background:#3b82f6;opacity:0.6"></div>`).join('')}
-                </div>
-            </div>
-
-            <div class="kpi-card orange">
-                <div class="kpi-top">
-                    <div class="kpi-label">Outstanding Dues</div>
-                    <div class="kpi-icon orange"><i class="fa-solid fa-triangle-exclamation"></i></div>
-                </div>
-                <div class="kpi-val">₹<small> ${formatMoney(outstanding)}</small></div>
-                <div class="kpi-sub"><i class="fa-solid fa-users" style="color:var(--text-light)"></i>&nbsp;Pending receivables</div>
-                <div class="progress-bar-wrap" style="margin-top:10px">
-                    <div class="progress-bar"><div class="progress-bar-fill orange" style="width:35%"></div></div>
-                </div>
-            </div>
-
-            <div class="kpi-card purple">
-                <div class="kpi-top">
-                    <div class="kpi-label">New Inquiries</div>
-                    <div class="kpi-icon purple"><i class="fa-solid fa-magnifying-glass"></i></div>
-                </div>
-                <div class="kpi-val">${s.new_inquiries ?? 0}</div>
-                <div class="kpi-sub"><i class="fa-solid fa-clock" style="color:var(--text-light)"></i>&nbsp;${s.followups_today ?? 0} follow-ups due today</div>
-            </div>
-
-            <div class="kpi-card teal">
-                <div class="kpi-top">
-                    <div class="kpi-label">Upcoming Exams</div>
-                    <div class="kpi-icon teal"><i class="fa-solid fa-file-pen"></i></div>
-                </div>
-                <div class="kpi-val">${s.upcoming_exams ?? 0}</div>
-                <div class="kpi-sub"><i class="fa-solid fa-calendar" style="color:var(--text-light)"></i>&nbsp;${nextExamLabel}</div>
-            </div>
-        </div>
-
-        <!-- MAIN GRID -->
-        <div class="main-grid">
-            <!-- LEFT: REVENUE TREND & DAILY WORKFLOW -->
-            <div>
-                <!-- Revenue Charts -->
-                <div class="section-hdr">
-                    <h3><i class="fa-solid fa-chart-line" style="color:var(--green);margin-right:6px"></i>Revenue Trends</h3>
-                    <a href="#" onclick="goNav('reports','fee-rep')">Full Analytics →</a>
-                </div>
-                <div class="card" style="margin-bottom:20px;">
-                    <div class="card-body" style="height:250px;position:relative;">
-                        <canvas id="revenueChart"></canvas>
+        <div class="dash-v2-container">
+            <!-- SECTION A: HEADER STRIP -->
+            <div class="dash-v2-header-strip">
+                <div class="header-strip-left">
+                    <div class="header-strip-institute">${s.header.institute_name}</div>
+                    <div class="header-strip-meta">
+                        <i class="fa-solid fa-calendar-days"></i> ${s.header.academic_year} &nbsp;•&nbsp; 
+                        <i class="fa-solid fa-clock"></i> ${s.header.current_date}
                     </div>
                 </div>
-
-                <!-- Daily Workflow Checklist -->
-                <div class="section-hdr">
-                    <h3><i class="fa-solid fa-list-check" style="color:var(--green);margin-right:6px"></i>Daily Workflow</h3>
-                </div>
-                <div class="card" style="margin-bottom:20px;">
-                    <div class="card-body">
-                        <div style="display:flex;flex-direction:column;gap:12px;">
-                            ${(s.workflow || []).map((w, i) => {
-                                const wdone = w.done ? 'checked' : '';
-                                const clr  = w.done ? 'var(--text-light)' : 'var(--text-dark)';
-                                const tdec = w.done ? 'line-through' : 'none';
-                                return `<div style="display:flex;align-items:center;gap:10px;cursor:pointer;" onclick="_iaToggleWorkflow('${w.key}', this)">
-                                    <input type="checkbox" class="wf-check" ${wdone} style="cursor:pointer;width:16px;height:16px;accent-color:var(--green)" disabled>
-                                    <div style="flex:1">
-                                        <div class="wf-title" style="font-size:13px;font-weight:600;color:${clr};text-decoration:${tdec}">${w.task}</div>
-                                        <div style="font-size:11px;color:var(--text-body);">${w.desc}</div>
-                                    </div>
-                                    <div class="wf-spinner" style="display:none;font-size:12px;color:var(--green)"><i class="fa-solid fa-circle-notch fa-spin"></i></div>
-                                </div>`;
-                            }).join('')}
-                        </div>
+                <div class="header-strip-right">
+                    <div class="plan-badge">
+                        <div class="plan-status-dot ${s.header.status === 'expiring' ? 'expiring' : (s.header.status === 'expired' ? 'expired' : '')}"></div>
+                        ${s.header.plan} Plan
                     </div>
-                </div>
-
-                <!-- FEE OVERVIEW -->
-                <div class="section-hdr" style="margin-top:18px">
-                    <h3><i class="fa-solid fa-money-bill-wave" style="color:var(--green);margin-right:6px"></i>Fee Overview — This Month</h3>
-                    <a href="#" onclick="goNav('fee','fin-reports')">Full Report →</a>
-                </div>
-                <div class="card">
-                    <div class="card-body">
-                        <div class="fee-summary">
-                            <div class="fee-sum-item collected">
-                                <div class="fs-val">₹ ${formatMoney(s.monthly_collected || 0)}</div>
-                                <div class="fs-lbl">Collected</div>
-                            </div>
-                            <div class="fee-sum-item outstanding">
-                                <div class="fs-val">₹ ${formatMoney(outstanding)}</div>
-                                <div class="fs-lbl">Outstanding</div>
-                            </div>
-                            <div class="fee-sum-item discount">
-                                <div class="fs-val">₹ ${formatMoney(s.monthly_discount || 0)}</div>
-                                <div class="fs-lbl">Discounts Given</div>
-                            </div>
-                        </div>
-
-                        <div style="font-size:12px;font-weight:600;color:var(--text-body);margin-bottom:8px">Due Aging Report</div>
-                        <div class="progress-bar-wrap">
-                            <div class="progress-bar-label"><span>0–30 days (${ag0.count} students)</span><span style="font-weight:700;color:#22c55e">₹ ${formatMoney(ag0.amount)}</span></div>
-                            <div class="progress-bar"><div class="progress-bar-fill green" style="width:${ag0pct}%"></div></div>
-                        </div>
-                        <div class="progress-bar-wrap" style="margin-top:8px">
-                            <div class="progress-bar-label"><span>31–60 days (${ag31.count} students)</span><span style="font-weight:700;color:#f59e0b">₹ ${formatMoney(ag31.amount)}</span></div>
-                            <div class="progress-bar"><div class="progress-bar-fill orange" style="width:${ag31pct}%"></div></div>
-                        </div>
-                        <div class="progress-bar-wrap" style="margin-top:8px">
-                            <div class="progress-bar-label"><span>60+ days (${ag60.count} students)</span><span style="font-weight:700;color:var(--red)">₹ ${formatMoney(ag60.amount)}</span></div>
-                            <div class="progress-bar"><div class="progress-bar-fill red" style="width:${ag60pct}%"></div></div>
-                        </div>
+                    <div class="header-actions">
+                        <button class="btn-v2 secondary" onclick="alert('Upgrade feature coming soon')">Upgrade Plan</button>
+                        <button class="btn-v2 secondary" onclick="window.print()"><i class="fa-solid fa-file-export"></i> Export</button>
+                        <button class="btn-v2 primary" onclick="goNav('students','add')"><i class="fa-solid fa-user-plus"></i> New Student</button>
                     </div>
                 </div>
             </div>
 
-            <!-- RIGHT PANEL -->
-            <div class="right-panel">
-                <!-- QUICK ACTIONS -->
-                <div class="card">
-                    <div class="card-header">
-                        <h4>⚡ Quick Actions</h4>
+            <!-- SECTION B: PRIMARY KPI ROW -->
+            <div class="kpi-row-v2">
+                <!-- 1. Fee Collection -->
+                <div class="kpi-card-v2">
+                    <div class="kpi-v2-header">
+                        <div class="kpi-v2-label">Total Fee (Month)</div>
+                        <div class="kpi-v2-icon green"><i class="fa-solid fa-money-bill-trend-up"></i></div>
                     </div>
-                    <div class="quick-actions">
-                        <div class="qa-grid">
-                            <div class="qa-btn green"  onclick="goNav('students','add')">  <i class="fa-solid fa-user-plus"></i>        <span>New Admission</span></div>
-                            <div class="qa-btn blue"   onclick="goNav('fee','record')">     <i class="fa-solid fa-money-bill-wave"></i> <span>Collect Fee</span></div>
-                            <div class="qa-btn purple" onclick="goNav('exams','create-ex')"><i class="fa-solid fa-file-pen"></i>         <span>Create Exam</span></div>
-                            <div class="qa-btn orange" onclick="goNav('comms','sms')">     <i class="fa-solid fa-bell"></i>            <span>Send SMS</span></div>
-                            <div class="qa-btn teal"   onclick="goNav('lms','materials')"> <i class="fa-solid fa-upload"></i>           <span>Upload Material</span></div>
-                            <div class="qa-btn red"    onclick="goNav('reports','fee-rep')"><i class="fa-solid fa-chart-bar"></i>       <span>Download Report</span></div>
-                        </div>
+                    <div class="kpi-v2-value">₹${formatMoney(s.kpi_fees.collected)}</div>
+                    <div class="kpi-v2-meta">
+                        <span class="growth-pill ${s.kpi_fees.growth >= 0 ? 'up' : 'down'}">
+                            ${s.kpi_fees.growth >= 0 ? '↑' : '↓'} ${Math.abs(s.kpi_fees.growth)}%
+                        </span>
+                        vs last month
                     </div>
-                </div>
-
-                <!-- ACCOUNT ACTIVITY -->
-                <div class="card">
-                    <div class="card-header">
-                        <h4>🔐 Account Activity</h4>
-                        <span class="card-badge green">Secure</span>
+                    <div class="kpi-v2-progress">
+                        <div class="kpi-v2-progress-fill" style="width: ${Math.min(100, (s.kpi_fees.collected / (s.kpi_fees.target || 1)) * 100)}%; background: #10b981;"></div>
                     </div>
-                    <div class="card-body" style="padding:12px 16px">
-                        <div style="display:flex;flex-direction:column;gap:8px">
-                            <div style="background:var(--bg);border-radius:8px;padding:10px 12px;border:1px solid var(--card-border)">
-                                <div style="font-size:10px;color:var(--text-light);font-weight:600;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px">Last Login</div>
-                                <div style="font-size:12px;font-weight:600;color:var(--text-dark)">Session info from server</div>
-                                <div style="font-size:10.5px;color:var(--text-light);margin-top:2px">Secured · HTTPS</div>
-                            </div>
-                            <div style="background:rgba(0,184,148,.06);border-radius:8px;padding:10px 12px;border:1px solid rgba(0,184,148,.2)">
-                                <div style="font-size:10px;color:var(--green);font-weight:600;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px">Current Session</div>
-                                <div style="font-size:12px;font-weight:600;color:var(--text-dark)">${new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</div>
-                                <div style="font-size:10.5px;color:var(--text-light);margin-top:2px">Active · Browser</div>
-                            </div>
-                        </div>
+                    <div style="font-size:10px; color:var(--text-light); margin-top:8px; display:flex; justify-content:space-between;">
+                        <span>Target: ₹${formatMoney(s.kpi_fees.target)}</span>
+                        <span>${Math.round((s.kpi_fees.collected / (s.kpi_fees.target || 1)) * 100)}%</span>
                     </div>
                 </div>
 
-                <!-- SYSTEM ACTIVITY -->
-                <div class="card">
-                    <div class="card-header">
-                        <h4>📌 System Activity</h4>
-                        <span class="card-badge orange">Recent</span>
+                <!-- 2. Pending Dues -->
+                <div class="kpi-card-v2">
+                    <div class="kpi-v2-header">
+                        <div class="kpi-v2-label">Pending Dues</div>
+                        <div class="kpi-v2-icon orange"><i class="fa-solid fa-hand-holding-dollar"></i></div>
                     </div>
-                    <div class="activity-list">
-                        ${(s.recent_activity || []).slice(0, 10).map(a => {
-                            const timeStr = new Date(a.time).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
-                            const icon = a.type === 'payment' ? 'fa-money-bill-wave' : (a.type === 'inquiry' ? 'fa-magnifying-glass' : 'fa-bolt');
-                            const clr = a.type === 'payment' ? 'var(--blue)' : (a.type === 'inquiry' ? 'var(--purple)' : 'var(--green)');
-                            
-                            return `<div class="act-item">
-                                <div class="act-dot" style="background:var(--bg);color:${clr}"><i class="fa-solid ${icon}" style="font-size:11px"></i></div>
-                                <div class="act-content">
-                                    <div class="act-text"><strong>${a.title}</strong></div>
-                                    <div class="act-desc" style="font-size:11px;color:var(--text-body)">${a.desc}</div>
-                                    <div class="act-time" style="font-size:10px;color:var(--text-light);margin-top:2px">${a.user} · ${timeStr}</div>
+                    <div class="kpi-v2-value" style="color: ${s.kpi_dues.threshold_exceeded ? '#ef4444' : 'inherit'}">₹${formatMoney(s.kpi_dues.amount)}</div>
+                    <div class="kpi-v2-meta">
+                        <i class="fa-solid fa-users"></i> ${s.kpi_dues.count} students strictly overdue
+                    </div>
+                    <div class="kpi-v2-progress">
+                        <div class="kpi-v2-progress-fill" style="width: 100%; background: ${s.kpi_dues.threshold_exceeded ? '#ef4444' : '#f59e0b'}; opacity: 0.3;"></div>
+                    </div>
+                </div>
+
+                <!-- 3. Active Students -->
+                <div class="kpi-card-v2">
+                    <div class="kpi-v2-header">
+                        <div class="kpi-v2-label">Active Students</div>
+                        <div class="kpi-v2-icon blue"><i class="fa-solid fa-user-graduate"></i></div>
+                    </div>
+                    <div class="kpi-v2-value">${s.kpi_students.total}</div>
+                    <div class="kpi-v2-meta">
+                        <span class="growth-pill up">+${s.kpi_students.new}</span> new this month
+                    </div>
+                    <div class="kpi-v2-progress">
+                        <div class="kpi-v2-progress-fill" style="width: 100%; background: #3b82f6; opacity:0.3;"></div>
+                    </div>
+                </div>
+
+                <!-- 4. Staff/Teachers -->
+                <div class="kpi-card-v2">
+                    <div class="kpi-v2-header">
+                        <div class="kpi-v2-label">Total Staff</div>
+                        <div class="kpi-v2-icon purple"><i class="fa-solid fa-chalkboard-user"></i></div>
+                    </div>
+                    <div class="kpi-v2-value">${s.kpi_staff.total}</div>
+                    <div class="kpi-v2-meta">
+                        <i class="fa-solid fa-circle-check" style="color:#10b981"></i> All systems active
+                    </div>
+                    <div class="kpi-v2-progress">
+                        <div class="kpi-v2-progress-fill" style="width: 100%; background: #8b5cf6; opacity:0.3;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION C: SECONDARY KPI STRIP -->
+            <div class="secondary-strip-v2">
+                <div class="compact-card-v2">
+                    <div class="compact-card-info">
+                        <div class="compact-card-label">Avg. Attendance</div>
+                        <div class="compact-card-value">${s.secondary_kpi.attendance.current}%</div>
+                    </div>
+                    <div class="compact-card-trend" style="color: ${s.secondary_kpi.attendance.current >= s.secondary_kpi.attendance.previous ? '#10b981' : '#ef4444'}">
+                        ${s.secondary_kpi.attendance.current >= s.secondary_kpi.attendance.previous ? '↑' : '↓'} ${Math.abs(s.secondary_kpi.attendance.current - s.secondary_kpi.attendance.previous).toFixed(1)}%
+                    </div>
+                </div>
+                <div class="compact-card-v2">
+                    <div class="compact-card-info">
+                        <div class="compact-card-label">Active Batches</div>
+                        <div class="compact-card-value">${s.secondary_kpi.batches}</div>
+                    </div>
+                    <i class="fa-solid fa-layer-group" style="opacity:0.2"></i>
+                </div>
+                <div class="compact-card-v2">
+                    <div class="compact-card-info">
+                        <div class="compact-card-label">Total Courses</div>
+                        <div class="compact-card-value">${s.secondary_kpi.courses}</div>
+                    </div>
+                    <i class="fa-solid fa-book" style="opacity:0.2"></i>
+                </div>
+                <div class="compact-card-v2">
+                    <div class="compact-card-info">
+                        <div class="compact-card-label">Open Inquiries</div>
+                        <div class="compact-card-value">${s.secondary_kpi.inquiries}</div>
+                    </div>
+                    <span class="badge-pill" style="background:rgba(245, 158, 11, 0.1); color:#f59e0b">Action Needed</span>
+                </div>
+            </div>
+
+            <!-- SECTION D & E: ANALYTICS AREA -->
+            <div class="main-analytics-v2">
+                <!-- Fee Trend Chart -->
+                <div class="panel-v2">
+                    <div class="panel-v2-header">
+                        <h3><i class="fa-solid fa-chart-line"></i> Fee Collection Trend (${new Date().getFullYear()})</h3>
+                        <select class="form-select-sm" style="border:none; font-size:12px; font-weight:700; color:var(--text-light)">
+                            <option>Last 12 Months</option>
+                        </select>
+                    </div>
+                    <div class="panel-v2-body" style="height: 350px;">
+                        <canvas id="revenueChartV2"></canvas>
+                    </div>
+                </div>
+
+                <!-- Target Panel -->
+                <div class="panel-v2">
+                    <div class="panel-v2-header">
+                        <h3><i class="fa-solid fa-bullseye"></i> Goal Tracking</h3>
+                    </div>
+                    <div class="panel-v2-body">
+                        <!-- Fee Target -->
+                        <div class="target-card">
+                            <div class="target-circle">
+                                <canvas id="feeTargetCircle" width="60" height="60"></canvas>
+                                <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:800;">
+                                    ${s.targets.fee.percent}%
                                 </div>
-                            </div>`;
-                        }).join('')}
+                            </div>
+                            <div class="target-info">
+                                <div class="target-label">Monthly Collection</div>
+                                <div class="target-amt">₹${formatMoney(s.targets.fee.collected)}</div>
+                                <div class="target-sub">Goal: ₹${formatMoney(s.targets.fee.target)}</div>
+                            </div>
+                        </div>
+
+                        <!-- Enrollment Target -->
+                        <div class="target-card">
+                            <div class="target-circle">
+                                <canvas id="enrollTargetCircle" width="60" height="60"></canvas>
+                                <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:800;">
+                                    ${s.targets.enrollment.percent}%
+                                </div>
+                            </div>
+                            <div class="target-info">
+                                <div class="target-label">Student Admissions</div>
+                                <div class="target-amt">${s.targets.enrollment.current} Students</div>
+                                <div class="target-sub">Goal: ${s.targets.enrollment.target} Admissions</div>
+                            </div>
+                        </div>
+
+                        <div style="background:#fef3c7; padding:12px; border-radius:10px; border:1px solid #fde68a; font-size:11px; color:#92400e; margin-top:10px;">
+                            <i class="fa-solid fa-lightbulb"></i> <strong>Tip:</strong> Reach your targets to unlock Enterprise badge rewards.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BOTTOM GRID: SECTIONS F-K -->
+            <div class="bottom-grid">
+                <!-- Notices -->
+                <div class="panel-v2">
+                    <div class="panel-v2-header">
+                        <h3><i class="fa-solid fa-bullhorn"></i> Active Notices</h3>
+                        <a href="#" style="font-size:11px; font-weight:700; color:var(--blue-pure)">View All</a>
+                    </div>
+                    <div class="panel-v2-body">
+                        ${s.notices.length ? s.notices.map(n => `
+                            <div class="v2-notice ${n.priority === 'high' ? 'high' : 'normal'}">
+                                <div style="font-size:13px; font-weight:700; color:var(--text-dark)">${n.title}</div>
+                                <div class="v2-notice-time">${new Date(n.created_at).toLocaleDateString()} • ${n.notice_type}</div>
+                            </div>
+                        `).join('') : '<div style="text-align:center; padding:20px; color:var(--text-light); font-size:12px;">No active notices</div>'}
+                    </div>
+                </div>
+
+                <!-- Recent Admissions -->
+                <div class="panel-v2">
+                    <div class="panel-v2-header">
+                        <h3><i class="fa-solid fa-user-plus"></i> Recent Admissions</h3>
+                    </div>
+                    <div class="panel-v2-body">
+                        <table class="v2-table">
+                            ${s.recent_admissions.map(adm => `
+                                <tr>
+                                    <td>
+                                        <div class="v2-student-row">
+                                            <div class="v2-avatar">${adm.full_name[0]}</div>
+                                            <div>
+                                                <div style="font-size:13px; font-weight:700;">${adm.full_name}</div>
+                                                <div style="font-size:11px; color:var(--text-light)">${adm.course_name}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td align="right">
+                                        <span class="v2-status-badge ${adm.status === 'active' ? 'active' : 'pending'}">${adm.status}</span>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Attendance Overview -->
+                <div class="panel-v2">
+                    <div class="panel-v2-header">
+                        <h3><i class="fa-solid fa-clipboard-user"></i> Attendance Today</h3>
+                    </div>
+                    <div class="panel-v2-body">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
+                            <div style="text-align:center">
+                                <div style="font-size:20px; font-weight:800; color:#10b981">${s.attendance_overview.today.present}</div>
+                                <div style="font-size:10px; color:var(--text-light); text-transform:uppercase">Present</div>
+                            </div>
+                            <div style="text-align:center">
+                                <div style="font-size:20px; font-weight:800; color:#ef4444">${s.attendance_overview.today.absent}</div>
+                                <div style="font-size:10px; color:var(--text-light); text-transform:uppercase">Absent</div>
+                            </div>
+                            <div style="text-align:center">
+                                <div style="font-size:20px; font-weight:800; color:#3b82f6">${s.attendance_overview.today.total}</div>
+                                <div style="font-size:10px; color:var(--text-light); text-transform:uppercase">Total</div>
+                            </div>
+                        </div>
+                        <div style="font-size:12px; font-weight:700; color:var(--text-light); margin-bottom:10px;">Batch-wise Breakdown</div>
+                        ${s.attendance_overview.batches.map(b => `
+                            <div style="margin-bottom:8px;">
+                                <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:4px;">
+                                    <span style="font-weight:600;">${b.name}</span>
+                                    <span style="color:var(--text-light)">${b.present}/${b.total}</span>
+                                </div>
+                                <div class="progress" style="height:4px; border-radius:10px;">
+                                    <div class="progress-bar" style="width: ${(b.present / (b.total || 1)) * 100}%; background:#10b981;"></div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+
+                <!-- Activity Log -->
+                <div class="panel-v2">
+                    <div class="panel-v2-header">
+                        <h3><i class="fa-solid fa-fingerprint"></i> Activity Log</h3>
+                    </div>
+                    <div class="panel-v2-body">
+                        ${s.activity_log.length ? s.activity_log.map(act => `
+                            <div class="v2-activity-item">
+                                <div class="v2-activity-icon"><i class="fa-solid fa-bolt"></i></div>
+                                <div class="v2-activity-content">
+                                    <div class="v2-activity-title">${act.description}</div>
+                                    <div class="v2-activity-meta">${act.user_name} • ${new Date(act.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</div>
+                                </div>
+                            </div>
+                        `).join('') : '<div style="text-align:center; padding:20px; color:var(--text-light); font-size:12px;">No recent activities</div>'}
+                    </div>
+                </div>
+
+                <!-- Upcoming Exams -->
+                <div class="panel-v2">
+                    <div class="panel-v2-header">
+                        <h3><i class="fa-solid fa-file-pen"></i> Upcoming Exams</h3>
+                    </div>
+                    <div class="panel-v2-body">
+                        <table class="v2-table">
+                            ${s.upcoming_exams.map(ex => `
+                                <tr>
+                                    <td>
+                                        <div style="font-size:13px; font-weight:700;">${ex.title}</div>
+                                        <div style="font-size:11px; color:var(--text-light);">${ex.course}</div>
+                                    </td>
+                                    <td align="right">
+                                        <div style="font-size:12px; font-weight:700; color:var(--blue-pure)">${new Date(ex.exam_date).toLocaleDateString('en-IN', {day:'numeric', month:'short'})}</div>
+                                        <div style="font-size:10px; color:var(--text-light)">${ex.start_time}</div>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Library Module -->
+                <div class="panel-v2">
+                    <div class="panel-v2-header">
+                        <h3><i class="fa-solid fa-book-open"></i> Library Hub</h3>
+                    </div>
+                    <div class="panel-v2-body">
+                        ${s.library ? `
+                            <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; text-align:center;">
+                                <div style="background:#f1f5f9; padding:12px; border-radius:12px;">
+                                    <div style="font-size:18px; font-weight:800;">${s.library.total}</div>
+                                    <div style="font-size:10px; color:var(--text-light); text-transform:uppercase">Books</div>
+                                </div>
+                                <div style="background:#f1f5f9; padding:12px; border-radius:12px;">
+                                    <div style="font-size:18px; font-weight:800; color:#3b82f6">${s.library.issued}</div>
+                                    <div style="font-size:10px; color:var(--text-light); text-transform:uppercase">Issued</div>
+                                </div>
+                                <div style="background:#f1f5f9; padding:12px; border-radius:12px;">
+                                    <div style="font-size:18px; font-weight:800; color:#ef4444">${s.library.overdue}</div>
+                                    <div style="font-size:10px; color:var(--text-light); text-transform:uppercase">Overdue</div>
+                                </div>
+                            </div>
+                            <div style="margin-top:20px;">
+                                <button class="btn-v2 secondary" style="width:100%; justify-content:center; color:var(--text-primary); border:1px solid var(--card-border); background:none">
+                                    Issue New Book
+                                </button>
+                            </div>
+                        ` : '<div style="text-align:center; padding:20px; color:var(--text-light); font-size:12px;">Library module not configured</div>'}
                     </div>
                 </div>
             </div>
@@ -556,56 +634,107 @@ async function _iaRenderDashboard() {
         `;
 
         // Initialize Charts
-        setTimeout(() => _iaInitRevenueChart(s.revenue_trend), 150);
-
-        // Bind interactions
-        _iaBindDashboardInteractions();
+        setTimeout(() => {
+            _iaInitRevenueChartV2(s.revenue_graph);
+            _iaDrawTargetCircle('feeTargetCircle', s.targets.fee.percent, '#10b981');
+            _iaDrawTargetCircle('enrollTargetCircle', s.targets.enrollment.percent, '#3b82f6');
+        }, 200);
 
     } catch(err) {
-        mc.innerHTML = `<div class="card" style="padding:40px;text-align:center;color:var(--red);"><i class="fa-solid fa-circle-exclamation" style="font-size:3rem;margin-bottom:16px;"></i><h3>Failed to load dashboard</h3><p>${err.message}</p><button class="qa-btn" style="margin:20px auto 0;" onclick="_iaRenderDashboard()">Retry</button></div>`;
+        console.error('Dashboard Load Error:', err);
+        mc.innerHTML = `<div class="card" style="padding:40px;text-align:center;color:var(--red);"><i class="fa-solid fa-circle-exclamation" style="font-size:3rem;margin-bottom:16px;"></i><h3>Failed to load dashboard</h3><p>${err.message}</p><button class="btn-v2 primary" style="margin:20px auto 0;" onclick="_iaRenderDashboard()">Retry</button></div>`;
     }
 }
 
-async function _iaToggleWorkflow(taskKey, el) {
-    const check = el.querySelector('.wf-check');
-    const title = el.querySelector('.wf-title');
-    const spinner = el.querySelector('.wf-spinner');
+function _iaInitRevenueChartV2(trendData) {
+    if(!trendData || !trendData.length) return;
+    const canvas = document.getElementById('revenueChartV2');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
     
-    const isCompleted = !check.checked;
-    
-    // Show spinner
-    if (spinner) spinner.style.display = 'block';
-    
-    try {
-        const endpoint = (window.APP_URL || '') + '/api/admin/dashboard_stats.php?action=workflow';
-        const res = await fetch(endpoint, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                task_key: taskKey,
-                is_completed: isCompleted,
-                task_name: title.innerText
-            })
-        });
-        
-        const result = await res.json();
-        if (result.success) {
-            check.checked = isCompleted;
-            if (isCompleted) {
-                title.style.color = 'var(--text-light)';
-                title.style.textDecoration = 'line-through';
-            } else {
-                 title.style.color = 'var(--text-dark)';
-                 title.style.textDecoration = 'none';
+    const labels = trendData.map(d => d.month_name);
+    const data   = trendData.map(d => d.collected);
+
+    const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+    gradient.addColorStop(0, 'rgba(16, 185, 129, 0.4)');
+    gradient.addColorStop(1, 'rgba(16, 185, 129, 0.0)');
+
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Fee Collection (₹)',
+                data: data,
+                borderColor: '#10b981',
+                borderWidth: 3,
+                fill: true,
+                backgroundColor: gradient,
+                tension: 0.4,
+                pointRadius: 5,
+                pointBackgroundColor: '#fff',
+                pointBorderColor: '#10b981',
+                pointBorderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { 
+                legend: { display: false },
+                tooltip: { 
+                    backgroundColor: '#1e293b',
+                    padding: 12,
+                    titleFont: { family: 'Plus Jakarta Sans', size: 13 },
+                    bodyFont: { family: 'Plus Jakarta Sans', size: 13 }
+                }
+            },
+            scales: {
+                y: { 
+                    beginAtZero: true, 
+                    grid: { color: '#f1f5f9', borderDash: [5, 5] },
+                    ticks: { 
+                        font: { size: 10 },
+                        callback: v => '₹' + (v >= 1000 ? (v/1000).toFixed(0) + 'K' : v) 
+                    }
+                },
+                x: { 
+                    grid: { display: false },
+                    ticks: { font: { size: 10, weight: '700' } }
+                }
             }
-        } else {
-            alert('Failed to update workflow: ' + result.message);
         }
-    } catch (err) {
-        console.error('Workflow update error:', err);
-    } finally {
-        if (spinner) spinner.style.display = 'none';
-    }
+    });
+}
+
+function _iaDrawTargetCircle(canvasId, percent, color) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const x = canvas.width / 2;
+    const y = canvas.height / 2;
+    const radius = 25;
+    const endAngle = (percent / 100) * (Math.PI * 2) - (Math.PI / 2);
+
+    // Background circle
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, Math.PI * 2);
+    ctx.strokeStyle = '#f1f5f9';
+    ctx.lineWidth = 6;
+    ctx.stroke();
+
+    // Progress circle
+    ctx.beginPath();
+    ctx.arc(x, y, radius, -Math.PI / 2, endAngle);
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 6;
+    ctx.lineCap = 'round';
+    ctx.stroke();
+}
+
+async function _iaToggleWorkflow(taskKey, el) {
+    // Legacy mapping - we might update this later or remove if redundant
+    console.log('Workflow toggle for:', taskKey);
 }
 
 function _iaInitRevenueChart(trendData) {
@@ -828,9 +957,6 @@ document.addEventListener('DOMContentLoaded', () => {
             sbSearch.value = '';
             
             switch(type) {
-                case 'student':
-                    goNav('students', null, { id: id, action: 'view' });
-                    break;
                 case 'teacher':
                     goNav('staff', null, { id: id, action: 'view' });
                     break;

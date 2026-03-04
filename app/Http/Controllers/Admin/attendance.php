@@ -95,7 +95,7 @@ try {
         switch ($action) {
             case 'take':
             case 'bulk':
-                $result = $service->takeAttendance($input, $userId, $tenantId);
+                $result = $service->takeAttendance($input, $userId, $tenantId, $role);
                 echo json_encode(['success' => true, 'message' => 'Attendance saved successfully']);
                 break;
             case 'lock':
@@ -125,7 +125,7 @@ try {
         $id = $input['id'] ?? null;
         if (!$id) throw new \Exception("Attendance ID required");
         
-        $record = $service->editAttendance($id, $input, $userId, $tenantId);
+        $record = $service->editAttendance($id, $input, $userId, $tenantId, $role);
         echo json_encode(['success' => true, 'data' => $record, 'message' => 'Attendance updated']);
     }
 

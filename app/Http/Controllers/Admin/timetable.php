@@ -73,7 +73,7 @@ try {
         $query = "SELECT ts.*, 
                   b.name as batch_name, 
                   t.full_name as teacher_name,
-                  s.full_name as subject_name,
+                  s.name as subject_name,
                   s.code as subject_code,
                   c.name as course_name
                   FROM timetable_slots ts

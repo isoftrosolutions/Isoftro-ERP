@@ -76,6 +76,25 @@ class Student {
     }
     
     /**
+     * ISSUE-U4 FIX: Normalize a value to a clean JSON string.
+     * If the value is already a JSON string, it decodes then re-encodes (prevents double-encoding).
+     * If it's an array, it encodes directly.
+     * If empty/null, returns '{}' or '[]' depending on $emptyFallback.
+     */
+    private function normalizeJson($val, string $emptyFallback = '{}'): string
+    {
+        if (empty($val)) return $emptyFallback;
+        if (is_array($val)) return json_encode($val);
+        // Already a JSON string — decode and re-encode to ensure validity
+        $decoded = json_decode($val, true);
+        if (json_last_error() === JSON_ERROR_NONE) {
+            return json_encode($decoded);
+        }
+        // Not valid JSON — wrap as plain string value
+        return json_encode(['address' => (string)$val]);
+    }
+
+    /**
      * Create new student
      */
     public function create($data) {
@@ -95,16 +114,18 @@ class Student {
             $data['roll_no'],
             $data['full_name'],
             $data['dob_ad'] ?? null,
-            $data['dob_bs'] ?? null,
+            // ISSUE-U3 FIX: Normalize empty dob_bs string to NULL
+            (isset($data['dob_bs']) && $data['dob_bs'] !== '') ? $data['dob_bs'] : null,
             $data['gender'] ?? 'male',
             $data['blood_group'] ?? null,
             $encryptedCitizenship,
             $data['father_name'] ?? null,
             $data['mother_name'] ?? null,
             $data['husband_name'] ?? null,
-            json_encode($data['permanent_address'] ?? []),
-            json_encode($data['temporary_address'] ?? []),
-            json_encode($data['academic_qualifications'] ?? []),
+            // ISSUE-U4 FIX: normalizeJson prevents double-encoding when value arrives as a JSON string
+            $this->normalizeJson($data['permanent_address'] ?? null),
+            $this->normalizeJson($data['temporary_address'] ?? null),
+            $this->normalizeJson($data['academic_qualifications'] ?? null, '[]'),
             $data['photo_url'] ?? null,
             $data['status'] ?? 'active',
             $data['admission_date'] ?? date('Y-m-d')
@@ -132,15 +153,19 @@ class Student {
             $data['citizenship_no'] = \App\Helpers\EncryptionHelper::encrypt($data['citizenship_no']);
         }
         
-        // Handle JSON encodings
-        if (isset($data['permanent_address']) && is_array($data['permanent_address'])) {
-            $data['permanent_address'] = json_encode($data['permanent_address']);
+        // Handle JSON encodings — use normalizeJson to avoid double-encoding existing JSON strings
+        if (isset($data['permanent_address'])) {
+            $data['permanent_address'] = $this->normalizeJson($data['permanent_address']);
         }
-        if (isset($data['temporary_address']) && is_array($data['temporary_address'])) {
-            $data['temporary_address'] = json_encode($data['temporary_address']);
+        if (isset($data['temporary_address'])) {
+            $data['temporary_address'] = $this->normalizeJson($data['temporary_address']);
         }
-        if (isset($data['academic_qualifications']) && is_array($data['academic_qualifications'])) {
-            $data['academic_qualifications'] = json_encode($data['academic_qualifications']);
+        if (isset($data['academic_qualifications'])) {
+            $data['academic_qualifications'] = $this->normalizeJson($data['academic_qualifications'], '[]');
+        }
+        // ISSUE-U3 FIX: Normalize empty dob_bs to NULL
+        if (isset($data['dob_bs']) && $data['dob_bs'] === '') {
+            $data['dob_bs'] = null;
         }
         
         $fields = [];

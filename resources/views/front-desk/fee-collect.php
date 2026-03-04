@@ -8,32 +8,34 @@ if (!defined('APP_NAME')) {
     require_once __DIR__ . '/../../../config/config.php';
 }
 
-$pageTitle = 'Collect Fee';
-require_once VIEWS_PATH . '/layouts/header_1.php';
-require_once __DIR__ . '/sidebar.php';
+if (!isset($_GET['partial'])) {
+    $pageTitle = 'Collect Fee';
+    require_once VIEWS_PATH . '/layouts/header_1.php';
+    require_once __DIR__ . '/sidebar.php';
 
+}
 $studentId = $_GET['student_id'] ?? null;
 ?>
 
-<?php renderFrontDeskHeader(); ?>
-<?php renderFrontDeskSidebar('fees'); ?>
-
-<main class="main" id="mainContent">
+<?php
+if (!isset($_GET['partial'])) {
+    renderFrontDeskHeader();
+    renderFrontDeskSidebar('fees');
+}
+?>
     <div class="pg">
         <!-- Page Header -->
         <div class="pg-head">
-            <div class="pg-left">
-                <div class="pg-ico" style="background:linear-gradient(135deg, #F59E0B, #D97706);">
-                    <i class="fa-solid fa-hand-holding-dollar"></i>
-                </div>
-                <div>
-                    <h1 class="pg-title">Collect Fee</h1>
-                    <p class="pg-sub">Record payments and generate receipts</p>
-                </div>
+            <div>
+                <h1 class="pg-title">Fee Collection</h1>
+                <p class="pg-sub">Record payments and generate instant receipts</p>
             </div>
             <div class="pg-acts">
-                <a href="<?= APP_URL ?>/dash/front-desk/fee-outstanding" class="btn bt">
-                    <i class="fa-solid fa-clock"></i> View Outstanding
+                <a href="<?= APP_URL ?>/dash/front-desk/index?page=fee-outstanding" class="btn bt">
+                    <i class="fa-solid fa-clock"></i> Outstanding Fees
+                </a>
+                <a href="<?= APP_URL ?>/dash/front-desk/index?page=fee-receipts" class="btn bt">
+                    <i class="fa-solid fa-file-invoice-dollar"></i> Recent Receipts
                 </a>
             </div>
         </div>
@@ -138,8 +140,6 @@ $studentId = $_GET['student_id'] ?? null;
             </div>
         </div>
     </div>
-</main>
-
 <!-- Success Modal / Receipt Overlay -->
 <div id="receiptOverlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:9000; display:none; align-items:center; justify-content:center; padding:20px;">
     <div class="card" style="width:100%; max-width:500px; padding:30px; border-radius:20px; text-align:center;">
@@ -233,81 +233,98 @@ async function loadOutstandingFees(studentId) {
     list.innerHTML = '<div style="padding:20px; text-align:center; color:#94a3b8;"><i class="fa-solid fa-spinner fa-spin"></i> Loading fees...</div>';
     
     try {
-        const res = await fetch(`<?= APP_URL ?>/api/frontdesk/fees?action=get_outstanding&student_id=${studentId}`);
-        const result = await res.json();
-        
-        if (result.success) {
-            outstandingItems = result.data || [];
-            if (outstandingItems.length === 0) {
-                list.innerHTML = '<div style="padding:20px; text-align:center; color:#10B981; font-weight:600;"><i class="fa-solid fa-check-circle"></i> No outstanding fees!</div>';
-                document.getElementById('totalDueLabel').textContent = 'NPR 0.00';
-                document.getElementById('payAmount').value = '';
-                return;
+            const res = await fetch(`<?= APP_URL ?>/api/frontdesk/fees?action=get_outstanding&student_id=${studentId}`);
+            const result = await res.json();
+            
+            if (result.success) {
+                outstandingItems = result.data || [];
+                if (outstandingItems.length === 0) {
+                    list.innerHTML = '<div style="padding:20px; text-align:center; color:#10B981; font-weight:600;"><i class="fa-solid fa-check-circle"></i> No outstanding fees!</div>';
+                    document.getElementById('totalDueLabel').textContent = 'NPR 0.00';
+                    document.getElementById('payAmount').value = '';
+                    return;
+                }
+                
+                let total = 0;
+                list.innerHTML = outstandingItems.map(i => {
+                    const balance = parseFloat(i.amount_due) - parseFloat(i.amount_paid);
+                    total += balance;
+                    return `
+                        <div class="fee-row">
+                            <div>
+                                <div style="font-weight:600; font-size:14px;">${i.fee_name}</div>
+                                <div style="font-size:11px; color:#64748b;">Due Date: ${i.due_date}</div>
+                            </div>
+                            <div style="text-align:right;">
+                                <div style="font-weight:700; color:#ef4444;">NPR ${balance.toLocaleString()}</div>
+                                <div style="font-size:11px; color:#94a3b8;">Total: ${i.amount_due}</div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                
+                document.getElementById('totalDueLabel').textContent = 'NPR ' + total.toLocaleString();
+                document.getElementById('payAmount').value = total;
             }
-            
-            let total = 0;
-            list.innerHTML = outstandingItems.map(i => {
-                const balance = parseFloat(i.amount_due) - parseFloat(i.amount_paid);
-                total += balance;
-                return `
-                    <div class="fee-row">
-                        <div>
-                            <div style="font-weight:600; font-size:14px;">${i.fee_name}</div>
-                            <div style="font-size:11px; color:#64748b;">Due Date: ${i.due_date}</div>
-                        </div>
-                        <div style="text-align:right;">
-                            <div style="font-weight:700; color:#ef4444;">NPR ${balance.toLocaleString()}</div>
-                            <div style="font-size:11px; color:#94a3b8;">Total: ${i.amount_due}</div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-            
-            document.getElementById('totalDueLabel').textContent = 'NPR ' + total.toLocaleString();
-            document.getElementById('payAmount').value = total;
+        } catch (e) {
+            list.innerHTML = '<div style="padding:20px; text-align:center; color:#ef4444;">Error loading fees</div>';
         }
-    } catch (e) {
-        list.innerHTML = '<div style="padding:20px; text-align:center; color:#ef4444;">Error loading fees</div>';
     }
-}
-
-async function recordPayment(e) {
-    e.preventDefault();
-    if (!currentStudent) return;
     
-    const btn = document.getElementById('payBtn');
-    const form = e.target;
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Processing...';
-    
-    const formData = new FormData(form);
-    const data = Object.fromEntries(formData.entries());
-    data.action = 'record_payment';
-    data.student_id = currentStudent.id;
-    
-    try {
-        const res = await fetch('<?= APP_URL ?>/api/frontdesk/fees', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        });
+    async function recordPayment(e) {
+        e.preventDefault();
+        if (!currentStudent) return;
         
-        const result = await res.json();
-        if (result.success) {
-            document.getElementById('receiptOverlay').style.display = 'flex';
-            document.getElementById('printReceiptBtn').onclick = () => {
-                window.open(`<?= APP_URL ?>/api/frontdesk/fees?action=generate_receipt_html&transaction_id=${result.transaction_id}`, '_blank');
-            };
-        } else {
-            alert('Error: ' + result.message);
+        const btn = document.getElementById('payBtn');
+        const form = e.target;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Processing...';
+        
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+        data.action = 'record_payment';
+        data.student_id = currentStudent.id;
+        
+        try {
+            const res = await fetch('<?= APP_URL ?>/api/frontdesk/fees', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            
+            const result = await res.json();
+            if (result.success) {
+                const overlay = document.getElementById('receiptOverlay');
+                const statusP = overlay.querySelector('p');
+                const emailStatus = result.data.email_status;
+                const receiptNo = result.data.receipt_no;
+                const transactionId = result.data.transaction_id;
+                
+                if (emailStatus === 'sent') {
+                    statusP.innerHTML = `Receipt <strong>#${receiptNo}</strong> successfully generated and emailed to student.`;
+                    statusP.style.color = '#166534';
+                } else if (emailStatus === 'no_email') {
+                    statusP.innerHTML = `Receipt <strong>#${receiptNo}</strong> generated. Email not sent (Student has no email address).`;
+                    statusP.style.color = '#92400E';
+                } else {
+                    statusP.innerHTML = `Receipt <strong>#${receiptNo}</strong> generated. <span style="color:#ef4444;">Email delivery failed.</span>`;
+                }
+                
+                overlay.style.display = 'flex';
+                document.getElementById('printReceiptBtn').onclick = () => {
+                    window.open(`<?= APP_URL ?>/api/frontdesk/fees?action=generate_receipt_html&receipt_no=${receiptNo}`, '_blank');
+                };
+            }
+ else {
+                alert('Error: ' + result.message);
+            }
+        } catch (e) {
+            alert('Internal server error');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-receipt"></i> Process Payment';
         }
-    } catch (e) {
-        alert('Internal server error');
-    } finally {
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fa-solid fa-receipt"></i> Process Payment';
     }
-}
 
 // Handle URL param student_id
 window.addEventListener('DOMContentLoaded', () => {
@@ -325,8 +342,9 @@ window.addEventListener('DOMContentLoaded', () => {
 </script>
 
 <?php
-renderSuperAdminCSS();
-echo '<script src="' . APP_URL . '/public/assets/js/frontdesk.js"></script>';
+if (!isset($_GET['partial'])) {
+    renderSuperAdminCSS();
+    echo '<script src="' . APP_URL . '/public/assets/js/frontdesk.js"></script>';
+    echo '</body></html>';
+}
 ?>
-</body>
-</html>

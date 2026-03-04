@@ -8,10 +8,12 @@ if (!defined('APP_NAME')) {
     require_once __DIR__ . '/../../../config/config.php';
 }
 
-$pageTitle = 'Mark Attendance';
-require_once VIEWS_PATH . '/layouts/header_1.php';
-require_once __DIR__ . '/sidebar.php';
+if (!isset($_GET['partial'])) {
+    $pageTitle = 'Mark Attendance';
+    require_once VIEWS_PATH . '/layouts/header_1.php';
+    require_once __DIR__ . '/sidebar.php';
 
+}
 // Fetch courses & batches
 $db = getDBConnection();
 $tenantId = $_SESSION['userData']['tenant_id'];
@@ -20,15 +22,17 @@ $stmtCourses = $db->prepare("SELECT id, name FROM courses WHERE tenant_id = :tid
 $stmtCourses->execute(['tid' => $tenantId]);
 $courses = $stmtCourses->fetchAll(PDO::FETCH_ASSOC);
 
-$stmtBatches = $db->prepare("SELECT id, course_id, name, shift FROM batches WHERE tenant_id = :tid AND deleted_at IS NULL ORDER BY name");
+$stmtBatches = $db->prepare("SELECT id, course_id, name, shift FROM batches WHERE tenant_id = :tid AND status = 'active' AND deleted_at IS NULL ORDER BY name");
 $stmtBatches->execute(['tid' => $tenantId]);
 $batches = $stmtBatches->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
-<?php renderFrontDeskHeader(); ?>
-<?php renderFrontDeskSidebar('academic'); ?>
-
-<main class="main" id="mainContent">
+<?php
+if (!isset($_GET['partial'])) {
+    renderFrontDeskHeader();
+    renderFrontDeskSidebar('academic');
+}
+?>
     <div class="pg">
         <!-- Page Header -->
         <div class="pg-head">
@@ -100,8 +104,6 @@ $batches = $stmtBatches->fetchAll(PDO::FETCH_ASSOC);
             <p>Select a batch and click "Load Students" to start marking attendance.</p>
         </div>
     </div>
-</main>
-
 <style>
 .fl { display: block; font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 6px; }
 .fi { width:100%; padding:10px 14px; border:1.5px solid #e2e8f0; border-radius:10px; font-size:14px; outline:none; transition:all 0.2s; background:#fff; box-sizing:border-box; }
@@ -227,8 +229,9 @@ async function saveAttendance() {
 </script>
 
 <?php
-renderSuperAdminCSS();
-echo '<script src="' . APP_URL . '/public/assets/js/frontdesk.js"></script>';
+if (!isset($_GET['partial'])) {
+    renderSuperAdminCSS();
+    echo '<script src="' . APP_URL . '/public/assets/js/frontdesk.js"></script>';
+    echo '</body></html>';
+}
 ?>
-</body>
-</html>

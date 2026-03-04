@@ -107,6 +107,7 @@ function renderAppConfig() {
     echo '    <script>' . "\n";
     echo '        window.APP_URL = "' . APP_URL . '";' . "\n";
     echo '        window.SA_THEME = "' . SUPERADMIN_THEME_COLOR . '";' . "\n";
+    echo '        window.CSRF_TOKEN = "' . (function_exists('generateCSRFToken') ? generateCSRFToken() : '') . '";' . "\n";
     echo '    </script>' . "\n";
 }
 

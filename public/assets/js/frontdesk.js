@@ -3,6 +3,8 @@
  * Production Blueprint V3.0 — Implementation (LIGHT THEME)
  */
 
+console.log('Front Desk Operator Loaded');
+
 document.addEventListener('DOMContentLoaded', () => {
     // ── STATE ──
     const urlParams = new URLSearchParams(window.location.search);
@@ -17,6 +19,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const sbClose = document.getElementById('sbClose');
     const sbOverlay = document.getElementById('sbOverlay');
 
+    // global CSRF header helper
+    window.getHeaders = (options = {}) => {
+        const headers = options.headers || {};
+        if (window.CSRF_TOKEN) {
+            headers['X-CSRF-Token'] = window.CSRF_TOKEN;
+        }
+        return { ...options, headers };
+    };
+
     // ── SIDEBAR TOGGLE ──
     const toggleSidebar = () => document.body.classList.toggle('sb-active');
     const closeSidebar = () => document.body.classList.remove('sb-active');
@@ -27,51 +38,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ── NAVIGATION TREE ──
     const NAV = [
-        { id: "dashboard", icon: "fa-house", label: "Dashboard", sub: null, sec: "MAIN" },
-        { id: "inquiries", icon: "fa-magnifying-glass", label: "Inquiries", sub: [
-            { id: "inq-list", l: "Inquiry List", icon: "fa-list" },
-            { id: "inq-add", l: "Add New Inquiry", icon: "fa-plus" },
-            { id: "inq-rem", l: "Follow-Up Reminders", icon: "fa-bell" },
-            { id: "inq-rep", l: "Conversion Report", icon: "fa-chart-pie" }
-        ], sec: "OPERATIONS" },
+        { id: "dashboard", icon: "fa-chart-pie", label: "Overview", sub: null, sec: "Main" },
         { id: "admissions", icon: "fa-user-graduate", label: "Admissions", sub: [
-            { id: "adm-form", l: "New Admission Form", icon: "fa-file-signature" },
-            { id: "adm-all", l: "All Students", icon: "fa-users" },
-            { id: "adm-id", l: "ID Card Generator", icon: "fa-id-card" },
-            { id: "adm-doc", l: "Document Verification", icon: "fa-clipboard-check" }
-        ], sec: "OPERATIONS" },
-        { id: "fee", icon: "fa-money-bill-wave", label: "Fee Collection", sub: [
-            { id: "fee-coll", l: "Collect Payment", icon: "fa-hand-holding-dollar" },
-            { id: "fee-out", l: "Outstanding Dues", icon: "fa-clock" },
-            { id: "fee-rcp", l: "Receipt History", icon: "fa-receipt" },
-            { id: "fee-sum", l: "Daily Collection Summary", icon: "fa-table-list" }
-        ], sec: "OPERATIONS" },
-        { id: "library", icon: "fa-book", label: "Library", sub: [
-            { id: "lib-issue", l: "Issue Book", icon: "fa-book-open" },
-            { id: "lib-return", l: "Return Book", icon: "fa-arrow-rotate-left" },
-            { id: "lib-overdue", l: "Overdue List", icon: "fa-triangle-exclamation" }
-        ], sec: "OPERATIONS" },
-        { id: "notifs", icon: "fa-paper-plane", label: "Notifications", sub: [
-            { id: "sms-send", l: "Send SMS", icon: "fa-message" },
-            { id: "email-send", l: "Send Email", icon: "fa-envelope" },
-            { id: "notif-hist", l: "Notification History", icon: "fa-clock-rotate-left" }
-        ], sec: "COMMUNICATION" },
-        { id: "academic", icon: "fa-graduation-cap", label: "Academic", sub: [
-            { id: "batches", l: "Batches & Schedule", icon: "fa-users-line" },
-            { id: "batch-status", l: "Batch Availability", icon: "fa-chart-pie" },
-            { id: "att-mark", l: "Mark Attendance", icon: "fa-clipboard-check" },
-            { id: "att-rep", l: "Attendance Report", icon: "fa-chart-line" }
-        ], sec: "ACADEMIC" },
-        { id: "reports", icon: "fa-chart-column", label: "Reports", sub: [
-            { id: "rep-daily", l: "Daily Operations", icon: "fa-calendar-day" },
-            { id: "rep-rev", l: "Revenue Analysis", icon: "fa-money-bill-trend-up" },
-            { id: "rep-enr", l: "Enrollment Trends", icon: "fa-users-line" },
-            { id: "rep-fee", l: "Fee Status", icon: "fa-file-invoice" }
-        ], sec: "REPORTS" },
-        { id: "settings", icon: "fa-gear", label: "Settings", sub: [
-            { id: "profile", l: "My Profile", icon: "fa-user-gear" },
-            { id: "password", l: "Security Settings", icon: "fa-key" }
-        ], sec: "SETTINGS" }
+            { id: "adm-form", l: "New Admission", icon: "fa-user-plus" },
+            { id: "adm-all", l: "Students List", icon: "fa-users" }
+        ], sec: "Admissions" },
+        { id: "fee", icon: "fa-money-bill-transfer", label: "Fee & Finance", sub: [
+            { id: "fee-coll", l: "Collect Fee", icon: "fa-money-bill-transfer" },
+            { id: "fee-sum", l: "Fee Reports", icon: "fa-file-invoice-dollar" }
+        ], sec: "Fee & Finance" },
+        { id: "operations", icon: "fa-magnifying-glass-plus", label: "Operations", sub: [
+            { id: "inq-list", l: "Inquiries", icon: "fa-magnifying-glass-plus" },
+            { id: "visitor-log", l: "Visits Log", icon: "fa-address-book" }
+        ], sec: "Operations" }
     ];
 
     // ── NAVIGATION LOGIC ──
@@ -110,44 +89,32 @@ document.addEventListener('DOMContentLoaded', () => {
         let html = '';
 
         sections.forEach(sec => {
-            html += `<div class="sb-sec"><div class="sb-sec-lbl">${sec}</div>`;
+            const sectionItems = NAV.filter(n => n.sec === sec);
+            const sectionTitle = sectionItems[0].sec;
+            html += `<div class="sb-sec"><div class="sb-lbl">${sectionTitle}</div>`;
 
-            NAV.filter(n => n.sec === sec).forEach(nav => {
-                const isActive = activeNav === nav.id || activeNav.startsWith(nav.id + '-');
-                const isExp = expanded[nav.id];
-
-                html += `<div class="sb-item">
-                    <button class="nb-btn ${isActive ? 'active' : ''}" onclick="${nav.sub ? `toggleExp('${nav.id}')` : `goNav('${nav.id}')`}">
-                        <i class="fa-solid ${nav.icon}"></i>
-                        <span class="nb-lbl">${nav.label}</span>
-                        ${nav.sub ? `<i class="fa-solid fa-chevron-right nbc ${isExp ? 'open' : ''}"></i>` : ''}
-                    </button>`;
-
-                if (nav.sub && isExp) {
-                    html += `<div class="sub-menu">`;
+            sectionItems.forEach(nav => {
+                if (nav.sub) {
                     nav.sub.forEach(s => {
-                        const isSubActive = activeNav === `${nav.id}-${s.id}`;
-                        html += `<button class="sub-btn ${isSubActive ? 'active' : ''}" onclick="goNav('${nav.id}', '${s.id}')">
-                            <i class="fa-solid ${s.icon}" style="width:14px; text-align:center; font-size:11px; opacity:0.7;"></i>
-                            ${s.l}
-                        </button>`;
+                        const navId = `${nav.id}-${s.id}`;
+                        const isActive = activeNav === navId;
+                        html += `
+                            <button class="nb-btn ${isActive ? 'active' : ''}" onclick="goNav('${nav.id}', '${s.id}')">
+                                <i class="fa-solid ${s.icon}"></i>
+                                <span class="nb-lbl">${s.l}</span>
+                            </button>`;
                     });
-                    html += `</div>`;
+                } else {
+                    const isActive = activeNav === nav.id;
+                    html += `
+                        <button class="nb-btn ${isActive ? 'active' : ''}" onclick="goNav('${nav.id}')">
+                            <i class="fa-solid ${nav.icon}"></i>
+                            <span class="nb-lbl">${nav.label}</span>
+                        </button>`;
                 }
-                html += `</div>`;
             });
             html += `</div>`;
         });
-
-        // Append Install App Button
-        html += `
-            <div class="sb-install-box">
-                <button class="install-btn-trigger" onclick="openPwaModal()">
-                    <i class="fa-solid fa-bolt"></i>
-                    <span>Instant Install</span>
-                </button>
-            </div>
-        `;
 
         sbBody.innerHTML = html;
         renderBottomNav();
@@ -164,15 +131,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const items = [
             { id: 'dashboard', icon: 'fa-house', label: 'Home', action: "goNav('dashboard')" },
-            { id: 'inquiries', icon: 'fa-magnifying-glass', label: 'Inquiries', action: "goNav('inquiries', 'inq-list')" },
-            { id: 'admissions', icon: 'fa-user-graduate', label: 'Admissions', action: "goNav('admissions', 'adm-all')" },
-            { id: 'fee', icon: 'fa-money-bill-wave', label: 'Fee', action: "goNav('fee', 'fee-coll')" },
-            { id: 'notifs', icon: 'fa-paper-plane', label: 'Notices', action: "goNav('notifs', 'sms-send')" }
+            { id: 'admissions-adm-all', icon: 'fa-users', label: 'Students', action: "goNav('admissions', 'adm-all')" },
+            { id: 'fee-fee-coll', icon: 'fa-money-bill-wave', label: 'Fee', action: "goNav('fee', 'fee-coll')" },
+            { id: 'operations-inq-list', icon: 'fa-magnifying-glass', label: 'Inquiries', action: "goNav('operations', 'inq-list')" }
         ];
 
         let html = '';
         items.forEach(item => {
-            const isActive = activeNav === item.id || (typeof activeNav === 'string' && activeNav.startsWith(item.id + '-'));
+            const isActive = activeNav === item.id;
             html += `<button class="mb-nav-btn ${isActive ? 'active' : ''}" onclick="${item.action}">
                 <i class="fa-solid ${item.icon}"></i>
                 <span>${item.label}</span>
@@ -183,134 +149,57 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ── PAGE RENDERING ──
     function renderPage() {
-        // Reset scroll
         window.scrollTo(0, 0);
-        mainContent.innerHTML = '<div class="pg fu">Loading...</div>';
+        mainContent.innerHTML = '<div class="pg fu"><div class="pg-loading"><i class="fa-solid fa-circle-notch fa-spin"></i><span>Loading...</span></div></div>';
 
-        // High priority exact matches
         if (activeNav === 'dashboard') {
             renderDashboard();
             return;
         }
 
-        // Inquiries Routes
-        if (activeNav.startsWith('inquiries')) {
-            const parts = activeNav.split('-');
-            const sub = parts[1] || 'inq-list'; // Default to list if just 'inquiries'
-            
-            if (sub === 'inq-list') renderInquiryList();
-            else if (sub === 'inq-add') renderInquiryAdd();
-            else if (sub === 'inq-rem') renderInquiryFollowups();
-            else if (sub === 'inq-rep') renderInquiryReport();
-            return;
-        }
+        // Simplified Routing
+        const parts = activeNav.split('-');
+        const module = parts[0];
+        const sub = parts.slice(1).join('-');
 
-        // Admissions Routes
-        if (activeNav.startsWith('admissions')) {
-            const parts = activeNav.split('-');
-            const sub = parts[1] || 'adm-all'; // Default to all students
-            
+        if (module === 'admissions') {
             if (sub === 'adm-form') renderAdmissionForm();
             else if (sub === 'adm-all') renderAllStudents();
-            else if (sub === 'adm-id') renderIDCardGen();
-            else if (sub === 'adm-doc') renderDocVerify();
             return;
         }
 
-        // Fee Routes
-        if (activeNav.startsWith('fee')) {
-            const parts = activeNav.split('-');
-            const sub = parts[1] || 'fee-coll';
-            
+        if (module === 'fee') {
             if (sub === 'fee-coll') renderFeeRecord();
-            else if (sub === 'fee-out') renderFeeOutstanding();
-            else if (sub === 'fee-rcp') renderRecentPayments();
-            else if (sub === 'fee-sum') renderDailySummary();
+            else if (sub === 'fee-sum') renderFeeRep();
             return;
         }
 
-        // Library Routes
-        if (activeNav.startsWith('library')) {
-            const parts = activeNav.split('-');
-            const sub = parts[1] || 'lib-issue';
-            
-            if (sub === 'lib-issue') renderBookIssue();
-            else if (sub === 'lib-return') renderBookReturn();
-            else if (sub === 'lib-overdue') renderBookOverdue();
+        if (module === 'operations') {
+            if (sub === 'inq-list') renderInquiryList();
+            else if (sub === 'visitor-log') renderVisitorLog();
             return;
         }
 
-        // Communication Routes
-        if (activeNav.startsWith('notifs')) {
-            const parts = activeNav.split('-');
-            const sub = parts[1] || 'sms-send';
-            
-            if (sub === 'sms-send') renderSMSSender();
-            else if (sub === 'email-send') renderEmailSender();
-            else if (sub === 'notif-hist') renderNotifHistory();
-            return;
-        }
-
-        // Academic Routes
-        if (activeNav.startsWith('academic')) {
-            const parts = activeNav.split('-');
-            const sub = parts[1] || 'batches';
-            
-            if (sub === 'batches') renderBatches();
-            else if (sub === 'batch-status') renderBatchStatus();
-            else if (sub === 'att-mark') renderMarkAttendance();
-            else if (sub === 'att-rep') renderAttendanceReport();
-            return;
-        }
-
-        // Reports Routes
-        if (activeNav.startsWith('reports')) {
-            const parts = activeNav.split('-');
-            const sub = parts[1] || 'rep-daily';
-            
-            if (sub === 'rep-daily') renderDailyOpsRep();
-            else if (sub === 'rep-rev') renderRevenueRep();
-            else if (sub === 'rep-enr') renderEnrollmentRep();
-            else if (sub === 'rep-fee') renderFeeRep();
-            return;
-        }
-
-        // Settings Routes
-        if (activeNav.startsWith('settings')) {
-            const parts = activeNav.split('-');
-            const sub = parts[1] || 'profile';
-            
-            if (sub === 'profile') renderProfile();
-            else if (sub === 'password') renderPassword();
-            return;
-        }
-
-        // Default fallback to dashboard if unknown route
         renderDashboard();
     }
 
     async function renderDashboard() {
         mainContent.innerHTML = `
             <div class="pg fu">
-                <div class="dashboard-hero skeleton" style="height: 180px; margin-bottom: 24px; border: none;"></div>
-                
-                <div class="sg mb" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px;">
-                    <div class="sc skeleton" style="height: 120px; border: none;"></div>
-                    <div class="sc skeleton" style="height: 120px; border: none;"></div>
-                    <div class="sc skeleton" style="height: 120px; border: none;"></div>
-                    <div class="sc skeleton" style="height: 120px; border: none;"></div>
+                <div class="dashboard-hero skeleton" style="height: 160px; margin-bottom: 24px;"></div>
+                <div class="stat-grid mb">
+                    <div class="stat-card skeleton" style="height: 100px;"></div>
+                    <div class="stat-card skeleton" style="height: 100px;"></div>
+                    <div class="stat-card skeleton" style="height: 100px;"></div>
+                    <div class="stat-card skeleton" style="height: 100px;"></div>
                 </div>
-
-                <div class="card skeleton" style="height: 300px; border: none;"></div>
             </div>
         `;
 
         try {
-            const res = await fetch(`${APP_URL}/api/frontdesk/stats`);
+            const res = await fetch(`${APP_URL}/api/frontdesk/stats`, getHeaders());
             const result = await res.json();
-
             if (!result.success) throw new Error(result.message);
-
             const s = result.data;
 
             mainContent.innerHTML = `
@@ -318,122 +207,120 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="dashboard-hero">
                         <div class="hero-content">
                             <h2>Welcome back, ${result.user?.name || 'Operator'}!</h2>
-                            <p>Here's what's happening at ${window.APP_CONFIG?.tenantName || result.tenant_name || 'Institute'} today. You have ${s.unassigned_students} students pending batch assignment.</p>
-                            <div class="hero-acts">
-                                <button class="btn bt" onclick="goNav('admissions', 'adm-form')">
-                                    <i class="fa-solid fa-plus"></i> Quick Admission
-                                </button>
-                                <button class="btn bs" style="background:rgba(255,255,255,0.2); color:#fff; border:none;" onclick="goNav('fee', 'fee-coll')">
-                                    <i class="fa-solid fa-receipt"></i> Collect Fee
-                                </button>
-                            </div>
+                            <p>Here's what's happening at ${result.tenant_name || 'Institute'} today. You have ${s.pending_dues > 0 ? 'outstanding dues' : 'all accounts clear'}.</p>
                         </div>
                     </div>
 
-                    <div class="pg-head" style="border:none; margin-bottom:10px;">
-                        <div class="pg-title" style="font-size:1.2rem;">Operations Overview</div>
-                    </div>
-
-                    <!-- QUICK ACTIONS -->
-                    <div class="qa-grid">
+                    <div class="quick-actions">
                         <button class="qa-btn" onclick="goNav('admissions', 'adm-form')">
-                            <div class="qa-ico ic-blue"><i class="fa-solid fa-user-plus"></i></div>
-                            <div class="qa-lbl">New Admission</div>
+                            <i class="fa-solid fa-user-plus ic-blue"></i>
+                            <span>New Admission</span>
                         </button>
                         <button class="qa-btn" onclick="goNav('fee', 'fee-coll')">
-                            <div class="qa-ico ic-teal"><i class="fa-solid fa-hand-holding-dollar"></i></div>
-                            <div class="qa-lbl">Collect Fee</div>
+                            <i class="fa-solid fa-money-bill-transfer ic-teal"></i>
+                            <span>Collect Fee</span>
+                        </button>
+                        <button class="qa-btn" onclick="goNav('operations', 'inq-list')">
+                            <i class="fa-solid fa-magnifying-glass-plus ic-purple"></i>
+                            <span>Inquiry</span>
+                        </button>
+                        <button class="qa-btn" onclick="goNav('operations', 'visitor-log')">
+                            <i class="fa-solid fa-address-book ic-amber"></i>
+                            <span>Visit Log</span>
                         </button>
                         <button class="qa-btn" onclick="goNav('library', 'lib-issue')">
-                            <div class="qa-ico ic-purple"><i class="fa-solid fa-book"></i></div>
-                            <div class="qa-lbl">Issue Book</div>
-                        </button>
-                        <button class="qa-btn" onclick="goNav('notifs', 'sms-send')">
-                            <div class="qa-ico ic-amber"><i class="fa-solid fa-comment-sms"></i></div>
-                            <div class="qa-lbl">Send SMS</div>
-                        </button>
-                        <button class="qa-btn" onclick="goNav('admissions', 'adm-id')">
-                            <div class="qa-ico ic-navy"><i class="fa-solid fa-id-card"></i></div>
-                            <div class="qa-lbl">Generate ID Card</div>
+                            <i class="fa-solid fa-book-open ic-navy"></i>
+                            <span>Library</span>
                         </button>
                     </div>
 
-                    <!-- STAT GRID -->
-                    <div class="sg">
-                        <div class="sc">
-                            <div class="sc-top"><div class="sc-ico ic-teal"><i class="fa-solid fa-graduation-cap"></i></div><div class="bdg bg-t">+${s.today_checkins} today</div></div>
-                            <div class="sc-val">${s.total_students}</div>
-                            <div class="sc-lbl">Active Students</div>
-                            <div class="sc-delta">${s.unassigned_students} pending batch assignment</div>
+                    <div class="stat-grid">
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <span class="stat-label">Total Admissions</span>
+                                <span class="stat-trend ${s.stu_trend >= 0 ? 'up' : 'down'}">
+                                    <i class="fa-solid fa-arrow-${s.stu_trend >= 0 ? 'up' : 'down'}"></i> ${Math.abs(s.stu_trend)}%
+                                </span>
+                            </div>
+                            <div class="stat-value">${s.total_students}</div>
                         </div>
-                        <div class="sc">
-                            <div class="sc-top"><div class="sc-ico ic-blue"><i class="fa-solid fa-money-bill-trend-up"></i></div><div class="bdg bg-t">Live Status</div></div>
-                            <div class="sc-val">NPR ${formatMoney(s.today_revenue)}</div>
-                            <div class="sc-lbl">Today's Fee Collection</div>
-                            <div class="sc-delta">${s.today_transactions.length} transactions today</div>
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <span class="stat-label">Library Users</span>
+                                <span class="stat-trend up">
+                                    <i class="fa-solid fa-arrow-up"></i> 0%
+                                </span>
+                            </div>
+                            <div class="stat-value">${s.library_active}</div>
                         </div>
-                        <div class="sc">
-                            <div class="sc-top"><div class="sc-ico ic-amber"><i class="fa-solid fa-phone-volume"></i></div><div class="bdg bg-y">Action needed</div></div>
-                            <div class="sc-val">${s.weekly_inquiries}</div>
-                            <div class="sc-lbl">Weekly New Inquiries</div>
-                            <div class="sc-delta">Follow-ups waiting...</div>
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <span class="stat-label">Monthly Revenue</span>
+                                <span class="stat-trend ${s.rev_trend >= 0 ? 'up' : 'down'}">
+                                    <i class="fa-solid fa-arrow-${s.rev_trend >= 0 ? 'up' : 'down'}"></i> ${Math.abs(s.rev_trend)}%
+                                </span>
+                            </div>
+                            <div class="stat-value">Rs. ${formatMoney(s.monthly_revenue)}</div>
                         </div>
-                    </div>
-
-                    <div class="sg">
-                        <div class="sc">
-                            <div class="sc-top"><div class="sc-ico ic-red"><i class="fa-solid fa-circle-exclamation"></i></div><div class="bdg bg-r">Overdue</div></div>
-                            <div class="sc-val">NPR ${formatMoney(s.pending_dues)}</div>
-                            <div class="sc-lbl">Outstanding Dues</div>
-                            <div class="sc-delta">${s.overdue_payments} payments overdue</div>
-                        </div>
-                        <div class="sc">
-                            <div class="sc-top"><div class="sc-ico ic-amber"><i class="fa-solid fa-clipboard-check"></i></div><div class="bdg bg-y">Active</div></div>
-                            <div class="sc-val">${s.active_batches}</div>
-                            <div class="sc-lbl">Running Batches</div>
-                            <div class="sc-delta">${s.total_batches} total defined</div>
-                        </div>
-                        <div class="sc">
-                            <div class="sc-top"><div class="sc-ico ic-purple"><i class="fa-solid fa-clock-rotate-left"></i></div><div class="bdg bg-r">Alert</div></div>
-                            <div class="sc-val">${s.attendance_marked > 0 ? 'Marked' : 'Not Marked'}</div>
-                            <div class="sc-lbl">Today's Attendance</div>
-                            <div class="sc-delta">${s.attendance_marked} records synced</div>
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <span class="stat-label">Inquiries</span>
+                                <span class="stat-trend ${s.inq_trend >= 0 ? 'up' : 'down'}">
+                                    <i class="fa-solid fa-arrow-${s.inq_trend >= 0 ? 'up' : 'down'}"></i> ${Math.abs(s.inq_trend)}%
+                                </span>
+                            </div>
+                            <div class="stat-value">${s.total_inquiries}</div>
                         </div>
                     </div>
 
-                    <div class="g65">
+                    <div class="g65 mt">
                         <div class="card">
-                            <div class="card-header" style="border:none; padding:0; margin-bottom:20px;">
-                                <div class="ct" style="margin:0;"><i class="fa-solid fa-history"></i> Recent Transactions</div>
+                            <div class="card-header pb">
+                                <div class="ct"><i class="fa-solid fa-receipt"></i> Recent Transactions</div>
                                 <button class="btn bs btn-sm" onclick="goNav('fee', 'fee-rcp')">View All</button>
                             </div>
-                            <div class="tw" style="border:none; box-shadow:none;">
-                                ${s.today_transactions.length ? s.today_transactions.map(t => `
-                                    <div class="ai">
-                                        <div class="ad ic-green">${t.student_name.charAt(0)}</div>
-                                        <div class="nm-row">
-                                            <div><div class="nm">${t.student_name}</div><div class="sub-txt">${t.receipt_no} · ${t.payment_mode}</div></div>
-                                            <span class="pill pg">NPR ${formatMoney(t.amount_paid)}</span>
-                                        </div>
-                                    </div>
-                                `).join('') : '<div style="padding:40px; text-align:center; color:var(--text-light);">No transactions today.</div>'}
+                            <div class="tw">
+                                ${s.today_transactions && s.today_transactions.length ? `
+                                    <table>
+                                        <thead>
+                                            <tr>
+                                                <th>Student</th>
+                                                <th>Receipt</th>
+                                                <th style="text-align:right;">Amount</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            ${s.today_transactions.map(t => `
+                                                <tr>
+                                                    <td><div style="font-weight:600">${t.student_name}</div></td>
+                                                    <td><span class="tag bg-t">${t.receipt_no}</span></td>
+                                                    <td style="text-align:right; font-weight:700; color:var(--green);">Rs. ${formatMoney(t.amount_paid)}</td>
+                                                </tr>
+                                            `).join('')}
+                                        </tbody>
+                                    </table>
+                                ` : '<div style="padding:40px; text-align:center; color:var(--text-light);">No transactions today.</div>'}
                             </div>
                         </div>
 
                         <div class="card">
-                            <div class="ct"><i class="fa-solid fa-bell"></i> System Notifications</div>
-                            ${s.recent_notifications.length ? s.recent_notifications.map(n => `
-                                <div class="col-item" style="${n.is_read ? 'opacity:0.6' : ''}">
-                                    <div class="col-ico">${n.type == 'alert' ? '⚠️' : 'ℹ️'}</div>
-                                    <div class="col-lbl">${n.title}</div>
-                                    <div class="col-val">${new Date(n.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</div>
-                                </div>
-                            `).join('') : '<div style="padding:24px; text-align:center; color:#94a3b8;">No new notifications.</div>'}
-                            
-                            <div style="height:1px; background:var(--card-border); margin:15px 0;"></div>
-                            <button class="btn bs" style="width:100%; justify-content:center; margin-top:10px;" onclick="goNav('notifs', 'sms-send')">
-                                <i class="fa-solid fa-paper-plane"></i> Quick SMS Broadcast
-                            </button>
+                            <div class="card-header pb">
+                                <div class="ct"><i class="fa-solid fa-calendar-days"></i> Upcoming Batches</div>
+                            </div>
+                            <div class="tw">
+                                ${s.upcoming_batches && s.upcoming_batches.length ? s.upcoming_batches.map(b => `
+                                    <div class="ai" style="padding:12px 16px;">
+                                        <div class="ad ic-blue">${(b.name || '').charAt(0)}</div>
+                                        <div class="nm-row" style="flex:1">
+                                            <div>
+                                                <div class="nm" style="font-size:14px;">${b.name}</div>
+                                                <div class="sub-txt">Starts: ${b.start_date} · Max: ${b.max_strength}</div>
+                                            </div>
+                                            <i class="fa-solid fa-chevron-right" style="color:#cbd5e1; font-size:12px;"></i>
+                                        </div>
+                                    </div>
+                                `).join('') : '<div style="padding:40px; text-align:center; color:var(--text-light);">No upcoming batches.</div>'}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -530,7 +417,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             // Fetch outstanding fees from the API
-            const res = await fetch(APP_URL + '/api/frontdesk/fees?action=get_outstanding');
+            const res = await fetch(APP_URL + '/api/frontdesk/fees?action=get_outstanding', getHeaders());
             const result = await res.json();
 
             if (!result.success) {
@@ -710,11 +597,11 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
 
         try {
-            const res = await fetch(APP_URL + '/api/frontdesk/fees?action=get_recent_payments');
+            const res = await fetch(APP_URL + '/api/frontdesk/fees?action=get_recent_payments', getHeaders());
             const result = await res.json();
             const container = document.getElementById('historyContainer');
 
-            if (result.success && result.data) {
+            if (result.success && Array.isArray(result.data)) {
                 if (result.data.length === 0) {
                     container.innerHTML = '<div style="padding:40px; text-align:center; color:#94a3b8;">No recent payments found.</div>';
                     return;
@@ -801,6 +688,51 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (e) {
             mainContent.innerHTML = `<div class="alert alert-danger">Error loading admission form</div>`;
         }
+    }
+
+    // ── RECEPTION RENDERERS ──
+    async function renderVisitorLog() {
+        mainContent.innerHTML = `<div class="pg fu"><div class="pg-loading"><i class="fa-solid fa-circle-notch fa-spin"></i><span>Loading Visitor Log...</span></div></div>`;
+        try {
+            const res = await fetch(`${APP_URL}/dash/front-desk/visitor-log?partial=true`);
+            const html = await res.text();
+            mainContent.innerHTML = `<div class="pg fu">${html}</div>`;
+            const scripts = mainContent.querySelectorAll('script');
+            scripts.forEach(s => eval(s.innerHTML));
+        } catch (e) { mainContent.innerHTML = `<div class="alert alert-danger">Error</div>`; }
+    }
+
+    async function renderAppointmentSchedule() {
+        mainContent.innerHTML = `<div class="pg fu"><div class="pg-loading"><i class="fa-solid fa-circle-notch fa-spin"></i><span>Loading Appointments...</span></div></div>`;
+        try {
+            const res = await fetch(`${APP_URL}/dash/front-desk/appointment-schedule?partial=true`);
+            const html = await res.text();
+            mainContent.innerHTML = `<div class="pg fu">${html}</div>`;
+            const scripts = mainContent.querySelectorAll('script');
+            scripts.forEach(s => eval(s.innerHTML));
+        } catch (e) { mainContent.innerHTML = `<div class="alert alert-danger">Error</div>`; }
+    }
+
+    async function renderCallLog() {
+        mainContent.innerHTML = `<div class="pg fu"><div class="pg-loading"><i class="fa-solid fa-circle-notch fa-spin"></i><span>Loading Call Log...</span></div></div>`;
+        try {
+            const res = await fetch(`${APP_URL}/dash/front-desk/call-log?partial=true`);
+            const html = await res.text();
+            mainContent.innerHTML = `<div class="pg fu">${html}</div>`;
+            const scripts = mainContent.querySelectorAll('script');
+            scripts.forEach(s => eval(s.innerHTML));
+        } catch (e) { mainContent.innerHTML = `<div class="alert alert-danger">Error</div>`; }
+    }
+
+    async function renderComplaints() {
+        mainContent.innerHTML = `<div class="pg fu"><div class="pg-loading"><i class="fa-solid fa-circle-notch fa-spin"></i><span>Loading Complaints...</span></div></div>`;
+        try {
+            const res = await fetch(`${APP_URL}/dash/front-desk/complaints?partial=true`);
+            const html = await res.text();
+            mainContent.innerHTML = `<div class="pg fu">${html}</div>`;
+            const scripts = mainContent.querySelectorAll('script');
+            scripts.forEach(s => eval(s.innerHTML));
+        } catch (e) { mainContent.innerHTML = `<div class="alert alert-danger">Error</div>`; }
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -1061,7 +993,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function renderNotifHistory() {
         mainContent.innerHTML = `<div class="pg fu"><div class="pg-loading"><i class="fa-solid fa-circle-notch fa-spin"></i><span>Loading History...</span></div></div>`;
         try {
-            const res = await fetch(`${APP_URL}/dash/front-desk/notifications?partial=true`);
+            const res = await fetch(`${APP_URL}/dash/front-desk/notifications?partial=true`, getHeaders());
             const html = await res.text();
             mainContent.innerHTML = `<div class="pg fu">${html}</div>`;
             const scripts = mainContent.querySelectorAll('script');
@@ -1109,9 +1041,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const result = await res.json();
             const container = document.getElementById('dailyBreakdownContainer');
 
-            if (result.success && result.data) {
-                const total = result.data.reduce((sum, item) => sum + parseFloat(item.total), 0);
-                const count = result.data.reduce((sum, item) => sum + parseInt(item.count), 0);
+            if (result.success && Array.isArray(result.data)) {
+                const total = result.data.reduce((sum, item) => sum + parseFloat(item.total || 0), 0);
+                const count = result.data.reduce((sum, item) => sum + parseInt(item.count || 0), 0);
                 
                 document.getElementById('todayTotalValue').textContent = 'Rs. ' + formatMoney(total);
                 document.getElementById('todayCountValue').textContent = count;
@@ -1119,20 +1051,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 container.innerHTML = `
                     <div style="padding:20px;">
                         <h4 style="margin-bottom:15px; color:#1a1a2e;">Breakdown by Payment Method</h4>
-                        ${result.data.map(item => `
+                        ${result.data.length ? result.data.map(item => `
                             <div style="display:flex; justify-content:space-between; align-items:center; padding:15px; background:#f8fafc; border-radius:12px; margin-bottom:10px;">
                                 <div style="display:flex; align-items:center; gap:12px;">
                                     <div style="width:40px; height:40px; border-radius:10px; background:#fff; display:flex; align-items:center; justify-content:center; font-size:18px; border:1px solid #e2e8f0;">
                                         ${item.payment_method === 'cash' ? '💵' : '🏦'}
                                     </div>
-                                    <div style="font-weight:700; text-transform:capitalize;">${item.payment_method.replace('_', ' ')}</div>
+                                    <div style="font-weight:700; text-transform:capitalize;">${(item.payment_method || '').replace('_', ' ')}</div>
                                 </div>
                                 <div style="text-align:right;">
-                                    <div style="font-weight:800; color:#10B981; font-size:18px;">Rs. ${formatMoney(item.total)}</div>
-                                    <div style="font-size:12px; color:#64748b;">${item.count} transactions</div>
+                                    <div style="font-weight:800; color:#10B981; font-size:18px;">Rs. ${formatMoney(item.total || 0)}</div>
+                                    <div style="font-size:12px; color:#64748b;">${item.count || 0} transactions</div>
                                 </div>
                             </div>
-                        `).join('')}
+                        `).join('') : '<div style="padding:20px; text-align:center; color:#64748b;">No breakdown data available.</div>'}
                         
                         <button class="btn" style="width:100%; justify-content:center; margin-top:20px; background:#1a1a2e; color:#fff; padding:15px;" onclick="window.print()">
                             <i class="fa-solid fa-print"></i> Print End of Day Report
@@ -1157,27 +1089,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ADMISSION RENDERERS
     // ═══════════════════════════════════════════════════════════════
 
-    async function renderAdmissionForm() {
-        mainContent.innerHTML = `<div class="pg fu"><div class="pg-loading"><i class="fa-solid fa-circle-notch fa-spin"></i><span>Loading Form...</span></div></div>`;
-        try {
-            const res = await fetch(`${APP_URL}/dash/front-desk/admission-form?partial=true`);
-            const html = await res.text();
-            mainContent.innerHTML = `<div class="pg fu">${html}</div>`;
-            const scripts = mainContent.querySelectorAll('script');
-            scripts.forEach(s => eval(s.innerHTML));
-        } catch (e) { mainContent.innerHTML = `<div class="alert alert-danger">Error</div>`; }
-    }
 
-    async function renderAllStudents() {
-        mainContent.innerHTML = `<div class="pg fu"><div class="pg-loading"><i class="fa-solid fa-circle-notch fa-spin"></i><span>Loading Students...</span></div></div>`;
-        try {
-            const res = await fetch(`${APP_URL}/dash/front-desk/students?partial=true`);
-            const html = await res.text();
-            mainContent.innerHTML = `<div class="pg fu">${html}</div>`;
-            const scripts = mainContent.querySelectorAll('script');
-            scripts.forEach(s => eval(s.innerHTML));
-        } catch (e) { mainContent.innerHTML = `<div class="alert alert-danger">Error</div>`; }
-    }
 
     async function renderIDCardGen() {
         mainContent.innerHTML = `<div class="pg fu"><div class="pg-loading"><i class="fa-solid fa-circle-notch fa-spin"></i><span>Loading Generator...</span></div></div>`;

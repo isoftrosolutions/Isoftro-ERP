@@ -10,27 +10,12 @@ if (!defined('APP_NAME')) {
 
 header('Content-Type: application/json');
 
-// Ensure user is logged in
-if (!isLoggedIn()) {
-    echo json_encode(['success' => false, 'message' => 'Unauthorized']);
-    exit;
-}
-
-$user = getCurrentUser();
-$tenantId = $user['tenant_id'] ?? null;
-$userRole = $user['role'] ?? '';
-
-if (!$tenantId) {
-    echo json_encode(['success' => false, 'message' => 'Tenant ID missing']);
-    exit;
-}
-
-// Allow frontdesk and instituteadmin roles
-$allowedRoles = ['instituteadmin', 'frontdesk', 'superadmin'];
-if (!in_array($userRole, $allowedRoles)) {
-    echo json_encode(['success' => false, 'message' => 'Access denied. Insufficient permissions.']);
-    exit;
-}
+// CSRF and role check via Middleware
+require_once app_path('Http/Middleware/FrontDeskMiddleware.php');
+$auth = FrontDeskMiddleware::check();
+$tenantId = $auth['tenant_id'];
+$userRole = $auth['role'];
+$userId = $auth['user_id'];
 
 $method = $_SERVER['REQUEST_METHOD'];
 
@@ -42,58 +27,114 @@ try {
 
         if ($id) {
             // Full details for single inquiry
-            $query = "SELECT i.*, c.name as course_name 
-                      FROM inquiries i 
+            $query = "SELECT i.*, c.name as course_name
+                      FROM inquiries i
                       LEFT JOIN courses c ON i.course_id = c.id
-                      WHERE i.id = :id AND i.tenant_id = :tid";
+                      WHERE i.id = :id AND i.tenant_id = :tid AND i.deleted_at IS NULL";
             $params = ['id' => $id, 'tid' => $tenantId];
         } else {
-            // Optimized column list for the main table/list
-            $query = "SELECT i.id, i.full_name, i.phone, i.email, i.source, i.status, i.created_at, i.updated_at,
-                             c.name as course_name 
-                      FROM inquiries i 
-                      LEFT JOIN courses c ON i.course_id = c.id
-                      WHERE i.tenant_id = :tid 
-                        AND i.deleted_at IS NULL";
+            // Pagination settings
+            $page = max(1, (int)($_GET['page'] ?? 1));
+            $limit = max(1, min(100, (int)($_GET['limit'] ?? 20)));
+            $offset = ($page - 1) * $limit;
+
+            // Type filter
+            $typeFilter = $_GET['type'] ?? 'inquiry';
             
-            $params = ['tid' => $tenantId];
+            // Base filters for both count and data
+            $filterQuery = " WHERE i.tenant_id = :tid AND i.deleted_at IS NULL AND i.inquiry_type = :type";
+            $filterParams = ['tid' => $tenantId, 'type' => $typeFilter];
 
             if (!empty($_GET['search'])) {
                 $search = '%' . $_GET['search'] . '%';
-                $query .= " AND (i.full_name LIKE :search OR i.phone LIKE :search OR i.email LIKE :search)";
-                $params['search'] = $search;
+                $filterQuery .= " AND (i.full_name LIKE :search OR i.phone LIKE :search OR i.email LIKE :search)";
+                $filterParams['search'] = $search;
             }
 
             if (!empty($_GET['status'])) {
-                $query .= " AND i.status = :status";
-                $params['status'] = $_GET['status'];
+                $filterQuery .= " AND i.status = :status";
+                $filterParams['status'] = $_GET['status'];
             }
 
-            $query .= " ORDER BY i.created_at DESC LIMIT 500";
+            // 1. Count total records
+            $countStmt = $db->prepare("SELECT COUNT(*) FROM inquiries i " . $filterQuery);
+            $countStmt->execute($filterParams);
+            $totalRecords = (int)$countStmt->fetchColumn();
+
+            // 2. Fetch paginated data
+            $query = "SELECT i.id, i.full_name, i.phone, i.email, i.source, i.status,
+                             i.inquiry_type, i.notes, i.created_at, i.updated_at,
+                             c.name as course_name
+                      FROM inquiries i
+                      LEFT JOIN courses c ON i.course_id = c.id
+                      " . $filterQuery . "
+                      ORDER BY i.created_at DESC LIMIT :limit OFFSET :offset";
+            
+            $filterParams['limit'] = $limit;
+            $filterParams['offset'] = $offset;
+
+            $stmt = $db->prepare($query);
+            foreach ($filterParams as $key => $val) {
+                $type = is_int($val) ? PDO::PARAM_INT : PDO::PARAM_STR;
+                $stmt->bindValue(":{$key}", $val, $type);
+            }
+            $stmt->execute();
         }
 
-        $stmt = $db->prepare($query);
-        $stmt->execute($params);
         $inquiries = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         if ($id && empty($inquiries)) {
             echo json_encode(['success' => false, 'message' => 'Inquiry not found']);
         } else {
-            echo json_encode(['success' => true, 'data' => $id ? $inquiries[0] : $inquiries]);
+            $response = ['success' => true, 'data' => $id ? $inquiries[0] : $inquiries];
+            if (!$id) {
+                $response['total'] = $totalRecords;
+                $response['page'] = $page;
+                $response['limit'] = $limit;
+                $response['total_pages'] = ceil($totalRecords / $limit);
+            }
+            echo json_encode($response);
         }
     }
     
     if ($method === 'POST' || $method === 'PUT') {
-        // Create or update inquiry
-        $input = $_POST;
-        
-        // Handle JSON input as well
-        if (empty($input)) {
-            $jsonInput = file_get_contents('php://input');
-            $input = json_decode($jsonInput, true) ?? [];
+        // Create or update inquiry / add follow-up
+        $input = json_decode(file_get_contents('php://input'), true);
+        if (!$input) $input = $_POST;
+
+        // ── Follow-up action ────────────────────────────────────────
+        if (!empty($input['action']) && $input['action'] === 'followup') {
+            $inquiryId = (int)($input['inquiry_id'] ?? 0);
+            $remarks   = trim($input['remarks'] ?? '');
+            if (!$inquiryId || !$remarks) {
+                echo json_encode(['success' => false, 'message' => 'Inquiry ID and remarks are required.']);
+                exit;
+            }
+            // Verify inquiry belongs to this tenant
+            $stmtChk = $db->prepare("SELECT id FROM inquiries WHERE id = :id AND tenant_id = :tid AND deleted_at IS NULL");
+            $stmtChk->execute(['id' => $inquiryId, 'tid' => $tenantId]);
+            if (!$stmtChk->fetch()) {
+                echo json_encode(['success' => false, 'message' => 'Inquiry not found.']);
+                exit;
+            }
+            $stmtFu = $db->prepare(
+                "INSERT INTO inquiry_followups (inquiry_id, user_id, remarks, next_followup_date, created_at)
+                 VALUES (:iid, :uid, :remarks, :next_date, NOW())"
+            );
+            $stmtFu->execute([
+                'iid'       => $inquiryId,
+                'uid'       => $user['id'],
+                'remarks'   => $remarks,
+                'next_date' => $input['next_followup_date'] ?? null,
+            ]);
+            // Update inquiry status to follow_up if it was pending
+            $db->prepare("UPDATE inquiries SET status = 'follow_up', updated_at = NOW() WHERE id = :id AND status = 'pending'")
+               ->execute(['id' => $inquiryId]);
+            echo json_encode(['success' => true, 'message' => 'Follow-up recorded successfully.']);
+            exit;
         }
-        
-        // Validate required fields
+
+        // Validate required fields for create/update
         if (empty($input['full_name'])) {
             echo json_encode(['success' => false, 'message' => 'Full name is required']);
             exit;
@@ -166,21 +207,24 @@ try {
             echo json_encode(['success' => true, 'message' => 'Inquiry updated successfully', 'id' => $inquiryId]);
         } else {
             // Build dynamic query based on available columns
+            $inquiryType = in_array($input['inquiry_type'] ?? 'inquiry', ['inquiry','visitor','appointment','call_log','complaint'])
+                ? ($input['inquiry_type'] ?? 'inquiry') : 'inquiry';
             $query = "INSERT INTO inquiries (
-                tenant_id, full_name, phone, email, course_id, source, status, notes, created_at, updated_at
+                tenant_id, inquiry_type, full_name, phone, email, course_id, source, status, notes, created_at, updated_at
             ) VALUES (
-                :tid, :name, :phone, :email, :course_id, :source, :status, :notes, NOW(), NOW()
+                :tid, :inquiry_type, :name, :phone, :email, :course_id, :source, :status, :notes, NOW(), NOW()
             )";
             
             $params = [
-                'tid' => $tenantId,
-                'name' => $input['full_name'],
-                'phone' => $input['phone'],
-                'email' => $input['email'] ?? null,
-                'course_id' => $input['course_id'],
-                'source' => $input['source'],
-                'status' => $input['status'] ?? 'pending',
-                'notes' => $input['notes'] ?? null
+                'tid'          => $tenantId,
+                'inquiry_type' => $inquiryType,
+                'name'         => $input['full_name'],
+                'phone'        => $input['phone'],
+                'email'        => $input['email'] ?? null,
+                'course_id'    => !empty($input['course_id']) ? (int)$input['course_id'] : null,
+                'source'       => $input['source'] ?? 'walk_in',
+                'status'       => $input['status'] ?? 'pending',
+                'notes'        => $input['notes'] ?? null,
             ];
             
             // Add optional fields if they exist in the table
@@ -204,20 +248,28 @@ try {
     }
     
     if ($method === 'DELETE') {
-        // Delete inquiry
+        // Soft-delete inquiry (preserves data for reports)
         $input = json_decode(file_get_contents('php://input'), true);
-        $inquiryId = $input['id'] ?? null;
-        
+        $inquiryId = !empty($input['id']) ? (int)$input['id'] : (!empty($_GET['id']) ? (int)$_GET['id'] : null);
+
         if (!$inquiryId) {
             echo json_encode(['success' => false, 'message' => 'Inquiry ID is required']);
             exit;
         }
-        
-        $stmt = $db->prepare("DELETE FROM inquiries WHERE id = :id AND tenant_id = :tid");
+
+        $stmt = $db->prepare("UPDATE inquiries SET deleted_at = NOW() WHERE id = :id AND tenant_id = :tid AND deleted_at IS NULL");
         $stmt->execute(['id' => $inquiryId, 'tid' => $tenantId]);
-        
-        echo json_encode(['success' => true, 'message' => 'Inquiry deleted successfully']);
+
+        if ($stmt->rowCount() === 0) {
+            echo json_encode(['success' => false, 'message' => 'Inquiry not found or already deleted.']);
+        } else {
+            echo json_encode(['success' => true, 'message' => 'Inquiry archived successfully.']);
+        }
     }
+} catch (PDOException $e) {
+    error_log('Inquiries Controller DB Error: ' . $e->getMessage());
+    echo json_encode(['success' => false, 'message' => 'A database error occurred. Please try again.']);
 } catch (Exception $e) {
-    echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    error_log('Inquiries Controller Error: ' . $e->getMessage());
+    echo json_encode(['success' => false, 'message' => 'An unexpected error occurred.']);
 }

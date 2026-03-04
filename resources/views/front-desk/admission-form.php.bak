@@ -1,0 +1,478 @@
+<?php
+/**
+ * Student Admission Form — Premium Standard Integration
+ * Strictly Mobile-First, 101% Responsive
+ */
+
+if (!defined('APP_NAME')) {
+    require_once __DIR__ . '/../../../config/config.php';
+}
+
+$pageTitle = 'Student Admission';
+require_once VIEWS_PATH . '/layouts/header_1.php';
+require_once __DIR__ . '/sidebar.php';
+
+// Data Fetching
+$db = getDBConnection();
+$tenantId = $_SESSION['userData']['tenant_id'];
+
+$stmtCourses = $db->prepare("SELECT id, name, code FROM courses WHERE tenant_id = :tid AND status = 'active' AND deleted_at IS NULL ORDER BY name");
+$stmtCourses->execute(['tid' => $tenantId]);
+$courses = $stmtCourses->fetchAll(PDO::FETCH_ASSOC);
+
+$stmtBatches = $db->prepare("SELECT id, course_id, name, shift FROM batches WHERE tenant_id = :tid AND deleted_at IS NULL ORDER BY name");
+$stmtBatches->execute(['tid' => $tenantId]);
+$batches = $stmtBatches->fetchAll(PDO::FETCH_ASSOC);
+?>
+
+<?php renderFrontDeskHeader(); ?>
+<?php renderFrontDeskSidebar('admission-form'); ?>
+
+<style>
+/* ── PREMIUM DESIGN SYSTEM ── */
+:root {
+    --p: #00b894;
+    --p-d: #009e7e;
+    --p-lt: rgba(0, 184, 148, 0.08);
+    --s: #6c5ce7;
+    --a: #ff7675;
+    --glass: rgba(255, 255, 255, 0.75);
+    --glass-b: blur(12px);
+    --sh-p: 0 20px 40px -10px rgba(0, 0, 0, 0.08);
+    --rad-p: 24px;
+    --trans: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 101% Responsive Base */
+.main { background: #f1f5f9; }
+.pg { max-width: 1200px; margin: 0 auto; animation: slideUp 0.6s ease-out; }
+@keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Premium Header Card */
+.adm-hero {
+    background: linear-gradient(135deg, var(--p-d), var(--p));
+    border-radius: var(--rad-p);
+    padding: 3rem 1.5rem;
+    margin-bottom: 2rem;
+    color: #fff;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 184, 148, 0.2);
+}
+.adm-hero::before {
+    content: ''; position: absolute; top: -50px; right: -50px; width: 200px; height: 200px;
+    background: rgba(255,255,255,0.1); border-radius: 50%;
+}
+.adm-hero-content { position: relative; z-index: 2; text-align: center; }
+.adm-hero-ico { width: 64px; height: 64px; background: rgba(255,255,255,0.2); border-radius: 18px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; font-size: 28px; backdrop-filter: blur(4px); }
+
+/* Form Sections as Premium Cards */
+.sc-adm { 
+    background: var(--glass);
+    backdrop-filter: var(--glass-b);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 20px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: var(--sh-p);
+}
+
+.sc-title { font-size: 1.1rem; font-weight: 800; color: #1e293b; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 12px; }
+.sc-title i { color: var(--p); width: 32px; height: 32px; background: var(--p-lt); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+
+/* Grid System - Strictly Mobile-First */
+.grid-box { display: grid; grid-template-columns: 1fr; gap: 1.5rem; }
+
+/* Desktop Enhancements */
+@media (min-width: 768px) {
+    .grid-2 { grid-template-columns: repeat(2, 1fr); }
+}
+@media (min-width: 1024px) {
+    .grid-3 { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* Premium Inputs */
+.f-grp { margin-bottom: 0.5rem; }
+.f-lbl { display: block; font-size: 13px; font-weight: 700; color: #475569; margin-bottom: 8px; margin-left: 4px; }
+.f-lbl.req::after { content: '*'; color: var(--a); margin-left: 4px; }
+
+.ipt-box { position: relative; }
+.ipt-box i { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 15px; pointer-events: none; transition: var(--trans); }
+
+.fi { 
+    width: 100%; padding: 14px 16px 14px 48px; border: 2px solid #e2e8f0; border-radius: 14px; 
+    font-size: 14px; font-weight: 600; outline: none; transition: var(--trans); background: #fff; 
+    color: #1e293b; font-family: inherit;
+}
+.fi:focus { border-color: var(--p); box-shadow: 0 0 0 5px var(--p-lt); }
+.fi:focus + i { color: var(--p); transform: translateY(-50%) scale(1.1); }
+
+/* Custom Select Styling */
+.fi-sel { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 16px center; background-size: 18px; }
+
+/* Priority & Security Callouts */
+.callout-p { background: #f0fdf4; border: 2px dashed #bbf7d0; box-shadow: none; position: relative; padding-top: 3rem; }
+.callout-p::before { content: 'HIGH PRIORITY'; position: absolute; top: 1rem; left: 2rem; background: var(--p); color: #fff; font-size: 10px; font-weight: 900; padding: 4px 12px; border-radius: 50px; letter-spacing: 0.05em; }
+
+.callout-s { border-color: #fecdd3; background: #fff1f2; }
+
+/* Buttons */
+.btn-p { width: 100%; padding: 18px; background: linear-gradient(135deg, var(--p-d), var(--p)); color: #fff; border: none; border-radius: 16px; font-size: 16px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 12px; transition: var(--trans); box-shadow: 0 10px 25px -5px rgba(0, 184, 148, 0.4); }
+.btn-p:hover { transform: translateY(-3px); box-shadow: 0 20px 35px -5px rgba(0, 184, 148, 0.5); }
+.btn-p:active { transform: translateY(0); }
+
+/* Success Modal Modern */
+.m-overlay { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(10px); z-index: 10000; align-items: center; justify-content: center; padding: 1rem; }
+.m-card { background: #fff; border-radius: 32px; padding: 3rem; max-width: 480px; width: 100%; text-align: center; box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.5); transform: translateY(20px); opacity: 0; transition: var(--trans); }
+.m-card.active { transform: translateY(0); opacity: 1; }
+.m-ico { width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 1.5rem; display: flex; align-items: center; justify-content: center; font-size: 32px; color: #fff; }
+</style>
+
+<main class="main">
+<div class="pg">
+
+    <!-- Standard Header with Breadcrumb Integration -->
+    <div class="pg-head" style="background: none; border: none; padding: 0; margin-bottom: 1.5rem;">
+        <div class="pg-left">
+            <div class="pg-ico"><i class="fas fa-user-plus"></i></div>
+            <div>
+                <h1 class="pg-title">Student Admission</h1>
+                <p class="pg-sub">HAMRO ERP • REGISTRATION GATEWAY</p>
+            </div>
+        </div>
+        <div class="pg-acts">
+            <a href="<?= APP_URL ?>/dash/front-desk/students" class="btn-p" style="padding: 10px 20px; font-size: 13px; border-radius: 12px; box-shadow: none;">
+                <i class="fas fa-users"></i> View All Students
+            </a>
+        </div>
+    </div>
+
+    <form id="formAdmission" onsubmit="handleAdmissionSubmit(event)">
+        
+        <!-- Hero Section Inside Form for Context -->
+        <div class="adm-hero">
+            <div class="adm-hero-content">
+                <div class="adm-hero-ico"><i class="fas fa-graduation-cap"></i></div>
+                <h2 style="font-size: 2rem; font-weight: 900; margin: 0; letter-spacing: -0.03em;">New Student Enrollment</h2>
+                <p style="opacity: 0.9; font-size: 15px; margin: 0.5rem 0 0; font-weight: 500;">Fill the details below to complete institutional onboarding.</p>
+            </div>
+        </div>
+
+        <!-- Section 1: Academic High Priority -->
+        <div class="sc-adm callout-p">
+            <h3 class="sc-title"><i class="fas fa-book-reader"></i> Academic Placement</h3>
+            <div class="grid-box grid-2">
+                <div class="f-grp">
+                    <label class="f-lbl req">Target Course</label>
+                    <div class="ipt-box">
+                        <i class="fas fa-award"></i>
+                        <select name="course_id" id="selCourse" class="fi fi-sel" onchange="syncBatches(this.value)" required>
+                            <option value="">Select Course</option>
+                            <?php foreach ($courses as $c): ?>
+                            <option value="<?= $c['id'] ?>"><?= htmlspecialchars($c['name']) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                </div>
+                <div class="f-grp">
+                    <label class="f-lbl req">Assigned Batch</label>
+                    <div class="ipt-box">
+                        <i class="fas fa-clock"></i>
+                        <select name="batch_id" id="selBatch" class="fi fi-sel" required>
+                            <option value="">First select course...</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 2: Primary Identity -->
+        <div class="sc-adm">
+            <h3 class="sc-title"><i class="fas fa-id-card"></i> Student Identity</h3>
+            <div class="grid-box grid-2">
+                <div class="f-grp">
+                    <label class="f-lbl req">Full Name</label>
+                    <div class="ipt-box">
+                        <i class="fas fa-user-edit"></i>
+                        <input type="text" name="full_name" class="fi" placeholder="e.g. Roshan Sharma" required>
+                    </div>
+                </div>
+                <div class="f-grp">
+                    <label class="f-lbl req">Contact Number</label>
+                    <div class="ipt-box">
+                        <i class="fas fa-mobile-screen-button"></i>
+                        <input type="tel" name="contact_number" class="fi" placeholder="98XXXXXXXX" pattern="[0-9]{10}" required>
+                    </div>
+                </div>
+                <div class="f-grp">
+                    <label class="f-lbl req">Email Address</label>
+                    <div class="ipt-box">
+                        <i class="fas fa-envelope"></i>
+                        <input type="email" name="email" class="fi" placeholder="email@example.com" required>
+                    </div>
+                </div>
+                <div class="f-grp">
+                    <label class="f-lbl req">Gender Selection</label>
+                    <div class="ipt-box">
+                        <i class="fas fa-venus-mars"></i>
+                        <select name="gender" class="fi fi-sel" required>
+                            <option value="">Choose Gender</option>
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 3: Detailed Information -->
+        <div class="sc-adm">
+            <h3 class="sc-title"><i class="fas fa-folder-open"></i> Background Details</h3>
+            <div class="grid-box grid-3">
+                <div class="f-grp">
+                    <label class="f-lbl req">DOB (AD)</label>
+                    <input type="date" name="dob_ad" class="fi" onchange="handleDobSync(this.value)" style="padding-left: 20px;" required>
+                </div>
+                <div class="f-grp">
+                    <label class="f-lbl">DOB (BS)</label>
+                    <input type="text" name="dob_bs" id="inpDobBs" class="fi" placeholder="YYYY-MM-DD" style="padding-left: 20px;">
+                </div>
+                <div class="f-grp">
+                    <label class="f-lbl">Blood Group</label>
+                    <select name="blood_group" class="fi fi-sel" style="padding-left: 20px;">
+                        <option value="">Maybe Later</option>
+                        <?php foreach (['A+','A-','B+','B-','AB+','AB-','O+','O-'] as $bg): ?>
+                        <option value="<?= $bg ?>"><?= $bg ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid-box grid-2" style="margin-top: 1.5rem;">
+                <div class="f-grp">
+                    <label class="f-lbl req">Guardian/Father Name</label>
+                    <div class="ipt-box">
+                        <i class="fas fa-user-shield"></i>
+                        <input type="text" name="father_name" class="fi" placeholder="Full name of guardian" required>
+                    </div>
+                </div>
+                <div class="f-grp">
+                    <label class="f-lbl">Citizenship No.</label>
+                    <div class="ipt-box">
+                        <i class="fas fa-passport"></i>
+                        <input type="text" name="citizenship_no" class="fi" placeholder="ID Number (Optional)">
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid-box grid-2" style="margin-top: 1.5rem;">
+                <div class="f-grp">
+                    <label class="f-lbl req">Permanent Address</label>
+                    <textarea name="permanent_address" class="fi" style="padding-left: 16px; min-height: 100px;" placeholder="Full Address..." required></textarea>
+                </div>
+                <div class="f-grp">
+                    <label class="f-lbl">Temporary Address</label>
+                    <textarea name="temporary_address" class="fi" style="padding-left: 16px; min-height: 100px;" placeholder="Current Stay..."></textarea>
+                </div>
+            </div>
+
+            <div class="f-grp" style="margin-top: 1.5rem;">
+                <label class="f-lbl">Past Academic Qualification</label>
+                <textarea name="academic_qualification" class="fi" style="padding-left: 16px; min-height: 100px;" placeholder="Previous degrees, years, and institutions..."></textarea>
+            </div>
+        </div>
+
+        <!-- Section 4: Security Callout -->
+        <div class="sc-adm callout-p callout-s">
+            <h3 class="sc-title" style="color: #e11d48;"><i class="fas fa-key"></i> System Access</h3>
+            <p style="font-size: 12px; color: #be123c; margin: -1rem 0 1.5rem 3.5rem; font-weight: 600;">Standard student portal credentials</p>
+            <div class="grid-box grid-2">
+                <div class="f-grp">
+                    <div class="ipt-box">
+                        <i class="fas fa-user-lock"></i>
+                        <input type="password" name="password" id="inpPass" class="fi" placeholder="Access Password" minlength="8" required>
+                        <span onclick="togglePassView('inpPass')" style="position: absolute; right: 16px; top: 50%; transform: translateY(-50%); color: #94a3b8; cursor: pointer; padding: 5px;">
+                            <i class="fas fa-eye" id="inpPassEye"></i>
+                        </span>
+                    </div>
+                </div>
+                <div class="f-grp">
+                    <div class="ipt-box">
+                        <i class="fas fa-check-double"></i>
+                        <input type="password" name="confirm_password" id="inpConfPass" class="fi" placeholder="Verify Password" required>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Final Submit -->
+        <div style="margin: 4rem 0;">
+            <button type="submit" id="btnSubmitAdm" class="btn-p">
+                <i class="fas fa-rocket"></i> FINALISE & SUBMIT ADMISSION
+            </button>
+            <p style="text-align: center; font-size: 12px; color: #64748b; margin-top: 1.5rem; font-weight: 600;">
+                <i class="fas fa-info-circle"></i> This will generate a unique Student Roll Number automatically.
+            </p>
+        </div>
+    </form>
+</div>
+</main>
+
+<!-- PREMIUM SUCCESS DIALOG -->
+<div class="m-overlay" id="successDialog">
+    <div class="m-card" id="scCard">
+        <div class="m-ico" id="mIcon"></div>
+        <h3 id="mTitle" style="font-size: 26px; font-weight: 900; color: #0f172a; margin: 0 0 0.5rem;"></h3>
+        <div id="mBody" style="font-size: 15px; color: #475569; line-height: 1.6; margin-bottom: 2.5rem;"></div>
+        <div id="mActions" style="display: flex; flex-direction: column; gap: 12px;"></div>
+    </div>
+</div>
+
+<script>
+/* ── JAVASCRIPT REFINED ── */
+<?php
+$user = $_SESSION['userData'] ?? [];
+echo "window.currentUser = " . json_encode($user) . ";\n";
+echo "window.APP_URL = '" . APP_URL . "';\n";
+?>
+
+const BATCH_DATA = <?= json_encode($batches) ?>;
+
+function syncBatches(courseId) {
+    const sel = document.getElementById('selBatch');
+    if (!sel) return;
+    sel.innerHTML = '<option value="">— Choose Batch —</option>';
+    if (!courseId) return;
+    
+    const matches = BATCH_DATA.filter(b => b.course_id == courseId);
+    if (!matches.length) {
+        sel.innerHTML = '<option value="">No active batches found</option>';
+        return;
+    }
+    matches.forEach(b => {
+        sel.innerHTML += `<option value="${b.id}">${b.name} (${b.shift})</option>`;
+    });
+}
+
+async function handleDobSync(val) {
+    if (!val) return;
+    try {
+        const res = await fetch(`${APP_URL}/api/admin/date-convert?ad=${encodeURIComponent(val)}`);
+        const data = await res.json();
+        if (data.success && data.bs) {
+            document.getElementById('inpDobBs').value = data.bs;
+        }
+    } catch(err) { console.error("BS Conversion Error"); }
+}
+
+function togglePassView(id) {
+    const inp = document.getElementById(id);
+    const ico = document.getElementById(id + 'Eye');
+    if (!inp || !ico) return;
+    const isPass = inp.type === 'password';
+    inp.type = isPass ? 'text' : 'password';
+    ico.className = isPass ? 'fas fa-eye-slash' : 'fas fa-eye';
+}
+
+async function handleAdmissionSubmit(e) {
+    e.preventDefault();
+    const btn = document.getElementById('btnSubmitAdm');
+    if (btn.disabled) return;
+    
+    const form = e.target;
+    if (form.password.value !== form.confirm_password.value) {
+        Swal.fire({ title: 'Security Issue', text: 'Access passwords do not match.', icon: 'warning' });
+        return;
+    }
+
+    btn.disabled = true;
+    const oldHTML = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> GENERATING ADMISSION...';
+
+    const payload = {
+        full_name:              form.full_name.value.trim(),
+        contact_number:         form.contact_number.value.trim(),
+        email:                  form.email.value.trim(),
+        password:               form.password.value,
+        batch_id:               form.batch_id.value,
+        dob_ad:                 form.dob_ad.value,
+        dob_bs:                 form.dob_bs.value,
+        gender:                 form.gender.value,
+        blood_group:            form.blood_group.value,
+        father_name:            form.father_name.value.trim(),
+        citizenship_no:         form.citizenship_no.value.trim(),
+        permanent_address:      JSON.stringify({ address: form.permanent_address.value.trim() }),
+        temporary_address:      form.temporary_address.value.trim() ? JSON.stringify({ address: form.temporary_address.value.trim() }) : null,
+        academic_qualification: form.academic_qualification.value.trim(),
+        registration_status:    'fully_registered'
+    };
+
+    try {
+        const res = await fetch(`${APP_URL}/api/frontdesk/students`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+        });
+        const result = await res.json();
+
+        if (result.success) {
+            showM('success', 'Admission Finalised!', 
+                `<p>Student <strong>${payload.full_name}</strong> has been successfully registered.</p>
+                <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:18px; padding:1.5rem; text-align:left; margin-top:1.5rem;">
+                    <p style="font-size:12px; font-weight:700; color:var(--p); margin-bottom:8px;">STUDENT PORTAL DATA</p>
+                    <div style="margin-bottom:6px;"><span style="opacity:0.6; width:80px; display:inline-block;">Username:</span> <strong>${payload.email}</strong></div>
+                    <div><span style="opacity:0.6; width:80px; display:inline-block;">Initial Pass:</span> <span style="font-family:monospace; background:#fff; padding:2px 6px; border-radius:6px; border:1px solid #ddd;">${payload.password}</span></div>
+                </div>`,
+                [
+                    { label: 'View Student Database', click: `window.location.href = '${APP_URL}/dash/front-desk/students'`, style: 'background:linear-gradient(135deg,#00b894,#009e7e);color:#fff;' },
+                    { label: 'New Registration', click: `closeM(); document.getElementById('formAdmission').reset();`, style: 'background:#f1f5f9;color:#1e293b;box-shadow:none;' }
+                ]
+            );
+            form.reset();
+        } else {
+            Swal.fire({ title: 'Admission Failed', text: result.message || 'System error.', icon: 'error' });
+        }
+    } catch (err) {
+        Swal.fire('Connection Error', 'Check your internet or server status.', 'error');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = oldHTML;
+    }
+}
+
+function showM(type, title, html, actions) {
+    const ov = document.getElementById('successDialog');
+    const cd = document.getElementById('scCard');
+    const ic = document.getElementById('mIcon');
+    if (!ov || !ic) return;
+
+    ic.style.background = type === 'success' ? 'linear-gradient(135deg,#00b894,#009e7e)' : 'linear-gradient(135deg,#ff7675,#e11d48)';
+    ic.innerHTML = `<i class="fas fa-${type === 'success' ? 'check' : 'times'}"></i>`;
+    document.getElementById('mTitle').textContent = title;
+    document.getElementById('mBody').innerHTML = html;
+    
+    document.getElementById('mActions').innerHTML = actions.map(a =>
+        `<button onclick="${a.click}" class="btn-p" style="height:52px; font-size:14px; ${a.style}">${a.label}</button>`
+    ).join('');
+
+    ov.style.display = 'flex';
+    setTimeout(() => cd.classList.add('active'), 10);
+}
+
+function closeM() { 
+    document.getElementById('scCard').classList.remove('active');
+    setTimeout(() => document.getElementById('successDialog').style.display = 'none', 300); 
+}
+
+window.addEventListener('scroll', () => {
+    // Reveal animations or header fades if needed
+});
+</script>
+
+<?php
+renderSuperAdminCSS(); // Load base styles
+echo '<script src="' . APP_URL . '/public/assets/js/frontdesk.js"></script>';
+?>
+</body>
+</html>

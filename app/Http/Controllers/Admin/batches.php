@@ -60,7 +60,9 @@ try {
                   (SELECT COUNT(*) FROM students s WHERE s.batch_id = b.id AND s.deleted_at IS NULL) as total_students
                   FROM batches b
                   JOIN courses c ON b.course_id = c.id
+                    AND c.deleted_at IS NULL AND c.is_active = 1
                   WHERE b.tenant_id = :tid AND b.deleted_at IS NULL";
+        // ISSUE-B2 FIX: JOIN now guards against soft-deleted / inactive parent courses
         
         $params = ['tid' => $tenantId];
 
@@ -74,9 +76,15 @@ try {
             $params['course_id'] = $_GET['course_id'];
         }
 
+        // ISSUE-B1 FIX: 'open' is a virtual status meaning active OR upcoming (for admission forms)
         if (!empty($_GET['status'])) {
-            $query .= " AND b.status = :status";
-            $params['status'] = $_GET['status'];
+            $status = $_GET['status'];
+            if ($status === 'open') {
+                $query .= " AND b.status IN ('active','upcoming')";
+            } else {
+                $query .= " AND b.status = :status";
+                $params['status'] = $status;
+            }
         }
 
         $query .= " ORDER BY b.start_date DESC";

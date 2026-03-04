@@ -1,0 +1,2354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Front Desk Portal — HamroLabs ERP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<style>
+/* ─────────────────────────────────────────
+   DESIGN TOKENS (mirrors project style.css)
+───────────────────────────────────────── */
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --green:#00B894;--green-d:#007a62;--green-h:#00A180;--teal:#009E7E;
+  --navy:#0F172A;--red:#E11D48;--purple:#8141A5;--soft-purple:#F3E8FF;
+  --amber:#F59E0B;--amber-soft:#FEF3C7;--sky:#0EA5E9;--sky-soft:#E0F2FE;
+  --orange:#EA580C;--orange-soft:#FFF7ED;
+  --bg:#F8FAFC;--card-border:#E2E8F0;
+  --text-dark:#1E293B;--text-body:#475569;--text-light:#94A3B8;
+  --white:#ffffff;--sb-w:252px;--hdr-h:56px;
+  --font:'Plus Jakarta Sans',sans-serif;
+  --shadow:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.05);
+  --shadow-md:0 4px 16px rgba(0,0,0,.08);
+  --shadow-lg:0 8px 32px rgba(0,0,0,.12);
+  --radius:12px;--radius-sm:8px;
+}
+html{font-size:clamp(13px,1.1vw,15px)}
+body{font-family:var(--font);background:var(--bg);color:var(--text-dark);line-height:1.5;-webkit-tap-highlight-color:transparent}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:10px}
+::-webkit-scrollbar-thumb:hover{background:#94A3B8}
+
+/* ══════════════════ HEADER ══════════════════ */
+.hdr{
+  position:fixed;top:0;left:0;right:0;height:var(--hdr-h);z-index:1000;
+  background:var(--green);display:flex;align-items:center;padding:0 16px;
+  box-shadow:0 2px 8px rgba(0,184,148,.30);color:#fff;gap:12px;
+}
+.hdr-brand{display:flex;align-items:center;gap:10px}
+.hdr-logo{
+  width:34px;height:34px;background:rgba(255,255,255,.2);border-radius:9px;
+  display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;
+  letter-spacing:-1px;
+}
+.hdr-name{font-size:14px;font-weight:800;letter-spacing:-.3px}
+.hdr-sub{font-size:10px;opacity:.75;font-weight:500}
+.hdr-divider{width:1px;height:28px;background:rgba(255,255,255,.25);margin:0 4px}
+.hdr-portal-tag{
+  background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);
+  padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;
+  letter-spacing:.3px;text-transform:uppercase;
+}
+.hdr-right{margin-left:auto;display:flex;align-items:center;gap:8px}
+.hdr-clock{font-size:12px;font-weight:600;opacity:.9}
+.hdr-date{font-size:11px;opacity:.7}
+.hbtn{
+  width:34px;height:34px;display:flex;align-items:center;justify-content:center;
+  background:rgba(255,255,255,.15);border-radius:var(--radius-sm);
+  cursor:pointer;font-size:14px;border:none;color:#fff;position:relative;
+  transition:.2s;
+}
+.hbtn:hover{background:rgba(255,255,255,.25)}
+.nbadge{
+  position:absolute;top:-3px;right:-3px;width:15px;height:15px;
+  border-radius:50%;background:var(--red);color:#fff;font-size:8px;
+  font-weight:800;display:flex;align-items:center;justify-content:center;
+  border:2px solid var(--green);
+}
+.hdr-avatar{
+  width:32px;height:32px;border-radius:50%;background:var(--green-d);
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:800;cursor:pointer;
+}
+.hdr-uinfo{display:flex;flex-direction:column;align-items:flex-end}
+.hdr-uname{font-size:12px;font-weight:700}
+.hdr-urole{font-size:10px;opacity:.7}
+.sb-toggle{
+  width:34px;height:34px;display:flex;align-items:center;justify-content:center;
+  background:rgba(255,255,255,.15);border-radius:var(--radius-sm);
+  border:none;color:#fff;cursor:pointer;font-size:16px;
+}
+
+/* ══════════════════ SIDEBAR ══════════════════ */
+.sb-overlay{
+  position:fixed;inset:0;background:rgba(15,23,42,.5);backdrop-filter:blur(2px);
+  z-index:998;opacity:0;visibility:hidden;transition:.3s;
+}
+.sb{
+  position:fixed;top:var(--hdr-h);left:0;bottom:0;width:var(--sb-w);
+  background:var(--white);z-index:999;
+  border-right:1px solid var(--card-border);
+  display:flex;flex-direction:column;overflow:hidden;
+  transform:translateX(0);transition:transform .3s cubic-bezier(.4,0,.2,1);
+}
+.sb-body{flex:1;overflow-y:auto;padding:10px 0 20px}
+.sb-sec-lbl{
+  font-size:10px;font-weight:700;color:var(--text-light);
+  text-transform:uppercase;padding:14px 20px 6px;letter-spacing:.6px;
+}
+.sb-btn{
+  width:100%;display:flex;align-items:center;gap:11px;
+  padding:10px 20px;border:none;background:none;color:var(--text-body);
+  font-size:13.5px;font-weight:500;cursor:pointer;transition:.15s;
+  border-left:3px solid transparent;font-family:var(--font);text-align:left;
+}
+.sb-btn:hover{background:#f1f5f9;color:var(--text-dark)}
+.sb-btn.active{background:#e6f7f3;color:var(--green);border-left-color:var(--green);font-weight:700}
+.sb-btn i{width:18px;text-align:center;font-size:14px;flex-shrink:0}
+.sb-lbl{flex:1}
+.sb-badge{
+  font-size:10px;font-weight:800;padding:2px 7px;border-radius:20px;
+  background:var(--red);color:#fff;min-width:18px;text-align:center;
+}
+.sb-badge.green{background:var(--green)}
+.sb-badge.amber{background:var(--amber)}
+.sb-divider{height:1px;background:var(--card-border);margin:8px 16px}
+.sb-footer{
+  padding:14px 16px;border-top:1px solid var(--card-border);
+  display:flex;align-items:center;gap:10px;
+}
+.sb-user-av{
+  width:34px;height:34px;border-radius:50%;background:var(--green);
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;font-weight:800;font-size:13px;flex-shrink:0;
+}
+.sb-user-name{font-size:12px;font-weight:700;color:var(--text-dark)}
+.sb-user-role{font-size:11px;color:var(--text-light)}
+
+/* ══════════════════ MAIN ══════════════════ */
+.main{
+  margin-top:var(--hdr-h);margin-left:var(--sb-w);
+  flex:1;overflow-y:auto;background:var(--bg);
+  transition:margin-left .3s cubic-bezier(.4,0,.2,1);
+}
+.page{padding:20px;max-width:1480px;margin:0 auto}
+.page-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px}
+.page-hdr-left h1{font-size:1.25rem;font-weight:800;color:var(--text-dark)}
+.page-hdr-left p{font-size:12px;color:var(--text-light);margin-top:2px}
+.page-hdr-right{display:flex;gap:10px;align-items:center}
+
+/* ── STAT CARDS ── */
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}
+.stat-card{
+  background:#fff;border-radius:var(--radius);border:1px solid var(--card-border);
+  padding:18px 20px;display:flex;flex-direction:column;gap:12px;
+  box-shadow:var(--shadow);position:relative;overflow:hidden;transition:.2s;
+}
+.stat-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md)}
+.stat-card::before{
+  content:'';position:absolute;right:-10px;top:-10px;
+  width:70px;height:70px;border-radius:50%;opacity:.07;
+}
+.stat-card.green::before{background:var(--green)}
+.stat-card.red::before{background:var(--red)}
+.stat-card.amber::before{background:var(--amber)}
+.stat-card.sky::before{background:var(--sky)}
+.stat-card.purple::before{background:var(--purple)}
+.stat-top{display:flex;align-items:flex-start;justify-content:space-between}
+.stat-icon{
+  width:40px;height:40px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;
+}
+.stat-icon.green{background:#e6f7f3;color:var(--green)}
+.stat-icon.red{background:#fee2e2;color:var(--red)}
+.stat-icon.amber{background:var(--amber-soft);color:var(--amber)}
+.stat-icon.sky{background:var(--sky-soft);color:var(--sky)}
+.stat-icon.purple{background:var(--soft-purple);color:var(--purple)}
+.stat-icon.orange{background:var(--orange-soft);color:var(--orange)}
+.stat-trend{
+  display:flex;align-items:center;gap:4px;font-size:11px;font-weight:600;
+  padding:2px 8px;border-radius:20px;
+}
+.trend-up{background:#dcfce7;color:#16a34a}
+.trend-down{background:#fee2e2;color:var(--red)}
+.stat-val{font-size:1.7rem;font-weight:800;line-height:1.1;color:var(--text-dark)}
+.stat-lbl{font-size:12px;color:var(--text-light);font-weight:500}
+.stat-sub{font-size:11px;color:var(--text-body);margin-top:4px}
+
+/* ── GRID LAYOUTS ── */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px}
+.g65{display:grid;grid-template-columns:1.75fr 1fr;gap:14px;margin-bottom:14px}
+.g73{display:grid;grid-template-columns:2fr 1fr;gap:14px;margin-bottom:14px}
+
+/* ── CARDS ── */
+.card{
+  background:#fff;border-radius:var(--radius);border:1px solid var(--card-border);
+  box-shadow:var(--shadow);overflow:hidden;
+}
+.card-hdr{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 20px;border-bottom:1px solid var(--card-border);
+}
+.card-title{font-size:14px;font-weight:700;color:var(--text-dark);display:flex;align-items:center;gap:8px}
+.card-title i{color:var(--green);font-size:13px}
+.card-sub{font-size:11px;color:var(--text-light);margin-top:1px}
+.card-body{padding:16px 20px}
+.card-hdr-actions{display:flex;gap:8px;align-items:center}
+
+/* ── BUTTONS ── */
+.btn{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:8px 16px;border-radius:var(--radius-sm);font-size:13px;
+  font-weight:600;cursor:pointer;border:none;font-family:var(--font);
+  transition:.15s;text-decoration:none;white-space:nowrap;
+}
+.btn-sm{padding:6px 12px;font-size:12px}
+.btn-xs{padding:4px 10px;font-size:11px;gap:5px}
+.btn-primary{background:var(--green);color:#fff}
+.btn-primary:hover{background:var(--green-h)}
+.btn-outline{background:#fff;color:var(--text-body);border:1px solid var(--card-border)}
+.btn-outline:hover{border-color:var(--green);color:var(--green)}
+.btn-danger{background:var(--red);color:#fff}
+.btn-danger:hover{opacity:.9}
+.btn-ghost{background:transparent;color:var(--text-body);padding:6px 10px}
+.btn-ghost:hover{background:#f1f5f9}
+
+/* ── QUICK ACTIONS ── */
+.quick-actions{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:18px}
+.qa-btn{
+  background:#fff;border:1px solid var(--card-border);border-radius:var(--radius);
+  padding:14px 10px;display:flex;flex-direction:column;align-items:center;gap:8px;
+  cursor:pointer;transition:.2s;text-align:center;
+}
+.qa-btn:hover{border-color:var(--green);background:#e6f7f3;transform:translateY(-2px);box-shadow:var(--shadow-md)}
+.qa-icon{
+  width:42px;height:42px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;font-size:18px;
+}
+.qa-label{font-size:11.5px;font-weight:700;color:var(--text-dark);line-height:1.3}
+.qa-sub{font-size:10px;color:var(--text-light)}
+
+/* ── TABLE ── */
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{
+  background:#f8fafc;padding:10px 14px;text-align:left;font-size:11px;
+  font-weight:700;color:var(--text-light);text-transform:uppercase;letter-spacing:.4px;
+  border-bottom:1px solid var(--card-border);white-space:nowrap;
+}
+td{padding:11px 14px;border-bottom:1px solid #f1f5f9;color:var(--text-body);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#f8fafc}
+.tbl-name{font-weight:700;color:var(--text-dark);font-size:13px}
+.tbl-sub{font-size:11px;color:var(--text-light);margin-top:2px}
+.tbl-av{
+  width:32px;height:32px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:800;flex-shrink:0;color:#fff;
+}
+
+/* ── BADGES & PILLS ── */
+.badge{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap;
+}
+.badge-green{background:#dcfce7;color:#16a34a}
+.badge-red{background:#fee2e2;color:var(--red)}
+.badge-amber{background:var(--amber-soft);color:#92400e}
+.badge-sky{background:var(--sky-soft);color:#0369a1}
+.badge-purple{background:var(--soft-purple);color:var(--purple)}
+.badge-gray{background:#f1f5f9;color:var(--text-body)}
+.badge-orange{background:var(--orange-soft);color:var(--orange)}
+.dot{width:6px;height:6px;border-radius:50%;display:inline-block}
+
+/* ── SEARCH ── */
+.search-bar{
+  display:flex;align-items:center;gap:8px;
+  background:#f8fafc;border:1px solid var(--card-border);
+  border-radius:var(--radius-sm);padding:8px 12px;
+  transition:.2s;
+}
+.search-bar:focus-within{border-color:var(--green);background:#fff;box-shadow:0 0 0 3px rgba(0,184,148,.1)}
+.search-bar i{color:var(--text-light);font-size:13px}
+.search-bar input{border:none;background:transparent;font-size:13px;font-family:var(--font);color:var(--text-dark);outline:none;width:100%}
+
+/* ── ATTENDANCE MINI ── */
+.att-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #f1f5f9}
+.att-row:last-child{border-bottom:none}
+.att-av{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;flex-shrink:0;color:#fff}
+.att-info{flex:1;min-width:0}
+.att-name{font-size:12.5px;font-weight:700;color:var(--text-dark);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.att-batch{font-size:11px;color:var(--text-light)}
+.att-actions{display:flex;gap:5px}
+.att-btn{
+  width:28px;height:28px;border-radius:6px;border:1px solid var(--card-border);
+  background:#fff;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;
+  transition:.15s;color:var(--text-body);
+}
+.att-btn:hover.p{background:#dcfce7;border-color:#86efac;color:#16a34a}
+.att-btn:hover.a{background:#fee2e2;border-color:#fca5a5;color:var(--red)}
+.att-btn:hover.l{background:var(--amber-soft);border-color:#fcd34d;color:var(--amber)}
+.att-btn.selected-p{background:#dcfce7;border-color:#86efac;color:#16a34a}
+.att-btn.selected-a{background:#fee2e2;border-color:#fca5a5;color:var(--red)}
+.att-btn.selected-l{background:var(--amber-soft);border-color:#fcd34d;color:var(--amber)}
+
+/* ── PROGRESS BAR ── */
+.prog-bar{height:6px;background:#f1f5f9;border-radius:10px;overflow:hidden}
+.prog-fill{height:100%;border-radius:10px;transition:width .6s ease}
+
+/* ── ACTIVITY FEED ── */
+.activity-item{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid #f8fafc}
+.activity-item:last-child{border-bottom:none}
+.act-dot{
+  width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:6px;
+}
+.act-line{width:1px;background:#f1f5f9;flex-shrink:0}
+.act-icon-wrap{
+  width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:12px;flex-shrink:0;
+}
+.act-text{font-size:12.5px;color:var(--text-body);line-height:1.5}
+.act-text strong{color:var(--text-dark);font-weight:700}
+.act-time{font-size:11px;color:var(--text-light);margin-top:2px}
+
+/* ── NOTICE / ANNOUNCEMENT ── */
+.notice-item{
+  display:flex;gap:12px;align-items:flex-start;
+  padding:12px;border-radius:var(--radius-sm);margin-bottom:8px;
+  border:1px solid;
+}
+.notice-item:last-child{margin-bottom:0}
+.notice-item.urgent{background:#fff1f2;border-color:#fecdd3}
+.notice-item.normal{background:#f0fdf4;border-color:#bbf7d0}
+.notice-item.info{background:var(--sky-soft);border-color:#bae6fd}
+.notice-icon{font-size:16px;margin-top:1px;flex-shrink:0}
+.notice-title{font-size:12.5px;font-weight:700;color:var(--text-dark)}
+.notice-msg{font-size:11.5px;color:var(--text-body);margin-top:2px}
+.notice-meta{font-size:10.5px;color:var(--text-light);margin-top:4px}
+
+/* ── FEE SUMMARY ── */
+.fee-summary-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 0;border-bottom:1px solid #f1f5f9;
+}
+.fee-summary-row:last-child{border-bottom:none}
+.fee-label{font-size:13px;font-weight:600;color:var(--text-body)}
+.fee-amount{font-size:14px;font-weight:800;color:var(--text-dark)}
+.fee-amount.green{color:var(--green)}
+.fee-amount.red{color:var(--red)}
+.fee-amount.amber{color:var(--amber)}
+
+/* ── INQUIRY CARD ── */
+.inquiry-row{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-bottom:1px solid #f1f5f9}
+.inquiry-row:last-child{border-bottom:none}
+.inq-av{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0;color:#fff}
+.inq-name{font-size:13px;font-weight:700;color:var(--text-dark)}
+.inq-course{font-size:11px;color:var(--text-light)}
+.inq-time{font-size:11px;color:var(--text-light);margin-left:auto;flex-shrink:0}
+
+/* ── CALENDAR/SCHEDULE ── */
+.sched-item{
+  display:flex;gap:12px;align-items:flex-start;padding:10px 0;
+  border-bottom:1px solid #f1f5f9;
+}
+.sched-item:last-child{border-bottom:none}
+.sched-time{
+  width:54px;font-size:11px;font-weight:700;color:var(--text-light);
+  flex-shrink:0;text-align:center;margin-top:2px;line-height:1.4;
+}
+.sched-bar{width:3px;border-radius:3px;flex-shrink:0;align-self:stretch;min-height:34px}
+.sched-info{flex:1}
+.sched-title{font-size:13px;font-weight:700;color:var(--text-dark)}
+.sched-sub{font-size:11px;color:var(--text-light);margin-top:2px}
+
+/* ── LEAVE REQUESTS ── */
+.leave-row{display:flex;gap:12px;align-items:center;padding:9px 0;border-bottom:1px solid #f1f5f9}
+.leave-row:last-child{border-bottom:none}
+.leave-info{flex:1}
+.leave-name{font-size:13px;font-weight:700;color:var(--text-dark)}
+.leave-detail{font-size:11px;color:var(--text-light)}
+.leave-actions{display:flex;gap:6px}
+
+/* ── TABS ── */
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--card-border);margin:-1px -20px 16px;padding:0 20px}
+.tab-btn{
+  padding:10px 14px;font-size:13px;font-weight:600;color:var(--text-light);
+  cursor:pointer;border-bottom:2px solid transparent;transition:.15s;margin-bottom:-1px;
+  background:none;border-top:none;border-left:none;border-right:none;
+  font-family:var(--font);white-space:nowrap;
+}
+.tab-btn.active{color:var(--green);border-bottom-color:var(--green)}
+.tab-btn:hover:not(.active){color:var(--text-body)}
+
+/* ── PAYMENT MODAL ── */
+.overlay{
+  position:fixed;inset:0;background:rgba(15,23,42,.55);backdrop-filter:blur(3px);
+  z-index:1500;opacity:0;visibility:hidden;transition:.3s;display:flex;align-items:center;justify-content:center;
+}
+.overlay.active{opacity:1;visibility:visible}
+.modal{
+  background:#fff;border-radius:16px;width:100%;max-width:540px;
+  box-shadow:var(--shadow-lg);transform:scale(.95);transition:transform .3s cubic-bezier(.4,0,.2,1);
+  max-height:90vh;overflow-y:auto;margin:20px;
+}
+.overlay.active .modal{transform:scale(1)}
+.modal-hdr{
+  padding:20px 24px;border-bottom:1px solid var(--card-border);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.modal-hdr h3{font-size:16px;font-weight:800;color:var(--text-dark)}
+.modal-close{
+  width:32px;height:32px;border-radius:8px;border:1px solid var(--card-border);
+  background:#f8fafc;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;color:var(--text-body);font-size:14px;transition:.15s;
+}
+.modal-close:hover{background:#fee2e2;color:var(--red);border-color:#fca5a5}
+.modal-body{padding:24px}
+.modal-footer{
+  padding:16px 24px;border-top:1px solid var(--card-border);
+  display:flex;gap:10px;justify-content:flex-end;
+}
+
+/* ── FORM ELEMENTS ── */
+.form-row{margin-bottom:16px}
+.form-label{font-size:12px;font-weight:700;color:var(--text-body);margin-bottom:6px;display:block;text-transform:uppercase;letter-spacing:.3px}
+.form-input{
+  width:100%;padding:9px 12px;border:1px solid var(--card-border);border-radius:var(--radius-sm);
+  font-size:13px;font-family:var(--font);color:var(--text-dark);outline:none;
+  background:#fff;transition:.2s;
+}
+.form-input:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(0,184,148,.1)}
+.form-select{
+  width:100%;padding:9px 12px;border:1px solid var(--card-border);border-radius:var(--radius-sm);
+  font-size:13px;font-family:var(--font);color:var(--text-dark);outline:none;
+  background:#fff;appearance:none;cursor:pointer;
+}
+.form-row-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+/* ── PAYMENT METHOD PILLS ── */
+.pay-methods{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.pay-method{
+  display:flex;align-items:center;gap:6px;padding:7px 14px;
+  border:2px solid var(--card-border);border-radius:var(--radius-sm);
+  cursor:pointer;font-size:12px;font-weight:600;color:var(--text-body);
+  transition:.15s;background:#fff;
+}
+.pay-method:hover{border-color:var(--green)}
+.pay-method.selected{border-color:var(--green);background:#e6f7f3;color:var(--green)}
+
+/* ── STUDENT LOOKUP RESULT ── */
+.stu-result{
+  background:#f8fafc;border:1px solid var(--card-border);border-radius:var(--radius-sm);
+  padding:14px;display:flex;gap:14px;align-items:flex-start;margin-bottom:16px;
+}
+.stu-result-av{
+  width:44px;height:44px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:15px;font-weight:800;color:#fff;flex-shrink:0;
+}
+.stu-result-info{flex:1}
+.stu-result-name{font-size:14px;font-weight:800;color:var(--text-dark)}
+.stu-result-meta{font-size:12px;color:var(--text-light);display:flex;gap:14px;margin-top:3px;flex-wrap:wrap}
+.stu-result-fee{
+  background:#fff;border:1px solid var(--card-border);border-radius:8px;
+  padding:10px 14px;display:flex;gap:16px;margin-top:10px;
+}
+.stu-fee-item{text-align:center}
+.stu-fee-val{font-size:14px;font-weight:800;color:var(--text-dark)}
+.stu-fee-lbl{font-size:10px;color:var(--text-light);margin-top:2px}
+
+/* ── PAGINATION ── */
+.pagination{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-top:1px solid var(--card-border);flex-wrap:wrap;gap:8px}
+.pg-info{font-size:12px;color:var(--text-light)}
+.pg-btns{display:flex;gap:4px}
+.pg-btn{
+  width:30px;height:30px;display:flex;align-items:center;justify-content:center;
+  border:1px solid var(--card-border);border-radius:7px;font-size:12px;
+  cursor:pointer;background:#fff;color:var(--text-body);transition:.15s;font-family:var(--font);
+}
+.pg-btn:hover{border-color:var(--green);color:var(--green)}
+.pg-btn.active{background:var(--green);border-color:var(--green);color:#fff;font-weight:700}
+
+/* ── MINI CHART ── */
+.mini-bars{display:flex;align-items:flex-end;gap:4px;height:48px}
+.mbar{
+  flex:1;background:var(--green);border-radius:3px 3px 0 0;
+  opacity:.3;transition:.2s;cursor:pointer;
+}
+.mbar:hover,.mbar.active{opacity:1}
+.mbar.amber{background:var(--amber)}
+.mbar.red{background:var(--red)}
+.mbar-labels{display:flex;gap:4px;margin-top:4px}
+.mbar-label{flex:1;text-align:center;font-size:9.5px;color:var(--text-light)}
+
+/* ── RECEIPT PREVIEW ── */
+.receipt-preview{
+  background:#f8fafc;border:1px dashed var(--card-border);border-radius:var(--radius-sm);
+  padding:14px;text-align:center;
+}
+.receipt-no{font-size:18px;font-weight:800;color:var(--green);letter-spacing:1px}
+.receipt-stamp{
+  display:inline-block;border:2px solid var(--green);color:var(--green);
+  padding:3px 12px;border-radius:4px;font-size:11px;font-weight:800;
+  letter-spacing:1px;margin-top:6px;transform:rotate(-3deg);
+}
+
+/* ── TOAST NOTIFICATIONS ── */
+#toast-container{
+  position:fixed;bottom:24px;right:24px;z-index:9999;
+  display:flex;flex-direction:column;gap:8px;pointer-events:none;
+}
+.toast{
+  background:#1E293B;color:#fff;padding:12px 18px;border-radius:10px;
+  font-size:13px;font-weight:600;box-shadow:var(--shadow-lg);
+  display:flex;align-items:center;gap:10px;pointer-events:all;
+  animation:toastIn .3s ease;max-width:320px;
+}
+.toast.success{background:#15803d}
+.toast.error{background:var(--red)}
+.toast.info{background:var(--sky)}
+@keyframes toastIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── MOBILE ── */
+@media(max-width:1200px){.stat-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:1024px){
+  .sb{transform:translateX(-100%)}
+  body.sb-active .sb{transform:translateX(0)}
+  body.sb-active .sb-overlay{opacity:1;visibility:visible}
+  .main{margin-left:0}
+  .g65,.g73,.g2{grid-template-columns:1fr}
+  .g3{grid-template-columns:1fr 1fr}
+  .quick-actions{grid-template-columns:repeat(3,1fr)}
+}
+@media(max-width:640px){
+  .stat-grid{grid-template-columns:1fr 1fr}
+  .g3{grid-template-columns:1fr}
+  .quick-actions{grid-template-columns:repeat(2,1fr)}
+  .hdr-uinfo,.hdr-date{display:none}
+}
+
+/* ── HOVER EFFECTS ── */
+.hover-card{transition:.2s}
+.hover-card:hover{box-shadow:var(--shadow-md)}
+
+/* Section separators */
+.section-title{
+  font-size:11px;font-weight:700;color:var(--text-light);text-transform:uppercase;
+  letter-spacing:.5px;margin-bottom:12px;display:flex;align-items:center;gap:8px;
+}
+.section-title::after{content:'';flex:1;height:1px;background:var(--card-border)}
+
+/* Status indicator */
+.online-dot{width:8px;height:8px;border-radius:50%;background:#22c55e;display:inline-block;flex-shrink:0}
+.online-dot.offline{background:#ef4444}
+.online-dot.away{background:var(--amber)}
+
+/* Highlight text */
+mark{background:rgba(0,184,148,.15);color:var(--green);padding:0 2px;border-radius:3px}
+
+/* ── ID CARD MINI ── */
+.id-chip{
+  display:inline-flex;align-items:center;gap:5px;
+  background:#f1f5f9;border-radius:6px;padding:3px 9px;
+  font-size:11.5px;font-weight:700;color:var(--text-body);
+}
+.id-chip i{color:var(--green);font-size:10px}
+
+/* Dividers */
+hr{border:none;border-top:1px solid var(--card-border);margin:12px 0}
+
+/* Scrollable panel */
+.scroll-panel{overflow-y:auto}
+.scroll-panel.h300{max-height:300px}
+.scroll-panel.h360{max-height:360px}
+.scroll-panel.h260{max-height:260px}
+</style>
+</head>
+<body>
+
+<!-- ══════════ HEADER ══════════ -->
+<header class="hdr">
+  <button class="sb-toggle" onclick="toggleSidebar()"><i class="fa fa-bars"></i></button>
+  <div class="hdr-brand">
+    <div class="hdr-logo">HL</div>
+    <div>
+      <div class="hdr-name">HamroLabs ERP</div>
+      <div class="hdr-sub">Nepal Cyber Firm · Brightfuture</div>
+    </div>
+  </div>
+  <div class="hdr-divider"></div>
+  <div class="hdr-portal-tag"><i class="fa fa-door-open" style="margin-right:5px"></i>Front Desk</div>
+  <div class="hdr-right">
+    <div>
+      <div class="hdr-clock" id="hdr-time">09:47 AM</div>
+      <div class="hdr-date" id="hdr-date">Tue, March 03, 2026</div>
+    </div>
+    <button class="hbtn" onclick="openModal('notification-modal')" title="Notifications">
+      <i class="fa fa-bell"></i>
+      <span class="nbadge">4</span>
+    </button>
+    <button class="hbtn" title="Quick Search" onclick="focusSearch()">
+      <i class="fa fa-search"></i>
+    </button>
+    <button class="hbtn" title="Settings"><i class="fa fa-cog"></i></button>
+    <div style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.1);padding:4px 10px;border-radius:20px;cursor:pointer">
+      <div class="hdr-avatar">SD</div>
+      <div class="hdr-uinfo">
+        <div class="hdr-uname">Sunita Devi</div>
+        <div class="hdr-urole">Front Desk Officer</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- SIDEBAR OVERLAY -->
+<div class="sb-overlay" onclick="closeSidebar()"></div>
+
+<!-- ══════════ SIDEBAR ══════════ -->
+<aside class="sb" id="sidebar">
+  <div class="sb-body">
+
+    <div class="sb-sec-lbl">Overview</div>
+    <button class="sb-btn active" onclick="switchPage('dashboard')">
+      <i class="fa fa-th-large"></i><span class="sb-lbl">Dashboard</span>
+    </button>
+    <button class="sb-btn" onclick="switchPage('attendance')">
+      <i class="fa fa-calendar-check"></i><span class="sb-lbl">Today's Attendance</span>
+      <span class="sb-badge amber">12</span>
+    </button>
+
+    <div class="sb-sec-lbl">Admissions</div>
+    <button class="sb-btn" onclick="switchPage('students')">
+      <i class="fa fa-user-graduate"></i><span class="sb-lbl">Student Lookup</span>
+    </button>
+    <button class="sb-btn" onclick="switchPage('new-admission')">
+      <i class="fa fa-user-plus"></i><span class="sb-lbl">New Admission</span>
+    </button>
+    <button class="sb-btn" onclick="switchPage('inquiries')">
+      <i class="fa fa-comments"></i><span class="sb-lbl">Inquiries</span>
+      <span class="sb-badge">7</span>
+    </button>
+
+    <div class="sb-sec-lbl">Fee & Finance</div>
+    <button class="sb-btn" onclick="switchPage('fee-collection')">
+      <i class="fa fa-money-bill-wave"></i><span class="sb-lbl">Fee Collection</span>
+    </button>
+    <button class="sb-btn" onclick="switchPage('transactions')">
+      <i class="fa fa-exchange-alt"></i><span class="sb-lbl">Transactions</span>
+    </button>
+    <button class="sb-btn" onclick="switchPage('pending-dues')">
+      <i class="fa fa-clock"></i><span class="sb-lbl">Pending Dues</span>
+      <span class="sb-badge">18</span>
+    </button>
+    <button class="sb-btn" onclick="switchPage('receipts')">
+      <i class="fa fa-receipt"></i><span class="sb-lbl">Receipts</span>
+    </button>
+
+    <div class="sb-sec-lbl">Operations</div>
+    <button class="sb-btn" onclick="switchPage('leave-requests')">
+      <i class="fa fa-user-clock"></i><span class="sb-lbl">Leave Requests</span>
+      <span class="sb-badge amber">5</span>
+    </button>
+    <button class="sb-btn" onclick="switchPage('library')">
+      <i class="fa fa-book"></i><span class="sb-lbl">Library Desk</span>
+    </button>
+    <button class="sb-btn" onclick="switchPage('timetable')">
+      <i class="fa fa-table"></i><span class="sb-lbl">Today's Timetable</span>
+    </button>
+    <button class="sb-btn" onclick="switchPage('announcements')">
+      <i class="fa fa-bullhorn"></i><span class="sb-lbl">Announcements</span>
+      <span class="sb-badge green">2</span>
+    </button>
+
+    <div class="sb-divider"></div>
+
+    <button class="sb-btn" onclick="switchPage('support')">
+      <i class="fa fa-headset"></i><span class="sb-lbl">Support Tickets</span>
+    </button>
+    <button class="sb-btn" onclick="switchPage('audit-log')">
+      <i class="fa fa-shield-alt"></i><span class="sb-lbl">Activity Log</span>
+    </button>
+  </div>
+
+  <div class="sb-footer">
+    <div class="sb-user-av">SD</div>
+    <div>
+      <div class="sb-user-name">Sunita Devi</div>
+      <div class="sb-user-role">Front Desk · Nepal Cyber Firm</div>
+    </div>
+    <div style="margin-left:auto"><span class="online-dot"></span></div>
+  </div>
+</aside>
+
+<!-- ══════════ MAIN CONTENT ══════════ -->
+<main class="main" id="main-content">
+
+<!-- ═══════════════════════════════════════
+     PAGE: DASHBOARD
+════════════════════════════════════════ -->
+<div class="page" id="page-dashboard">
+  <div class="page-hdr">
+    <div class="page-hdr-left">
+      <h1><i class="fa fa-th-large" style="color:var(--green);margin-right:8px"></i>Front Desk Dashboard</h1>
+      <p>Tuesday, March 03, 2026 &nbsp;·&nbsp; Academic Year 2026–2027 &nbsp;·&nbsp; All data for Nepal Cyber Firm</p>
+    </div>
+    <div class="page-hdr-right">
+      <div class="search-bar" style="width:260px">
+        <i class="fa fa-search"></i>
+        <input id="global-search" type="text" placeholder="Search student, roll no, receipt…" oninput="handleGlobalSearch(this.value)"/>
+      </div>
+      <button class="btn btn-primary" onclick="openModal('payment-modal')">
+        <i class="fa fa-plus"></i> Record Payment
+      </button>
+    </div>
+  </div>
+
+  <!-- URGENT ALERT BANNER -->
+  <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:var(--radius);padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;gap:12px">
+    <i class="fa fa-triangle-exclamation" style="color:var(--orange);font-size:16px"></i>
+    <div style="flex:1">
+      <strong style="font-size:13px;color:var(--orange)">18 students</strong>
+      <span style="font-size:13px;color:var(--text-body)"> have fee dues overdue by more than 7 days. Reminders sent via SMS yesterday.</span>
+    </div>
+    <button class="btn btn-xs btn-outline" onclick="switchPage('pending-dues')">View All</button>
+    <button class="btn-ghost btn-xs" style="font-size:12px;cursor:pointer;border:none;color:var(--text-light)">Dismiss</button>
+  </div>
+
+  <!-- ── STAT CARDS ── -->
+  <div class="stat-grid">
+    <div class="stat-card green hover-card">
+      <div class="stat-top">
+        <div class="stat-icon green"><i class="fa fa-money-bill-wave"></i></div>
+        <div class="stat-trend trend-up"><i class="fa fa-arrow-up"></i>12%</div>
+      </div>
+      <div>
+        <div class="stat-val">Rs 1,27,500</div>
+        <div class="stat-lbl">Today's Collection</div>
+        <div class="stat-sub">9 transactions · Cash, eSewa, Bank</div>
+      </div>
+    </div>
+    <div class="stat-card amber hover-card">
+      <div class="stat-top">
+        <div class="stat-icon amber"><i class="fa fa-clock"></i></div>
+        <div class="stat-trend trend-down"><i class="fa fa-arrow-up"></i>3</div>
+      </div>
+      <div>
+        <div class="stat-val">Rs 3,86,000</div>
+        <div class="stat-lbl">Pending Dues</div>
+        <div class="stat-sub">18 students · Due this week</div>
+      </div>
+    </div>
+    <div class="stat-card sky hover-card">
+      <div class="stat-top">
+        <div class="stat-icon sky"><i class="fa fa-user-check"></i></div>
+        <div class="stat-trend trend-up"><i class="fa fa-arrow-up"></i>5%</div>
+      </div>
+      <div>
+        <div class="stat-val">87%</div>
+        <div class="stat-lbl">Attendance Today</div>
+        <div class="stat-sub">142 / 163 present across all batches</div>
+      </div>
+    </div>
+    <div class="stat-card purple hover-card">
+      <div class="stat-top">
+        <div class="stat-icon purple"><i class="fa fa-user-plus"></i></div>
+        <div class="stat-trend trend-up"><i class="fa fa-arrow-up"></i>2</div>
+      </div>
+      <div>
+        <div class="stat-val">4</div>
+        <div class="stat-lbl">New Admissions Today</div>
+        <div class="stat-sub">2 fully registered · 2 pending docs</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ROW 2: Secondary Stats -->
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px">
+    <div class="card" style="padding:14px 16px;display:flex;align-items:center;gap:12px">
+      <div class="stat-icon orange" style="width:36px;height:36px;font-size:14px;flex-shrink:0"><i class="fa fa-comments"></i></div>
+      <div>
+        <div style="font-size:1.3rem;font-weight:800;color:var(--text-dark)">7</div>
+        <div style="font-size:11px;color:var(--text-light)">Open Inquiries</div>
+      </div>
+      <span class="badge badge-orange" style="margin-left:auto">New</span>
+    </div>
+    <div class="card" style="padding:14px 16px;display:flex;align-items:center;gap:12px">
+      <div class="stat-icon amber" style="width:36px;height:36px;font-size:14px;flex-shrink:0"><i class="fa fa-user-clock"></i></div>
+      <div>
+        <div style="font-size:1.3rem;font-weight:800;color:var(--text-dark)">5</div>
+        <div style="font-size:11px;color:var(--text-light)">Leave Requests</div>
+      </div>
+      <span class="badge badge-amber" style="margin-left:auto">Pending</span>
+    </div>
+    <div class="card" style="padding:14px 16px;display:flex;align-items:center;gap:12px">
+      <div class="stat-icon sky" style="width:36px;height:36px;font-size:14px;flex-shrink:0"><i class="fa fa-book"></i></div>
+      <div>
+        <div style="font-size:1.3rem;font-weight:800;color:var(--text-dark)">11</div>
+        <div style="font-size:11px;color:var(--text-light)">Library Issues Today</div>
+      </div>
+    </div>
+    <div class="card" style="padding:14px 16px;display:flex;align-items:center;gap:12px">
+      <div class="stat-icon green" style="width:36px;height:36px;font-size:14px;flex-shrink:0"><i class="fa fa-receipt"></i></div>
+      <div>
+        <div style="font-size:1.3rem;font-weight:800;color:var(--text-dark)">RCP-000009</div>
+        <div style="font-size:11px;color:var(--text-light)">Last Receipt No.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- QUICK ACTIONS -->
+  <div class="section-title"><i class="fa fa-bolt" style="color:var(--amber)"></i> Quick Actions</div>
+  <div class="quick-actions">
+    <div class="qa-btn" onclick="openModal('payment-modal')">
+      <div class="qa-icon" style="background:#e6f7f3;color:var(--green)"><i class="fa fa-money-bill-wave"></i></div>
+      <div class="qa-label">Collect Fee</div>
+      <div class="qa-sub">Record payment</div>
+    </div>
+    <div class="qa-btn" onclick="switchPage('new-admission')">
+      <div class="qa-icon" style="background:var(--soft-purple);color:var(--purple)"><i class="fa fa-user-plus"></i></div>
+      <div class="qa-label">New Admission</div>
+      <div class="qa-sub">Register student</div>
+    </div>
+    <div class="qa-btn" onclick="switchPage('attendance')">
+      <div class="qa-icon" style="background:var(--sky-soft);color:var(--sky)"><i class="fa fa-calendar-check"></i></div>
+      <div class="qa-label">Mark Attendance</div>
+      <div class="qa-sub">Today's class</div>
+    </div>
+    <div class="qa-btn" onclick="openModal('inquiry-modal')">
+      <div class="qa-icon" style="background:var(--orange-soft);color:var(--orange)"><i class="fa fa-comment-alt"></i></div>
+      <div class="qa-label">Add Inquiry</div>
+      <div class="qa-sub">Log new inquiry</div>
+    </div>
+    <div class="qa-btn" onclick="openModal('receipt-modal')">
+      <div class="qa-icon" style="background:var(--amber-soft);color:var(--amber)"><i class="fa fa-print"></i></div>
+      <div class="qa-label">Print Receipt</div>
+      <div class="qa-sub">Reprint any receipt</div>
+    </div>
+  </div>
+
+  <!-- MAIN GRID: Transactions + Attendance + Activity -->
+  <div class="g65">
+
+    <!-- LEFT: Today's Transactions -->
+    <div class="card">
+      <div class="card-hdr">
+        <div>
+          <div class="card-title"><i class="fa fa-exchange-alt"></i> Today's Fee Transactions</div>
+          <div class="card-sub">Tuesday, March 03, 2026 &nbsp;·&nbsp; 9 transactions</div>
+        </div>
+        <div class="card-hdr-actions">
+          <div class="search-bar" style="width:180px">
+            <i class="fa fa-search"></i>
+            <input type="text" placeholder="Filter…" oninput="filterTxns(this.value)"/>
+          </div>
+          <button class="btn btn-sm btn-outline"><i class="fa fa-download"></i> Export</button>
+        </div>
+      </div>
+      <div class="tbl-wrap">
+        <table id="txn-table">
+          <thead>
+            <tr>
+              <th>Receipt No.</th>
+              <th>Student</th>
+              <th>Fee Item</th>
+              <th>Amount</th>
+              <th>Method</th>
+              <th>Time</th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="txn-tbody">
+            <tr>
+              <td><span class="id-chip"><i class="fa fa-receipt"></i>RCP-000009</span></td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px">
+                  <div class="tbl-av" style="background:#8b5cf6">RS</div>
+                  <div><div class="tbl-name">Ramesh Sharma</div><div class="tbl-sub">STD-0046 · BCA-II</div></div>
+                </div>
+              </td>
+              <td>Tuition Fee – Instl. 1</td>
+              <td><strong style="color:var(--green)">Rs 2,000</strong></td>
+              <td><span class="badge badge-green">Cash</span></td>
+              <td style="color:var(--text-light);font-size:12px">1:51 PM</td>
+              <td><span class="badge badge-green"><span class="dot" style="background:#16a34a"></span>Paid</span></td>
+              <td><button class="btn btn-xs btn-ghost" onclick="openModal('receipt-modal')"><i class="fa fa-print"></i></button></td>
+            </tr>
+            <tr>
+              <td><span class="id-chip"><i class="fa fa-receipt"></i>RCP-000008</span></td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px">
+                  <div class="tbl-av" style="background:#ef4444">PS</div>
+                  <div><div class="tbl-name">Priyanka Shah</div><div class="tbl-sub">STD-0034 · BCA-I</div></div>
+                </div>
+              </td>
+              <td>Admission Fee – Instl. 1</td>
+              <td><strong style="color:var(--green)">Rs 10,000</strong></td>
+              <td><span class="badge badge-sky">eSewa</span></td>
+              <td style="color:var(--text-light);font-size:12px">1:31 PM</td>
+              <td><span class="badge badge-green"><span class="dot" style="background:#16a34a"></span>Paid</span></td>
+              <td><button class="btn btn-xs btn-ghost" onclick="openModal('receipt-modal')"><i class="fa fa-print"></i></button></td>
+            </tr>
+            <tr>
+              <td><span class="id-chip"><i class="fa fa-receipt"></i>RCP-000007</span></td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px">
+                  <div class="tbl-av" style="background:#f59e0b">AS</div>
+                  <div><div class="tbl-name">Anita Singh</div><div class="tbl-sub">STD-0039 · BCA-III</div></div>
+                </div>
+              </td>
+              <td>Admission Fee – Instl. 1</td>
+              <td><strong style="color:var(--green)">Rs 10,000</strong></td>
+              <td><span class="badge badge-green">Cash</span></td>
+              <td style="color:var(--text-light);font-size:12px">12:53 PM</td>
+              <td><span class="badge badge-green"><span class="dot" style="background:#16a34a"></span>Paid</span></td>
+              <td><button class="btn btn-xs btn-ghost" onclick="openModal('receipt-modal')"><i class="fa fa-print"></i></button></td>
+            </tr>
+            <tr>
+              <td><span class="id-chip"><i class="fa fa-receipt"></i>RCP-000006</span></td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px">
+                  <div class="tbl-av" style="background:#10b981">BK</div>
+                  <div><div class="tbl-name">Bikash Kumar</div><div class="tbl-sub">STD-0046 · BCA-I</div></div>
+                </div>
+              </td>
+              <td>Exam Fee – Instl. 1</td>
+              <td><strong style="color:var(--green)">Rs 2,000</strong></td>
+              <td><span class="badge badge-purple">Khalti</span></td>
+              <td style="color:var(--text-light);font-size:12px">12:49 PM</td>
+              <td><span class="badge badge-green"><span class="dot" style="background:#16a34a"></span>Paid</span></td>
+              <td><button class="btn btn-xs btn-ghost" onclick="openModal('receipt-modal')"><i class="fa fa-print"></i></button></td>
+            </tr>
+            <tr>
+              <td><span class="id-chip"><i class="fa fa-receipt"></i>RCP-000005</span></td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px">
+                  <div class="tbl-av" style="background:#6366f1">MP</div>
+                  <div><div class="tbl-name">Manisha Patel</div><div class="tbl-sub">STD-0044 · BCA-II</div></div>
+                </div>
+              </td>
+              <td>Admission Fee – Instl. 1</td>
+              <td><strong style="color:var(--green)">Rs 10,000</strong></td>
+              <td><span class="badge badge-green">Cash</span></td>
+              <td style="color:var(--text-light);font-size:12px">12:34 PM</td>
+              <td><span class="badge badge-green"><span class="dot" style="background:#16a34a"></span>Paid</span></td>
+              <td><button class="btn btn-xs btn-ghost" onclick="openModal('receipt-modal')"><i class="fa fa-print"></i></button></td>
+            </tr>
+            <tr>
+              <td><span class="id-chip"><i class="fa fa-receipt"></i>RCP-000004</span></td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px">
+                  <div class="tbl-av" style="background:#f97316">RK</div>
+                  <div><div class="tbl-name">Rajesh KC</div><div class="tbl-sub">STD-0046 · BCA-I</div></div>
+                </div>
+              </td>
+              <td>Exam Fee – Instl. 4</td>
+              <td><strong style="color:var(--green)">Rs 2,000</strong></td>
+              <td><span class="badge badge-green">Cash</span></td>
+              <td style="color:var(--text-light);font-size:12px">12:26 PM</td>
+              <td><span class="badge badge-green"><span class="dot" style="background:#16a34a"></span>Paid</span></td>
+              <td><button class="btn btn-xs btn-ghost" onclick="openModal('receipt-modal')"><i class="fa fa-print"></i></button></td>
+            </tr>
+            <tr>
+              <td><span class="id-chip"><i class="fa fa-receipt"></i>RCP-000003</span></td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px">
+                  <div class="tbl-av" style="background:#14b8a6">SG</div>
+                  <div><div class="tbl-name">Sita Gurung</div><div class="tbl-sub">STD-0037 · BCA-IV</div></div>
+                </div>
+              </td>
+              <td>Admission Fee – Instl. 1</td>
+              <td><strong style="color:var(--green)">Rs 10,000</strong></td>
+              <td><span class="badge badge-sky">Bank Transfer</span></td>
+              <td style="color:var(--text-light);font-size:12px">12:07 PM</td>
+              <td><span class="badge badge-green"><span class="dot" style="background:#16a34a"></span>Paid</span></td>
+              <td><button class="btn btn-xs btn-ghost" onclick="openModal('receipt-modal')"><i class="fa fa-print"></i></button></td>
+            </tr>
+            <tr>
+              <td><span class="id-chip"><i class="fa fa-receipt"></i>RCP-000002</span></td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px">
+                  <div class="tbl-av" style="background:#ec4899">NT</div>
+                  <div><div class="tbl-name">Nisha Thapa</div><div class="tbl-sub">STD-0043 · BCA-II</div></div>
+                </div>
+              </td>
+              <td>Admission Fee – Instl. 1</td>
+              <td><strong style="color:var(--green)">Rs 10,000</strong></td>
+              <td><span class="badge badge-green">Cash</span></td>
+              <td style="color:var(--text-light);font-size:12px">12:06 PM</td>
+              <td><span class="badge badge-green"><span class="dot" style="background:#16a34a"></span>Paid</span></td>
+              <td><button class="btn btn-xs btn-ghost" onclick="openModal('receipt-modal')"><i class="fa fa-print"></i></button></td>
+            </tr>
+            <tr>
+              <td><span class="id-chip"><i class="fa fa-receipt"></i>RCP-000001</span></td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px">
+                  <div class="tbl-av" style="background:#64748b">DL</div>
+                  <div><div class="tbl-name">Deepak Lama</div><div class="tbl-sub">STD-0033 · BCA-I</div></div>
+                </div>
+              </td>
+              <td>Tuition Fee – Instl. 1</td>
+              <td><strong style="color:var(--green)">Rs 7,000</strong></td>
+              <td><span class="badge badge-green">Cash</span></td>
+              <td style="color:var(--text-light);font-size:12px">11:50 AM</td>
+              <td><span class="badge badge-green"><span class="dot" style="background:#16a34a"></span>Paid</span></td>
+              <td><button class="btn btn-xs btn-ghost" onclick="openModal('receipt-modal')"><i class="fa fa-print"></i></button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="pagination">
+        <div class="pg-info">Showing 9 of 9 transactions</div>
+        <div class="pg-btns">
+          <button class="pg-btn"><i class="fa fa-chevron-left"></i></button>
+          <button class="pg-btn active">1</button>
+          <button class="pg-btn"><i class="fa fa-chevron-right"></i></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT COLUMN -->
+    <div style="display:flex;flex-direction:column;gap:14px">
+
+      <!-- Fee Summary Today -->
+      <div class="card">
+        <div class="card-hdr">
+          <div class="card-title"><i class="fa fa-chart-bar"></i> Today's Fee Summary</div>
+        </div>
+        <div class="card-body">
+          <!-- Bar chart -->
+          <div class="mini-bars" id="fee-chart">
+            <div class="mbar" style="height:70%" title="Cash: Rs 49,000"></div>
+            <div class="mbar" style="height:45%" title="eSewa: Rs 28,500"></div>
+            <div class="mbar" style="height:30%" title="Khalti: Rs 19,200"></div>
+            <div class="mbar" style="height:25%" title="Bank: Rs 15,800"></div>
+            <div class="mbar amber" style="height:10%" title="Cheque: Rs 5,000" class="active"></div>
+          </div>
+          <div class="mbar-labels">
+            <div class="mbar-label">Cash</div>
+            <div class="mbar-label">eSewa</div>
+            <div class="mbar-label">Khalti</div>
+            <div class="mbar-label">Bank</div>
+            <div class="mbar-label">Cheque</div>
+          </div>
+          <hr/>
+          <div class="fee-summary-row">
+            <span class="fee-label"><i class="fa fa-money-bill" style="color:var(--green);margin-right:6px"></i>Cash</span>
+            <span class="fee-amount green">Rs 49,000</span>
+          </div>
+          <div class="fee-summary-row">
+            <span class="fee-label"><i class="fa fa-mobile-alt" style="color:var(--sky);margin-right:6px"></i>eSewa</span>
+            <span class="fee-amount" style="color:var(--sky)">Rs 28,500</span>
+          </div>
+          <div class="fee-summary-row">
+            <span class="fee-label"><i class="fa fa-mobile-alt" style="color:var(--purple);margin-right:6px"></i>Khalti</span>
+            <span class="fee-amount" style="color:var(--purple)">Rs 19,200</span>
+          </div>
+          <div class="fee-summary-row">
+            <span class="fee-label"><i class="fa fa-university" style="color:var(--amber);margin-right:6px"></i>Bank Transfer</span>
+            <span class="fee-amount amber">Rs 25,800</span>
+          </div>
+          <div class="fee-summary-row" style="border-top:2px solid var(--card-border);margin-top:6px;padding-top:10px">
+            <span class="fee-label" style="font-weight:800;color:var(--text-dark)">Total Collected</span>
+            <span class="fee-amount green" style="font-size:1.1rem">Rs 1,27,500</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Announcements -->
+      <div class="card">
+        <div class="card-hdr">
+          <div class="card-title"><i class="fa fa-bullhorn"></i> Announcements</div>
+          <span class="badge badge-green">2 New</span>
+        </div>
+        <div class="card-body">
+          <div class="notice-item urgent">
+            <i class="fa fa-exclamation-circle notice-icon" style="color:var(--red)"></i>
+            <div>
+              <div class="notice-title">Fee Deadline Reminder – Feb Batch</div>
+              <div class="notice-msg">All pending fees for Feb 2026 batch must be cleared by March 07.</div>
+              <div class="notice-meta">Urgent · Platform Admin · 2 hrs ago</div>
+            </div>
+          </div>
+          <div class="notice-item normal">
+            <i class="fa fa-check-circle notice-icon" style="color:var(--green)"></i>
+            <div>
+              <div class="notice-title">Exam Schedule Published – BCA-II</div>
+              <div class="notice-msg">BCA-II internal exams start March 10. Admit cards available at front desk.</div>
+              <div class="notice-meta">Normal · Academic Office · 5 hrs ago</div>
+            </div>
+          </div>
+          <div class="notice-item info">
+            <i class="fa fa-info-circle notice-icon" style="color:var(--sky)"></i>
+            <div>
+              <div class="notice-title">Holiday: Holi – March 14, 2026</div>
+              <div class="notice-msg">Institution will remain closed on March 14. Make-up class on March 15.</div>
+              <div class="notice-meta">Info · Principal's Office · Yesterday</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div><!-- end g65 -->
+
+  <!-- ROW: Attendance + Inquiries + Activity + Leave -->
+  <div class="g2" style="margin-bottom:14px">
+
+    <!-- Today's Attendance Snapshot -->
+    <div class="card">
+      <div class="card-hdr">
+        <div>
+          <div class="card-title"><i class="fa fa-calendar-check"></i> Attendance Snapshot</div>
+          <div class="card-sub">Today · All Batches · Marked 12 pending</div>
+        </div>
+        <button class="btn btn-sm btn-outline" onclick="switchPage('attendance')"><i class="fa fa-arrow-right"></i> Full View</button>
+      </div>
+      <div class="card-body" style="padding-bottom:0">
+        <!-- Summary row -->
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px">
+          <div style="text-align:center;background:#dcfce7;border-radius:8px;padding:10px 4px">
+            <div style="font-size:1.3rem;font-weight:800;color:#16a34a">142</div>
+            <div style="font-size:10px;color:#166534;font-weight:600">Present</div>
+          </div>
+          <div style="text-align:center;background:#fee2e2;border-radius:8px;padding:10px 4px">
+            <div style="font-size:1.3rem;font-weight:800;color:var(--red)">14</div>
+            <div style="font-size:10px;color:#991b1b;font-weight:600">Absent</div>
+          </div>
+          <div style="text-align:center;background:var(--amber-soft);border-radius:8px;padding:10px 4px">
+            <div style="font-size:1.3rem;font-weight:800;color:var(--amber)">5</div>
+            <div style="font-size:10px;color:#92400e;font-weight:600">Late</div>
+          </div>
+          <div style="text-align:center;background:var(--sky-soft);border-radius:8px;padding:10px 4px">
+            <div style="font-size:1.3rem;font-weight:800;color:var(--sky)">2</div>
+            <div style="font-size:10px;color:#0369a1;font-weight:600">Leave</div>
+          </div>
+        </div>
+        <!-- Progress -->
+        <div style="margin-bottom:12px">
+          <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px">
+            <span class="text-body">Attendance Rate</span><strong style="color:var(--green)">87.1%</strong>
+          </div>
+          <div class="prog-bar">
+            <div class="prog-fill" style="width:87%;background:var(--green)"></div>
+          </div>
+        </div>
+        <!-- Batch breakdown -->
+        <div style="font-size:11px;font-weight:700;color:var(--text-light);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">By Batch</div>
+        <div class="scroll-panel h260">
+          <div class="att-row">
+            <div class="att-av" style="background:#8b5cf6">B1</div>
+            <div class="att-info">
+              <div class="att-name">BCA-I (Morning)</div>
+              <div class="att-batch">32 students · 28 present</div>
+            </div>
+            <div style="text-align:right">
+              <span class="badge badge-green">87.5%</span>
+              <div style="font-size:10px;color:var(--text-light);margin-top:2px">4 absent</div>
+            </div>
+          </div>
+          <div class="att-row">
+            <div class="att-av" style="background:#f59e0b">B2</div>
+            <div class="att-info">
+              <div class="att-name">BCA-II (Morning)</div>
+              <div class="att-batch">28 students · 25 present</div>
+            </div>
+            <div style="text-align:right">
+              <span class="badge badge-green">89.3%</span>
+              <div style="font-size:10px;color:var(--text-light);margin-top:2px">3 absent</div>
+            </div>
+          </div>
+          <div class="att-row">
+            <div class="att-av" style="background:#ef4444">B3</div>
+            <div class="att-info">
+              <div class="att-name">BCA-III (Afternoon)</div>
+              <div class="att-batch">30 students · 24 present</div>
+            </div>
+            <div style="text-align:right">
+              <span class="badge badge-amber">80%</span>
+              <div style="font-size:10px;color:var(--text-light);margin-top:2px">6 absent</div>
+            </div>
+          </div>
+          <div class="att-row">
+            <div class="att-av" style="background:#10b981">B4</div>
+            <div class="att-info">
+              <div class="att-name">BCA-IV (Afternoon)</div>
+              <div class="att-batch">35 students · 33 present</div>
+            </div>
+            <div style="text-align:right">
+              <span class="badge badge-green">94.3%</span>
+              <div style="font-size:10px;color:var(--text-light);margin-top:2px">2 absent</div>
+            </div>
+          </div>
+          <div class="att-row">
+            <div class="att-av" style="background:#64748b">B5</div>
+            <div class="att-info">
+              <div class="att-name">+CSIT-I (Morning)</div>
+              <div class="att-batch">38 students · 32 present</div>
+            </div>
+            <div style="text-align:right">
+              <span class="badge badge-amber">84.2%</span>
+              <div style="font-size:10px;color:var(--text-light);margin-top:2px">6 absent</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Inquiries + Leave -->
+    <div style="display:flex;flex-direction:column;gap:14px">
+
+      <!-- Inquiries -->
+      <div class="card">
+        <div class="card-hdr">
+          <div class="card-title"><i class="fa fa-comments"></i> Today's Inquiries</div>
+          <div style="display:flex;gap:8px">
+            <span class="badge badge-orange">7 Open</span>
+            <button class="btn btn-xs btn-primary" onclick="openModal('inquiry-modal')"><i class="fa fa-plus"></i> Add</button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="scroll-panel h260">
+            <div class="inquiry-row">
+              <div class="inq-av" style="background:#8b5cf6">AR</div>
+              <div>
+                <div class="inq-name">Asha Rai</div>
+                <div class="inq-course"><i class="fa fa-book-open" style="font-size:10px"></i> BCA Program Inquiry</div>
+                <span class="badge badge-orange" style="margin-top:4px;font-size:10px">New</span>
+              </div>
+              <div class="inq-time">10:22 AM<br/><span class="badge badge-sky" style="font-size:10px">Walk-in</span></div>
+            </div>
+            <div class="inquiry-row">
+              <div class="inq-av" style="background:#f97316">PM</div>
+              <div>
+                <div class="inq-name">Prakash Mahato</div>
+                <div class="inq-course"><i class="fa fa-book-open" style="font-size:10px"></i> +2 Science Admission</div>
+                <span class="badge badge-amber" style="margin-top:4px;font-size:10px">Follow-up</span>
+              </div>
+              <div class="inq-time">09:47 AM<br/><span class="badge badge-gray" style="font-size:10px">Phone</span></div>
+            </div>
+            <div class="inquiry-row">
+              <div class="inq-av" style="background:#10b981">SS</div>
+              <div>
+                <div class="inq-name">Sunita Shrestha</div>
+                <div class="inq-course"><i class="fa fa-certificate" style="font-size:10px"></i> Certificate Enquiry</div>
+                <span class="badge badge-green" style="margin-top:4px;font-size:10px">Resolved</span>
+              </div>
+              <div class="inq-time">09:15 AM<br/><span class="badge badge-sky" style="font-size:10px">Walk-in</span></div>
+            </div>
+            <div class="inquiry-row">
+              <div class="inq-av" style="background:#ec4899">BD</div>
+              <div>
+                <div class="inq-name">Bijaya Dahal</div>
+                <div class="inq-course"><i class="fa fa-file-alt" style="font-size:10px"></i> Document Collection</div>
+                <span class="badge badge-orange" style="margin-top:4px;font-size:10px">New</span>
+              </div>
+              <div class="inq-time">08:50 AM<br/><span class="badge badge-sky" style="font-size:10px">Walk-in</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Leave Requests -->
+      <div class="card">
+        <div class="card-hdr">
+          <div class="card-title"><i class="fa fa-user-clock"></i> Pending Leave Requests</div>
+          <span class="badge badge-amber">5</span>
+        </div>
+        <div class="card-body">
+          <div class="leave-row">
+            <div class="tbl-av" style="background:#8b5cf6;width:30px;height:30px;font-size:10px">RS</div>
+            <div class="leave-info">
+              <div class="leave-name">Ramesh Sharma</div>
+              <div class="leave-detail">March 04–05 · Sick Leave</div>
+            </div>
+            <div class="leave-actions">
+              <button class="att-btn p" onclick="approveLeave(this,'approve')" title="Approve"><i class="fa fa-check"></i></button>
+              <button class="att-btn a" onclick="approveLeave(this,'reject')" title="Reject"><i class="fa fa-times"></i></button>
+            </div>
+          </div>
+          <div class="leave-row">
+            <div class="tbl-av" style="background:#f97316;width:30px;height:30px;font-size:10px">NT</div>
+            <div class="leave-info">
+              <div class="leave-name">Nisha Thapa</div>
+              <div class="leave-detail">March 05 · Personal</div>
+            </div>
+            <div class="leave-actions">
+              <button class="att-btn p" onclick="approveLeave(this,'approve')" title="Approve"><i class="fa fa-check"></i></button>
+              <button class="att-btn a" onclick="approveLeave(this,'reject')" title="Reject"><i class="fa fa-times"></i></button>
+            </div>
+          </div>
+          <div class="leave-row">
+            <div class="tbl-av" style="background:#14b8a6;width:30px;height:30px;font-size:10px">BK</div>
+            <div class="leave-info">
+              <div class="leave-name">Bikash KC</div>
+              <div class="leave-detail">March 06 · Family Function</div>
+            </div>
+            <div class="leave-actions">
+              <button class="att-btn p" onclick="approveLeave(this,'approve')" title="Approve"><i class="fa fa-check"></i></button>
+              <button class="att-btn a" onclick="approveLeave(this,'reject')" title="Reject"><i class="fa fa-times"></i></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div><!-- end g2 -->
+
+  <!-- BOTTOM ROW: Schedule + Activity Feed + Library -->
+  <div class="g3">
+
+    <!-- Today's Schedule -->
+    <div class="card">
+      <div class="card-hdr">
+        <div class="card-title"><i class="fa fa-table"></i> Today's Timetable</div>
+        <span style="font-size:11px;color:var(--text-light)">Tuesday</span>
+      </div>
+      <div class="card-body scroll-panel h300">
+        <div class="sched-item">
+          <div class="sched-time">8:00<br/>9:30</div>
+          <div class="sched-bar" style="background:var(--green)"></div>
+          <div class="sched-info">
+            <div class="sched-title">Database Management Systems</div>
+            <div class="sched-sub">BCA-II · Room 201 · Mr. Ram Bahadur</div>
+            <span class="badge badge-green" style="margin-top:4px;font-size:10px">Ongoing</span>
+          </div>
+        </div>
+        <div class="sched-item">
+          <div class="sched-time">9:30<br/>11:00</div>
+          <div class="sched-bar" style="background:var(--sky)"></div>
+          <div class="sched-info">
+            <div class="sched-title">Computer Networks</div>
+            <div class="sched-sub">BCA-III · Room 301 · Ms. Kamala</div>
+          </div>
+        </div>
+        <div class="sched-item">
+          <div class="sched-time">11:00<br/>12:30</div>
+          <div class="sched-bar" style="background:var(--purple)"></div>
+          <div class="sched-info">
+            <div class="sched-title">Artificial Intelligence</div>
+            <div class="sched-sub">BCA-IV · Lab 1 · Mr. Deepak</div>
+          </div>
+        </div>
+        <div class="sched-item">
+          <div class="sched-time">1:00<br/>2:30</div>
+          <div class="sched-bar" style="background:var(--amber)"></div>
+          <div class="sched-info">
+            <div class="sched-title">Programming in C</div>
+            <div class="sched-sub">BCA-I · Room 101 · Mrs. Sita</div>
+          </div>
+        </div>
+        <div class="sched-item">
+          <div class="sched-time">2:30<br/>4:00</div>
+          <div class="sched-bar" style="background:var(--orange)"></div>
+          <div class="sched-info">
+            <div class="sched-title">Web Technology</div>
+            <div class="sched-sub">+CSIT-I · Lab 2 · Mr. Suresh</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Activity Feed -->
+    <div class="card">
+      <div class="card-hdr">
+        <div class="card-title"><i class="fa fa-stream"></i> Activity Log</div>
+        <span style="font-size:11px;color:var(--text-light)">Today only</span>
+      </div>
+      <div class="card-body scroll-panel h300">
+        <div class="activity-item">
+          <div class="act-icon-wrap" style="background:#e6f7f3;color:var(--green)"><i class="fa fa-money-bill-wave" style="font-size:12px"></i></div>
+          <div>
+            <div class="act-text"><strong>Rs 2,000</strong> collected from <strong>Ramesh Sharma</strong> (RCP-000009)</div>
+            <div class="act-time"><i class="fa fa-clock" style="font-size:10px"></i> 1:51 PM · Sunita Devi</div>
+          </div>
+        </div>
+        <div class="activity-item">
+          <div class="act-icon-wrap" style="background:#fee2e2;color:var(--red)"><i class="fa fa-user-clock" style="font-size:12px"></i></div>
+          <div>
+            <div class="act-text">Leave request from <strong>Bikash KC</strong> received · March 06</div>
+            <div class="act-time"><i class="fa fa-clock" style="font-size:10px"></i> 1:30 PM · System</div>
+          </div>
+        </div>
+        <div class="activity-item">
+          <div class="act-icon-wrap" style="background:#e6f7f3;color:var(--green)"><i class="fa fa-money-bill-wave" style="font-size:12px"></i></div>
+          <div>
+            <div class="act-text"><strong>Rs 10,000</strong> collected from <strong>Priyanka Shah</strong> (RCP-000008)</div>
+            <div class="act-time"><i class="fa fa-clock" style="font-size:10px"></i> 1:31 PM · Sunita Devi</div>
+          </div>
+        </div>
+        <div class="activity-item">
+          <div class="act-icon-wrap" style="background:var(--soft-purple);color:var(--purple)"><i class="fa fa-user-plus" style="font-size:12px"></i></div>
+          <div>
+            <div class="act-text">New student <strong>Priyanka Shah</strong> registered (STD-0034) in BCA-I</div>
+            <div class="act-time"><i class="fa fa-clock" style="font-size:10px"></i> 2:30 PM · Sunita Devi</div>
+          </div>
+        </div>
+        <div class="activity-item">
+          <div class="act-icon-wrap" style="background:var(--orange-soft);color:var(--orange)"><i class="fa fa-comments" style="font-size:12px"></i></div>
+          <div>
+            <div class="act-text">Inquiry logged: <strong>Asha Rai</strong> – BCA Program inquiry (Walk-in)</div>
+            <div class="act-time"><i class="fa fa-clock" style="font-size:10px"></i> 10:22 AM · Sunita Devi</div>
+          </div>
+        </div>
+        <div class="activity-item">
+          <div class="act-icon-wrap" style="background:var(--sky-soft);color:var(--sky)"><i class="fa fa-book" style="font-size:12px"></i></div>
+          <div>
+            <div class="act-text">Library: <strong>Operating Systems</strong> issued to <strong>Ram Bahadur KC</strong></div>
+            <div class="act-time"><i class="fa fa-clock" style="font-size:10px"></i> 10:05 AM · Sunita Devi</div>
+          </div>
+        </div>
+        <div class="activity-item">
+          <div class="act-icon-wrap" style="background:#dcfce7;color:#16a34a"><i class="fa fa-calendar-check" style="font-size:12px"></i></div>
+          <div>
+            <div class="act-text">Attendance marked for <strong>BCA-I</strong> · 28/32 present</div>
+            <div class="act-time"><i class="fa fa-clock" style="font-size:10px"></i> 8:30 AM · Mr. Ram Bahadur</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Library Desk -->
+    <div class="card">
+      <div class="card-hdr">
+        <div class="card-title"><i class="fa fa-book"></i> Library Desk</div>
+        <button class="btn btn-xs btn-primary"><i class="fa fa-plus"></i> Issue</button>
+      </div>
+      <div class="card-body">
+        <div class="section-title" style="font-size:10px">Recent Issues Today</div>
+        <div class="scroll-panel h240">
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #f1f5f9">
+            <div style="width:36px;height:36px;background:#e6f7f3;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--green);flex-shrink:0"><i class="fa fa-book"></i></div>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:12.5px;font-weight:700;color:var(--text-dark);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Operating Systems (Tanenbaum)</div>
+              <div style="font-size:11px;color:var(--text-light)">Ram Bahadur KC · Due Mar 10</div>
+            </div>
+            <span class="badge badge-sky" style="font-size:10px">Issued</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #f1f5f9">
+            <div style="width:36px;height:36px;background:#e6f7f3;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--green);flex-shrink:0"><i class="fa fa-book"></i></div>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:12.5px;font-weight:700;color:var(--text-dark);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">DBMS Concepts & Design</div>
+              <div style="font-size:11px;color:var(--text-light)">Sita Gurung · Due Mar 10</div>
+            </div>
+            <span class="badge badge-sky" style="font-size:10px">Issued</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #f1f5f9">
+            <div style="width:36px;height:36px;background:#fee2e2;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--red);flex-shrink:0"><i class="fa fa-book"></i></div>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:12.5px;font-weight:700;color:var(--text-dark);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">C Programming (Kernighan)</div>
+              <div style="font-size:11px;color:var(--red)">Bikash Kumar · Overdue 2d</div>
+            </div>
+            <span class="badge badge-red" style="font-size:10px">Overdue</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 0">
+            <div style="width:36px;height:36px;background:#e6f7f3;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--green);flex-shrink:0"><i class="fa fa-book"></i></div>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:12.5px;font-weight:700;color:var(--text-dark);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Artificial Intelligence (AIMA)</div>
+              <div style="font-size:11px;color:var(--text-light)">Anita Singh · Due Mar 17</div>
+            </div>
+            <span class="badge badge-sky" style="font-size:10px">Issued</span>
+          </div>
+        </div>
+        <hr/>
+        <div style="display:flex;justify-content:space-between;font-size:12px">
+          <span style="color:var(--text-light)">Books in circulation:</span>
+          <strong style="color:var(--text-dark)">47 of 312</strong>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-top:6px">
+          <span style="color:var(--text-light)">Overdue returns:</span>
+          <strong style="color:var(--red)">3 books</strong>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end g3 -->
+
+</div><!-- end page-dashboard -->
+
+
+<!-- ═══════════════════════════════════════
+     PAGE: STUDENT LOOKUP
+════════════════════════════════════════ -->
+<div class="page" id="page-students" style="display:none">
+  <div class="page-hdr">
+    <div class="page-hdr-left">
+      <h1><i class="fa fa-user-graduate" style="color:var(--green);margin-right:8px"></i>Student Lookup</h1>
+      <p>Search and view student records, fee status, and attendance history</p>
+    </div>
+    <button class="btn btn-primary" onclick="switchPage('new-admission')"><i class="fa fa-plus"></i> New Admission</button>
+  </div>
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-body">
+      <div style="display:grid;grid-template-columns:1fr auto auto auto;gap:12px;align-items:end">
+        <div>
+          <label class="form-label">Search Student</label>
+          <div class="search-bar" style="width:100%">
+            <i class="fa fa-search"></i>
+            <input type="text" id="student-search-input" placeholder="Name, Roll No, Phone, Student ID…" oninput="searchStudents(this.value)"/>
+          </div>
+        </div>
+        <div>
+          <label class="form-label">Batch / Program</label>
+          <select class="form-select" style="width:150px">
+            <option>All Batches</option>
+            <option>BCA-I</option><option>BCA-II</option><option>BCA-III</option><option>BCA-IV</option>
+            <option>+CSIT-I</option><option>+CSIT-II</option>
+          </select>
+        </div>
+        <div>
+          <label class="form-label">Status</label>
+          <select class="form-select" style="width:130px">
+            <option>All Status</option>
+            <option>Active</option><option>Inactive</option><option>Graduated</option>
+          </select>
+        </div>
+        <button class="btn btn-primary"><i class="fa fa-filter"></i> Filter</button>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-hdr">
+      <div class="card-title"><i class="fa fa-users"></i> All Students</div>
+      <div style="font-size:12px;color:var(--text-light)">163 total · 47 batches</div>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Student</th><th>Roll No.</th><th>Batch</th><th>Admission Date</th>
+            <th>Fee Status</th><th>Attendance</th><th>Contact</th><th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><div style="display:flex;align-items:center;gap:9px"><div class="tbl-av" style="background:#8b5cf6">PS</div><div><div class="tbl-name">Priyanka Shah</div><div class="tbl-sub">priyanka@email.com</div></div></div></td>
+            <td><span class="id-chip"><i class="fa fa-id-card"></i>STD-0034</span></td>
+            <td><span class="badge badge-sky">BCA-I</span></td>
+            <td style="color:var(--text-light);font-size:12px">Feb 28, 2026</td>
+            <td><span class="badge badge-green">Paid</span></td>
+            <td><span class="badge badge-green">91%</span></td>
+            <td style="font-size:12px;color:var(--text-body)">+977-9841234567</td>
+            <td><div style="display:flex;gap:6px"><button class="btn btn-xs btn-outline" onclick="openModal('payment-modal')"><i class="fa fa-money-bill-wave"></i></button><button class="btn btn-xs btn-outline"><i class="fa fa-eye"></i></button></div></td>
+          </tr>
+          <tr>
+            <td><div style="display:flex;align-items:center;gap:9px"><div class="tbl-av" style="background:#ef4444">RS</div><div><div class="tbl-name">Ramesh Sharma</div><div class="tbl-sub">ramesh@email.com</div></div></div></td>
+            <td><span class="id-chip"><i class="fa fa-id-card"></i>STD-0046</span></td>
+            <td><span class="badge badge-purple">BCA-II</span></td>
+            <td style="color:var(--text-light);font-size:12px">Feb 28, 2026</td>
+            <td><span class="badge badge-amber">Partial</span></td>
+            <td><span class="badge badge-amber">78%</span></td>
+            <td style="font-size:12px;color:var(--text-body)">+977-9852345678</td>
+            <td><div style="display:flex;gap:6px"><button class="btn btn-xs btn-primary" onclick="openModal('payment-modal')"><i class="fa fa-money-bill-wave"></i></button><button class="btn btn-xs btn-outline"><i class="fa fa-eye"></i></button></div></td>
+          </tr>
+          <tr>
+            <td><div style="display:flex;align-items:center;gap:9px"><div class="tbl-av" style="background:#14b8a6">SG</div><div><div class="tbl-name">Sita Gurung</div><div class="tbl-sub">sita@email.com</div></div></div></td>
+            <td><span class="id-chip"><i class="fa fa-id-card"></i>STD-0037</span></td>
+            <td><span class="badge badge-green">BCA-IV</span></td>
+            <td style="color:var(--text-light);font-size:12px">Feb 20, 2026</td>
+            <td><span class="badge badge-green">Paid</span></td>
+            <td><span class="badge badge-green">95%</span></td>
+            <td style="font-size:12px;color:var(--text-body)">+977-9811111111</td>
+            <td><div style="display:flex;gap:6px"><button class="btn btn-xs btn-outline" onclick="openModal('payment-modal')"><i class="fa fa-money-bill-wave"></i></button><button class="btn btn-xs btn-outline"><i class="fa fa-eye"></i></button></div></td>
+          </tr>
+          <tr>
+            <td><div style="display:flex;align-items:center;gap:9px"><div class="tbl-av" style="background:#ec4899">NT</div><div><div class="tbl-name">Nisha Thapa</div><div class="tbl-sub">nisha@email.com</div></div></div></td>
+            <td><span class="id-chip"><i class="fa fa-id-card"></i>STD-0043</span></td>
+            <td><span class="badge badge-sky">BCA-II</span></td>
+            <td style="color:var(--text-light);font-size:12px">Feb 28, 2026</td>
+            <td><span class="badge badge-red">Overdue</span></td>
+            <td><span class="badge badge-amber">82%</span></td>
+            <td style="font-size:12px;color:var(--text-body)">+977-9863456789</td>
+            <td><div style="display:flex;gap:6px"><button class="btn btn-xs btn-danger" onclick="openModal('payment-modal')"><i class="fa fa-money-bill-wave"></i></button><button class="btn btn-xs btn-outline"><i class="fa fa-eye"></i></button></div></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="pagination">
+      <div class="pg-info">Showing 1–4 of 47 students</div>
+      <div class="pg-btns">
+        <button class="pg-btn"><i class="fa fa-chevron-left"></i></button>
+        <button class="pg-btn active">1</button>
+        <button class="pg-btn">2</button>
+        <button class="pg-btn">3</button>
+        <button class="pg-btn"><i class="fa fa-chevron-right"></i></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     PAGE: FEE COLLECTION
+════════════════════════════════════════ -->
+<div class="page" id="page-fee-collection" style="display:none">
+  <div class="page-hdr">
+    <div class="page-hdr-left">
+      <h1><i class="fa fa-money-bill-wave" style="color:var(--green);margin-right:8px"></i>Fee Collection</h1>
+      <p>Collect fees, record payments, and generate receipts</p>
+    </div>
+    <button class="btn btn-primary" onclick="openModal('payment-modal')"><i class="fa fa-plus"></i> New Payment</button>
+  </div>
+  <div class="g65">
+    <div class="card">
+      <div class="card-hdr">
+        <div class="card-title"><i class="fa fa-search"></i> Quick Student Lookup</div>
+      </div>
+      <div class="card-body">
+        <div class="search-bar" style="margin-bottom:16px">
+          <i class="fa fa-search"></i>
+          <input type="text" placeholder="Type student name, roll no, or phone…" oninput="lookupStudent(this.value)"/>
+        </div>
+        <!-- Student Result Card -->
+        <div class="stu-result" id="student-result">
+          <div class="stu-result-av" style="background:#8b5cf6">PS</div>
+          <div class="stu-result-info">
+            <div class="stu-result-name">Priyanka Shah</div>
+            <div class="stu-result-meta">
+              <span><i class="fa fa-id-card"></i> STD-0034</span>
+              <span><i class="fa fa-layer-group"></i> BCA-I</span>
+              <span><i class="fa fa-calendar"></i> Admitted Feb 28, 2026</span>
+              <span><i class="fa fa-phone"></i> +977-9841234567</span>
+            </div>
+            <div class="stu-result-fee">
+              <div class="stu-fee-item"><div class="stu-fee-val" style="color:var(--red)">Rs 15,000</div><div class="stu-fee-lbl">Total Due</div></div>
+              <div class="stu-fee-item"><div class="stu-fee-val" style="color:var(--green)">Rs 10,000</div><div class="stu-fee-lbl">Paid</div></div>
+              <div class="stu-fee-item"><div class="stu-fee-val" style="color:var(--amber)">Rs 5,000</div><div class="stu-fee-lbl">Balance</div></div>
+              <div class="stu-fee-item"><div class="stu-fee-val">Mar 07</div><div class="stu-fee-lbl">Next Due</div></div>
+            </div>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="openModal('payment-modal')"><i class="fa fa-money-bill-wave"></i> Collect Now</button>
+        </div>
+        <!-- Fee Schedule Table -->
+        <div class="section-title" style="font-size:10px;margin-top:4px">Priyanka Shah's Fee Schedule</div>
+        <table>
+          <thead>
+            <tr><th>Fee Item</th><th>Installment</th><th>Due Date</th><th>Amount Due</th><th>Amount Paid</th><th>Status</th><th></th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Admission Fee</td><td>1 of 1</td><td>Feb 28</td><td>Rs 10,000</td><td style="color:var(--green)">Rs 10,000</td><td><span class="badge badge-green">Paid</span></td><td><button class="btn btn-xs btn-ghost"><i class="fa fa-eye"></i></button></td></tr>
+            <tr><td>Tuition Fee</td><td>1 of 4</td><td>Mar 07</td><td>Rs 7,000</td><td>Rs 0</td><td><span class="badge badge-amber">Pending</span></td><td><button class="btn btn-xs btn-primary" onclick="openModal('payment-modal')">Pay</button></td></tr>
+            <tr><td>Exam Fee</td><td>1 of 2</td><td>Mar 15</td><td>Rs 2,000</td><td>Rs 0</td><td><span class="badge badge-gray">Upcoming</span></td><td><button class="btn btn-xs btn-outline">Pay</button></td></tr>
+            <tr><td>Library Fee</td><td>1 of 1</td><td>Mar 30</td><td>Rs 1,000</td><td>Rs 0</td><td><span class="badge badge-gray">Upcoming</span></td><td><button class="btn btn-xs btn-outline">Pay</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div class="card">
+        <div class="card-hdr"><div class="card-title"><i class="fa fa-chart-pie"></i> Today's Summary</div></div>
+        <div class="card-body">
+          <div class="fee-summary-row"><span class="fee-label">Total Collected</span><span class="fee-amount green">Rs 1,27,500</span></div>
+          <div class="fee-summary-row"><span class="fee-label">Transactions</span><span class="fee-amount">9</span></div>
+          <div class="fee-summary-row"><span class="fee-label">Cash</span><span class="fee-amount">Rs 49,000</span></div>
+          <div class="fee-summary-row"><span class="fee-label">Digital</span><span class="fee-amount sky">Rs 78,500</span></div>
+          <div class="fee-summary-row"><span class="fee-label">Last Receipt</span><span class="fee-amount" style="font-size:12px">RCP-000009</span></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-hdr"><div class="card-title"><i class="fa fa-exclamation-circle" style="color:var(--red)"></i> Overdue Students</div><span class="badge badge-red">18</span></div>
+        <div class="card-body scroll-panel h200">
+          <div class="fee-summary-row"><span style="font-size:12.5px;font-weight:700">Nisha Thapa</span><span class="badge badge-red">Rs 10,000</span></div>
+          <div class="fee-summary-row"><span style="font-size:12.5px;font-weight:700">Ramesh Sharma</span><span class="badge badge-red">Rs 7,000</span></div>
+          <div class="fee-summary-row"><span style="font-size:12.5px;font-weight:700">Bikash Kumar</span><span class="badge badge-amber">Rs 5,000</span></div>
+          <div class="fee-summary-row"><span style="font-size:12.5px;font-weight:700">Anita Singh</span><span class="badge badge-red">Rs 12,000</span></div>
+          <div style="text-align:center;margin-top:10px"><button class="btn btn-sm btn-outline" onclick="switchPage('pending-dues')">View All 18 →</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     PAGE: ATTENDANCE
+════════════════════════════════════════ -->
+<div class="page" id="page-attendance" style="display:none">
+  <div class="page-hdr">
+    <div class="page-hdr-left">
+      <h1><i class="fa fa-calendar-check" style="color:var(--green);margin-right:8px"></i>Today's Attendance</h1>
+      <p>Mark and manage student attendance · Tuesday, March 03, 2026</p>
+    </div>
+    <div class="page-hdr-right">
+      <select class="form-select" style="width:180px">
+        <option>BCA-I (Morning)</option><option>BCA-II (Morning)</option>
+        <option>BCA-III (Afternoon)</option><option>BCA-IV (Afternoon)</option>
+      </select>
+      <button class="btn btn-primary" onclick="saveAttendance()"><i class="fa fa-save"></i> Save Attendance</button>
+    </div>
+  </div>
+  <div class="g2" style="margin-bottom:14px">
+    <div class="card">
+      <div class="card-hdr">
+        <div class="card-title"><i class="fa fa-list"></i> BCA-I — Attendance Sheet</div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-xs btn-outline" onclick="markAll('present')"><i class="fa fa-check"></i> All Present</button>
+          <button class="btn btn-xs btn-outline" style="color:var(--red)" onclick="markAll('absent')"><i class="fa fa-times"></i> All Absent</button>
+        </div>
+      </div>
+      <div class="card-body" style="padding-top:0">
+        <div class="scroll-panel h400">
+          <div id="att-list">
+          </div>
+        </div>
+      </div>
+      <div style="padding:12px 20px;border-top:1px solid var(--card-border);display:flex;justify-content:space-between;align-items:center">
+        <div style="font-size:12px;color:var(--text-light)" id="att-summary">Marked: 0 / 8</div>
+        <button class="btn btn-primary" onclick="saveAttendance()"><i class="fa fa-save"></i> Save & Send SMS</button>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div class="card">
+        <div class="card-hdr"><div class="card-title"><i class="fa fa-chart-bar"></i> Attendance Stats</div></div>
+        <div class="card-body">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+            <div style="text-align:center;background:#dcfce7;border-radius:10px;padding:14px"><div style="font-size:1.6rem;font-weight:800;color:#16a34a" id="stat-present">0</div><div style="font-size:11px;color:#166534;font-weight:600">Present</div></div>
+            <div style="text-align:center;background:#fee2e2;border-radius:10px;padding:14px"><div style="font-size:1.6rem;font-weight:800;color:var(--red)" id="stat-absent">0</div><div style="font-size:11px;color:#991b1b;font-weight:600">Absent</div></div>
+          </div>
+          <div class="prog-bar" style="margin-bottom:8px">
+            <div class="prog-fill" id="att-prog" style="width:0%;background:var(--green)"></div>
+          </div>
+          <div style="text-align:center;font-size:13px;color:var(--text-light)">Attendance Rate: <strong id="att-pct" style="color:var(--green)">0%</strong></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-hdr"><div class="card-title"><i class="fa fa-sms"></i> Absent SMS Alerts</div></div>
+        <div class="card-body">
+          <p style="font-size:12.5px;color:var(--text-body);margin-bottom:12px">Auto-SMS will be sent to parents/guardians of absent students after saving.</p>
+          <div style="background:#f8fafc;border-radius:8px;padding:10px;font-size:12px;color:var(--text-body);border:1px solid var(--card-border)">
+            <strong>SMS Preview:</strong><br/>
+            "Dear Parent, your ward [Student Name] was ABSENT today (March 03, 2026) at Nepal Cyber Firm. Contact: 01-XXXXXXX"
+          </div>
+          <div style="margin-top:12px;display:flex;align-items:center;gap:8px">
+            <input type="checkbox" id="sms-toggle" checked style="accent-color:var(--green)"/>
+            <label for="sms-toggle" style="font-size:12.5px;cursor:pointer">Send SMS notifications on save</label>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     PAGE: PENDING DUES
+════════════════════════════════════════ -->
+<div class="page" id="page-pending-dues" style="display:none">
+  <div class="page-hdr">
+    <div class="page-hdr-left">
+      <h1><i class="fa fa-clock" style="color:var(--amber);margin-right:8px"></i>Pending Dues</h1>
+      <p>Students with outstanding fee balances · 18 students · Rs 3,86,000 total</p>
+    </div>
+    <button class="btn btn-outline"><i class="fa fa-paper-plane"></i> Send Bulk Reminder</button>
+  </div>
+  <div class="card">
+    <div class="card-hdr">
+      <div class="card-title"><i class="fa fa-exclamation-circle" style="color:var(--red)"></i> Overdue Students</div>
+      <div class="card-hdr-actions">
+        <div class="search-bar"><i class="fa fa-search"></i><input type="text" placeholder="Search…"/></div>
+        <select class="form-select" style="width:140px;padding:6px 10px"><option>All Batches</option><option>BCA-I</option><option>BCA-II</option></select>
+      </div>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Student</th><th>Batch</th><th>Fee Item</th><th>Amount Due</th><th>Due Date</th><th>Overdue By</th><th>Actions</th></tr></thead>
+        <tbody>
+          <tr><td><div style="display:flex;align-items:center;gap:9px"><div class="tbl-av" style="background:#ec4899">NT</div><div><div class="tbl-name">Nisha Thapa</div><div class="tbl-sub">STD-0043</div></div></div></td><td><span class="badge badge-sky">BCA-II</span></td><td>Tuition – Instl. 1</td><td><strong style="color:var(--red)">Rs 10,000</strong></td><td style="color:var(--red)">Feb 28</td><td><span class="badge badge-red">3 days</span></td><td><div style="display:flex;gap:6px"><button class="btn btn-xs btn-primary" onclick="openModal('payment-modal')">Collect</button><button class="btn btn-xs btn-outline"><i class="fa fa-sms"></i></button></div></td></tr>
+          <tr><td><div style="display:flex;align-items:center;gap:9px"><div class="tbl-av" style="background:#6366f1">AS</div><div><div class="tbl-name">Anita Singh</div><div class="tbl-sub">STD-0039</div></div></div></td><td><span class="badge badge-purple">BCA-III</span></td><td>Tuition – Instl. 2</td><td><strong style="color:var(--red)">Rs 12,000</strong></td><td style="color:var(--red)">Feb 25</td><td><span class="badge badge-red">6 days</span></td><td><div style="display:flex;gap:6px"><button class="btn btn-xs btn-primary" onclick="openModal('payment-modal')">Collect</button><button class="btn btn-xs btn-outline"><i class="fa fa-sms"></i></button></div></td></tr>
+          <tr><td><div style="display:flex;align-items:center;gap:9px"><div class="tbl-av" style="background:#f97316">BK</div><div><div class="tbl-name">Bikash Kumar</div><div class="tbl-sub">STD-0044</div></div></div></td><td><span class="badge badge-sky">BCA-I</span></td><td>Exam Fee – Instl. 2</td><td><strong style="color:var(--amber)">Rs 5,000</strong></td><td style="color:var(--amber)">Mar 01</td><td><span class="badge badge-amber">2 days</span></td><td><div style="display:flex;gap:6px"><button class="btn btn-xs btn-primary" onclick="openModal('payment-modal')">Collect</button><button class="btn btn-xs btn-outline"><i class="fa fa-sms"></i></button></div></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="pagination"><div class="pg-info">Showing 1–3 of 18 students · Total: Rs 3,86,000</div><div class="pg-btns"><button class="pg-btn active">1</button><button class="pg-btn">2</button><button class="pg-btn">3</button></div></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     PAGE: INQUIRIES
+════════════════════════════════════════ -->
+<div class="page" id="page-inquiries" style="display:none">
+  <div class="page-hdr">
+    <div class="page-hdr-left">
+      <h1><i class="fa fa-comments" style="color:var(--orange);margin-right:8px"></i>Inquiries</h1>
+      <p>Manage walk-in, phone, and online admission inquiries</p>
+    </div>
+    <button class="btn btn-primary" onclick="openModal('inquiry-modal')"><i class="fa fa-plus"></i> Log Inquiry</button>
+  </div>
+  <div class="stat-grid" style="grid-template-columns:repeat(4,1fr)">
+    <div class="stat-card amber"><div class="stat-top"><div class="stat-icon amber"><i class="fa fa-comments"></i></div></div><div class="stat-val">7</div><div class="stat-lbl">Open</div></div>
+    <div class="stat-card sky"><div class="stat-top"><div class="stat-icon sky"><i class="fa fa-phone"></i></div></div><div class="stat-val">3</div><div class="stat-lbl">Follow-up Pending</div></div>
+    <div class="stat-card green"><div class="stat-top"><div class="stat-icon green"><i class="fa fa-check"></i></div></div><div class="stat-val">12</div><div class="stat-lbl">Resolved Today</div></div>
+    <div class="stat-card purple"><div class="stat-top"><div class="stat-icon purple"><i class="fa fa-user-plus"></i></div></div><div class="stat-val">4</div><div class="stat-lbl">Converted to Admission</div></div>
+  </div>
+  <div class="card">
+    <div class="card-hdr"><div class="card-title"><i class="fa fa-list"></i> All Inquiries</div></div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Inquirer</th><th>Program Interested</th><th>Source</th><th>Date/Time</th><th>Status</th><th>Assigned To</th><th>Actions</th></tr></thead>
+        <tbody>
+          <tr><td><div class="tbl-name">Asha Rai</div><div class="tbl-sub">+977-9841111111</div></td><td>BCA Program</td><td><span class="badge badge-sky">Walk-in</span></td><td style="font-size:12px">Mar 03, 10:22 AM</td><td><span class="badge badge-orange">New</span></td><td>Sunita Devi</td><td><button class="btn btn-xs btn-primary">Follow Up</button></td></tr>
+          <tr><td><div class="tbl-name">Prakash Mahato</div><div class="tbl-sub">+977-9852222222</div></td><td>+2 Science</td><td><span class="badge badge-gray">Phone</span></td><td style="font-size:12px">Mar 03, 9:47 AM</td><td><span class="badge badge-amber">Follow-up</span></td><td>Sunita Devi</td><td><button class="btn btn-xs btn-outline">Follow Up</button></td></tr>
+          <tr><td><div class="tbl-name">Sunita Shrestha</div><div class="tbl-sub">sunita@email.com</div></td><td>Certificate Verification</td><td><span class="badge badge-sky">Walk-in</span></td><td style="font-size:12px">Mar 03, 9:15 AM</td><td><span class="badge badge-green">Resolved</span></td><td>Sunita Devi</td><td><button class="btn btn-xs btn-ghost">View</button></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     PAGE: LEAVE REQUESTS
+════════════════════════════════════════ -->
+<div class="page" id="page-leave-requests" style="display:none">
+  <div class="page-hdr">
+    <div class="page-hdr-left">
+      <h1><i class="fa fa-user-clock" style="color:var(--amber);margin-right:8px"></i>Leave Requests</h1>
+      <p>Student leave requests pending approval · 5 pending</p>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-hdr"><div class="card-title"><i class="fa fa-clock"></i> Pending Approval</div><span class="badge badge-amber">5</span></div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Student</th><th>Batch</th><th>Leave Type</th><th>From</th><th>To</th><th>Days</th><th>Reason</th><th>Actions</th></tr></thead>
+        <tbody>
+          <tr><td><div class="tbl-name">Ramesh Sharma</div><div class="tbl-sub">STD-0046</div></td><td><span class="badge badge-sky">BCA-II</span></td><td>Sick</td><td>Mar 04</td><td>Mar 05</td><td>2</td><td style="max-width:180px;white-space:normal;font-size:12px">Fever and cold. Medical cert attached.</td><td><div style="display:flex;gap:6px"><button class="btn btn-xs btn-primary" onclick="approveLeave(this,'approve')"><i class="fa fa-check"></i> Approve</button><button class="btn btn-xs btn-danger" onclick="approveLeave(this,'reject')"><i class="fa fa-times"></i></button></div></td></tr>
+          <tr><td><div class="tbl-name">Nisha Thapa</div><div class="tbl-sub">STD-0043</div></td><td><span class="badge badge-sky">BCA-II</span></td><td>Personal</td><td>Mar 05</td><td>Mar 05</td><td>1</td><td style="max-width:180px;white-space:normal;font-size:12px">Family function (sister's wedding)</td><td><div style="display:flex;gap:6px"><button class="btn btn-xs btn-primary" onclick="approveLeave(this,'approve')"><i class="fa fa-check"></i> Approve</button><button class="btn btn-xs btn-danger" onclick="approveLeave(this,'reject')"><i class="fa fa-times"></i></button></div></td></tr>
+          <tr><td><div class="tbl-name">Bikash KC</div><div class="tbl-sub">STD-0044</div></td><td><span class="badge badge-purple">BCA-III</span></td><td>Personal</td><td>Mar 06</td><td>Mar 06</td><td>1</td><td style="max-width:180px;white-space:normal;font-size:12px">Family function – uncle's ceremony</td><td><div style="display:flex;gap:6px"><button class="btn btn-xs btn-primary" onclick="approveLeave(this,'approve')"><i class="fa fa-check"></i> Approve</button><button class="btn btn-xs btn-danger" onclick="approveLeave(this,'reject')"><i class="fa fa-times"></i></button></div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     PAGE: ANNOUNCEMENTS
+════════════════════════════════════════ -->
+<div class="page" id="page-announcements" style="display:none">
+  <div class="page-hdr">
+    <div class="page-hdr-left">
+      <h1><i class="fa fa-bullhorn" style="color:var(--green);margin-right:8px"></i>Announcements</h1>
+      <p>Platform-wide and institution announcements</p>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <div class="notice-item urgent" style="margin-bottom:10px"><i class="fa fa-exclamation-circle notice-icon" style="color:var(--red)"></i><div><div class="notice-title">Fee Deadline – Feb Batch</div><div class="notice-msg">All pending fees for Feb 2026 batch must be cleared by March 07, 2026. Late fee fine of Rs 50/day applicable after deadline.</div><div class="notice-meta">Urgent · Platform Admin · 2 hrs ago · Target: All Tenants</div></div></div>
+      <div class="notice-item normal" style="margin-bottom:10px"><i class="fa fa-check-circle notice-icon" style="color:var(--green)"></i><div><div class="notice-title">BCA-II Exam Schedule Published</div><div class="notice-msg">Internal exam schedule for BCA-II is now available. Admit cards can be collected from the front desk from March 05 onwards.</div><div class="notice-meta">Normal · Academic Office · 5 hrs ago · Target: Tenants</div></div></div>
+      <div class="notice-item info"><i class="fa fa-info-circle notice-icon" style="color:var(--sky)"></i><div><div class="notice-title">Public Holiday – Holi, March 14</div><div class="notice-msg">Institution will remain closed on March 14, 2026 (Holi). Compensatory class scheduled for March 15 (Saturday) 8 AM – 12 PM.</div><div class="notice-meta">Info · Principal's Office · Yesterday · Target: All</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     PAGE: NEW ADMISSION
+════════════════════════════════════════ -->
+<div class="page" id="page-new-admission" style="display:none">
+  <div class="page-hdr">
+    <div class="page-hdr-left">
+      <h1><i class="fa fa-user-plus" style="color:var(--purple);margin-right:8px"></i>New Admission</h1>
+      <p>Register a new student into the institution</p>
+    </div>
+  </div>
+  <div class="g65">
+    <div class="card">
+      <div class="card-hdr"><div class="card-title"><i class="fa fa-user"></i> Student Registration Form</div></div>
+      <div class="card-body">
+        <div class="section-title" style="font-size:10px">Personal Information</div>
+        <div class="form-row-2">
+          <div class="form-row"><label class="form-label">Full Name *</label><input class="form-input" type="text" placeholder="e.g. Priyanka Shah"/></div>
+          <div class="form-row"><label class="form-label">Date of Birth (AD) *</label><input class="form-input" type="date"/></div>
+        </div>
+        <div class="form-row-2">
+          <div class="form-row"><label class="form-label">Gender *</label><select class="form-select"><option>Male</option><option>Female</option><option>Other</option></select></div>
+          <div class="form-row"><label class="form-label">Blood Group</label><select class="form-select"><option>--</option><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>O+</option><option>O-</option><option>AB+</option><option>AB-</option></select></div>
+        </div>
+        <div class="form-row-2">
+          <div class="form-row"><label class="form-label">Phone</label><input class="form-input" type="text" placeholder="+977-98XXXXXXXX"/></div>
+          <div class="form-row"><label class="form-label">Email</label><input class="form-input" type="email" placeholder="student@email.com"/></div>
+        </div>
+        <div class="section-title" style="font-size:10px;margin-top:4px">Academic Enrollment</div>
+        <div class="form-row-2">
+          <div class="form-row"><label class="form-label">Program / Batch *</label><select class="form-select"><option>BCA-I</option><option>BCA-II</option><option>+CSIT-I</option><option>+2 Science</option></select></div>
+          <div class="form-row"><label class="form-label">Admission Date *</label><input class="form-input" type="date" value="2026-03-03"/></div>
+        </div>
+        <div class="form-row"><label class="form-label">Father's Name</label><input class="form-input" type="text" placeholder="e.g. Ram Bahadur Shah"/></div>
+        <div class="form-row"><label class="form-label">Mother's Name</label><input class="form-input" type="text" placeholder="e.g. Sita Devi Shah"/></div>
+        <div class="section-title" style="font-size:10px;margin-top:4px">Address</div>
+        <div class="form-row-2">
+          <div class="form-row"><label class="form-label">Province</label><select class="form-select"><option>Bagmati Province</option><option>Madhesh Province</option><option>Koshi Province</option><option>Gandaki Province</option></select></div>
+          <div class="form-row"><label class="form-label">District</label><input class="form-input" type="text" placeholder="e.g. Kathmandu"/></div>
+        </div>
+        <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
+          <button class="btn btn-outline">Save as Draft</button>
+          <button class="btn btn-primary" onclick="showToast('Student registered successfully!','success')"><i class="fa fa-check"></i> Complete Registration</button>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div class="card">
+        <div class="card-hdr"><div class="card-title"><i class="fa fa-info-circle"></i> Registration Info</div></div>
+        <div class="card-body">
+          <div class="detail-kv" style="padding:8px 0;border-bottom:1px solid #f1f5f9"><span style="font-size:12px;color:var(--text-light);width:110px;flex-shrink:0">Auto Roll No.</span><strong style="font-size:13px">STD-0048</strong></div>
+          <div class="detail-kv" style="padding:8px 0;border-bottom:1px solid #f1f5f9"><span style="font-size:12px;color:var(--text-light);width:110px;flex-shrink:0">Mode</span><span class="badge badge-sky">Full Registration</span></div>
+          <div class="detail-kv" style="padding:8px 0"><span style="font-size:12px;color:var(--text-light);width:110px;flex-shrink:0">Status</span><span class="badge badge-amber">Pending Docs</span></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-hdr"><div class="card-title"><i class="fa fa-upload"></i> Document Upload</div></div>
+        <div class="card-body">
+          <div style="border:2px dashed var(--card-border);border-radius:10px;padding:20px;text-align:center;margin-bottom:12px;cursor:pointer" onmouseenter="this.style.borderColor='var(--green)'" onmouseleave="this.style.borderColor='var(--card-border)'">
+            <i class="fa fa-cloud-upload-alt" style="font-size:24px;color:var(--text-light);margin-bottom:8px"></i>
+            <div style="font-size:13px;font-weight:600;color:var(--text-body)">Drop files or click to upload</div>
+            <div style="font-size:11px;color:var(--text-light);margin-top:4px">Passport photo, Citizenship, Marksheet</div>
+          </div>
+          <div style="font-size:12px;color:var(--text-light)">Required: Photo (mandatory), ID proof</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════
+     MODALS
+═══════════════════════════════════════════ -->
+
+<!-- PAYMENT MODAL -->
+<div class="overlay" id="payment-modal">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:40px;height:40px;background:#e6f7f3;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--green)"><i class="fa fa-money-bill-wave"></i></div>
+        <div>
+          <h3>Record Fee Payment</h3>
+          <p style="font-size:12px;color:var(--text-light)">Collect fee and generate receipt</p>
+        </div>
+      </div>
+      <div class="modal-close" onclick="closeModal('payment-modal')"><i class="fa fa-times"></i></div>
+    </div>
+    <div class="modal-body">
+      <!-- Student Lookup -->
+      <div class="form-row">
+        <label class="form-label">Student *</label>
+        <div class="search-bar">
+          <i class="fa fa-search"></i>
+          <input type="text" placeholder="Search by name, roll no, phone…" value="Priyanka Shah"/>
+        </div>
+      </div>
+      <!-- Student Result -->
+      <div class="stu-result" style="margin-bottom:16px">
+        <div class="stu-result-av" style="background:#8b5cf6">PS</div>
+        <div>
+          <div class="stu-result-name">Priyanka Shah</div>
+          <div class="stu-result-meta">
+            <span>STD-0034</span><span>BCA-I</span>
+            <span style="color:var(--red)">Balance: Rs 5,000</span>
+          </div>
+        </div>
+      </div>
+      <div class="form-row">
+        <label class="form-label">Fee Item *</label>
+        <select class="form-select" id="fee-item-select">
+          <option value="">-- Select Fee Item --</option>
+          <option value="7000" selected>Tuition Fee – Installment 1 (Due: Rs 7,000)</option>
+          <option value="2000">Exam Fee – Installment 1 (Due: Rs 2,000)</option>
+          <option value="1000">Library Fee (Due: Rs 1,000)</option>
+        </select>
+      </div>
+      <div class="form-row-2">
+        <div class="form-row">
+          <label class="form-label">Amount Paying *</label>
+          <input class="form-input" type="number" id="pay-amount" value="7000" placeholder="Enter amount" oninput="updateReceiptPreview()"/>
+        </div>
+        <div class="form-row">
+          <label class="form-label">Payment Date *</label>
+          <input class="form-input" type="date" value="2026-03-03"/>
+        </div>
+      </div>
+      <div class="form-row">
+        <label class="form-label">Payment Method *</label>
+        <div class="pay-methods">
+          <div class="pay-method selected" onclick="selectMethod(this,'cash')"><i class="fa fa-money-bill"></i> Cash</div>
+          <div class="pay-method" onclick="selectMethod(this,'esewa')"><img src="" style="width:14px" onerror="this.style.display='none'"/><i class="fa fa-mobile-alt"></i> eSewa</div>
+          <div class="pay-method" onclick="selectMethod(this,'khalti')"><i class="fa fa-mobile-alt"></i> Khalti</div>
+          <div class="pay-method" onclick="selectMethod(this,'bank')"><i class="fa fa-university"></i> Bank</div>
+          <div class="pay-method" onclick="selectMethod(this,'cheque')"><i class="fa fa-file-alt"></i> Cheque</div>
+        </div>
+      </div>
+      <div class="form-row">
+        <label class="form-label">Transaction ID / Cheque No. (if applicable)</label>
+        <input class="form-input" type="text" placeholder="Leave blank for cash"/>
+      </div>
+      <div class="form-row">
+        <label class="form-label">Notes</label>
+        <input class="form-input" type="text" placeholder="Optional remarks…"/>
+      </div>
+      <!-- Receipt Preview -->
+      <div class="receipt-preview">
+        <div style="font-size:11px;color:var(--text-light);margin-bottom:4px">RECEIPT PREVIEW</div>
+        <div class="receipt-no" id="receipt-no">RCP-000010</div>
+        <div style="font-size:12px;color:var(--text-body);margin:6px 0">Priyanka Shah · STD-0034 · Tuition Fee</div>
+        <div style="font-size:1.2rem;font-weight:800;color:var(--text-dark)" id="receipt-amount">Rs 7,000</div>
+        <div class="receipt-stamp">PAID</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('payment-modal')">Cancel</button>
+      <button class="btn btn-outline"><i class="fa fa-print"></i> Save & Print</button>
+      <button class="btn btn-primary" onclick="recordPayment()"><i class="fa fa-check"></i> Record Payment</button>
+    </div>
+  </div>
+</div>
+
+<!-- INQUIRY MODAL -->
+<div class="overlay" id="inquiry-modal">
+  <div class="modal">
+    <div class="modal-hdr">
+      <h3><i class="fa fa-comments" style="color:var(--orange);margin-right:8px"></i>Log New Inquiry</h3>
+      <div class="modal-close" onclick="closeModal('inquiry-modal')"><i class="fa fa-times"></i></div>
+    </div>
+    <div class="modal-body">
+      <div class="form-row-2">
+        <div class="form-row"><label class="form-label">Inquirer Name *</label><input class="form-input" type="text" placeholder="Full name"/></div>
+        <div class="form-row"><label class="form-label">Phone</label><input class="form-input" type="text" placeholder="+977-98XXXXXXXX"/></div>
+      </div>
+      <div class="form-row-2">
+        <div class="form-row"><label class="form-label">Email</label><input class="form-input" type="email" placeholder="Optional"/></div>
+        <div class="form-row"><label class="form-label">Source *</label><select class="form-select"><option>Walk-in</option><option>Phone</option><option>Online Form</option><option>Referral</option></select></div>
+      </div>
+      <div class="form-row"><label class="form-label">Program Interested In *</label><select class="form-select"><option>BCA</option><option>+CSIT</option><option>+2 Science</option><option>+2 Management</option><option>Other</option></select></div>
+      <div class="form-row"><label class="form-label">Inquiry Details</label><textarea class="form-input" rows="3" placeholder="What did the person inquire about?" style="resize:vertical"></textarea></div>
+      <div class="form-row"><label class="form-label">Status</label><select class="form-select"><option>New</option><option>Follow-up Required</option><option>Resolved</option></select></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('inquiry-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveInquiry()"><i class="fa fa-save"></i> Save Inquiry</button>
+    </div>
+  </div>
+</div>
+
+<!-- RECEIPT MODAL -->
+<div class="overlay" id="receipt-modal">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-hdr">
+      <h3><i class="fa fa-receipt" style="color:var(--green);margin-right:8px"></i>Fee Receipt</h3>
+      <div class="modal-close" onclick="closeModal('receipt-modal')"><i class="fa fa-times"></i></div>
+    </div>
+    <div class="modal-body">
+      <div style="border:2px dashed var(--card-border);border-radius:12px;padding:24px;text-align:center" id="print-receipt">
+        <div style="font-size:16px;font-weight:800;color:var(--green)">Nepal Cyber Firm</div>
+        <div style="font-size:11px;color:var(--text-light)">Brightfuture Educational Institute</div>
+        <div style="height:1px;background:var(--card-border);margin:14px 0"></div>
+        <div class="receipt-no">RCP-000009</div>
+        <div style="height:1px;background:var(--card-border);margin:14px 0;border-style:dashed"></div>
+        <div style="text-align:left;font-size:12.5px">
+          <div style="display:flex;justify-content:space-between;padding:5px 0"><span style="color:var(--text-light)">Student:</span><strong>Ramesh Sharma</strong></div>
+          <div style="display:flex;justify-content:space-between;padding:5px 0"><span style="color:var(--text-light)">Roll No.:</span><strong>STD-0046</strong></div>
+          <div style="display:flex;justify-content:space-between;padding:5px 0"><span style="color:var(--text-light)">Batch:</span><strong>BCA-II</strong></div>
+          <div style="display:flex;justify-content:space-between;padding:5px 0"><span style="color:var(--text-light)">Fee Item:</span><strong>Tuition Fee – Instl. 1</strong></div>
+          <div style="display:flex;justify-content:space-between;padding:5px 0"><span style="color:var(--text-light)">Method:</span><strong>Cash</strong></div>
+          <div style="display:flex;justify-content:space-between;padding:5px 0"><span style="color:var(--text-light)">Date:</span><strong>March 03, 2026</strong></div>
+          <div style="display:flex;justify-content:space-between;padding:5px 0"><span style="color:var(--text-light)">Collected by:</span><strong>Sunita Devi</strong></div>
+        </div>
+        <div style="height:1px;background:var(--card-border);margin:14px 0"></div>
+        <div style="font-size:1.5rem;font-weight:800;color:var(--green)">Rs 2,000</div>
+        <div class="receipt-stamp">PAID</div>
+        <div style="font-size:10px;color:var(--text-light);margin-top:12px">Powered by HamroLabs ERP · This is a computer-generated receipt</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('receipt-modal')">Close</button>
+      <button class="btn btn-primary" onclick="printReceipt()"><i class="fa fa-print"></i> Print Receipt</button>
+    </div>
+  </div>
+</div>
+
+<!-- NOTIFICATION MODAL -->
+<div class="overlay" id="notification-modal">
+  <div class="modal" style="max-width:420px;position:absolute;top:60px;right:16px;margin:0">
+    <div class="modal-hdr" style="padding:14px 18px">
+      <h3 style="font-size:14px"><i class="fa fa-bell" style="color:var(--green);margin-right:8px"></i>Notifications</h3>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span class="badge badge-red">4</span>
+        <div class="modal-close" onclick="closeModal('notification-modal')"><i class="fa fa-times"></i></div>
+      </div>
+    </div>
+    <div style="max-height:400px;overflow-y:auto">
+      <div style="padding:12px 18px;border-bottom:1px solid var(--card-border);background:#f0fdf4">
+        <div style="font-size:12.5px;font-weight:700;color:var(--text-dark)">Fee collected: Ramesh Sharma</div>
+        <div style="font-size:11.5px;color:var(--text-body);margin-top:2px">Rs 2,000 received · RCP-000009</div>
+        <div style="font-size:11px;color:var(--text-light);margin-top:4px">1:51 PM today</div>
+      </div>
+      <div style="padding:12px 18px;border-bottom:1px solid var(--card-border);background:#fff1f2">
+        <div style="font-size:12.5px;font-weight:700;color:var(--text-dark)">⚠️ 18 overdue students</div>
+        <div style="font-size:11.5px;color:var(--text-body);margin-top:2px">Rs 3,86,000 total pending dues</div>
+        <div style="font-size:11px;color:var(--text-light);margin-top:4px">System · 8:00 AM</div>
+      </div>
+      <div style="padding:12px 18px;border-bottom:1px solid var(--card-border)">
+        <div style="font-size:12.5px;font-weight:700;color:var(--text-dark)">New inquiry: Asha Rai</div>
+        <div style="font-size:11.5px;color:var(--text-body);margin-top:2px">BCA Program inquiry – Walk-in</div>
+        <div style="font-size:11px;color:var(--text-light);margin-top:4px">10:22 AM today</div>
+      </div>
+      <div style="padding:12px 18px">
+        <div style="font-size:12.5px;font-weight:700;color:var(--text-dark)">Leave request: Ramesh Sharma</div>
+        <div style="font-size:11.5px;color:var(--text-body);margin-top:2px">Sick leave March 04–05 · Awaiting approval</div>
+        <div style="font-size:11px;color:var(--text-light);margin-top:4px">9:30 AM today</div>
+      </div>
+    </div>
+    <div style="padding:10px 18px;border-top:1px solid var(--card-border);text-align:center">
+      <button class="btn btn-sm btn-ghost" style="width:100%">Mark All as Read</button>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<!-- Mobile Bottom Nav -->
+<nav style="display:none;position:fixed;bottom:0;left:0;right:0;height:60px;background:#fff;box-shadow:0 -4px 12px rgba(0,0,0,.05);z-index:1000;justify-content:space-around;align-items:center;padding:0 8px;border-top:1px solid var(--card-border)" id="mobile-nav" class="mobile-bottom-nav">
+  <button onclick="switchPage('dashboard')" style="display:flex;flex-direction:column;align-items:center;gap:3px;border:none;background:transparent;cursor:pointer;color:var(--green);font-family:var(--font)">
+    <i class="fa fa-th-large" style="font-size:18px"></i><span style="font-size:9px;font-weight:700">Home</span>
+  </button>
+  <button onclick="switchPage('students')" style="display:flex;flex-direction:column;align-items:center;gap:3px;border:none;background:transparent;cursor:pointer;color:var(--text-light);font-family:var(--font)">
+    <i class="fa fa-user-graduate" style="font-size:18px"></i><span style="font-size:9px;font-weight:700">Students</span>
+  </button>
+  <button onclick="openModal('payment-modal')" style="display:flex;flex-direction:column;align-items:center;gap:3px;border:none;background:var(--green);cursor:pointer;color:#fff;font-family:var(--font);padding:8px 16px;border-radius:20px">
+    <i class="fa fa-money-bill-wave" style="font-size:16px"></i><span style="font-size:9px;font-weight:700">Collect</span>
+  </button>
+  <button onclick="switchPage('attendance')" style="display:flex;flex-direction:column;align-items:center;gap:3px;border:none;background:transparent;cursor:pointer;color:var(--text-light);font-family:var(--font)">
+    <i class="fa fa-calendar-check" style="font-size:18px"></i><span style="font-size:9px;font-weight:700">Attend.</span>
+  </button>
+  <button onclick="switchPage('inquiries')" style="display:flex;flex-direction:column;align-items:center;gap:3px;border:none;background:transparent;cursor:pointer;color:var(--text-light);font-family:var(--font)">
+    <i class="fa fa-comments" style="font-size:18px"></i><span style="font-size:9px;font-weight:700">Inquiries</span>
+  </button>
+</nav>
+
+<!-- TOAST CONTAINER -->
+<div id="toast-container"></div>
+
+<!-- ══════════ JS ══════════ -->
+<script>
+/* ─ CLOCK ─ */
+(function clock(){
+  const t=document.getElementById('hdr-time'),d=document.getElementById('hdr-date');
+  if(!t)return;
+  const days=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  function tick(){
+    const n=new Date();
+    let h=n.getHours(),m=n.getMinutes(),s=n.getSeconds(),ap='AM';
+    if(h>=12){ap='PM';if(h>12)h-=12;}if(h===0)h=12;
+    t.textContent=`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')} ${ap}`;
+    if(d)d.textContent=`${days[n.getDay()]}, ${months[n.getMonth()]} ${String(n.getDate()).padStart(2,'0')}, ${n.getFullYear()}`;
+  }
+  tick();setInterval(tick,1000);
+})();
+
+/* ─ SIDEBAR ─ */
+function toggleSidebar(){document.body.classList.toggle('sb-active')}
+function closeSidebar(){document.body.classList.remove('sb-active')}
+
+/* ─ PAGE NAVIGATION ─ */
+const pages=['dashboard','students','fee-collection','attendance','pending-dues','inquiries','leave-requests','announcements','new-admission','transactions','receipts','library','timetable','support','audit-log'];
+function switchPage(id){
+  pages.forEach(p=>{
+    const el=document.getElementById('page-'+p);
+    if(el)el.style.display=(p===id)?'block':'none';
+  });
+  // Update sidebar active
+  document.querySelectorAll('.sb-btn').forEach(btn=>{
+    btn.classList.remove('active');
+    if(btn.getAttribute('onclick')&&btn.getAttribute('onclick').includes("'"+id+"'"))btn.classList.add('active');
+  });
+  closeSidebar();
+  window.scrollTo(0,0);
+}
+
+/* ─ MODALS ─ */
+function openModal(id){
+  const m=document.getElementById(id);
+  if(m){m.classList.add('active');document.body.style.overflow='hidden'}
+}
+function closeModal(id){
+  const m=document.getElementById(id);
+  if(m){m.classList.remove('active');document.body.style.overflow=''}
+}
+// Close on backdrop click
+document.querySelectorAll('.overlay').forEach(ov=>{
+  ov.addEventListener('click',e=>{if(e.target===ov)ov.classList.remove('active'),document.body.style.overflow=''});
+});
+
+/* ─ TOAST ─ */
+function showToast(msg,type='info',duration=3000){
+  const c=document.getElementById('toast-container');
+  const t=document.createElement('div');
+  const icons={success:'fa-check-circle',error:'fa-times-circle',info:'fa-info-circle'};
+  t.className=`toast ${type}`;
+  t.innerHTML=`<i class="fa ${icons[type]||icons.info}"></i>${msg}`;
+  c.appendChild(t);
+  setTimeout(()=>{t.style.opacity='0';t.style.transform='translateY(10px)';t.style.transition='.3s';setTimeout(()=>t.remove(),300)},duration);
+}
+
+/* ─ PAYMENT ─ */
+function selectMethod(el,method){
+  document.querySelectorAll('.pay-method').forEach(m=>m.classList.remove('selected'));
+  el.classList.add('selected');
+}
+function updateReceiptPreview(){
+  const amt=document.getElementById('pay-amount').value;
+  const amtEl=document.getElementById('receipt-amount');
+  if(amtEl)amtEl.textContent=`Rs ${parseInt(amt||0).toLocaleString('en-IN')}`;
+}
+function recordPayment(){
+  closeModal('payment-modal');
+  showToast('Payment recorded successfully! Receipt RCP-000010 generated.','success');
+}
+
+/* ─ INQUIRY ─ */
+function saveInquiry(){
+  closeModal('inquiry-modal');
+  showToast('Inquiry logged successfully!','success');
+}
+
+/* ─ RECEIPT ─ */
+function printReceipt(){
+  const content=document.getElementById('print-receipt').innerHTML;
+  const win=window.open('','_blank','width=400,height=600');
+  win.document.write(`<html><head><title>Receipt</title><style>body{font-family:'Plus Jakarta Sans',sans-serif;padding:20px;}</style></head><body>${content}</body></html>`);
+  win.document.close();win.print();
+  showToast('Printing receipt…','info');
+}
+
+/* ─ ATTENDANCE ─ */
+const students=[
+  {id:'STD-0040',name:'Test Student 1',batch:'BCA-I',color:'#8b5cf6',initials:'TS'},
+  {id:'STD-0041',name:'Test Student 2',batch:'BCA-I',color:'#f59e0b',initials:'TS'},
+  {id:'STD-0042',name:'Test Student 3',batch:'BCA-I',color:'#ef4444',initials:'TS'},
+  {id:'STD-0043',name:'Nisha Thapa',batch:'BCA-I',color:'#ec4899',initials:'NT'},
+  {id:'STD-0044',name:'Manisha Patel',batch:'BCA-I',color:'#6366f1',initials:'MP'},
+  {id:'STD-0045',name:'Anita Singh',batch:'BCA-I',color:'#10b981',initials:'AS'},
+  {id:'STD-0046',name:'Bikash Kumar',batch:'BCA-I',color:'#f97316',initials:'BK'},
+  {id:'STD-0047',name:'Priyanka Shah',batch:'BCA-I',color:'#14b8a6',initials:'PS'},
+];
+const attState={};
+function buildAttList(){
+  const list=document.getElementById('att-list');
+  if(!list)return;
+  list.innerHTML='';
+  students.forEach(s=>{
+    attState[s.id]=attState[s.id]||'none';
+    const row=document.createElement('div');
+    row.className='att-row';
+    row.id='att-row-'+s.id;
+    row.innerHTML=`
+      <div class="att-av" style="background:${s.color}">${s.initials}</div>
+      <div class="att-info"><div class="att-name">${s.name}</div><div class="att-batch">${s.id} · ${s.batch}</div></div>
+      <div class="att-actions">
+        <button class="att-btn p" id="p-${s.id}" onclick="setAtt('${s.id}','present')" title="Present">P</button>
+        <button class="att-btn a" id="a-${s.id}" onclick="setAtt('${s.id}','absent')" title="Absent">A</button>
+        <button class="att-btn l" id="l-${s.id}" onclick="setAtt('${s.id}','late')" title="Late">L</button>
+      </div>`;
+    list.appendChild(row);
+  });
+  updateAttStats();
+}
+function setAtt(id,status){
+  attState[id]=status;
+  const btns=['p','a','l'];
+  btns.forEach(b=>{
+    const el=document.getElementById(b+'-'+id);
+    if(el)el.className='att-btn '+(b==='p'?'p':b==='a'?'a':'l');
+  });
+  const map={'present':'p','absent':'a','late':'l'};
+  if(map[status]){
+    const el=document.getElementById(map[status]+'-'+id);
+    if(el)el.className='att-btn selected-'+(status==='present'?'p':status==='absent'?'a':'l');
+  }
+  updateAttStats();
+}
+function updateAttStats(){
+  const vals=Object.values(attState);
+  const present=vals.filter(v=>v==='present').length;
+  const absent=vals.filter(v=>v==='absent').length;
+  const total=students.length;
+  const pct=total?Math.round(present/total*100):0;
+  const sp=document.getElementById('stat-present');const sa=document.getElementById('stat-absent');
+  const prog=document.getElementById('att-prog');const pctEl=document.getElementById('att-pct');
+  const sumEl=document.getElementById('att-summary');
+  if(sp)sp.textContent=present;if(sa)sa.textContent=absent;
+  if(prog)prog.style.width=pct+'%';if(pctEl)pctEl.textContent=pct+'%';
+  if(sumEl)sumEl.textContent=`Marked: ${present+absent} / ${total}`;
+}
+function markAll(status){
+  students.forEach(s=>setAtt(s.id,status));
+}
+function saveAttendance(){
+  const present=Object.values(attState).filter(v=>v==='present').length;
+  showToast(`Attendance saved! ${present} present. SMS sent to absent students.`,'success');
+}
+
+/* ─ LEAVE ─ */
+function approveLeave(btn,action){
+  const row=btn.closest('.leave-row')||btn.closest('tr');
+  if(action==='approve'){
+    showToast('Leave request approved and student notified.','success');
+    if(row)row.style.opacity='.4';
+  } else {
+    showToast('Leave request rejected.','error');
+    if(row)row.style.opacity='.4';
+  }
+}
+
+/* ─ SEARCH FILTER ─ */
+function filterTxns(val){
+  const rows=document.querySelectorAll('#txn-tbody tr');
+  rows.forEach(r=>{
+    r.style.display=r.textContent.toLowerCase().includes(val.toLowerCase())?'':'none';
+  });
+}
+function handleGlobalSearch(val){
+  if(val.trim().length>1)showToast(`Searching for: "${val}"…`,'info',1500);
+}
+function focusSearch(){
+  const s=document.getElementById('global-search');
+  if(s)s.focus();
+}
+function lookupStudent(val){
+  // In a real app this would hit the API
+}
+function searchStudents(val){}
+
+/* ─ MOBILE RESPONSIVE ─ */
+function checkMobile(){
+  const nav=document.getElementById('mobile-nav');
+  if(nav)nav.style.display=window.innerWidth<1024?'flex':'none';
+}
+window.addEventListener('resize',checkMobile);
+checkMobile();
+
+/* ─ INIT ─ */
+document.addEventListener('DOMContentLoaded',()=>{
+  buildAttList();
+  // Bar chart interactivity
+  document.querySelectorAll('.mbar').forEach((bar,i)=>{
+    bar.addEventListener('click',()=>{
+      document.querySelectorAll('.mbar').forEach(b=>b.classList.remove('active'));
+      bar.classList.add('active');
+    });
+  });
+});
+
+// Handle Escape key
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){
+    document.querySelectorAll('.overlay').forEach(o=>o.classList.remove('active'));
+    document.body.style.overflow='';
+  }
+});
+</script>
+</body>
+</html>

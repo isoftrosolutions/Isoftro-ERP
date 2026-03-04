@@ -8,10 +8,12 @@ if (!defined('APP_NAME')) {
     require_once __DIR__ . '/../../../config/config.php';
 }
 
-$pageTitle = 'Add New Inquiry';
-require_once VIEWS_PATH . '/layouts/header_1.php';
-require_once __DIR__ . '/sidebar.php';
+if (!isset($_GET['partial'])) {
+    $pageTitle = 'Add New Inquiry';
+    require_once VIEWS_PATH . '/layouts/header_1.php';
+    require_once __DIR__ . '/sidebar.php';
 
+}
 // Fetch courses for the dropdown
 try {
     $db = \App\Support\Database::getInstance()->getConnection();
@@ -23,10 +25,12 @@ try {
 }
 ?>
 
-<?php renderFrontDeskHeader(); ?>
-<?php renderFrontDeskSidebar('inquiries'); ?>
-
-<main class="main" id="mainContent">
+<?php
+if (!isset($_GET['partial'])) {
+    renderFrontDeskHeader();
+    renderFrontDeskSidebar('inquiries');
+}
+?>
     <div class="pg">
         <!-- Page Header -->
         <div class="pg-head">
@@ -120,8 +124,6 @@ try {
             <div id="responseMsg" style="margin-top: 20px; display: none;"></div>
         </div>
     </div>
-</main>
-
 <style>
 .fl { display: block; font-size: 13px; font-weight: 600; color: #475569; margin-bottom: 8px; }
 .fi { width:100%; padding:12px 14px; border:1.5px solid #e2e8f0; border-radius:10px; font-size:14px; outline:none; transition:all 0.2s; background:#fff; box-sizing:border-box; font-family: inherit; }
@@ -189,8 +191,9 @@ async function saveInquiry(e) {
 </script>
 
 <?php
-renderSuperAdminCSS();
-echo '<script src="' . APP_URL . '/public/assets/js/frontdesk.js"></script>';
+if (!isset($_GET['partial'])) {
+    renderSuperAdminCSS();
+    echo '<script src="' . APP_URL . '/public/assets/js/frontdesk.js"></script>';
+    echo '</body></html>';
+}
 ?>
-</body>
-</html>

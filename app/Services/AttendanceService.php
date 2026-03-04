@@ -17,7 +17,15 @@ class AttendanceService {
         $this->settings = new \App\Models\AttendanceSettings();
     }
 
-    public function takeAttendance($data, $userId, $tenantId) {
+    public function takeAttendance($data, $userId, $tenantId, $role = '') {
+        // Enforce frontdesk edit permission
+        if ($role === 'frontdesk') {
+            $settings = $this->settings->getByTenant($tenantId);
+            if (!($settings['allow_frontdesk_edit'] ?? false)) {
+                throw new \Exception("Front Desk is not authorized to mark attendance.");
+            }
+        }
+
         // Data format: ['batch_id' => X, 'course_id' => Y, 'attendance_date' => Z, 'attendance' => [['student_id' => 1, 'status' => 'present'], ...]]
         
         $records = [];
@@ -25,7 +33,7 @@ class AttendanceService {
             $records[] = [
                 'student_id' => $item['student_id'],
                 'batch_id' => $data['batch_id'],
-                'course_id' => $data['course_id'] ?? null, // Can be fetched from batch if not provided
+                'course_id' => $data['course_id'] ?? null,
                 'attendance_date' => $data['attendance_date'],
                 'status' => $item['status'],
                 'marked_by' => $userId
@@ -39,9 +47,9 @@ class AttendanceService {
         return $this->attendance->bulkUpsert($records, $tenantId);
     }
 
-    public function editAttendance($id, $data, $userId, $tenantId) {
-        if (!$this->canEdit($id, $tenantId)) {
-            throw new \Exception("Cannot edit this attendance record, it is locked or past the edit timeframe.");
+    public function editAttendance($id, $data, $userId, $tenantId, $role = '') {
+        if (!$this->canEdit($id, $tenantId, false, $role)) {
+            throw new \Exception("Cannot edit this attendance record: it may be locked, past the timeframe, or you lack permission.");
         }
         
         $oldRecord = $this->attendance->find($id);
@@ -82,15 +90,20 @@ class AttendanceService {
         return $result;
     }
 
-    public function canEdit($attendanceId, $tenantId, $isSuperAdmin = false) {
+    public function canEdit($attendanceId, $tenantId, $isSuperAdmin = false, $role = '') {
         $settings = $this->settings->getByTenant($tenantId);
         $lockPeriodHours = $settings['lock_period_hours'] ?? 24;
         
         $attendance = $this->attendance->find($attendanceId);
         if (!$attendance) return false;
         
-        if ($isSuperAdmin) {
+        if ($isSuperAdmin || $role === 'instituteadmin') {
             return true;
+        }
+
+        // Additional check for frontdesk
+        if ($role === 'frontdesk' && !($settings['allow_frontdesk_edit'] ?? false)) {
+            return false;
         }
         
         if ($attendance['locked']) {

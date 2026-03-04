@@ -50,7 +50,7 @@ window.filterStaff = function(search='', role, status='') {
 function _renderStaffTable(staff, role) {
     const c = document.getElementById('staffTableContainer'); if (!c) return;
     if (!staff.length) { c.innerHTML=`<div style="padding:60px;text-align:center;color:#94a3b8;"><i class="fa-solid fa-users-slash" style="font-size:3rem;margin-bottom:15px;"></i><p>No staff found.</p></div>`; return; }
-    let html = `<div class="table-responsive"><table class="table"><thead><tr><th>Name</th><th>Contact</th>${role==='teacher'?'<th>Employee ID</th><th>Specialization</th>':'<th>Joined Date</th>'}<th>Status</th><th style="text-align:right">Actions</th></tr></thead><tbody>`;
+    let html = `<div class="table-responsive"><table class="table"><thead><tr><th>Name</th><th>Contact</th>${role==='teacher'?'<th>Employee ID</th><th>Specialization</th>':'<th>Joined Date</th>'}<th>Salary</th><th>Status</th><th style="text-align:right">Actions</th></tr></thead><tbody>`;
     staff.forEach(s => {
         const sc = s.status==='active'?'bg-t':'bg-r';
         const n  = s.full_name||s.name||'N/A';
@@ -58,6 +58,7 @@ function _renderStaffTable(staff, role) {
             <td><div style="display:flex;align-items:center;gap:10px;"><div style="width:32px;height:32px;border-radius:50%;background:var(--teal);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;">${n.charAt(0)}</div><div style="font-weight:600">${n}</div></div></td>
             <td><div style="font-size:13px">${s.email||'No email'}</div><div style="font-size:11px;color:var(--tl)">${s.phone||'No phone'}</div></td>
             ${role==='teacher'?`<td><span class="tag bg-b">${s.employee_id||'N/A'}</span></td><td>${s.specialization||'General'}</td>`:`<td>${new Date(s.created_at).toLocaleDateString()}</td>`}
+            <td><span class="tag bg-b">NPR ${parseFloat(s.monthly_salary || 0).toLocaleString()}</span></td>
             <td><span class="tag ${sc}">${s.status.toUpperCase()}</span></td>
             <td style="text-align:right;white-space:nowrap">
                 <button class="btn-icon" title="Edit" onclick="editStaff('${role}',${s.user_id})"><i class="fa-solid fa-pen"></i></button>
@@ -96,6 +97,7 @@ function _renderEditStaffForm(role, staff) {
                     <div class="form-group"><label class="form-label">Email Address</label><input type="email" name="email" class="form-control" value="${staff.email||''}" disabled><small style="color:var(--tl);">Email cannot be changed</small></div>
                     <div class="form-group"><label class="form-label">Phone Number</label><input type="text" name="phone" class="form-control" value="${staff.phone||''}"></div>
                     <div class="form-group"><label class="form-label">Status</label><select name="status" class="form-control"><option value="active" ${staff.status==='active'?'selected':''}>Active</option><option value="inactive" ${staff.status==='inactive'?'selected':''}>Inactive</option></select></div>
+                    <div class="form-group"><label class="form-label">Monthly Salary (NPR) *</label><input type="number" name="monthly_salary" class="form-control" value="${staff.monthly_salary || 0}" step="0.01" required></div>
                     ${role==='teacher'?`
                     <div class="form-group"><label class="form-label">Employee ID</label><input type="text" class="form-control" value="${staff.employee_id||'N/A'}" disabled></div>
                     <div class="form-group"><label class="form-label">Specialization</label><input type="text" name="specialization" class="form-control" value="${staff.specialization||''}"></div>
@@ -139,6 +141,7 @@ window.renderAddStaffForm = function(role) {
                     <div class="form-group"><label class="form-label">Email Address *</label><input type="email" name="email" class="form-control" required placeholder="login@institute.com"></div>
                     <div class="form-group"><label class="form-label">Phone Number</label><input type="text" name="phone" class="form-control" placeholder="98XXXXXXXX"></div>
                     <div class="form-group"><label class="form-label">Temporary Password</label><input type="text" name="password" class="form-control" value="Staff@123"><small style="color:var(--tl);">User will be prompted to change on first login</small></div>
+                    <div class="form-group"><label class="form-label">Monthly Salary (NPR) *</label><input type="number" name="monthly_salary" class="form-control" placeholder="0.00" step="0.01" required></div>
                     ${role==='teacher'?`
                     <div class="form-group"><label class="form-label">Employee ID</label><input type="text" name="employee_id" class="form-control" placeholder="TCH-00X"></div>
                     <div class="form-group"><label class="form-label">Specialization</label><input type="text" name="specialization" class="form-control" placeholder="e.g. Mathematics, Nepali"></div>

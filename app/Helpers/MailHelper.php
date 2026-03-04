@@ -44,11 +44,13 @@ class MailHelper
     // ── Fetch institute branding for this tenant ─────────────
     private static function getTenantBranding(\PDO $db, int $tenantId): array
     {
-        // 1. Try tenant_email_settings for custom sender_name / reply_to_email
+        // ISSUE-E2 FIX: Correct table is `email_settings`, not `tenant_email_settings`
+        // Column aliases map actual column names to expected keys
+        $row = null;
         try {
             $stmt = $db->prepare(
-                "SELECT from_name, from_email, is_active
-                 FROM   tenant_email_settings
+                "SELECT sender_name AS from_name, reply_to_email AS from_email, is_active
+                 FROM   email_settings
                  WHERE  tenant_id = :tid LIMIT 1"
             );
             $stmt->execute(['tid' => $tenantId]);
@@ -57,20 +59,26 @@ class MailHelper
             $row = null;
         }
 
-        // 2. Fall back to tenants table for institute name
-        $instituteName = 'Your Institute';
+        // ISSUE-E3 FIX: Fetch institute name, phone, and email from tenants table
+        $instituteName  = 'Your Institute';
+        $institutePhone = '';
+        $instituteEmail = '';
         try {
-            $s = $db->prepare("SELECT name FROM tenants WHERE id = :tid LIMIT 1");
+            $s = $db->prepare("SELECT name, phone, email FROM tenants WHERE id = :tid LIMIT 1");
             $s->execute(['tid' => $tenantId]);
             $t = $s->fetch(\PDO::FETCH_ASSOC);
-            if (!empty($t['name'])) $instituteName = $t['name'];
+            if (!empty($t['name']))  $instituteName  = $t['name'];
+            if (!empty($t['phone'])) $institutePhone = $t['phone'];
+            if (!empty($t['email'])) $instituteEmail = $t['email'];
         } catch (\Throwable $e) {}
 
         return [
-            'sender_name'     => $row['from_name']    ?? $instituteName,
-            'reply_to_email'  => $row['from_email']   ?? null,
-            'is_active'       => ($row['is_active'] ?? 1) ? true : false,
-            'institute_name'  => $instituteName,
+            'sender_name'      => $row['from_name']   ?? $instituteName,
+            'reply_to_email'   => $row['from_email']  ?? null,
+            'is_active'        => ($row['is_active'] ?? 1) ? true : false,
+            'institute_name'   => $instituteName,
+            'institute_phone'  => $institutePhone,   // ISSUE-E3 FIX
+            'institute_email'  => $instituteEmail,   // ISSUE-E3 FIX
         ];
     }
 
@@ -86,12 +94,14 @@ class MailHelper
         $mail->SMTPAuth = true;
         $mail->Username = $sys['smtp_user']  ?? '';
         $mail->Password = $sys['smtp_pass']  ?? '';
-        $mail->Timeout  = (int)($sys['timeout'] ?? 20); // Increased timeout
+        // ISSUE-E4 FIX: Reduce default timeout from 20s → 5s so slow SMTP doesn't block the HTTP request.
+        // Override in config/mail.php with 'timeout' => N if your SMTP needs more time.
+        $mail->Timeout  = (int)($sys['timeout'] ?? 5);
         
         // --- SMTP Debugging & Connectivity ---
         // 0 = off, 1 = client messages, 2 = client and server messages
-        // We force at least 2 for better error capture in logs if not explicitly 0
-        $debugLevel = (int)($sys['debug'] ?? 2); 
+        // ISSUE-E5 FIX: Default to 0 (off) in production. Override via config/mail.php 'debug' => 2
+        $debugLevel = (int)($sys['debug'] ?? 0); 
         $mail->SMTPDebug = $debugLevel;
         $mail->Debugoutput = function($str, $level) {
             error_log("[PHPMailer Debug] " . trim($str));
@@ -381,36 +391,32 @@ class MailHelper
                 'admission_date' => $studentData['admission_date'] ?? date('Y-m-d')
             ];
             
-            $dbTpl = self::getStaticTemplate('student_registration_success', $tplData);
-            
-            if ($dbTpl) {
-                $mail->Subject = $dbTpl['subject'];
-                $mail->Body    = $dbTpl['body'];
-                $mail->AltBody = strip_tags($dbTpl['body']);
+            // Use professional static template (hardcoded HTML — see getStaticTemplate())
+            $tpl = self::getStaticTemplate('student_registration_success', $tplData);
+
+            if ($tpl) {
+                $mail->Subject = $tpl['subject'];
+                $mail->Body    = $tpl['body'];
+                $mail->AltBody = strip_tags($tpl['body']);
             } else {
-                // Fallback hardcoded logic
+                // Fallback: legacy hardcoded HTML credential email
                 $mail->Subject = "Welcome to {$branding['institute_name']} – Your Student Account Details";
-                
-                // Build body with course info if available
                 $html = self::credentialEmailHtml(
                     $toName, $toEmail, $password, $branding['institute_name'], $loginUrl
                 );
-
-            if ($courseName) {
-                $courseSection = "
-                    <div class='cr'><span class='cl'>📚 Course</span><span class='cv'>{$courseName}</span></div>
-                    <div class='cr'><span class='cl'>👥 Batch</span><span class='cv'>{$batchName}</span></div>
-                ";
-                // Inject before the end of cred-box
-                $html = str_replace("</div>\n    <div class='btn-w'>", $courseSection . "</div>\n    <div class='btn-w'>", $html);
-            }
-
-            $mail->Body = $html;
-            $mail->AltBody = "Welcome to {$branding['institute_name']}.\n\n"
-                           . "Course: {$courseName}\nBatch: {$batchName}\n"
-                           . "Login URL: {$loginUrl}\nEmail: {$toEmail}\nPassword: {$password}\n\n"
-                           . "Please change your password after first login.";
-            } // end fallback block
+                if ($courseName) {
+                    $courseSection = "
+                        <div class='cr'><span class='cl'>📚 Course</span><span class='cv'>{$courseName}</span></div>
+                        <div class='cr'><span class='cl'>👥 Batch</span><span class='cv'>{$batchName}</span></div>
+                    ";
+                    $html = str_replace("</div>\n    <div class='btn-w'>", $courseSection . "</div>\n    <div class='btn-w'>", $html);
+                }
+                $mail->Body    = $html;
+                $mail->AltBody = "Welcome to {$branding['institute_name']}.\n\n"
+                               . "Course: {$courseName}\nBatch: {$batchName}\n"
+                               . "Login URL: {$loginUrl}\nEmail: {$toEmail}\nPassword: {$password}\n\n"
+                               . "Please change your password after first login.";
+            } // end template block
             
             $mail->send();
             error_log("[MailHelper] Credentials sent to {$toEmail} (tenant {$tenantId})");

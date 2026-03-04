@@ -220,14 +220,7 @@ window.renderStudentList = async () => {
     }
 
     mc.innerHTML = `
-<div class="pg fu">
-  <div class="bc">
-    <a href="#" onclick="goNav('overview')"><i class="fa-solid fa-house"></i></a>
-    <span class="bc-sep">/</span>
-    <a href="#" onclick="goNav('students')">Students</a>
-    <span class="bc-sep">/</span>
-    <span class="bc-cur">All Students</span>
-  </div>
+
 
   <div class="pg-head">
     <div class="pg-left">
@@ -733,7 +726,8 @@ window.renderAddStudentForm = async () => {
                                 <input type="text" name="permanent_ward" class="form-control">
                             </div>
                         </div>
-                    </div>                    <!-- Actions -->
+                    </div>                   
+                     <!-- Actions -->
                     <div style="margin-top:40px; border-top:1px solid #e2e8f0; padding-top:20px; display:flex; gap:10px; justify-content:flex-end;">
                         <button type="button" class="btn bs" onclick="goNav('students')">Cancel</button>
                         <button type="submit" class="btn bt">Confirm Admission</button>
