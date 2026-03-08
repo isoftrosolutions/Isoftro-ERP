@@ -228,6 +228,11 @@ Route::match(['get', 'post'], '/auth/logout', function () {
 
     // Clear remember cookie
     if (isset($_COOKIE['remember_token'])) {
+        try {
+            $db = getDBConnection();
+            $stmt = $db->prepare("DELETE FROM remember_tokens WHERE token = :token");
+            $stmt->execute([':token' => hash('sha256', $_COOKIE['remember_token'])]);
+        } catch (Exception $e) { /* ignore */ }
         setcookie('remember_token', '', time() - 3600, '/', '', false, true);
     }
 
@@ -324,9 +329,7 @@ Route::get('/dash/{role}/{page?}', function ($role, $page = 'index') use ($roleM
 
 // ─── API Routes ──────────────────────────────────────────────
 
-Route::get('/api/super_admin_stats.php', function() {
-    require_once app_path('Http/Controllers/SuperAdmin/super_admin_stats.php');
-});
+
 
 Route::get('/api/admin/stats', function() {
     require_once app_path('Http/Controllers/Admin/dashboard_stats.php');
@@ -409,6 +412,14 @@ Route::any('/api/admin/academic-calendar', function() {
     require_once app_path('Http/Controllers/Admin/academic_calendar.php');
 });
 
+Route::any('/api/admin/homework', function() {
+    require_once app_path('Http/Controllers/Admin/homework.php');
+});
+
+Route::any('/api/admin/homework/store', function() {
+    require_once app_path('Http/Controllers/Admin/homework_store.php');
+});
+
 Route::any('/api/admin/academic-calendar/{action}', function() {
     require_once app_path('Http/Controllers/Admin/academic_calendar.php');
 });
@@ -432,37 +443,37 @@ Route::any('/api/admin/audit-logs', function() {
     require_once app_path('Http/Controllers/Admin/audit_logs.php');
 });
 
-// Front Desk API Routes - Reuse Admin controllers with frontdesk role access
+// Front Desk API Routes - Dedicated Front Desk controllers
 Route::any('/api/frontdesk/attendance', function() {
-    require_once app_path('Http/Controllers/Admin/attendance.php');
+    require_once app_path('Http/Controllers/FrontDesk/attendance.php');
 });
 
 Route::any('/api/frontdesk/attendance/{action}', function($action) {
-    require_once app_path('Http/Controllers/Admin/attendance.php');
+    require_once app_path('Http/Controllers/FrontDesk/attendance.php');
 });
 
 Route::any('/api/frontdesk/inquiries', function() {
-    require_once app_path('Http/Controllers/Admin/inquiries.php');
+    require_once app_path('Http/Controllers/FrontDesk/inquiries.php');
 });
 
 Route::any('/api/frontdesk/library', function() {
-    require_once app_path('Http/Controllers/Admin/library.php');
+    require_once app_path('Http/Controllers/FrontDesk/library.php');
 });
 
 Route::any('/api/frontdesk/communications', function() {
-    require_once app_path('Http/Controllers/Admin/communications.php');
+    require_once app_path('Http/Controllers/FrontDesk/communications.php');
 });
 
 Route::any('/api/frontdesk/batches', function() {
-    require_once app_path('Http/Controllers/Admin/batches.php');
+    require_once app_path('Http/Controllers/FrontDesk/batches.php');
 });
 
 Route::any('/api/frontdesk/courses', function() {
-    require_once app_path('Http/Controllers/Admin/courses.php');
+    require_once app_path('Http/Controllers/FrontDesk/courses.php');
 });
 
 Route::any('/api/frontdesk/fee-reports', function() {
-    require_once app_path('Http/Controllers/Admin/FeeReports.php');
+    require_once app_path('Http/Controllers/FrontDesk/FeeReports.php');
 });
 
 
@@ -526,7 +537,7 @@ Route::any('/api/student/profile', function() {
 });
 
 Route::any('/api/frontdesk/fees', function() {
-    require_once app_path('Http/Controllers/Admin/fees.php');
+    require_once app_path('Http/Controllers/FrontDesk/fees.php');
 });
 
 Route::any('/api/admin/fee-reports', function() {
@@ -561,21 +572,39 @@ Route::get('/api/notifications/count', function() {
     require_once app_path('Http/Controllers/Admin/notifications.php');
 });
 
+Route::any('/api/admin/feedback/submit', function() {
+    require_once app_path('Http/Controllers/Admin/feedback.php');
+});
+
+Route::any('/api/admin/automation-rules', function() {
+    require_once app_path('Http/Controllers/Admin/automation_rules.php');
+});
+
 // Report Engine Routes
-Route::post('/api/super-admin/reports/generate', [App\Http\Controllers\SuperAdmin\ReportController::class, 'generate']);
+
 
 // Tenant Management Routes
-Route::get('/api/super-admin/tenants', function() {
-    require_once app_path('Http/Controllers/tenants.php');
-});
-Route::post('/api/super-admin/tenants/save', function() {
-    require_once app_path('Http/Controllers/save_tenant.php');
-});
-Route::post('/api/super-admin/tenants/update', function() {
-    require_once app_path('Http/Controllers/update_tenant.php');
-});
-Route::post('/api/super-admin/tenants/delete', function() {
-    require_once app_path('Http/Controllers/delete_tenant.php');
+// Tenant Management Routes (Protected)
+Route::middleware(['auth.superadmin'])->group(function () {
+    Route::post('/api/super-admin/reports/generate', [App\Http\Controllers\SuperAdmin\ReportController::class, 'generate']);
+    Route::get('/api/super_admin_stats.php', function() {
+        require_once app_path('Http/Controllers/SuperAdmin/super_admin_stats.php');
+    });
+    Route::get('/api/super-admin/tenants', function() {
+        require_once app_path('Http/Controllers/tenants.php');
+    });
+    Route::post('/api/super-admin/tenants/save', function() {
+        require_once app_path('Http/Controllers/save_tenant.php');
+    });
+    Route::post('/api/super-admin/tenants/update', function() {
+        require_once app_path('Http/Controllers/update_tenant.php');
+    });
+    Route::post('/api/super-admin/tenants/delete', function() {
+        require_once app_path('Http/Controllers/delete_tenant.php');
+    });
+    Route::post('/api/super-admin/tenants/update-plan', function() {
+        require_once app_path('Http/Controllers/update_plan.php');
+    });
 });
 
 

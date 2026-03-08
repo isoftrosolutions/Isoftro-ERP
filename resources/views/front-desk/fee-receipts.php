@@ -135,10 +135,13 @@ async function loadReceipts() {
                         </td>
                         <td style="padding:14px 16px; text-align:center;">
                             <div style="display:flex; justify-content:center; gap:8px;">
-                                <button class="btn bt" style="padding:6px 10px; font-size:12px;" onclick="window.open('<?= APP_URL ?>/public/receipts/${item.receipt_number}.pdf')" title="View PDF">
+                                <button class="btn bt" style="padding:6px 10px; font-size:12px;" onclick="goNav('fee', 'fee-details', '&receipt_no=${item.receipt_number}')" title="View Details">
+                                    <i class="fa-solid fa-eye" style="color:#6366F1;"></i>
+                                </button>
+                                <button class="btn bt" style="padding:6px 10px; font-size:12px;" onclick="window.open('<?= APP_URL ?>/api/frontdesk/fees?action=generate_receipt_html&is_pdf=1&receipt_no=${item.receipt_number}')" title="View PDF">
                                     <i class="fa-solid fa-file-pdf" style="color:#EF4444;"></i>
                                 </button>
-                                <button class="btn bt" style="padding:6px 10px; font-size:12px;" onclick="alert('Sending email to student...')" title="Email Receipt">
+                                <button class="btn bt" style="padding:6px 10px; font-size:12px;" onclick="emailReceipt('${item.receipt_number}', this)" title="Email Receipt">
                                     <i class="fa-solid fa-envelope" style="color:#3B82F6;"></i>
                                 </button>
                             </div>
@@ -151,6 +154,33 @@ async function loadReceipts() {
         }
     } catch (error) {
         tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:50px; color:#ef4444;"><i class="fa-solid fa-triangle-exclamation" style="font-size:24px; margin-bottom:10px; display:block;"></i> Error: ${error.message}</td></tr>`;
+    }
+}
+
+async function emailReceipt(receiptNo, btn) {
+    const originalHtml = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
+    
+    try {
+        const res = await fetch(`<?= APP_URL ?>/api/frontdesk/fees`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': window.CSRF_TOKEN },
+            body: JSON.stringify({ action: 'trigger_email', receipt_no: receiptNo })
+        });
+        const result = await res.json();
+        if (result.success) {
+            btn.innerHTML = '<i class="fa-solid fa-check" style="color:#10B981;"></i>';
+            setTimeout(() => { btn.innerHTML = originalHtml; btn.disabled = false; }, 2000);
+        } else {
+            alert('Error: ' + result.message);
+            btn.innerHTML = originalHtml;
+            btn.disabled = false;
+        }
+    } catch (e) {
+        alert('Failed to send email');
+        btn.innerHTML = originalHtml;
+        btn.disabled = false;
     }
 }
 

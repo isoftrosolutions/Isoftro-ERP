@@ -31,6 +31,24 @@ renderFrontDeskSidebar('index');
 
 <script src="<?php echo APP_URL; ?>/public/assets/js/nepal-data.js?v=1.1"></script>
 <script src="<?php echo APP_URL; ?>/public/assets/js/nexus-data-loader.js?v=1.1"></script>
+<!-- Front Desk Domain Modules -->
+<script src="<?php echo APP_URL; ?>/public/assets/js/frontdesk/fd-students.js?v=1.1"></script>
+<script src="<?php echo APP_URL; ?>/public/assets/js/frontdesk/fd-attendance.js?v=1.1"></script>
+<script src="<?php echo APP_URL; ?>/public/assets/js/frontdesk/fd-fees.js?v=1.1"></script>
+<script src="<?php echo APP_URL; ?>/public/assets/js/frontdesk/fd-inquiries.js?v=1.1"></script>
+<script src="<?php echo APP_URL; ?>/public/assets/js/frontdesk/fd-academic.js?v=1.1"></script>
+<script src="<?php echo APP_URL; ?>/public/assets/js/frontdesk/fd-academics.js?v=1.1"></script>
+<script src="<?php echo APP_URL; ?>/public/assets/js/frontdesk/fd-exams.js?v=1.1"></script>
+<script src="<?php echo APP_URL; ?>/public/assets/js/frontdesk/fd-homework.js?v=1.1"></script>
+<script src="<?php echo APP_URL; ?>/public/assets/js/frontdesk/fd-timetable.js?v=1.1"></script>
+<script src="<?php echo APP_URL; ?>/public/assets/js/frontdesk/fd-audit-logs.js?v=1.1"></script>
+<script src="<?php echo APP_URL; ?>/public/assets/js/frontdesk/fd-support.js?v=1.1"></script>
+<script src="<?php echo APP_URL; ?>/public/assets/js/frontdesk/fd-settings.js?v=1.1"></script>
+<script src="<?php echo APP_URL; ?>/public/assets/js/frontdesk/fd-staff.js?v=1.1"></script>
+<script src="<?php echo APP_URL; ?>/public/assets/js/frontdesk/fd-salary.js?v=1.1"></script>
+<script src="<?php echo APP_URL; ?>/public/assets/js/frontdesk/fd-study-materials.js?v=1.1"></script>
+
+<!-- Main SPA Shell -->
 <script src="<?php echo APP_URL; ?>/public/assets/js/frontdesk.js?v=1.1"></script>
 <style>
 /* Dashboard Shell specific optimizations */

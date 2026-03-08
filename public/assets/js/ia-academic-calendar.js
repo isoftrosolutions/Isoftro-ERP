@@ -10,116 +10,901 @@ window.renderAcademicCalendar = function() {
 <style>
     /* ─── CALENDAR VARIABLES ─── */
     .academic-calendar-wrap {
-      --sa-primary:#009E7E;--sa-primary-d:#007a62;--sa-primary-h:#00b894;--sa-primary-lt:#e0f5f0;
-      --navy:#0F172A;--red:#E11D48;--purple:#8141A5;--soft-purple:#F3E8FF;--amber:#d97706;
-      --blue:#3b82f6;--success:#00B894;--warning:#FDCB6E;--danger:#E17055;
-      --bg:#F8FAFC;--cb:#E2E8F0;--td:#1E293B;--tb:#475569;--tl:#94A3B8;--white:#fff;
-      --sh:0 1px 3px rgba(0,0,0,.07);--shm:0 4px 20px rgba(0,0,0,.10);
-      --font:'Plus Jakarta Sans',sans-serif;
+      --sa-primary: #009E7E;
+      --sa-primary-d: #007a62;
+      --sa-primary-h: #00b894;
+      --sa-primary-lt: #e0f5f0;
+      --navy: #0F172A;
+      --red: #E11D48;
+      --purple: #8141A5;
+      --soft-purple: #F3E8FF;
+      --amber: #d97706;
+      --blue: #3b82f6;
+      --success: #00B894;
+      --warning: #FDCB6E;
+      --danger: #E17055;
+      --bg: #F8FAFC;
+      --cb: #E2E8F0;
+      --td: #1E293B;
+      --tb: #475569;
+      --tl: #94A3B8;
+      --white: #fff;
+      --sh: 0 0.0625rem 0.1875rem rgba(0, 0, 0, .07);
+      --shm: 0 0.25rem 1.25rem rgba(0, 0, 0, .10);
+      --font: 'Plus Jakarta Sans', sans-serif;
     }
 
     /* ─── LAYOUT & GRID ─── */
-    .cal-layout{display:grid;grid-template-columns:1fr;gap:16px}
-    @media(min-width:1200px){.cal-layout{grid-template-columns:1fr 300px}}
-    @media(min-width:1500px){.cal-layout{grid-template-columns:1fr 330px}}
+    .cal-layout {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
 
-    .cal-card{background:#fff;border:1px solid var(--cb);border-radius:14px;overflow:hidden;box-shadow:var(--sh)}
-    .cal-toolbar{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--cb);flex-wrap:wrap;gap:10px;background:#fff}
-    
-    .cal-weekdays{display:grid;grid-template-columns:repeat(7,1fr);background:#f8fafc;border-bottom:1px solid var(--cb)}
-    .cal-weekdays span{padding:8px 0;text-align:center;font-size:9px;font-weight:800;color:var(--tl);text-transform:uppercase;letter-spacing:.05em}
-    .cal-weekdays span.sun{color:var(--red)}
+    @media (min-width: 75rem) {
+      .cal-layout {
+        display: grid;
+        grid-template-columns: 1fr 18.75rem;
+      }
+    }
 
-    .cal-grid{display:grid;grid-template-columns:repeat(7,1fr)}
-    .cal-cell{min-height:86px;padding:5px;border-right:1px solid #f1f5f9;border-bottom:1px solid #f1f5f9;cursor:pointer;transition:background .15s;position:relative}
-    .cal-cell:nth-child(7n){border-right:none}
-    .cal-cell:hover{background:#f8fafc}
-    .cal-cell.other-month{background:#fafbfc}
-    .cal-cell.other-month .day-num{color:#d1d8df}
-    .cal-cell.today{background:linear-gradient(135deg,var(--sa-primary-lt),#f0fdf9)}
-    .cal-cell.today .day-num{background:var(--sa-primary);color:#fff;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-weight:800}
-    .cal-cell.sunday:not(.other-month) .day-num{color:var(--red)}
-    .cal-cell.holiday:not(.other-month){background:#fff5f7}
-    .cal-cell.holiday:not(.other-month)::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--red);border-radius:0}
+    @media (min-width: 93.75rem) {
+      .cal-layout {
+        grid-template-columns: 1fr 20.625rem;
+      }
+    }
+
+    .cal-card {
+      background: #fff;
+      border: 1px solid var(--cb);
+      border-radius: 0.875rem;
+      overflow: hidden;
+      box-shadow: var(--sh);
+    }
+
+    .cal-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.875rem 1rem;
+      border-bottom: 1px solid var(--cb);
+      flex-wrap: wrap;
+      gap: 0.625rem;
+      background: #fff;
+    }
+
+    .cal-weekdays {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      background: #f8fafc;
+      border-bottom: 1px solid var(--cb);
+    }
+
+    .cal-weekdays span {
+      padding: 0.5rem 0;
+      text-align: center;
+      font-size: 0.5625rem;
+      font-weight: 800;
+      color: var(--tl);
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+
+    .cal-weekdays span.sun {
+      color: var(--red);
+    }
+
+    .cal-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+    }
+
+    .cal-cell {
+      min-height: 4rem; /* Reduced for mobile */
+      padding: 0.3125rem;
+      border-right: 1px solid #f1f5f9;
+      border-bottom: 1px solid #f1f5f9;
+      cursor: pointer;
+      transition: background .15s;
+      position: relative;
+    }
+
+    @media (min-width: 48rem) {
+      .cal-cell {
+        min-height: 5.375rem;
+      }
+    }
+
+    .cal-cell:nth-child(7n) {
+      border-right: none;
+    }
+
+    .cal-cell:hover {
+      background: #f8fafc;
+    }
+
+    .cal-cell.other-month {
+      background: #fafbfc;
+    }
+
+    .cal-cell.other-month .day-num {
+      color: #d1d8df;
+    }
+
+    .cal-cell.today {
+      background: linear-gradient(135deg, var(--sa-primary-lt), #f0fdf9);
+    }
+
+    .cal-cell.today .day-num {
+      background: var(--sa-primary);
+      color: #fff;
+      border-radius: 50%;
+      width: 1.5rem;
+      height: 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+    }
+
+    .cal-cell.sunday:not(.other-month) .day-num {
+      color: var(--red);
+    }
+
+    .cal-cell.holiday:not(.other-month) {
+      background: #fff5f7;
+    }
+
+    .cal-cell.holiday:not(.other-month)::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 0.125rem;
+      background: var(--red);
+    }
 
     /* ─── ELEMENTS ─── */
-    .day-num{font-size:12px;font-weight:700;color:var(--td);width:24px;height:24px;display:flex;align-items:center;justify-content:center;margin-bottom:1px}
-    .day-bs{font-size:9px;color:var(--tl);font-weight:600;margin-bottom:2px;padding-left:2px}
-    .day-tithi{font-size:8px;color:var(--purple);font-weight:600;margin-bottom:2px;padding-left:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .day-num {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--td);
+      width: 1.5rem;
+      height: 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 0.0625rem;
+    }
 
-    .ev-chip{display:flex;align-items:center;gap:3px;padding:2px 5px;border-radius:4px;font-size:9px;font-weight:700;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;cursor:pointer;transition:opacity .15s}
-    .ev-chip:hover{opacity:.8}
-    .ev-chip i{font-size:7px;flex-shrink:0}
-    .ev-exam{background:#eff6ff;color:var(--blue)}
-    .ev-holiday{background:#fde8ed;color:var(--red)}
-    .ev-fee{background:#fef9e7;color:var(--amber)}
-    .ev-batch{background:var(--sa-primary-lt);color:var(--sa-primary)}
-    .ev-notice{background:var(--soft-purple);color:var(--purple)}
-    .ev-patro{background:#e8f5e9;color:#2e7d32}
-    .ev-more{font-size:9px;color:var(--tl);font-weight:700;padding:0 4px;cursor:pointer}
-    .ev-more:hover{color:var(--sa-primary)}
+    .day-bs {
+      font-size: 0.5625rem;
+      color: var(--tl);
+      font-weight: 600;
+      margin-bottom: 0.125rem;
+      padding-left: 0.125rem;
+    }
+
+    .day-tithi {
+      font-size: 0.5rem;
+      color: var(--purple);
+      font-weight: 600;
+      margin-bottom: 0.125rem;
+      padding-left: 0.125rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    @media (max-width: 30rem) {
+      .day-bs, .day-tithi {
+        display: none; /* Hide extra info on very small screens to keep layout clean */
+      }
+    }
+
+    .ev-chip {
+      display: flex;
+      align-items: center;
+      gap: 0.1875rem;
+      padding: 0.125rem 0.3125rem;
+      border-radius: 0.25rem;
+      font-size: 0.5625rem;
+      font-weight: 700;
+      margin-bottom: 0.125rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
+      cursor: pointer;
+      transition: opacity .15s;
+    }
+
+    .ev-chip:hover {
+      opacity: .8;
+    }
+
+    .ev-chip i {
+      font-size: 0.4375rem;
+      flex-shrink: 0;
+    }
+
+    @media (max-width: 30rem) {
+      .ev-chip span {
+        display: none; /* Only show dot/icon on mobile if needed, or keeping it as is if it fits */
+      }
+      .ev-chip {
+        width: 0.5rem;
+        height: 0.5rem;
+        padding: 0;
+        justify-content: center;
+        border-radius: 50%;
+        display: inline-flex;
+        margin-right: 0.125rem;
+      }
+    }
+
+    .ev-exam {
+      background: #eff6ff;
+      color: var(--blue);
+    }
+
+    .ev-holiday {
+      background: #fde8ed;
+      color: var(--red);
+    }
+
+    .ev-fee {
+      background: #fef9e7;
+      color: var(--amber);
+    }
+
+    .ev-batch {
+      background: var(--sa-primary-lt);
+      color: var(--sa-primary);
+    }
+
+    .ev-notice {
+      background: var(--soft-purple);
+      color: var(--purple);
+    }
+
+    .ev-patro {
+      background: #e8f5e9;
+      color: #2e7d32;
+    }
+
+    .ev-more {
+      font-size: 0.5625rem;
+      color: var(--tl);
+      font-weight: 700;
+      padding: 0 0.25rem;
+      cursor: pointer;
+    }
+
+    .ev-more:hover {
+      color: var(--sa-primary);
+    }
 
     /* ─── BUTTONS & TAGS ─── */
-    .btn{padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;font-family:var(--font);cursor:pointer;border:none;transition:.2s;display:inline-flex;align-items:center;gap:8px}
-    .bt{background:var(--sa-primary);color:#fff}.bt:hover{background:var(--sa-primary-d)}
-    .bs{background:#fff;color:var(--tb);border:1px solid var(--cb)}.bs:hover{background:#f8fafc}
-    .bd{background:#fde8ed;color:var(--red)}.bd:hover{background:#fbd0da}
-    
-    .tag{font-size:10px;padding:2px 8px;border-radius:4px;font-weight:700}
-    .bg-t{background:var(--sa-primary-lt);color:var(--sa-primary)}
-    .bg-r{background:#fde8ed;color:var(--red)}
-    .bg-b{background:#eff6ff;color:var(--blue)}
-    .bg-y{background:#fef9e7;color:var(--amber)}
-    .bg-p{background:var(--soft-purple);color:var(--purple)}
-    .bg-g{background:rgba(0,184,148,.12);color:var(--success)}
+    .btn {
+      padding: 0.5rem 1rem;
+      border-radius: 0.5rem;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      font-family: var(--font);
+      cursor: pointer;
+      border: none;
+      transition: .2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .bt {
+      background: var(--sa-primary);
+      color: #fff;
+    }
+
+    .bt:hover {
+      background: var(--sa-primary-d);
+    }
+
+    .bs {
+      background: #white;
+      color: var(--tb);
+      border: 1px solid var(--cb);
+    }
+
+    .bs:hover {
+      background: #f8fafc;
+    }
+
+    .bd {
+      background: #fde8ed;
+      color: var(--red);
+    }
+
+    .bd:hover {
+      background: #fbd0da;
+    }
+
+    .tag {
+      font-size: 0.625rem;
+      padding: 0.125rem 0.5rem;
+      border-radius: 0.25rem;
+      font-weight: 700;
+    }
+
+    .bg-t {
+      background: var(--sa-primary-lt);
+      color: var(--sa-primary);
+    }
+
+    .bg-r {
+      background: #fde8ed;
+      color: var(--red);
+    }
+
+    .bg-b {
+      background: #eff6ff;
+      color: var(--blue);
+    }
+
+    .bg-y {
+      background: #fef9e7;
+      color: var(--amber);
+    }
+
+    .bg-p {
+      background: var(--soft-purple);
+      color: var(--purple);
+    }
+
+    .bg-g {
+      background: rgba(0, 184, 148, .12);
+      color: var(--success);
+    }
 
     /* ─── HAMRO PATRO WIDGET ─── */
-    .hp-card{background:#fff;border:1px solid var(--cb);border-radius:14px;overflow:hidden;box-shadow:var(--sh)}
-    .hp-card-hd{background:linear-gradient(135deg,#c0392b,#e74c3c);padding:12px 16px;display:flex;align-items:center;gap:10px;color:#fff}
-    .hp-logo{width:28px;height:28px;background:#fff;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;color:#c0392b;flex-shrink:0}
-    .hp-title{font-size:13px;font-weight:800}
-    .hp-sub{font-size:10px;opacity:.8}
-    .hp-tabs{display:flex;border-bottom:1px solid var(--cb)}
-    .hp-tab{flex:1;padding:8px;font-size:11px;font-weight:700;text-align:center;cursor:pointer;border:none;background:none;color:var(--tl);font-family:var(--font);transition:.2s;border-bottom:2px solid transparent}
-    .hp-tab.active{color:var(--sa-primary);border-bottom-color:var(--sa-primary)}
-    .hp-pane{display:none;padding:0}
-    .hp-pane.active{display:block}
-    .hp-iframe-wrap{width:100%;overflow:hidden;border-radius:0 0 12px 12px;background:#fff}
-    .hp-iframe-wrap iframe{display:block;width:100%;border:none}
+    .hp-card {
+      background: #fff;
+      border: 1px solid var(--cb);
+      border-radius: 0.875rem;
+      overflow: hidden;
+      box-shadow: var(--sh);
+    }
+
+    .hp-card-hd {
+      background: linear-gradient(135deg, #c0392b, #e74c3c);
+      padding: 0.75rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.625rem;
+      color: #fff;
+    }
+
+    .hp-logo {
+      width: 1.75rem;
+      height: 1.75rem;
+      background: #fff;
+      border-radius: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 900;
+      color: #c0392b;
+      flex-shrink: 0;
+    }
+
+    .hp-title {
+      font-size: 0.8125rem;
+      font-weight: 800;
+    }
+
+    .hp-sub {
+      font-size: 0.625rem;
+      opacity: .8;
+    }
+
+    .hp-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--cb);
+    }
+
+    .hp-tab {
+      flex: 1;
+      padding: 0.5rem;
+      font-size: 0.6875rem;
+      font-weight: 700;
+      text-align: center;
+      cursor: pointer;
+      border: none;
+      background: none;
+      color: var(--tl);
+      font-family: var(--font);
+      transition: .2s;
+      border-bottom: 0.125rem solid transparent;
+    }
+
+    .hp-tab.active {
+      color: var(--sa-primary);
+      border-bottom-color: var(--sa-primary);
+    }
+
+    .hp-pane {
+      display: none;
+      padding: 0;
+    }
+
+    .hp-pane.active {
+      display: block;
+    }
+
+    .hp-iframe-wrap {
+      width: 100%;
+      overflow: hidden;
+      border-radius: 0 0 0.75rem 0.75rem;
+      background: #fff;
+    }
+
+    .hp-iframe-wrap iframe {
+      display: block;
+      width: 100%;
+      border: none;
+    }
 
     /* ─── BANNER ─── */
-    .bs-banner{background:linear-gradient(135deg,var(--sa-primary),var(--sa-primary-h));border-radius:12px;padding:14px 16px;color:#fff;margin-bottom:0;position:relative;overflow:hidden}
-    .bs-banner::after{content:'';position:absolute;right:-30px;top:-30px;width:120px;height:120px;background:rgba(255,255,255,.08);border-radius:50%}
-    .bs-day{font-size:2rem;font-weight:900;line-height:1}
-    .bs-month{font-size:13px;font-weight:700;opacity:.9;margin-top:2px}
-    .bs-year{font-size:10px;opacity:.7;margin-top:1px}
-    .bs-tithi{font-size:10px;background:rgba(255,255,255,.2);border-radius:5px;padding:2px 8px;margin-top:6px;display:inline-block;font-weight:600}
-    .bs-ad{font-size:11px;opacity:.8;margin-top:4px}
-    .bs-day-name{font-size:12px;font-weight:700;opacity:.9}
+    .bs-banner {
+      background: linear-gradient(135deg, var(--sa-primary), var(--sa-primary-h));
+      border-radius: 0.75rem;
+      padding: 0.875rem 1rem;
+      color: #fff;
+      margin-bottom: 0;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .bs-banner::after {
+      content: '';
+      position: absolute;
+      right: -1.875rem;
+      top: -1.875rem;
+      width: 7.5rem;
+      height: 7.5rem;
+      background: rgba(255, 255, 255, .08);
+      border-radius: 50%;
+    }
+
+    .bs-day {
+      font-size: 2rem;
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    .bs-month {
+      font-size: 0.8125rem;
+      font-weight: 700;
+      opacity: .9;
+      margin-top: 0.125rem;
+    }
+
+    .bs-year {
+      font-size: 0.625rem;
+      opacity: .7;
+      margin-top: 0.0625rem;
+    }
+
+    .bs-tithi {
+      font-size: 0.625rem;
+      background: rgba(255, 255, 255, .2);
+      border-radius: 0.3125rem;
+      padding: 0.125rem 0.5rem;
+      margin-top: 0.375rem;
+      display: inline-block;
+      font-weight: 600;
+    }
+
+    .bs-ad {
+      font-size: 0.6875rem;
+      opacity: .8;
+      margin-top: 0.25rem;
+    }
+
+    .bs-day-name {
+      font-size: 0.75rem;
+      font-weight: 700;
+      opacity: .9;
+    }
 
     /* ─── UPCOMING & LEGEND ─── */
-    .upcoming-card{background:#fff;border:1px solid var(--cb);border-radius:12px;overflow:hidden;box-shadow:var(--sh)}
-    .upcoming-hd{padding:12px 16px;border-bottom:1px solid var(--cb);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px}
-    .ev-list{max-height:300px;overflow-y:auto;padding:4px 0}
-    .ev-item{display:flex;gap:10px;padding:10px 16px;border-bottom:1px solid #f8fafc;cursor:pointer;transition:background .15s;align-items:flex-start}
-    .ev-item:hover{background:#f8fafc}
-    .ev-title{font-size:12px;font-weight:700;color:var(--td);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .ev-meta{font-size:10px;color:var(--tl);margin-top:1px;display:flex;align-items:center;gap:5px}
+    .upcoming-card {
+      background: #fff;
+      border: 1px solid var(--cb);
+      border-radius: 0.75rem;
+      overflow: hidden;
+      box-shadow: var(--sh);
+    }
 
-    /* ─── MODAL ─── */
-    .modal-backdrop{position:fixed;inset:0;background:rgba(15,23,42,.45);backdrop-filter:blur(3px);z-index:2000;display:none;align-items:center;justify-content:center;padding:16px}
-    .modal-backdrop.open{display:flex}
-    .modal{background:#fff;border-radius:16px;width:100%;max-width:460px;box-shadow:0 20px 60px rgba(0,0,0,.2);overflow:hidden;animation:fu .25s ease-out}
-    .modal-hd{padding:16px 20px;border-bottom:1px solid var(--cb);display:flex;align-items:center;justify-content:space-between}
-    .modal-close{width:28px;height:28px;display:flex;align-items:center;justify-content:center;border:none;background:var(--bg);border-radius:8px;cursor:pointer;color:var(--tb)}
-    .modal-close:hover{background:#fde8ed;color:var(--red)}
+    .upcoming-hd {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--cb);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.375rem;
+    }
+
+    .ev-list {
+      max-height: 18.75rem;
+      overflow-y: auto;
+      padding: 0.25rem 0;
+    }
+
+    .ev-item {
+      display: flex;
+      gap: 0.625rem;
+      padding: 0.625rem 1rem;
+      border-bottom: 1px solid #f8fafc;
+      cursor: pointer;
+      transition: background .15s;
+      align-items: flex-start;
+    }
+
+    .ev-item:hover {
+      background: #f8fafc;
+    }
+
+    .ev-title {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--td);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .ev-meta {
+      font-size: 0.625rem;
+      color: var(--tl);
+      margin-top: 0.0625rem;
+      display: flex;
+      align-items: center;
+      gap: 0.3125rem;
+    }
+
+    /* ─── PAGE STRUCTURE ─── */
+    .pg {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    .bc {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.75rem;
+      color: var(--tl);
+      margin-bottom: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .bc a {
+      color: var(--sa-primary);
+      text-decoration: none;
+      font-weight: 500;
+      transition: color .2s;
+    }
+
+    .bc a:hover {
+      text-decoration: underline;
+    }
+
+    .bc-sep {
+      opacity: 0.5;
+    }
+
+    .bc-cur {
+      font-weight: 600;
+      color: var(--td);
+    }
+
+    .pg-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1.25rem;
+      padding: 1.25rem;
+      background: #fff;
+      border-radius: 1rem;
+      border: 1px solid var(--cb);
+      flex-wrap: wrap; /* Critical for mobile */
+      box-shadow: var(--sh);
+    }
+
+    .pg-left {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      min-width: fit-content;
+    }
+
+    .pg-ico {
+      width: 2.75rem;
+      height: 2.75rem;
+      border-radius: 0.75rem;
+      background: var(--sa-primary-lt);
+      color: var(--sa-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      flex-shrink: 0;
+    }
+
+    .pg-title {
+      font-size: 1.125rem;
+      font-weight: 800;
+      color: var(--td);
+      margin: 0;
+      line-height: 1.2;
+    }
+
+    .pg-sub {
+      font-size: 0.6875rem;
+      color: var(--tl);
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.0313rem;
+      margin-top: 0.125rem;
+    }
+
+    .pg-acts {
+      display: flex;
+      align-items: center;
+      gap: 0.625rem;
+      flex-wrap: wrap;
+    }
+
+    @media (max-width: 48rem) {
+      .pg-head {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .pg-acts {
+        width: 100%;
+        justify-content: flex-start;
+      }
+      .pg-acts .btn {
+        flex: 1;
+        justify-content: center;
+        min-width: 8.75rem;
+      }
+    }
+
+    /* ─── MODAL & FORMS ─── */
+    .modal-body {
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .form-row {
+      display: flex;
+      flex-direction: column;
+      gap: 0.375rem;
+    }
+
+    .form-lbl {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--tb);
+    }
+
+    .form-inp {
+      width: 100%;
+      height: 2.75rem;
+      padding: 0 0.875rem;
+      border: 1px solid var(--cb);
+      border-radius: 0.625rem;
+      font-size: 0.875rem;
+      font-family: inherit;
+      color: var(--td);
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+    }
+
+    .form-inp:focus {
+      border-color: var(--sa-primary);
+      box-shadow: 0 0 0 0.1875rem var(--sa-primary-lt);
+    }
+
+    .form-2col {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+
+    @media (min-width: 30rem) {
+      .form-2col {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .modal-ft {
+      padding: 1rem 1.25rem;
+      border-top: 1px solid var(--cb);
+      background: #fafafa;
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.75rem;
+    }
+
+    .modal-ft .btn {
+      min-width: 6.25rem;
+      justify-content: center;
+    }
+
+    /* ─── DETAIL VIEW BANNER ─── */
+    .ev-detail-banner {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1rem;
+      border-radius: 0.75rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .ev-detail-icon {
+      width: 3rem;
+      height: 3rem;
+      border-radius: 0.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+    }
+
+    .ev-detail-title {
+      font-size: 1rem;
+      font-weight: 800;
+      color: var(--td);
+      line-height: 1.2;
+    }
+
+    .ev-detail-sub {
+      margin-top: 0.25rem;
+    }
+
+    .ev-detail-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      padding: 0.625rem 0;
+      border-bottom: 1px dashed var(--cb);
+    }
+
+    .ev-detail-row:last-of-type {
+      border-bottom: none;
+    }
+
+    .ev-detail-row i {
+      width: 1.25rem;
+      text-align: center;
+      margin-top: 0.125rem;
+      color: var(--tl);
+      font-size: 0.8125rem;
+    }
+
+    .ev-detail-key {
+      font-size: 0.75rem;
+      color: var(--tl);
+      font-weight: 600;
+      width: 5rem;
+      flex-shrink: 0;
+    }
+
+    .ev-detail-val {
+      font-size: 0.8125rem;
+      color: var(--td);
+      font-weight: 700;
+      flex: 1;
+    }
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, .45);
+      backdrop-filter: blur(0.1875rem);
+      z-index: 2000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .modal {
+      background: #fff;
+      border-radius: 1rem;
+      width: 100%;
+      max-width: 28.75rem;
+      box-shadow: 0 1.25rem 3.75rem rgba(0, 0, 0, .2);
+      overflow: hidden;
+      animation: fu .25s ease-out;
+    }
+
+    .modal-hd {
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--cb);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .modal-close {
+      width: 1.75rem;
+      height: 1.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      background: var(--bg);
+      border-radius: 0.5rem;
+      cursor: pointer;
+      color: var(--tb);
+    }
+
+    .modal-close:hover {
+      background: #fde8ed;
+      color: var(--red);
+    }
 
     /* ─── TOAST ─── */
-    .toast-wrap{position:fixed;top:80px;right:16px;z-index:3000;display:flex;flex-direction:column;gap:8px}
-    .toast{background:var(--td);color:#fff;padding:10px 14px;border-radius:10px;font-size:12px;font-weight:500;display:flex;align-items:center;gap:8px;min-width:220px;box-shadow:0 8px 24px rgba(0,0,0,.15)}
+    .toast-wrap {
+      position: fixed;
+      top: 5rem;
+      right: 1rem;
+      z-index: 3000;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
 
-    @keyframes fu{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
-    .fu{animation:fu .3s ease-out forwards}
+    .toast {
+      background: var(--td);
+      color: #fff;
+      padding: 0.625rem 0.875rem;
+      border-radius: 0.625rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      min-width: 13.75rem;
+      box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, .15);
+    }
+
+    @keyframes fu {
+      from {
+        opacity: 0;
+        transform: translateY(0.75rem)
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0)
+      }
+    }
+
+    .fu {
+      animation: fu .3s ease-out forwards
+    }
 </style>
 <div class="academic-calendar-wrap">
 
@@ -213,7 +998,7 @@ window.renderAcademicCalendar = function() {
           </div>
           <div style="text-align:right">
             <div class="bs-day-name" id="bsDayName">—</div>
-            <div style="font-size:9px;opacity:.6;margin-top:4px">वार</div>
+            <div style="font-size:0.5625rem;opacity:.6;margin-top:0.25rem">वार</div>
           </div>
         </div>
       </div>
@@ -240,7 +1025,7 @@ window.renderAcademicCalendar = function() {
               scrolling="no"
               marginwidth="0"
               marginheight="0"
-              style="border:none;overflow:hidden;width:100%;height:390px;"
+              style="border:none;overflow:hidden;width:100%;height:24.375rem;"
               allowtransparency="true"
               title="Hamro Patro Nepali Calendar">
             </iframe>
@@ -255,12 +1040,12 @@ window.renderAcademicCalendar = function() {
               scrolling="no"
               marginwidth="0"
               marginheight="0"
-              style="border:none;overflow:hidden;width:100%;height:160px;"
+              style="border:none;overflow:hidden;width:100%;height:10rem;"
               allowtransparency="true"
               title="Hamro Patro Date Converter">
             </iframe>
           </div>
-          <div style="padding:10px 14px;font-size:10px;color:var(--tl);display:flex;align-items:center;gap:6px;border-top:1px solid var(--cb)">
+          <div style="padding:0.625rem 0.875rem;font-size:0.625rem;color:var(--tl);display:flex;align-items:center;gap:0.375rem;border-top:1px solid var(--cb)">
             <i class="fa fa-info-circle" style="color:var(--sa-primary)"></i>
             Convert any AD date to BS instantly using Hamro Patro's official converter.
           </div>
@@ -278,7 +1063,7 @@ window.renderAcademicCalendar = function() {
           <div class="legend-item"><div class="legend-dot" style="background:var(--purple)"></div>Notice</div>
           <div class="legend-item"><div class="legend-dot" style="background:#2e7d32"></div>Hamro Patro</div>
         </div>
-        <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--cb);font-size:10px;color:var(--tl);line-height:1.5">
+        <div style="margin-top:0.625rem;padding-top:0.625rem;border-top:1px solid var(--cb);font-size:0.625rem;color:var(--tl);line-height:1.5">
           <i class="fa fa-info-circle" style="color:var(--sa-primary)"></i>
           BS dates are computed using the official Nepali calendar algorithm. Red top-border = public holiday.
         </div>
@@ -292,7 +1077,7 @@ window.renderAcademicCalendar = function() {
 <div class="modal-backdrop" id="addModal">
   <div class="modal">
     <div class="modal-hd">
-      <span class="modal-title"><i class="fa fa-calendar-plus" style="color:var(--sa-primary);margin-right:6px"></i>Add ERP Event</span>
+      <span class="modal-title"><i class="fa fa-calendar-plus" style="color:var(--sa-primary);margin-right:0.375rem"></i>Add ERP Event</span>
       <button class="modal-close" onclick="closeModal('addModal')"><i class="fa fa-times"></i></button>
     </div>
     <div class="modal-body">
@@ -691,7 +1476,7 @@ function renderUpcoming(){
     .sort((a,b)=>pd(a.start)-pd(b.start)).slice(0,12);
 
   if(!evs.length){
-    document.getElementById('upcomingList').innerHTML=`<div style="text-align:center;padding:28px 16px;color:var(--tl);font-size:13px"><i class="fa fa-calendar-check" style="font-size:28px;opacity:.3;display:block;margin-bottom:8px"></i>No upcoming events</div>`;
+    document.getElementById('upcomingList').innerHTML=`<div style="text-align:center;padding:1.75rem 1rem;color:var(--tl);font-size:0.8125rem"><i class="fa fa-calendar-check" style="font-size:1.75rem;opacity:.3;display:block;margin-bottom:0.5rem"></i>No upcoming events</div>`;
     return;
   }
   document.getElementById('upcomingList').innerHTML=evs.map(e=>{
@@ -738,10 +1523,10 @@ function showMoreDay(dateKey){
   document.getElementById('detailDeleteBtn').style.display='none';
   document.getElementById('detailBody').innerHTML=evs.map(e=>{
     const cfg=EV_CFG[e.type];
-    return `<div class="ev-item" style="padding:10px 0;border-bottom:1px solid #f1f5f9;cursor:pointer" onclick="closeModal('detailModal');setTimeout(()=>showDetail(${e.id}),150)">
-      <div class="ev-date-box" style="background:${cfg.bg};color:${cfg.col}"><i class="fa ${cfg.icon}" style="font-size:15px"></i></div>
+    return `<div class="ev-item" style="padding:0.625rem 0;border-bottom:1px solid #f1f5f9;cursor:pointer" onclick="closeModal('detailModal');setTimeout(()=>showDetail(${e.id}),150)">
+      <div class="ev-date-box" style="background:${cfg.bg};color:${cfg.col}"><i class="fa ${cfg.icon}" style="font-size:0.9375rem"></i></div>
       <div class="ev-body">
-        <div style="margin-bottom:3px"><span class="tag ${cfg.badge}">${cfg.label}</span></div>
+        <div style="margin-bottom:0.1875rem"><span class="tag ${cfg.badge}">${cfg.label}</span></div>
         <div class="ev-title">${e.title}</div>
         <div class="ev-meta"><i class="fa fa-layer-group"></i>${e.batch}</div>
       </div>
@@ -786,21 +1571,64 @@ function openAddModal(prefill){
   document.getElementById('evEnd').value=d;
   openModal('addModal');
 }
-function saveEvent(){
+async function saveEvent(){
   const title=document.getElementById('evTitle').value.trim();
+  const type=document.getElementById('evType').value;
   const start=document.getElementById('evStart').value;
   const end=document.getElementById('evEnd').value||start;
+  const batch=document.getElementById('evBatch').value;
+  const description=document.getElementById('evDesc').value.trim();
+
   if(!title){showToast('Please enter event title','warn');return;}
   if(!start){showToast('Please select start date','warn');return;}
-  EVENTS.push({id:nextId++,title,type:document.getElementById('evType').value,start,end,batch:document.getElementById('evBatch').value,desc:document.getElementById('evDesc').value.trim()});
-  closeModal('addModal'); renderCal();
-  showToast(`"${title}" added to calendar`,'success');
+
+  const saveBtn = document.querySelector('#addModal .bt');
+  const orgHtml = saveBtn.innerHTML;
+  saveBtn.disabled = true;
+  saveBtn.innerHTML = '<i class="fa fa-circle-notch fa-spin"></i> Saving...';
+
+  try {
+    const res = await fetch(APP_URL + '/api/admin/academic-calendar/save', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title, type, start, end, batch, description })
+    });
+    const result = await res.json();
+    if (result.success) {
+      showToast(result.message || 'Event saved', 'success');
+      closeModal('addModal');
+      await _iaFetchEvents(); // Refresh data from server
+    } else {
+      showToast(result.message || 'Failed to save event', 'error');
+    }
+  } catch(err) {
+    showToast('Failed to save event: ' + err.message, 'error');
+  } finally {
+    saveBtn.disabled = false;
+    saveBtn.innerHTML = orgHtml;
+  }
 }
-function deleteEvent(id){
+
+async function deleteEvent(id){
   const e=EVENTS.find(x=>x.id===id);
-  EVENTS=EVENTS.filter(x=>x.id!==id);
-  closeModal('detailModal'); renderCal();
-  showToast(`Deleted: "${e.title}"`,'warn');
+  if(!e) return;
+  if(!confirm(`Are you sure you want to delete "${e.title}"?`)) return;
+
+  try {
+    const res = await fetch(APP_URL + '/api/admin/academic-calendar/delete?id=' + id, {
+      method: 'POST'
+    });
+    const result = await res.json();
+    if (result.success) {
+      showToast(result.message || 'Event deleted', 'warn');
+      closeModal('detailModal');
+      await _iaFetchEvents();
+    } else {
+      showToast(result.message || 'Failed to delete event', 'error');
+    }
+  } catch(err) {
+    showToast('Failed to delete event', 'error');
+  }
 }
 
 /* ══════════════════════════════════════════════════════════════════

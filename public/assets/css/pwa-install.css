@@ -82,14 +82,22 @@ body.sb-collapsed .install-btn-trigger span {
 .pwa-modal {
     background: #fff;
     width: 90%;
-    max-width: 450px;
+    max-width: 400px;
     border-radius: 24px;
-    padding: 32px;
+    padding: 24px 20px;
     text-align: center;
     position: relative;
     transform: translateY(40px);
     transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+@media (min-width: 480px) {
+    .pwa-modal {
+        padding: 32px;
+    }
 }
 
 .pwa-modal-overlay.active .pwa-modal {
@@ -149,17 +157,32 @@ body.sb-collapsed .install-btn-trigger span {
 }
 
 .pwa-modal h2 {
-    font-size: 24px;
+    font-size: 20px;
     font-weight: 800;
     color: #0f172a;
-    margin-bottom: 12px;
+    margin-bottom: 8px;
+}
+
+@media (min-width: 480px) {
+    .pwa-modal h2 {
+        font-size: 24px;
+        margin-bottom: 12px;
+    }
 }
 
 .pwa-modal p {
-    font-size: 15px;
+    font-size: 14px;
     color: #64748b;
-    line-height: 1.6;
-    margin-bottom: 32px;
+    line-height: 1.5;
+    margin-bottom: 24px;
+}
+
+@media (min-width: 480px) {
+    .pwa-modal p {
+        font-size: 15px;
+        line-height: 1.6;
+        margin-bottom: 32px;
+    }
 }
 
 .pwa-actions {
@@ -172,16 +195,25 @@ body.sb-collapsed .install-btn-trigger span {
     background: var(--pwa-green);
     color: #fff;
     border: none;
-    padding: 16px;
-    border-radius: 14px;
-    font-size: 16px;
+    padding: 14px;
+    border-radius: 12px;
+    font-size: 15px;
     font-weight: 700;
     cursor: pointer;
     transition: 0.3s;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
+    gap: 8px;
+}
+
+@media (min-width: 480px) {
+    .pwa-btn-install {
+        padding: 16px;
+        border-radius: 14px;
+        font-size: 16px;
+        gap: 10px;
+    }
 }
 
 .pwa-btn-install:hover {

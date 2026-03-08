@@ -35,29 +35,29 @@ window.renderAttendanceTake = async function() {
         <div class="pg fu">
             <div class="page-header" style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom: 24px;">
                 <div>
-                    <h2 style="font-size:1.5rem; color:var(--text-dark); margin:0;">Mark Attendance</h2>
-                    <p style="color:var(--text-light); margin:5px 0 0 0; font-size:13px;">Manage daily attendance for courses and batches.</p>
+                    <h2 style="font-size:clamp(1.2rem, 2.5vw, 1.5rem); color:var(--text-dark); margin:0;">Mark Attendance</h2>
+                    <p style="color:var(--text-light); margin:5px 0 0 0; font-size:clamp(12px, 1.2vw, 13px);">Manage daily attendance for courses and batches.</p>
                 </div>
             </div>
 
             <div class="card" style="margin-bottom: 24px;">
                 <div class="card-body" style="display:flex; gap:16px; flex-wrap:wrap; align-items:flex-end;">
                     <div style="flex:1; min-width:180px;">
-                        <label class="form-label" style="display:block; margin-bottom:6px; font-weight:600; font-size:13px; color:var(--text-dark);">Batch</label>
-                        <select id="attBatchSel" class="form-input" style="width:100%; padding:10px; border:1px solid var(--card-border); border-radius:8px;">
+                        <label class="form-label" style="display:block; margin-bottom:6px; font-weight:600; font-size:clamp(11px, 1.1vw, 13px); color:var(--text-dark);">Batch</label>
+                        <select id="attBatchSel" class="form-input" style="width:100%; padding:10px; border:1px solid var(--card-border); border-radius:8px; font-size:clamp(13px, 1.2vw, 14px);">
                             <option value="">Select Batch...</option>
                         </select>
                     </div>
                     <div style="flex:1; min-width:180px;">
-                        <label class="form-label" style="display:block; margin-bottom:6px; font-weight:600; font-size:13px; color:var(--text-dark);">Date</label>
-                        <input type="date" id="attDateSel" class="form-input" style="width:100%; padding:10px; border:1px solid var(--card-border); border-radius:8px;" value="${new Date().toISOString().split('T')[0]}">
+                        <label class="form-label" style="display:block; margin-bottom:6px; font-weight:600; font-size:clamp(11px, 1.1vw, 13px); color:var(--text-dark);">Date</label>
+                        <input type="date" id="attDateSel" class="form-input" style="width:100%; padding:10px; border:1px solid var(--card-border); border-radius:8px; font-size:clamp(13px, 1.2vw, 14px);" value="${new Date().toISOString().split('T')[0]}">
                     </div>
                     <div style="flex:2; min-width:180px;">
-                        <label class="form-label" style="display:block; margin-bottom:6px; font-weight:600; font-size:13px; color:var(--text-dark);">Quick Search</label>
-                        <input type="text" id="attSearchInp" placeholder="Search by name or roll..." onkeyup="filterAttTable()" class="form-input" style="width:100%; padding:10px; border:1px solid var(--card-border); border-radius:8px;">
+                        <label class="form-label" style="display:block; margin-bottom:6px; font-weight:600; font-size:clamp(11px, 1.1vw, 13px); color:var(--text-dark);">Quick Search</label>
+                        <input type="text" id="attSearchInp" placeholder="Search by name or roll..." onkeyup="filterAttTable()" class="form-input" style="width:100%; padding:10px; border:1px solid var(--card-border); border-radius:8px; font-size:clamp(13px, 1.2vw, 14px);">
                     </div>
                     <div>
-                        <button class="qa-btn green" onclick="loadAttendanceRecords()" style="white-space:nowrap; padding:10px 20px;">
+                        <button class="qa-btn green" onclick="loadAttendanceRecords()" style="white-space:nowrap; padding:12px 24px; min-height:44px;">
                             <i class="fa-solid fa-search"></i> Load Data
                         </button>
                     </div>
@@ -92,11 +92,11 @@ window.renderAttendanceTake = async function() {
     const style = document.createElement('style');
     style.innerHTML = `
         .att-stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 24px; }
-        @media(min-width: 768px) { .att-stats-grid { grid-template-columns: repeat(4, 1fr); } }
+        @media(min-width: 768px) { .att-stats-grid { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); } }
         .att-stat-card { background: #fff; border-radius: 14px; padding: 16px; border: 1px solid var(--card-border); display: flex; align-items: center; gap: 14px; }
         .att-stat-ico { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
-        .att-stat-val { font-size: 1.5rem; font-weight: 800; color: var(--text-dark); line-height: 1; }
-        .att-stat-lbl { font-size: 10px; color: var(--text-light); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; }
+        .att-stat-val { font-size: clamp(1.2rem, 3vw, 1.6rem); font-weight: 800; color: var(--text-dark); line-height: 1; }
+        .att-stat-lbl { font-size: clamp(9px, 1vw, 11px); color: var(--text-light); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; }
         
         .att-quick-actions { background: #fff; border-radius: 14px; border: 1px solid var(--card-border); padding: 12px 16px; display: flex; align-items: center; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
         .att-search-box { position: relative; flex: 1; min-width: 200px; }
@@ -105,19 +105,19 @@ window.renderAttendanceTake = async function() {
         .att-search-box input:focus { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(0, 184, 148, 0.1); }
         
         .att-grid { display: grid; grid-template-columns: 1fr; gap: 14px; margin-bottom: 100px; }
-        @media(min-width: 768px) { .att-grid { grid-template-columns: repeat(2, 1fr); } }
-        @media(min-width: 1200px) { .att-grid { grid-template-columns: repeat(3, 1fr); } }
+        @media(min-width: 640px) { .att-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media(min-width: 1024px) { .att-grid { grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); } }
         
         .att-stu-card { background: #fff; border-radius: 14px; border: 1px solid var(--card-border); padding: 16px; display: flex; flex-direction: column; gap: 12px; transition: 0.2s; position: relative; }
         .att-stu-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
         .att-stu-top { display: flex; align-items: center; gap: 12px; }
         .att-stu-avatar { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; border: 2px solid #f1f5f9; }
         .att-stu-info { flex: 1; min-width: 0; }
-        .att-stu-name { font-size: 14px; font-weight: 700; color: var(--text-dark); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .att-stu-roll { font-size: 11px; color: var(--text-light); font-weight: 600; }
+        .att-stu-name { font-size: clamp(13px, 1.2vw, 15px); font-weight: 700; color: var(--text-dark); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .att-stu-roll { font-size: clamp(10px, 1vw, 11px); color: var(--text-light); font-weight: 600; }
         
-        .att-status-group { display: flex; gap: 6px; }
-        .att-pill { flex: 1; height: 40px; border-radius: 10px; border: 1.5px solid #e2e8f0; background: #fff; color: var(--text-light); font-size: 13px; font-weight: 800; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; }
+        .att-status-group { display: flex; gap: 8px; }
+        .att-pill { flex: 1; height: 44px; border-radius: 12px; border: 1.5px solid #e2e8f0; background: #fff; color: var(--text-light); font-size: clamp(12px, 1.2vw, 14px); font-weight: 800; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; -webkit-tap-highlight-color: transparent; }
         .att-pill.active-p { background: #10b981; color: #fff; border-color: #10b981; box-shadow: 0 3px 8px rgba(16, 185, 129, 0.3); }
         .att-pill.active-a { background: #ef4444; color: #fff; border-color: #ef4444; box-shadow: 0 3px 8px rgba(239, 68, 68, 0.3); }
         .att-pill.active-l { background: #f59e0b; color: #fff; border-color: #f59e0b; box-shadow: 0 3px 8px rgba(245, 158, 11, 0.3); }
@@ -126,10 +126,10 @@ window.renderAttendanceTake = async function() {
         .att-locked-tag { position: absolute; top: 12px; right: 12px; font-size: 12px; color: var(--text-light); }
         .att-leave-badge { background: #eff6ff; color: #1d4ed8; font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 700; border: 1px solid #dbeafe; }
         
-        .att-sticky-footer { position: fixed; bottom: 0; left: var(--sb-w); right: 0; background: rgba(255,255,255,0.9); backdrop-filter: blur(10px); padding: 16px 24px; border-top: 1px solid var(--card-border); display: flex; justify-content: space-between; align-items: center; z-index: 1002; box-shadow: 0 -4px 12px rgba(0,0,0,0.05); }
+        .att-sticky-footer { position: fixed; bottom: 0; left: var(--sb-w); right: 0; background: rgba(255,255,255,0.92); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); padding: 12px 24px; border-top: 1px solid var(--card-border); display: flex; justify-content: space-between; align-items: center; z-index: 1002; box-shadow: 0 -4px 12px rgba(0,0,0,0.06); }
         @media(max-width: 1024px) { .att-sticky-footer { left: 0; } }
         
-        .att-save-btn { background: var(--green); color: #fff; border: none; padding: 12px 28px; border-radius: 12px; font-weight: 700; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.2s; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); }
+        .att-save-btn { background: var(--green); color: #fff; border: none; padding: 12px 28px; border-radius: 12px; font-weight: 700; font-size: clamp(13px, 1.3vw, 15px); cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.2s; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); min-height: 44px; }
         .att-save-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(16, 185, 129, 0.35); }
         .att-save-btn:active { transform: translateY(0); }
         .att-save-btn:disabled { opacity: 0.6; cursor: not-allowed; box-shadow: none !important; transform: none !important; }
@@ -224,10 +224,10 @@ window.loadAttendanceRecords = async function() {
                         </div>
                     </div>
                     <div class="att-status-group">
-                        <div class="att-pill p-pill ${status === 'present' ? 'active-p' : ''}" onclick="updateAttStatus(this, 'present')" ${locked ? 'disabled' : ''}>P</div>
-                        <div class="att-pill a-pill ${status === 'absent' ? 'active-a' : ''}" onclick="updateAttStatus(this, 'absent')" ${locked ? 'disabled' : ''}>A</div>
-                        <div class="att-pill l-pill ${status === 'late' ? 'active-l' : ''}" onclick="updateAttStatus(this, 'late')" ${locked ? 'disabled' : ''}>L</div>
-                        <div class="att-pill v-pill ${status === 'leave' ? 'active-v' : ''}" onclick="updateAttStatus(this, 'leave')" ${locked ? 'disabled' : ''}>LV</div>
+                        <div class="att-pill p-pill ${status === 'present' ? 'active-p' : ''}" onclick="updateAttStatus(this, 'present')" aria-label="Mark Present" ${locked ? 'disabled' : ''}>P</div>
+                        <div class="att-pill a-pill ${status === 'absent' ? 'active-a' : ''}" onclick="updateAttStatus(this, 'absent')" aria-label="Mark Absent" ${locked ? 'disabled' : ''}>A</div>
+                        <div class="att-pill l-pill ${status === 'late' ? 'active-l' : ''}" onclick="updateAttStatus(this, 'late')" aria-label="Mark Late" ${locked ? 'disabled' : ''}>L</div>
+                        <div class="att-pill v-pill ${status === 'leave' ? 'active-v' : ''}" onclick="updateAttStatus(this, 'leave')" aria-label="Mark Leave" ${locked ? 'disabled' : ''}>LV</div>
                     </div>
                     <input type="hidden" class="att-status-val" value="${status}">
                 </div>
@@ -312,7 +312,28 @@ window.updateAttStatus = function(btn, status) {
     setTimeout(() => btn.style.transform = '', 150);
 
     // Recalculate totals
-    recalcAttTotals();
+    window.recalcAttTotals();
+};
+
+window.recalcAttTotals = function() {
+    let p = 0, a = 0, l = 0, v = 0;
+    document.querySelectorAll('.att-status-val').forEach(inp => {
+        const s = inp.value;
+        if (s === 'present') p++;
+        else if (s === 'absent') a++;
+        else if (s === 'late') l++;
+        else if (s === 'leave') v++;
+    });
+
+    const sp = document.getElementById('cnt_p');
+    const sa = document.getElementById('cnt_a');
+    const sl = document.getElementById('cnt_l');
+    const sv = document.getElementById('cnt_v');
+
+    if (sp) sp.textContent = p;
+    if (sa) sa.textContent = a;
+    if (sl) sl.textContent = l;
+    if (sv) sv.textContent = v;
 };
 
 window.bulkMarkAll = function(status) {
@@ -441,164 +462,122 @@ window.renderAttendanceReport = async function() {
 
     mc.innerHTML = `
         <style>
-            .ar-page { padding: 0; }
-            .ar-header { display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:16px; margin-bottom:24px; }
-            .ar-header-left h2 { font-size:1.5rem; font-weight:800; color:var(--text-dark); margin:0; }
-            .ar-header-left p { font-size:13px; color:var(--text-light); margin:4px 0 0; }
-            .ar-filters { display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end; }
-            .ar-filter { display:flex; flex-direction:column; gap:4px; }
-            .ar-filter label { font-size:10px; font-weight:700; color:var(--text-light); text-transform:uppercase; letter-spacing:0.5px; }
-            .ar-filter select, .ar-filter input { padding:8px 12px; border:1.5px solid var(--card-border); border-radius:8px; font-size:13px; font-family:inherit; outline:none; background:#fff; min-width:130px; }
-            .ar-filter select:focus, .ar-filter input:focus { border-color:var(--brand); box-shadow:0 0 0 3px rgba(0,158,126,0.1); }
-            .ar-btn { padding:8px 16px; border:none; border-radius:8px; font-size:13px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:6px; transition:all 0.2s; font-family:inherit; }
-            .ar-btn-primary { background:var(--brand); color:#fff; }
-            .ar-btn-primary:hover { opacity:0.9; transform:translateY(-1px); }
-            .ar-btn-outline { background:#fff; color:var(--text-body); border:1.5px solid var(--card-border); }
-            .ar-btn-outline:hover { border-color:var(--brand); color:var(--brand); }
+            .ar-container { padding: clamp(16px, 3vw, 24px); min-height: 100%; display: flex; flex-direction: column; gap: 20px; }
+            .ar-premium-card { background: #fff; border-radius: 24px; padding: clamp(20px, 4vw, 35px); border: 1px solid var(--card-border); box-shadow: var(--shadow-md); position: relative; overflow: hidden; }
+            .ar-premium-card::before { content: ""; position: absolute; top: 0; right: 0; width: 300px; height: 300px; background: radial-gradient(circle at top right, rgba(0, 184, 148, 0.05), transparent 70%); pointer-events: none; }
+            
+            .ar-card-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: clamp(24px, 5vw, 40px); }
+            .ar-title-group { display: flex; align-items: center; gap: 14px; }
+            .ar-icon-box { width: 44px; height: 44px; border-radius: 12px; background: var(--bg); color: var(--brand); display: flex; align-items: center; justify-content: center; font-size: 20px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); }
+            .ar-title-group h2 { font-size: clamp(1.3rem, 3.5vw, 1.8rem); font-weight: 900; color: var(--text-dark); margin: 0; letter-spacing: -0.03em; }
+            .ar-title-group p { font-size: 13px; color: var(--text-light); margin: 4px 0 0; font-weight: 500; }
 
-            /* Stat Cards */
-            .ar-stats { display:grid; grid-template-columns:repeat(2, 1fr); gap:14px; margin-bottom:24px; }
-            @media(min-width:768px) { .ar-stats { grid-template-columns:repeat(4, 1fr); } }
-            .ar-stat { background:#fff; border-radius:14px; padding:20px; border:1px solid var(--card-border); position:relative; overflow:hidden; transition:transform 0.2s, box-shadow 0.2s; }
-            .ar-stat:hover { transform:translateY(-2px); box-shadow:var(--shadow-md); }
-            .ar-stat::after { content:''; position:absolute; right:-15px; top:-15px; width:60px; height:60px; border-radius:50%; opacity:0.07; }
-            .ar-stat.green::after { background:#10b981; }
-            .ar-stat.red::after { background:#ef4444; }
-            .ar-stat.amber::after { background:#f59e0b; }
-            .ar-stat.blue::after { background:#3b82f6; }
-            .ar-stat-icon { width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:16px; margin-bottom:12px; }
-            .ar-stat-icon.green { background:#dcfce7; color:#16a34a; }
-            .ar-stat-icon.red { background:#fee2e2; color:#dc2626; }
-            .ar-stat-icon.amber { background:#fef3c7; color:#d97706; }
-            .ar-stat-icon.blue { background:#dbeafe; color:#2563eb; }
-            .ar-stat-val { font-size:1.6rem; font-weight:800; color:var(--text-dark); line-height:1; }
-            .ar-stat-lbl { font-size:11px; color:var(--text-light); font-weight:600; margin-top:4px; text-transform:uppercase; letter-spacing:0.3px; }
+            .ar-filters { display: flex; gap: 14px; flex-wrap: wrap; align-items: flex-end; padding: 18px; background: #f8fafc; border-radius: 18px; border: 1.5px solid #edf2f7; margin-bottom: 30px; }
+            .ar-filter { display: flex; flex-direction: column; gap: 6px; flex: 1 1 200px; }
+            .ar-filter label { font-size: 10px; font-weight: 800; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.1em; padding-left: 2px; }
+            .ar-filter select, .ar-filter input { padding: 10px 14px; border: 1.5px solid var(--card-border); border-radius: 12px; font-size: 14px; font-family: inherit; outline: none; background: #fff; height: 48px; transition: 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+            .ar-filter select:focus, .ar-filter input:focus { border-color: var(--brand); box-shadow: 0 0 0 4px rgba(0, 184, 148, 0.08); }
+            .ar-acts { display: flex; gap: 10px; flex: 1 1 280px; }
+            .ar-btn { flex: 1; padding: 12px 20px; border: none; border-radius: 12px; font-size: 14px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 10px; transition: all 0.2s; min-height: 48px; }
+            .ar-btn-primary { background: var(--brand); color: #fff; box-shadow: 0 4px 15px rgba(0, 184, 148, 0.25); }
+            .ar-btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0, 184, 148, 0.3); }
+            .ar-btn-outline { background: #fff; color: var(--text-dark); border: 1.5px solid var(--card-border); }
+            .ar-btn-outline:hover { border-color: var(--brand); color: var(--brand); background: rgba(0, 184, 148, 0.05); }
 
-            /* Chart Area */
-            .ar-grid { display:grid; grid-template-columns:1fr; gap:20px; margin-bottom:24px; }
-            @media(min-width:1024px) { .ar-grid { grid-template-columns:5fr 3fr; } }
-            .ar-card { background:#fff; border-radius:14px; border:1px solid var(--card-border); overflow:hidden; }
-            .ar-card-head { padding:16px 20px; border-bottom:1px solid #f1f5f9; display:flex; align-items:center; justify-content:space-between; }
-            .ar-card-title { font-size:14px; font-weight:700; color:var(--text-dark); display:flex; align-items:center; gap:8px; }
-            .ar-card-title i { font-size:14px; }
-            .ar-card-body { padding:20px; }
+            /* Grid Layouts */
+            .ar-stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 40px; }
+            .ar-stat-card { padding: 24px; border-radius: 20px; background: #fff; border: 1px solid #f1f5f9; display: flex; flex-direction: column; gap: 14px; transition: 0.3s; position: relative; }
+            .ar-stat-card:hover { transform: translateY(-4px); box-shadow: 0 10px 25px rgba(0,0,0,0.05); border-color: rgba(0, 184, 148, 0.1); }
+            .ar-stat-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+            .ar-stat-val { font-size: 2rem; font-weight: 900; color: var(--text-dark); line-height: 1; letter-spacing: -0.04em; }
+            .ar-stat-lbl { font-size: 11px; color: var(--text-light); font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; }
 
-            /* Trend Chart (pure CSS) */
-            .ar-chart { display:flex; align-items:flex-end; gap:3px; height:180px; padding-top:10px; }
-            .ar-bar-wrap { flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; min-width:0; }
-            .ar-bar { width:100%; max-width:18px; border-radius:4px 4px 0 0; transition:height 0.6s cubic-bezier(0.4, 0, 0.2, 1); cursor:pointer; position:relative; min-height:2px; }
-            .ar-bar:hover { opacity:0.85; }
-            .ar-bar-label { font-size:8px; color:var(--text-light); font-weight:700; white-space:nowrap; }
-            .ar-bar-tooltip { display:none; position:absolute; bottom:calc(100% + 6px); left:50%; transform:translateX(-50%); background:#1e293b; color:#fff; padding:5px 8px; border-radius:6px; font-size:10px; white-space:nowrap; font-weight:600; z-index:10; pointer-events:none; }
-            .ar-bar-tooltip::after { content:''; position:absolute; top:100%; left:50%; transform:translateX(-50%); border:4px solid transparent; border-top-color:#1e293b; }
-            .ar-bar:hover .ar-bar-tooltip { display:block; }
+            .ar-visuals { display: grid; grid-template-columns: 1fr; gap: 24px; margin-bottom: 30px; }
+            @media(min-width: 1100px) { .ar-visuals { grid-template-columns: 1.8fr 1fr; } }
 
-            /* Absentee list */
-            .ar-abs-item { display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:1px solid #f8fafc; }
-            .ar-abs-item:last-child { border-bottom:none; }
-            .ar-abs-rank { width:22px; height:22px; border-radius:50%; background:#fee2e2; color:#dc2626; font-size:10px; font-weight:800; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
-            .ar-abs-avatar { width:32px; height:32px; border-radius:50%; object-fit:cover; border:2px solid #f1f5f9; flex-shrink:0; }
-            .ar-abs-info { flex:1; min-width:0; }
-            .ar-abs-name { font-size:13px; font-weight:700; color:var(--text-dark); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-            .ar-abs-batch { font-size:10px; color:var(--text-light); }
-            .ar-abs-count { text-align:right; flex-shrink:0; }
-            .ar-abs-num { font-size:18px; font-weight:800; color:#dc2626; line-height:1; }
-            .ar-abs-days { font-size:9px; color:var(--text-light); text-transform:uppercase; font-weight:700; }
+            .ar-block { background: #fff; border-radius: 20px; border: 1.5px solid #f8fafc; padding: 20px; }
+            .ar-block-title { font-size: 14px; font-weight: 800; color: var(--text-dark); margin-bottom: 20px; display: flex; align-items: center; gap: 10px; text-transform: uppercase; letter-spacing: 0.05em; }
+            
+            /* Chart Container */
+            .ar-chart-wrap { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 15px; }
+            .ar-chart { display: flex; align-items: flex-end; gap: 8px; height: 240px; padding-top: 30px; min-width: 600px; }
+            .ar-bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 10px; min-width: 14px; height: 100%; position: relative; }
+            .ar-bar-stack { width: 100%; max-width: 24px; height: 100%; display: flex; flex-direction: column; border-radius: 6px 6px 0 0; overflow: hidden; background: #f8fafc; position: relative; cursor: pointer; border: 1px solid rgba(0,0,0,0.02); }
+            .ar-bar-label { font-size: 10px; color: var(--text-light); font-weight: 800; }
 
-            /* Batch comparison */
-            .ar-batch-row { display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:1px solid #f8fafc; }
-            .ar-batch-row:last-child { border-bottom:none; }
-            .ar-batch-name { font-size:13px; font-weight:700; color:var(--text-dark); min-width:100px; flex-shrink:0; }
-            .ar-batch-bar-wrap { flex:1; display:flex; gap:2px; height:20px; border-radius:6px; overflow:hidden; background:#f8fafc; }
-            .ar-batch-seg { height:100%; transition:width 0.6s cubic-bezier(0.4, 0, 0.2, 1); position:relative; cursor:pointer; }
-            .ar-batch-seg:hover { opacity:0.85; }
-            .ar-batch-seg .ar-bar-tooltip { bottom:calc(100% + 4px); }
-            .ar-batch-seg:hover .ar-bar-tooltip { display:block; }
-            .ar-batch-pct { font-size:12px; font-weight:700; color:var(--text-dark); min-width:45px; text-align:right; }
+            /* Tooltip Premium */
+            .ar-bar-tooltip { visibility: hidden; position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%) translateY(-10px); background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(8px); color: #fff; padding: 12px; border-radius: 12px; font-size: 11px; white-space: nowrap; font-weight: 600; z-index: 100; box-shadow: 0 10px 25px rgba(0,0,0,0.2); opacity: 0; transition: 0.2s; pointer-events: none; border: 1px solid rgba(255,255,255,0.1); }
+            .ar-bar-stack:hover .ar-bar-tooltip { visibility: visible; opacity: 1; transform: translateX(-50%) translateY(-15px); }
 
-            /* Empty/Loading */
-            .ar-loading { padding:40px; text-align:center; color:var(--text-light); }
-            .ar-empty-chart { height:180px; display:flex; align-items:center; justify-content:center; color:var(--text-light); font-size:13px; }
+            /* Absentees Refinement */
+            .ar-abs-list { display: grid; gap: 10px; max-height: 400px; overflow-y: auto; padding-right: 4px; }
+            .ar-abs-list::-webkit-scrollbar { width: 5px; }
+            .ar-abs-list::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+            .ar-abs-item { display: flex; align-items: center; gap: 14px; padding: 14px; border-radius: 16px; background: #fff; border: 1px solid #f1f5f9; transition: 0.3s; }
+            .ar-abs-item:hover { border-color: rgba(225, 29, 72, 0.2); background: rgba(225, 29, 72, 0.02); }
+            .ar-abs-info { flex: 1; min-width: 0; }
 
-            /* Legend */
-            .ar-legend { display:flex; gap:14px; flex-wrap:wrap; }
-            .ar-legend-item { display:flex; align-items:center; gap:5px; font-size:11px; font-weight:600; color:var(--text-body); }
-            .ar-legend-dot { width:10px; height:10px; border-radius:3px; }
+            @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         </style>
 
-        <div class="pg fu ar-page">
-            <!-- Header -->
-            <div class="ar-header">
-                <div class="ar-header-left">
-                    <h2><i class="fa-solid fa-chart-line" style="color:var(--brand); margin-right:6px;"></i>Attendance Analytics</h2>
-                    <p>Comprehensive attendance insights and trends</p>
+        <div class="ar-container">
+            <div class="ar-premium-card">
+                <div class="ar-card-header">
+                    <div class="ar-title-group">
+                        <div class="ar-icon-box"><i class="fa-solid fa-chart-line"></i></div>
+                        <div>
+                            <h2>Attendance Intelligence</h2>
+                            <p>Real-time analytics & absenteeism metrics</p>
+                        </div>
+                    </div>
                 </div>
+
                 <div class="ar-filters">
                     <div class="ar-filter">
-                        <label>Batch</label>
+                        <label>Cohort / Batch</label>
                         <select id="arBatchFilter">${batchOptions}</select>
                     </div>
                     <div class="ar-filter">
-                        <label>From</label>
+                        <label>Reporting Start</label>
                         <input type="date" id="arStartDate" value="${firstDay}">
                     </div>
                     <div class="ar-filter">
-                        <label>To</label>
+                        <label>Reporting End</label>
                         <input type="date" id="arEndDate" value="${todayStr}">
                     </div>
-                    <div class="ar-filter" style="justify-content:flex-end;">
-                        <label>&nbsp;</label>
-                        <div style="display:flex; gap:6px;">
-                            <button class="ar-btn ar-btn-primary" onclick="loadAnalytics()"><i class="fa-solid fa-chart-bar"></i> Analyze</button>
-                            <button class="ar-btn ar-btn-outline" onclick="exportAttendanceCSV()"><i class="fa-solid fa-download"></i> Export</button>
+                    <div class="ar-acts">
+                        <button class="ar-btn ar-btn-primary" onclick="loadAnalytics()"><i class="fa-solid fa-wand-magic"></i> Analyze</button>
+                        <button class="ar-btn ar-btn-outline" onclick="exportAttendanceCSV()"><i class="fa-solid fa-file-csv"></i> Export CSV</button>
+                    </div>
+                </div>
+
+                <div class="ar-stats-row" id="arStatsContainer">
+                    <div class="ar-stat-card"><div class="ar-stat-icon" style="background:#dcfce7; color:#16a34a;"><i class="fa-solid fa-percent"></i></div><div><div class="ar-stat-val" id="arStatPct">-</div><div class="ar-stat-lbl">Presence Quotient</div></div></div>
+                    <div class="ar-stat-card"><div class="ar-stat-icon" style="background:#dbeafe; color:#2563eb;"><i class="fa-solid fa-database"></i></div><div><div class="ar-stat-val" id="arStatTotal">-</div><div class="ar-stat-lbl">Total Data Points</div></div></div>
+                    <div class="ar-stat-card"><div class="ar-stat-icon" style="background:#fef3c7; color:#d97706;"><i class="fa-solid fa-clock-rotate-left"></i></div><div><div class="ar-stat-val" id="arStatLate">-</div><div class="ar-stat-lbl">Late Anomalies</div></div></div>
+                    <div class="ar-stat-card"><div class="ar-stat-icon" style="background:#fee2e2; color:#dc2626;"><i class="fa-solid fa-user-xmark"></i></div><div><div class="ar-stat-val" id="arStatAbsToday">-</div><div class="ar-stat-lbl">Absent Today</div></div></div>
+                </div>
+
+                <div class="ar-visuals">
+                    <div class="ar-block">
+                        <div class="ar-block-title"><i class="fa-solid fa-chart-column" style="color:var(--brand);"></i> Attendance Velocity</div>
+                        <div class="ar-chart-wrap">
+                            <div id="arTrendChart" class="ar-chart"><div class="ar-loading">Processing telemetry data...</div></div>
+                        </div>
+                    </div>
+                    <div class="ar-block">
+                        <div class="ar-block-title"><i class="fa-solid fa-user-slash" style="color:#ef4444;"></i> Chronic Absenteeism</div>
+                        <div id="arAbsenteeList" class="ar-abs-list">
+                            <div class="ar-loading">Scanning records...</div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Stat Cards -->
-            <div class="ar-stats" id="arStatsContainer">
-                <div class="ar-stat green"><div class="ar-stat-icon green"><i class="fa-solid fa-percentage"></i></div><div class="ar-stat-val" id="arStatPct">-</div><div class="ar-stat-lbl">Avg Presence Rate</div></div>
-                <div class="ar-stat blue"><div class="ar-stat-icon blue"><i class="fa-solid fa-calendar-check"></i></div><div class="ar-stat-val" id="arStatTotal">-</div><div class="ar-stat-lbl">Total Records</div></div>
-                <div class="ar-stat amber"><div class="ar-stat-icon amber"><i class="fa-solid fa-clock"></i></div><div class="ar-stat-val" id="arStatLate">-</div><div class="ar-stat-lbl">Late Instances</div></div>
-                <div class="ar-stat red"><div class="ar-stat-icon red"><i class="fa-solid fa-user-xmark"></i></div><div class="ar-stat-val" id="arStatAbsToday">-</div><div class="ar-stat-lbl">Absent Today</div></div>
-            </div>
-
-            <!-- Trend + Absentees Row -->
-            <div class="ar-grid">
-                <!-- Daily Trend -->
-                <div class="ar-card">
-                    <div class="ar-card-head">
-                        <div class="ar-card-title"><i class="fa-solid fa-chart-column" style="color:#3b82f6;"></i> Daily Presence Trend</div>
-                        <div class="ar-legend">
-                            <div class="ar-legend-item"><div class="ar-legend-dot" style="background:#10b981;"></div>Present</div>
-                            <div class="ar-legend-item"><div class="ar-legend-dot" style="background:#f59e0b;"></div>Late</div>
-                            <div class="ar-legend-item"><div class="ar-legend-dot" style="background:#ef4444;"></div>Absent</div>
-                        </div>
+                <div class="ar-block" style="border-top: 1px solid #f1f5f9; padding-top: 24px;">
+                    <div class="ar-block-title"><i class="fa-solid fa-network-wired" style="color:var(--brand);"></i> Batch-wise Metric Distribution</div>
+                    <div id="arBatchCompare" class="ar-batch-stats-container">
+                        <div class="ar-loading">Mapping cohort analytics...</div>
                     </div>
-                    <div class="ar-card-body">
-                        <div id="arTrendChart" class="ar-chart"><div class="ar-empty-chart">Loading trend data...</div></div>
-                    </div>
-                </div>
-
-                <!-- Top Absentees -->
-                <div class="ar-card">
-                    <div class="ar-card-head">
-                        <div class="ar-card-title"><i class="fa-solid fa-user-slash" style="color:#ef4444;"></i> Top Absentees</div>
-                    </div>
-                    <div class="ar-card-body" style="padding:12px 20px; max-height:260px; overflow-y:auto;">
-                        <div id="arAbsenteeList" class="ar-loading"><i class="fa-solid fa-spinner fa-spin"></i></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Batch Comparison -->
-            <div class="ar-card" style="margin-bottom:24px;">
-                <div class="ar-card-head">
-                    <div class="ar-card-title"><i class="fa-solid fa-layer-group" style="color:var(--brand);"></i> Batch-wise Comparison</div>
-                </div>
-                <div class="ar-card-body">
-                    <div id="arBatchCompare" class="ar-loading"><i class="fa-solid fa-spinner fa-spin"></i> Loading...</div>
                 </div>
             </div>
         </div>
@@ -687,20 +666,26 @@ function renderTrendChart(trend) {
         const pct = ((present + late) / total * 100).toFixed(0);
         const h = (total / maxTotal * 100).toFixed(0);
         const dayNum = t.attendance_date.split('-')[2];
-        const absentH = (absent / total * h).toFixed(0);
-        const lateH = (late / total * h).toFixed(0);
-        const presentH = h - absentH - lateH;
+        
+        const absentH = (absent / total * 100).toFixed(1);
+        const lateH = (late / total * 100).toFixed(1);
+        const presentH = (present / total * 100).toFixed(1);
 
-        // Color gradient based on percentage
         const barColor = pct >= 80 ? '#10b981' : pct >= 60 ? '#f59e0b' : '#ef4444';
 
         return `
-            <div class="ar-bar-wrap" style="animation-delay:${i * 30}ms">
-                <div style="width:100%; max-width:18px; height:${h}%; display:flex; flex-direction:column; border-radius:4px 4px 0 0; overflow:hidden; position:relative; cursor:pointer;">
-                    <div style="flex:${absentH}; background:#fee2e2; min-height:${absent > 0 ? '2px' : '0'};"></div>
-                    <div style="flex:${lateH}; background:#fef3c7; min-height:${late > 0 ? '2px' : '0'};"></div>
-                    <div style="flex:${presentH}; background:${barColor}; min-height:2px;"></div>
-                    <div class="ar-bar-tooltip">${t.attendance_date}<br>P:${present} L:${late} A:${absent} (${pct}%)</div>
+            <div class="ar-bar-wrap" style="animation: fadeInUp 0.4s ease-out forwards; animation-delay:${i * 20}ms; height: 100%;">
+                <div class="ar-bar-stack" style="height:${h}%; background: rgba(0,0,0,0.02);">
+                    <div style="height:${absentH}%; background:#fee2e2;"></div>
+                    <div style="height:${lateH}%; background:#fef3c7;"></div>
+                    <div style="height:${presentH}%; background:${barColor}; min-height: 2px;"></div>
+                    <div class="ar-bar-tooltip">
+                        <div style="font-weight: 800; margin-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 2px;">${t.attendance_date}</div>
+                        <div style="display:flex; justify-content:space-between; gap: 10px;"><span>Present:</span> <span>${present}</span></div>
+                        <div style="display:flex; justify-content:space-between; gap: 10px;"><span>Late:</span> <span>${late}</span></div>
+                        <div style="display:flex; justify-content:space-between; gap: 10px;"><span>Absent:</span> <span>${absent}</span></div>
+                        <div style="margin-top: 4px; color: ${barColor}; font-weight: 800;">Rate: ${pct}%</div>
+                    </div>
                 </div>
                 <div class="ar-bar-label">${parseInt(dayNum)}</div>
             </div>`;
@@ -712,7 +697,7 @@ function renderAbsenteeList(absentees) {
     if (!container) return;
 
     if (absentees.length === 0) {
-        container.innerHTML = '<div style="text-align:center; padding:30px 10px; color:var(--text-light);"><i class="fa-solid fa-face-smile" style="font-size:24px; margin-bottom:8px; display:block; color:#10b981;"></i><p style="font-size:13px;">No absentees in this period. Great!</p></div>';
+        container.innerHTML = '<div style="text-align:center; padding:60px 20px; color:var(--text-light);"><i class="fa-solid fa-face-smile" style="font-size:40px; margin-bottom:15px; display:block; color:#10b981; opacity: 0.5;"></i><p style="font-size:14px; font-weight: 600;">No chronic absentees found in this period.</p></div>';
         return;
     }
 
@@ -723,7 +708,7 @@ function renderAbsenteeList(absentees) {
         const absentDays = parseInt(a.absent_days) || 0;
         const absPct = ((absentDays / totalDays) * 100).toFixed(0);
 
-        return `<div class="ar-abs-item">
+        return `<div class="ar-abs-item" style="animation: fadeInLeft 0.4s ease-out forwards; animation-delay: ${i * 40}ms;">
             <div class="ar-abs-rank">${i + 1}</div>
             <img class="ar-abs-avatar" src="${a.photo_url || defaultAvatar}" onerror="this.src='${defaultAvatar}'" alt="">
             <div class="ar-abs-info">
@@ -732,7 +717,7 @@ function renderAbsenteeList(absentees) {
             </div>
             <div class="ar-abs-count">
                 <div class="ar-abs-num">${absentDays}</div>
-                <div class="ar-abs-days">${absPct}% absent</div>
+                <div class="ar-abs-days">${absPct}% Ratio</div>
             </div>
         </div>`;
     }).join('');
@@ -743,7 +728,7 @@ function renderBatchComparison(batchStats) {
     if (!container) return;
 
     if (batchStats.length === 0) {
-        container.innerHTML = '<div style="text-align:center; padding:30px; color:var(--text-light);"><i class="fa-solid fa-layer-group" style="font-size:24px; margin-bottom:8px; display:block; opacity:0.4;"></i>No batch data available</div>';
+        container.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-light);"><i class="fa-solid fa-layer-group" style="font-size:32px; margin-bottom:12px; display:block; opacity:0.2;"></i>No batch telemetry available.</div>';
         return;
     }
 
@@ -758,7 +743,7 @@ function renderBatchComparison(batchStats) {
         const overallPct = ((present + late) / total * 100).toFixed(1);
 
         return `<div class="ar-batch-row">
-            <div class="ar-batch-name">${b.batch_name || 'Batch ' + b.batch_id}</div>
+            <div class="ar-batch-name">${b.batch_name || 'Unknown Cohort'}</div>
             <div class="ar-batch-bar-wrap">
                 <div class="ar-batch-seg" style="width:${pPct}%; background:#10b981;"><div class="ar-bar-tooltip">Present: ${present} (${pPct}%)</div></div>
                 <div class="ar-batch-seg" style="width:${lPct}%; background:#f59e0b;"><div class="ar-bar-tooltip">Late: ${late} (${lPct}%)</div></div>

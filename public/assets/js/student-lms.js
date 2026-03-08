@@ -6,7 +6,7 @@
 // Inject Styles
 const lmsStyles = `
 <style>
-    .mat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; margin-top: 20px; }
+    .mat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-top: 20px; }
     .mat-card { 
         background: #fff; border-radius: 16px; overflow: hidden; border: 1px solid #eef2f6; 
         transition: all 0.3s ease; display: flex; flex-direction: column; position: relative;
@@ -16,12 +16,12 @@ const lmsStyles = `
     
     .mat-badge { 
         position: absolute; top: 15px; left: 15px; padding: 4px 12px; border-radius: 20px; 
-        font-size: 10px; font-weight: 700; color: #fff; z-index: 2; text-transform: uppercase;
+        font-size: clamp(9px, 0.9vw, 11px); font-weight: 700; color: #fff; z-index: 2; text-transform: uppercase;
     }
     
     .mat-icon-box { 
         height: 140px; background: #f8fafc; display: flex; align-items:center; justify-content: center; 
-        font-size: 3.5rem; position: relative; overflow: hidden;
+        font-size: clamp(2.5rem, 6vw, 3.5rem); position: relative; overflow: hidden;
     }
     .mat-icon-box::after {
         content: ''; position: absolute; inset: 0; 
@@ -29,10 +29,10 @@ const lmsStyles = `
     }
     
     .mat-body { padding: 20px; flex: 1; }
-    .mat-title { font-weight: 700; color: #1e293b; font-size: 1.1rem; margin-bottom: 8px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-    .mat-desc { font-size: 13px; color: #64748b; line-height: 1.5; margin-bottom: 15px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .mat-title { font-weight: 700; color: #1e293b; font-size: clamp(1rem, 2.5vw, 1.1rem); margin-bottom: 8px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .mat-desc { font-size: clamp(12px, 1.2vw, 13px); color: #64748b; line-height: 1.5; margin-bottom: 15px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
     
-    .mat-meta { display: flex; gap: 15px; font-size: 11px; color: #94a3b8; font-weight: 600; }
+    .mat-meta { display: flex; gap: 15px; font-size: clamp(10px, 1vw, 11px); color: #94a3b8; font-weight: 600; }
     .mat-meta span { display: flex; align-items: center; gap: 5px; }
     
     .mat-foot { padding: 15px 20px; background: #fcfdfe; border-top: 1px solid #f1f5f9; display: flex; gap: 10px; align-items: center; }
@@ -49,8 +49,8 @@ const lmsStyles = `
     .st-icon { width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
     
     /* Tabs */
-    .lms-tabs { display: flex; gap: 10px; margin-bottom: 25px; background: #f1f5f9; padding: 5px; border-radius: 12px; width: fit-content; }
-    .lms-tab { padding: 8px 20px; cursor: pointer; border-radius: 8px; font-size: 14px; font-weight: 600; color: #64748b; transition: 0.2s; }
+    .lms-tabs { display: flex; gap: 10px; margin-bottom: 25px; background: #f1f5f9; padding: 5px; border-radius: 12px; width: fit-content; max-width: 100%; overflow-x: auto; }
+    .lms-tab { padding: 8px 20px; cursor: pointer; border-radius: 8px; font-size: clamp(13px, 1.2vw, 14px); font-weight: 600; color: #64748b; transition: 0.2s; white-space: nowrap; }
     .lms-tab.active { background: #fff; color: var(--teal); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
 </style>
 `;

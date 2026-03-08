@@ -35,31 +35,59 @@ function _courseOpts(courses, sel = '') {
 window.renderExamList = async function() {
     const mc = document.getElementById('mainContent');
     mc.innerHTML = `<div class="pg fu">
-        <div class="bc"><a href="#" onclick="goNav('overview')">Dashboard</a> <span class="bc-sep">&rsaquo;</span> <span class="bc-cur">Examinations</span></div>
+        <div class="bc">
+            <a href="#" onclick="goNav('overview')"><i class="fa-solid fa-home"></i></a> 
+            <span class="bc-sep">/</span> 
+            <span class="bc-cur">Assessments</span>
+        </div>
+
         <div class="pg-head">
             <div class="pg-left">
-                <div class="pg-ico" style="background:linear-gradient(135deg,#8141a5,#a855f7)"><i class="fa-solid fa-file-signature"></i></div>
-                <div><div class="pg-title">Examinations</div><div class="pg-sub">Schedule, manage and track exam performance</div></div>
+                <div class="pg-ico" style="background: linear-gradient(135deg, #8141a5, #a855f7); color: #fff;">
+                    <i class="fa-solid fa-file-signature"></i>
+                </div>
+                <div>
+                    <div class="pg-title" style="font-size: clamp(1.2rem, 3vw, 1.5rem);">Examination Hall</div>
+                    <div class="pg-sub">Schedule, manage and track academic performance</div>
+                </div>
             </div>
             <div class="pg-acts">
-                <button class="btn bt" onclick="goNav('exams','create-ex')"><i class="fa-solid fa-plus"></i> Create Exam</button>
+                <button class="btn bt" onclick="goNav('exams','create-ex')">
+                    <i class="fa-solid fa-calendar-plus"></i> <span class="d-none d-sm-inline">Schedule Exam</span>
+                </button>
             </div>
         </div>
 
-        <!-- Filters -->
-        <div class="card" style="padding:12px 16px;margin-bottom:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-            <input type="text" id="examSearch" placeholder="🔍 Search by title…" style="flex:1;min-width:140px;padding:7px 12px;border:1px solid var(--card-border);border-radius:8px;font-family:var(--font);font-size:12.5px;outline:none;" oninput="window._filterExamList()">
-            <select id="examStatusFilter" style="padding:7px 12px;border:1px solid var(--card-border);border-radius:8px;font-family:var(--font);font-size:12.5px;outline:none;" onchange="window._filterExamList()">
-                <option value="">All Status</option>
-                <option value="scheduled">Scheduled</option>
-                <option value="active">Active / Ongoing</option>
-                <option value="completed">Completed</option>
-                <option value="draft">Draft</option>
-                <option value="cancelled">Cancelled</option>
-            </select>
+        <!-- Glassmorphic Filters -->
+        <div class="toolbar" style="padding: clamp(10px, 2vw, 15px); margin-bottom: 20px; background: rgba(255,255,255,0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.4); border-radius: 16px;">
+            <div style="display: flex; gap: 12px; flex-wrap: wrap; width: 100%;">
+                <div style="position: relative; flex: 1; min-width: 200px;">
+                    <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 13px;"></i>
+                    <input type="text" id="examSearch" placeholder="Search exams by title or batch..." 
+                        style="width: 100%; padding: 10px 15px 10px 40px; border: 1px solid #e2e8f0; border-radius: 12px; font-size: 13px; outline: none; transition: all 0.2s;" 
+                        oninput="window._filterExamList()"
+                        onfocus="this.style.borderColor='#a855f7'; this.style.boxShadow='0 0 0 3px rgba(168, 85, 247, 0.1)'"
+                        onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none'">
+                </div>
+                <select id="examStatusFilter" 
+                    style="padding: 10px 15px; border: 1px solid #e2e8f0; border-radius: 12px; font-size: 13px; outline: none; background: #fff; min-width: 150px; font-weight: 600;" 
+                    onchange="window._filterExamList()">
+                    <option value="">All Status</option>
+                    <option value="scheduled">Scheduled</option>
+                    <option value="active">Active / Ongoing</option>
+                    <option value="completed">Completed</option>
+                    <option value="draft">Draft</option>
+                    <option value="cancelled">Cancelled</option>
+                </select>
+            </div>
         </div>
 
-        <div class="card" id="examListContainer"><div class="pg-loading"><i class="fa-solid fa-circle-notch fa-spin"></i><span>Loading exams…</span></div></div>
+        <div class="premium-tw table-responsive" id="examListContainer">
+            <div class="pg-loading">
+                <i class="fa-solid fa-circle-notch fa-spin"></i>
+                <span>Retrieving examination records...</span>
+            </div>
+        </div>
     </div>`;
 
     window._allExams = [];
@@ -93,72 +121,90 @@ function _renderExamTable(exams) {
     const c = document.getElementById('examListContainer'); if (!c) return;
 
     if (!exams.length) {
-        c.innerHTML = `<div style="padding:80px 40px;text-align:center;color:#94a3b8">
-            <i class="fa-solid fa-file-circle-xmark" style="font-size:3.5rem;margin-bottom:16px;opacity:.3;display:block"></i>
-            <p style="font-size:14px;font-weight:600;margin-bottom:6px">No exams found</p>
-            <p style="font-size:12px;margin-bottom:16px">Schedule your first exam to get started.</p>
-            <button class="btn bt btn-sm" onclick="goNav('exams','create-ex')"><i class="fa-solid fa-plus"></i> Create Exam</button>
+        c.innerHTML = `<div class="empty-state-premium" style="margin: 40px 0;">
+            <div class="empty-ico"><i class="fa-solid fa-file-circle-xmark"></i></div>
+            <h4>No Exams Scheduled</h4>
+            <p>Your examination registry is currently empty.</p>
+            <button class="btn bt" style="margin-top: 15px;" onclick="goNav('exams','create-ex')">
+                <i class="fa-solid fa-plus"></i> New Examination
+            </button>
         </div>`;
         return;
     }
 
     const statusBadge = {
-        scheduled: { bg:'#dbeafe', color:'#1d4ed8', icon:'fa-clock',         label:'Scheduled'  },
-        active:    { bg:'#dcfce7', color:'#15803d', icon:'fa-circle-dot',     label:'Active'     },
-        completed: { bg:'#f1f5f9', color:'#475569', icon:'fa-circle-check',   label:'Completed'  },
-        draft:     { bg:'#fef9c3', color:'#854d0e', icon:'fa-pen-to-square',  label:'Draft'      },
-        cancelled: { bg:'#fee2e2', color:'#b91c1c', icon:'fa-ban',            label:'Cancelled'  },
+        scheduled: { bg:'#ecf2ff', color:'#4338ca', icon:'fa-clock',         label:'Scheduled'  },
+        active:    { bg:'#f0fdf4', color:'#166534', icon:'fa-circle-dot',     label:'Live Now'   },
+        completed: { bg:'#f8fafc', color:'#475569', icon:'fa-circle-check',   label:'Finished'   },
+        draft:     { bg:'#fffbeb', color:'#92400e', icon:'fa-pen-to-square',  label:'Drafting'   },
+        cancelled: { bg:'#fef2f2', color:'#991b1b', icon:'fa-ban',            label:'Cancelled'  },
     };
 
-    let html = `<div style="overflow-x:auto"><table class="erp-table" style="width:100%;border-collapse:collapse">
-        <thead><tr>
-            <th style="text-align:left;padding:10px 14px;font-size:11px;font-weight:700;color:var(--text-light);text-transform:uppercase;letter-spacing:.4px;border-bottom:1px solid var(--card-border)">Exam</th>
-            <th style="text-align:left;padding:10px 14px;font-size:11px;font-weight:700;color:var(--text-light);text-transform:uppercase;letter-spacing:.4px;border-bottom:1px solid var(--card-border)">Batch / Course</th>
-            <th style="text-align:left;padding:10px 14px;font-size:11px;font-weight:700;color:var(--text-light);text-transform:uppercase;letter-spacing:.4px;border-bottom:1px solid var(--card-border)">Date &amp; Time</th>
-            <th style="text-align:center;padding:10px 14px;font-size:11px;font-weight:700;color:var(--text-light);text-transform:uppercase;letter-spacing:.4px;border-bottom:1px solid var(--card-border)">Duration</th>
-            <th style="text-align:center;padding:10px 14px;font-size:11px;font-weight:700;color:var(--text-light);text-transform:uppercase;letter-spacing:.4px;border-bottom:1px solid var(--card-border)">Marks</th>
-            <th style="text-align:center;padding:10px 14px;font-size:11px;font-weight:700;color:var(--text-light);text-transform:uppercase;letter-spacing:.4px;border-bottom:1px solid var(--card-border)">Status</th>
-            <th style="text-align:right;padding:10px 14px;font-size:11px;font-weight:700;color:var(--text-light);text-transform:uppercase;letter-spacing:.4px;border-bottom:1px solid var(--card-border)">Actions</th>
-        </tr></thead><tbody>`;
+    let html = `<table class="premium-student-table">
+        <thead>
+            <tr>
+                <th style="width: 25%;">Examination Details</th>
+                <th style="width: 20%;">Target Cohort</th>
+                <th style="width: 20%;">Schedule</th>
+                <th style="width: 15%; text-align: center;">Assessment Info</th>
+                <th style="width: 10%; text-align: center;">Status</th>
+                <th style="width: 10%; text-align: right;">Action</th>
+            </tr>
+        </thead>
+        <tbody>`;
 
     exams.forEach(ex => {
         const sb  = statusBadge[ex.status] || statusBadge.draft;
         const startDt = ex.start_at ? new Date(ex.start_at) : null;
         const endDt   = ex.end_at   ? new Date(ex.end_at)   : null;
-        const dateTxt = startDt ? startDt.toLocaleDateString('en-BD', {day:'2-digit', month:'short', year:'numeric'}) : '—';
-        const timeTxt = startDt ? startDt.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) + (endDt ? ' – ' + endDt.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) : '') : '';
-        html += `<tr style="border-bottom:1px solid var(--card-border);transition:background .12s" onmouseover="this.style.background='var(--bg)'" onmouseout="this.style.background=''">
-            <td style="padding:12px 14px">
-                <div style="font-weight:700;color:var(--text-dark);font-size:13px">${ex.title}</div>
-                <div style="font-size:11px;color:var(--text-light);margin-top:2px">${ex.question_mode === 'auto' ? '🤖 Auto questions' : '✍️ Manual'}</div>
+        const dateTxt = startDt ? startDt.toLocaleDateString('en-GB', {day:'2-digit', month:'short', year:'numeric'}) : '—';
+        const timeTxt = startDt ? startDt.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) + (endDt ? ' - ' + endDt.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) : '') : 'TBD';
+        
+        html += `<tr>
+            <td>
+                <div class="std-card">
+                    <div class="std-img initials" style="background: linear-gradient(135deg, #8141a5, #a855f7);">
+                        <i class="fa-solid fa-file-signature" style="font-size: 14px;"></i>
+                    </div>
+                    <div class="std-info">
+                        <div class="name">${ex.title}</div>
+                        <div class="id">
+                            ${ex.question_mode === 'auto' ? '<i class="fa-solid fa-microchip" style="font-size: 10px; margin-right: 4px;"></i> Dynamic Generation' : '<i class="fa-solid fa-pen-nib" style="font-size: 10px; margin-right: 4px;"></i> Manual Entry'}
+                        </div>
+                    </div>
+                </div>
             </td>
-            <td style="padding:12px 14px">
-                <div style="font-size:12.5px;font-weight:600;color:var(--text-dark)">${ex.batch_name || '—'}</div>
-                <div style="font-size:11px;color:var(--text-light)">${ex.course_name || ''}</div>
+            <td>
+                <div style="font-weight: 700; color: #1e293b; font-size: 13px;">${ex.batch_name || 'Generic Batch'}</div>
+                <div style="font-size: 11px; color: #94a3b8; margin-top: 2px;">${ex.course_name || 'Academic Course'}</div>
             </td>
-            <td style="padding:12px 14px">
-                <div style="font-size:12.5px;font-weight:600">${dateTxt}</div>
-                <div style="font-size:11px;color:var(--text-light)">${timeTxt}</div>
+            <td>
+                <div style="font-weight: 700; color: #1e293b; font-size: 13px;">${dateTxt}</div>
+                <div style="font-size: 11px; color: #64748b; margin-top: 2px;"><i class="fa-regular fa-clock" style="font-size: 10px;"></i> ${timeTxt}</div>
             </td>
-            <td style="padding:12px 14px;text-align:center;font-size:12.5px;font-weight:600">${ex.duration_minutes} min</td>
-            <td style="padding:12px 14px;text-align:center">
-                <div style="font-size:13px;font-weight:700">${ex.total_marks}</div>
-                ${ex.negative_mark > 0 ? `<div style="font-size:10.5px;color:var(--red)">-${ex.negative_mark}/wrong</div>` : ''}
+            <td style="text-align: center;">
+                <div style="font-weight: 800; font-size: 14px; color: #1e293b;">${ex.total_marks}</div>
+                <div style="font-size: 10px; color: #94a3b8; text-transform: uppercase; font-weight: 700;">Marks • ${ex.duration_minutes}m</div>
             </td>
-            <td style="padding:12px 14px;text-align:center">
-                <span style="font-size:10.5px;font-weight:700;background:${sb.bg};color:${sb.color};padding:4px 10px;border-radius:20px;display:inline-flex;align-items:center;gap:5px">
-                    <i class="fa-solid ${sb.icon}" style="font-size:9px"></i> ${sb.label}
+            <td style="text-align: center;">
+                <span class="badge" style="background: ${sb.bg}; color: ${sb.color}; font-weight: 700; font-size: 10px; gap: 4px; padding: 4px 10px; display: inline-flex; align-items: center;">
+                    <i class="fa-solid ${sb.icon}" style="font-size: 9px;"></i> ${sb.label}
                 </span>
             </td>
-            <td style="padding:12px 14px;text-align:right;white-space:nowrap">
-                <button onclick="window.renderEditExamForm(${ex.id})" style="width:30px;height:30px;border:none;background:var(--bg);border-radius:7px;cursor:pointer;color:var(--text-body);display:inline-flex;align-items:center;justify-content:center;margin-left:4px" title="Edit"><i class="fa-solid fa-pen" style="font-size:11px"></i></button>
-                <button onclick="window._deleteExam(${ex.id})" style="width:30px;height:30px;border:none;background:#fff0f0;border-radius:7px;cursor:pointer;color:var(--red);display:inline-flex;align-items:center;justify-content:center;margin-left:4px" title="Delete"><i class="fa-solid fa-trash" style="font-size:11px"></i></button>
+            <td style="text-align: right;">
+                <div class="d-flex justify-content-end gap-2">
+                    <button class="btn-icon-p" title="Edit Exam" onclick="window.renderEditExamForm(${ex.id})">
+                        <i class="fa-solid fa-pen-nib"></i>
+                    </button>
+                    <button class="btn-icon-p" style="color: #e11d48; border-color: #fecdd3;" title="Delete Exam" onclick="window._deleteExam(${ex.id})">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                </div>
             </td>
         </tr>`;
     });
 
-    html += `</tbody></table></div>
-    <div style="padding:12px 16px;font-size:11.5px;color:var(--text-light);border-top:1px solid var(--card-border)">${exams.length} exam${exams.length !== 1 ? 's' : ''} found</div>`;
+    html += `</tbody></table>`;
     c.innerHTML = html;
 }
 
@@ -167,168 +213,211 @@ function _renderExamTable(exams) {
 ───────────────────────────────────────────────────────────────── */
 window.renderCreateExamForm = async function() {
     const mc = document.getElementById('mainContent');
-    mc.innerHTML = `<div class="pg fu"><div class="pg-loading"><i class="fa-solid fa-circle-notch fa-spin"></i><span>Preparing form…</span></div></div>`;
+    mc.innerHTML = `<div class="pg fu"><div class="pg-loading"><i class="fa-solid fa-circle-notch fa-spin"></i><span>Preparing assessment form…</span></div></div>`;
 
     const { batches, courses } = await _loadExamDropdowns();
     const today = new Date().toISOString().slice(0, 10);
+    const isEdit = !!window._examEditId;
 
     mc.innerHTML = `<div class="pg fu">
-        <div class="bc"><a href="#" onclick="goNav('overview')">Dashboard</a> <span class="bc-sep">&rsaquo;</span> <a href="#" onclick="goNav('exams','schedule')">Examinations</a> <span class="bc-sep">&rsaquo;</span> <span class="bc-cur">${window._examEditId ? 'Edit Exam' : 'Create Exam'}</span></div>
+        <div class="bc">
+            <a href="#" onclick="goNav('overview')"><i class="fa-solid fa-home"></i></a> 
+            <span class="bc-sep">/</span> 
+            <a href="#" onclick="goNav('exams','schedule')">Assessments</a> 
+            <span class="bc-sep">/</span> 
+            <span class="bc-cur">${isEdit ? 'Edit Session' : 'New Session'}</span>
+        </div>
 
         <div class="pg-head">
             <div class="pg-left">
-                <div class="pg-ico" style="background:linear-gradient(135deg,#8141a5,#a855f7)"><i class="fa-solid fa-circle-plus"></i></div>
+                <div class="pg-ico" style="background: linear-gradient(135deg, #8141a5, #a855f7); color: #fff;">
+                    <i class="fa-solid fa-circle-plus"></i>
+                </div>
                 <div>
-                    <div class="pg-title" id="examFormTitle">${window._examEditId ? 'Edit Exam' : 'Create New Exam'}</div>
-                    <div class="pg-sub">${window._examEditId ? 'Update exam details and reschedule' : 'Schedule an exam or mock test for your students'}</div>
+                    <div class="pg-title" id="examFormTitle" style="font-size: clamp(1.2rem, 3vw, 1.5rem);">${isEdit ? 'Refine Examination' : 'Orchestrate Examination'}</div>
+                    <div class="pg-sub">${isEdit ? 'Adjust scheduling and assessment parameters' : 'Configure a new assessment session for your candidates'}</div>
                 </div>
             </div>
             <div class="pg-acts">
-                <button class="btn" style="background:var(--bg);color:var(--text-body);border:1px solid var(--card-border)" onclick="goNav('exams','schedule')"><i class="fa-solid fa-arrow-left"></i> Back</button>
+                <button class="btn bs" style="border-radius: 12px;" onclick="goNav('exams','schedule')">
+                    <i class="fa-solid fa-chevron-left"></i> Discard
+                </button>
             </div>
         </div>
 
         <form id="createExamForm" onsubmit="window._submitExamForm(event)" novalidate>
-            <div id="examFormErrors" style="display:none;background:#fee2e2;border:1px solid #fca5a5;border-radius:8px;padding:12px 16px;margin-bottom:16px;color:#b91c1c;font-size:12.5px;font-weight:600"></div>
+            <div id="examFormErrors" style="display:none; background: #fff1f2; border: 1px solid #fecdd3; border-radius: 16px; padding: 16px; margin-bottom: 25px; color: #e11d48; font-size: 13px; font-weight: 600;"></div>
 
-            <div style="display:grid;grid-template-columns:1fr 320px;gap:18px;align-items:start">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(clamp(300px, 100%, 450px), 1fr)); gap: clamp(15px, 3vw, 25px); align-items: start;">
 
-                <!-- ── LEFT COL ── -->
-                <div style="display:flex;flex-direction:column;gap:16px">
+                <!-- ── Primary Configuration ── -->
+                <div style="display: grid; gap: 20px;">
+                    
+                    <div class="card" style="padding: clamp(20px, 4vw, 30px); border-radius: 20px;">
+                        <div style="font-size: 14px; font-weight: 800; color: #1e293b; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                            <div style="width: 32px; height: 32px; border-radius: 8px; background: #f5f3ff; color: #8141a5; display: flex; align-items: center; justify-content: center;">
+                                <i class="fa-solid fa-info"></i>
+                            </div>
+                            Core Information
+                        </div>
 
-                    <!-- Basic Info -->
-                    <div class="card">
-                        <div class="card-header"><h4><i class="fa-solid fa-info-circle" style="color:#8141a5;margin-right:6px"></i>Exam Information</h4></div>
-                        <div class="card-body" style="display:flex;flex-direction:column;gap:14px;padding-top:14px">
-
-                            <div>
-                                <label style="font-size:11.5px;font-weight:700;color:var(--text-dark);display:block;margin-bottom:5px">Exam Title <span style="color:var(--red)">*</span></label>
-                                <input type="text" id="exTitle" placeholder="e.g. First Terminal Examination 2081" maxlength="255" required
-                                    style="width:100%;padding:9px 12px;border:1.5px solid var(--card-border);border-radius:8px;font-family:var(--font);font-size:13px;outline:none;box-sizing:border-box"
-                                    oninput="window._updateExamPreview()" onfocus="this.style.borderColor='#8141a5'" onblur="this.style.borderColor='var(--card-border)'">
+                        <div style="display: grid; gap: 20px;">
+                            <div class="form-group">
+                                <label style="display: block; font-size: 12px; font-weight: 700; color: #64748b; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.025em;">Exam Identity <span style="color: #e11d48;">*</span></label>
+                                <input type="text" id="exTitle" placeholder="e.g. Annual Assessment 2026" maxlength="255" required
+                                    style="border-radius: 12px; padding: 12px 16px; height: 48px;"
+                                    oninput="window._updateExamPreview()">
                             </div>
 
-                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-                                <div>
-                                    <label style="font-size:11.5px;font-weight:700;color:var(--text-dark);display:block;margin-bottom:5px">Batch <span style="color:var(--red)">*</span></label>
-                                    <select id="exBatch" required style="width:100%;padding:9px 12px;border:1.5px solid var(--card-border);border-radius:8px;font-family:var(--font);font-size:12.5px;outline:none;box-sizing:border-box" onchange="window._updateExamPreview()" onfocus="this.style.borderColor='#8141a5'" onblur="this.style.borderColor='var(--card-border)'">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                                <div style="margin-bottom: 15px;">
+                                    <label style="display: block; font-size: 12px; font-weight: 700; color: #64748b; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.025em;">Cohort / Batch <span style="color: #e11d48;">*</span></label>
+                                    <select id="exBatch" required style="border-radius: 12px; height: 48px; padding: 0 16px;" onchange="window._updateExamPreview()">
                                         ${_batchOpts(batches)}
                                     </select>
                                 </div>
-                                <div>
-                                    <label style="font-size:11.5px;font-weight:700;color:var(--text-dark);display:block;margin-bottom:5px">Course <span style="color:var(--red)">*</span></label>
-                                    <select id="exCourse" required style="width:100%;padding:9px 12px;border:1.5px solid var(--card-border);border-radius:8px;font-family:var(--font);font-size:12.5px;outline:none;box-sizing:border-box" onfocus="this.style.borderColor='#8141a5'" onblur="this.style.borderColor='var(--card-border)'">
+                                <div style="margin-bottom: 15px;">
+                                    <label style="display: block; font-size: 12px; font-weight: 700; color: #64748b; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.025em;">Subject / Course <span style="color: #e11d48;">*</span></label>
+                                    <select id="exCourse" required style="border-radius: 12px; height: 48px; padding: 0 16px;">
                                         ${_courseOpts(courses)}
                                     </select>
                                 </div>
                             </div>
 
-                            <div>
-                                <label style="font-size:11.5px;font-weight:700;color:var(--text-dark);display:block;margin-bottom:5px">Question Mode</label>
-                                <div style="display:flex;gap:10px">
-                                    <label style="flex:1;border:1.5px solid var(--card-border);border-radius:8px;padding:10px 14px;cursor:pointer;display:flex;align-items:center;gap:8px;font-size:12.5px;transition:all .15s" id="qmManualLbl">
-                                        <input type="radio" name="exQMode" value="manual" checked onchange="window._toggleQMode('manual')"> ✍️ <strong>Manual</strong><span style="color:var(--text-light);font-size:11px;margin-left:4px">— enter questions yourself</span>
+                            <div style="margin-bottom: 20px;">
+                                <label style="display: block; font-size: 12px; font-weight: 700; color: #64748b; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.025em;">Question Logistics</label>
+                                <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                                    <label style="flex: 1; min-width: 140px; border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 15px; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: all 0.2s; position: relative;" id="qmManualLbl">
+                                        <input type="radio" name="exQMode" value="manual" checked onchange="window._toggleQMode('manual')" style="position: absolute; opacity: 0; pointer-events: none;">
+                                        <div style="display: flex; align-items: center; gap: 10px;">
+                                            <i class="fa-solid fa-pen-nib" style="font-size: 14px;"></i>
+                                            <div style="font-size: 13px; font-weight: 700;">Manual Entry</div>
+                                        </div>
                                     </label>
-                                    <label style="flex:1;border:1.5px solid var(--card-border);border-radius:8px;padding:10px 14px;cursor:pointer;display:flex;align-items:center;gap:8px;font-size:12.5px;transition:all .15s" id="qmAutoLbl">
-                                        <input type="radio" name="exQMode" value="auto" onchange="window._toggleQMode('auto')"> 🤖 <strong>Auto</strong><span style="color:var(--text-light);font-size:11px;margin-left:4px">— from question bank</span>
+                                    <label style="flex: 1; min-width: 140px; border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 15px; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: all 0.2s; position: relative;" id="qmAutoLbl">
+                                        <input type="radio" name="exQMode" value="auto" onchange="window._toggleQMode('auto')" style="position: absolute; opacity: 0; pointer-events: none;">
+                                        <div style="display: flex; align-items: center; gap: 10px;">
+                                            <i class="fa-solid fa-microchip" style="font-size: 14px;"></i>
+                                            <div style="font-size: 13px; font-weight: 700;">Dynamic Pool</div>
+                                        </div>
                                     </label>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Schedule -->
-                    <div class="card">
-                        <div class="card-header"><h4><i class="fa-solid fa-calendar-days" style="color:var(--green);margin-right:6px"></i>Date &amp; Time <span style="font-size:11px;font-weight:400;color:var(--text-light)">(all fields required)</span></h4></div>
-                        <div class="card-body" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;padding-top:14px">
-                            <div>
-                                <label style="font-size:11.5px;font-weight:700;color:var(--text-dark);display:block;margin-bottom:5px">Exam Date <span style="color:var(--red)">*</span></label>
-                                <input type="date" id="exDate" required min="${today}"
-                                    style="width:100%;padding:9px 12px;border:1.5px solid var(--card-border);border-radius:8px;font-family:var(--font);font-size:12.5px;outline:none;box-sizing:border-box"
-                                    oninput="window._updateExamPreview()" onfocus="this.style.borderColor='#8141a5'" onblur="this.style.borderColor='var(--card-border)'">
+                    <div class="card" style="padding: clamp(20px, 4vw, 30px); border-radius: 20px;">
+                        <div style="font-size: 14px; font-weight: 800; color: #1e293b; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                            <div style="width: 32px; height: 32px; border-radius: 8px; background: #ecfdf5; color: #10b981; display: flex; align-items: center; justify-content: center;">
+                                <i class="fa-solid fa-clock"></i>
                             </div>
-                            <div>
-                                <label style="font-size:11.5px;font-weight:700;color:var(--text-dark);display:block;margin-bottom:5px">Start Time <span style="color:var(--red)">*</span></label>
-                                <input type="time" id="exStartTime" required
-                                    style="width:100%;padding:9px 12px;border:1.5px solid var(--card-border);border-radius:8px;font-family:var(--font);font-size:12.5px;outline:none;box-sizing:border-box"
-                                    onfocus="this.style.borderColor='#8141a5'" onblur="this.style.borderColor='var(--card-border)'">
+                            Scheduling
+                        </div>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 15px;">
+                            <div style="margin-bottom: 15px;">
+                                <label style="display: block; font-size: 12px; font-weight: 700; color: #64748b; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.025em;">Exam Date <span style="color: #e11d48;">*</span></label>
+                                <input type="date" id="exDate" required min="${today}" style="border-radius: 12px; height: 48px; padding: 0 16px;" oninput="window._updateExamPreview()">
                             </div>
-                            <div>
-                                <label style="font-size:11.5px;font-weight:700;color:var(--text-dark);display:block;margin-bottom:5px">End Time <span style="color:var(--red)">*</span></label>
-                                <input type="time" id="exEndTime" required
-                                    style="width:100%;padding:9px 12px;border:1.5px solid var(--card-border);border-radius:8px;font-family:var(--font);font-size:12.5px;outline:none;box-sizing:border-box"
-                                    onfocus="this.style.borderColor='#8141a5'" onblur="this.style.borderColor='var(--card-border)'">
+                            <div style="margin-bottom: 15px;">
+                                <label style="display: block; font-size: 12px; font-weight: 700; color: #64748b; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.025em;">Start Time <span style="color: #e11d48;">*</span></label>
+                                <input type="time" id="exStartTime" required style="border-radius: 12px; height: 48px; padding: 0 16px;">
+                            </div>
+                            <div style="margin-bottom: 15px;">
+                                <label style="display: block; font-size: 12px; font-weight: 700; color: #64748b; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.025em;">End Time <span style="color: #e11d48;">*</span></label>
+                                <input type="time" id="exEndTime" required style="border-radius: 12px; height: 48px; padding: 0 16px;">
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- ── RIGHT COL ── -->
-                <div style="display:flex;flex-direction:column;gap:16px">
-
-                    <!-- Marks -->
-                    <div class="card">
-                        <div class="card-header"><h4><i class="fa-solid fa-star" style="color:#f59e0b;margin-right:6px"></i>Marks &amp; Duration</h4></div>
-                        <div class="card-body" style="display:flex;flex-direction:column;gap:12px;padding-top:14px">
-                            <div>
-                                <label style="font-size:11.5px;font-weight:700;color:var(--text-dark);display:block;margin-bottom:5px">Total Marks <span style="color:var(--red)">*</span></label>
-                                <input type="number" id="exTotalMarks" placeholder="100" min="1" max="9999" required
-                                    style="width:100%;padding:9px 12px;border:1.5px solid var(--card-border);border-radius:8px;font-family:var(--font);font-size:13px;font-weight:700;outline:none;box-sizing:border-box"
-                                    oninput="window._updateExamPreview()" onfocus="this.style.borderColor='#8141a5'" onblur="this.style.borderColor='var(--card-border)'">
+                <!-- ── Secondary Parameters & Preview ── -->
+                <div style="display: grid; gap: 20px;">
+                    
+                    <div class="card" style="padding: clamp(20px, 4vw, 30px); border-radius: 20px;">
+                        <div style="font-size: 14px; font-weight: 800; color: #1e293b; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                            <div style="width: 32px; height: 32px; border-radius: 8px; background: #fffbeb; color: #f59e0b; display: flex; align-items: center; justify-content: center;">
+                                <i class="fa-solid fa-award"></i>
                             </div>
-                            <div>
-                                <label style="font-size:11.5px;font-weight:700;color:var(--text-dark);display:block;margin-bottom:5px">Duration <span style="color:var(--red)">*</span> <span style="font-weight:400;color:var(--text-light)">(minutes)</span></label>
-                                <input type="number" id="exDuration" placeholder="180" min="1" max="600" required
-                                    style="width:100%;padding:9px 12px;border:1.5px solid var(--card-border);border-radius:8px;font-family:var(--font);font-size:13px;font-weight:700;outline:none;box-sizing:border-box"
-                                    onfocus="this.style.borderColor='#8141a5'" onblur="this.style.borderColor='var(--card-border)'">
-                            </div>
-                            <div style="padding:10px 12px;background:var(--bg);border-radius:8px;border:1px solid var(--card-border)">
-                                <div style="font-size:10.5px;font-weight:700;color:var(--text-light);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">Negative Marking</div>
-                                <div style="display:flex;align-items:center;gap:8px">
-                                    <input type="number" id="exNegMark" placeholder="0.00" min="0" max="10" step="0.25"
-                                        style="flex:1;padding:7px 10px;border:1.5px solid var(--card-border);border-radius:7px;font-family:var(--font);font-size:12.5px;outline:none"
-                                        onfocus="this.style.borderColor='#8141a5'" onblur="this.style.borderColor='var(--card-border)'">
-                                    <span style="font-size:11.5px;color:var(--text-light)">marks per wrong ans</span>
+                            Grading & Logic
+                        </div>
+                        
+                        <div style="display: grid; gap: 20px;">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                                <div style="margin-bottom: 15px;">
+                                    <label style="display: block; font-size: 12px; font-weight: 700; color: #64748b; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.025em;">Max Marks <span style="color: #e11d48;">*</span></label>
+                                    <input type="number" id="exTotalMarks" placeholder="100" min="1" max="9999" required
+                                        style="border-radius: 12px; height: 48px; padding: 0 16px; font-weight: 700;"
+                                        oninput="window._updateExamPreview()">
                                 </div>
-                                <div style="font-size:10.5px;color:var(--text-light);margin-top:4px">Set 0 for no negative marking</div>
+                                <div style="margin-bottom: 15px;">
+                                    <label style="display: block; font-size: 12px; font-weight: 700; color: #64748b; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.025em;">Limit (Min) <span style="color: #e11d48;">*</span></label>
+                                    <input type="number" id="exDuration" placeholder="180" min="1" max="600" required
+                                        style="border-radius: 12px; height: 48px; padding: 0 16px; font-weight: 700;">
+                                </div>
+                            </div>
+
+                            <div style="padding: 15px; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 16px;">
+                                <div style="font-size: 11px; font-weight: 900; color: #64748b; text-transform: uppercase; margin-bottom: 10px;">Negative Scoring</div>
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <input type="number" id="exNegMark" placeholder="0.00" min="0" max="10" step="0.25"
+                                        style="width: 80px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 10px; font-weight: 700; text-align: center;">
+                                    <div style="font-size: 12px; color: #64748b;">Deducted per wrong response</div>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Live Preview -->
-                    <div class="card" style="background:linear-gradient(135deg,#0f172a,#1e1b4b);border:none;overflow:hidden;position:relative">
-                        <div style="position:absolute;top:-20px;right:-20px;width:80px;height:80px;background:rgba(129,65,165,.15);border-radius:50%"></div>
-                        <div class="card-body" style="position:relative;z-index:1">
-                            <div style="font-size:9.5px;font-weight:800;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px">Live Preview</div>
-                            <div id="prevTitle" style="font-size:14px;font-weight:800;color:#fff;margin-bottom:10px;min-height:20px">Exam Title</div>
-                            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">
-                                <span id="prevDate" style="font-size:10.5px;font-weight:600;background:rgba(0,184,148,.15);color:#6ee7b7;padding:3px 9px;border-radius:20px">Date</span>
-                                <span id="prevMarks" style="font-size:10.5px;font-weight:600;background:rgba(245,158,11,.15);color:#fcd34d;padding:3px 9px;border-radius:20px">Marks</span>
+                    <!-- Enhanced Real-time Preview -->
+                    <div class="card" style="background: linear-gradient(135deg, #0f172a, #1e1b4b); border: none; overflow: hidden; position: relative; color: #fff; padding: 25px; border-radius: 20px;">
+                        <div style="position: absolute; top: -10px; right: -10px; font-size: 80px; opacity: 0.05;"><i class="fa-solid fa-file-invoice"></i></div>
+                        <div style="position: relative; z-index: 1;">
+                            <div style="font-size: 10px; font-weight: 900; color: #6366f1; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 12px;">Candidate Portal Preview</div>
+                            <div id="prevTitle" style="font-size: 18px; font-weight: 800; margin-bottom: 15px; min-height: 25px;">Exam Session</div>
+                            
+                            <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px;">
+                                <div style="background: rgba(16, 185, 129, 0.1); color: #10b981; padding: 5px 12px; border-radius: 10px; font-size: 11px; font-weight: 700; border: 1px solid rgba(16, 185, 129, 0.2);" id="prevDate">Date</div>
+                                <div style="background: rgba(245, 158, 11, 0.1); color: #f59e0b; padding: 5px 12px; border-radius: 10px; font-size: 11px; font-weight: 700; border: 1px solid rgba(245, 158, 11, 0.2);" id="prevMarks">— Marks</div>
                             </div>
-                            <div id="prevBatch" style="font-size:11px;color:rgba(255,255,255,.35)"></div>
+
+                            <div id="prevBatch" style="font-size: 12px; color: #94a3b8; display: flex; align-items: center; gap: 6px;">
+                                <i class="fa-solid fa-users" style="font-size: 10px;"></i> <span>Select a batch</span>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Submit -->
-                    <button type="submit" id="examSubmitBtn" class="btn bt" style="width:100%;padding:12px;font-size:13px;justify-content:center">
-                        <i class="fa-solid fa-calendar-plus"></i> ${window._examEditId ? 'Update Exam' : 'Schedule Exam'}
-                    </button>
-                    <button type="button" onclick="goNav('exams','schedule')" style="width:100%;padding:9px;background:none;border:1px solid var(--card-border);border-radius:8px;cursor:pointer;font-family:var(--font);font-size:12.5px;color:var(--text-body);transition:all .12s" onmouseover="this.style.background='var(--bg)'" onmouseout="this.style.background='none'">
-                        Cancel
-                    </button>
+                    <div style="display: grid; gap: 12px; margin-top: 10px;">
+                        <button type="submit" id="examSubmitBtn" class="btn bt" style="width: 100%; height: 50px; font-size: 14px; font-weight: 800; border-radius: 14px; background: linear-gradient(135deg, #8141a5, #a855f7); color: #fff; box-shadow: 0 10px 20px rgba(129, 65, 165, 0.2);">
+                            <i class="fa-solid fa-calendar-check"></i> ${isEdit ? 'Finalize Changes' : 'Execute Schedule'}
+                        </button>
+                    </div>
                 </div>
             </div>
         </form>
     </div>`;
 
     window._updateExamPreview();
+    window._toggleQMode('manual');
 };
 
 window._toggleQMode = function(mode) {
     const ml = document.getElementById('qmManualLbl');
     const al = document.getElementById('qmAutoLbl');
-    if (ml) ml.style.borderColor = mode === 'manual' ? '#8141a5' : 'var(--card-border)';
-    if (al) al.style.borderColor = mode === 'auto'   ? '#8141a5' : 'var(--card-border)';
+    const accent = '#a855f7';
+    const border = '#e2e8f0';
+    const tint = '#f5f3ff';
+
+    if (ml) {
+        ml.style.borderColor = mode === 'manual' ? accent : border;
+        ml.style.background = mode === 'manual' ? tint : '#fff';
+        const ico = ml.querySelector('i');
+        if (ico) ico.style.color = mode === 'manual' ? accent : '#64748b';
+    }
+    if (al) {
+        al.style.borderColor = mode === 'auto' ? accent : border;
+        al.style.background = mode === 'auto' ? tint : '#fff';
+        const ico = al.querySelector('i');
+        if (ico) ico.style.color = mode === 'auto' ? accent : '#64748b';
+    }
 };
 
 window._updateExamPreview = function() {
@@ -342,7 +431,13 @@ window._updateExamPreview = function() {
     set('prevTitle', title);
     set('prevDate',  date);
     set('prevMarks', marks !== '—' ? marks + ' Marks' : '—');
-    set('prevBatch', batch && !batch.includes('Select') ? '📚 ' + batch : '');
+    
+    const pBatch = document.getElementById('prevBatch');
+    if (pBatch) {
+        pBatch.innerHTML = batch && !batch.includes('Select') 
+            ? `<i class="fa-solid fa-graduation-cap" style="font-size: 10px;"></i> <span>${batch}</span>` 
+            : `<i class="fa-solid fa-users" style="font-size: 10px;"></i> <span>Select a batch</span>`;
+    }
 };
 
 /* ─────────────────────────────────────────────────────────────────

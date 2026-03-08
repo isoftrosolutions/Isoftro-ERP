@@ -59,7 +59,7 @@ while ($iteration < $maxIterations) {
             
             $queueService->updateStatus($jobId, 'completed');
             echo "Done.";
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
 
             $queueService->updateStatus($jobId, 'failed', $e->getMessage());
             echo "Failed: " . $e->getMessage();
@@ -152,15 +152,17 @@ function processEmailReceipt($db, $tenantId, $payload) {
     }
 
     if ($pdfPath && file_exists($pdfPath)) {
-        $sent = MailHelper::sendPaymentReceiptEmail(
-            $db, $tenantId, $txn['email'], $txn['name'], 
-            $txn['receipt_number'], $pdfPath, null, $txn['amount']
-        );
+        $receiptData = array_merge($txn, [
+            'receipt_no' => $txn['receipt_number'],
+            'student_name' => $txn['name'],
+            'paid_date' => date('Y-m-d', strtotime($txn['payment_date'] ?? 'now')),
+            'payment_mode' => $txn['payment_method'] ?? 'Online',
+            'transaction_id' => $txn['id']
+        ]);
 
-        if ($sent) {
-            $stmt = $db->prepare("INSERT INTO mail_logs (tenant_id, recipient, subject, status) VALUES (?, ?, ?, 'sent')");
-            $stmt->execute([$tenantId, $txn['email'], "Payment Receipt - " . $txn['receipt_number']]);
-        }
+        $sent = MailHelper::sendPaymentReceiptEmail(
+            $db, $tenantId, $receiptData, $pdfPath
+        );
     }
 }
 

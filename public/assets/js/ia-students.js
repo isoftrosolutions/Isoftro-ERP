@@ -302,21 +302,23 @@ window.renderStudentList = async () => {
   </div>
 
   <div class="tw premium-tw">
-    <table id="studentsTable">
-      <thead>
-        <tr>
-          <th style="width:48px; text-align:center;">
-             <div class="cb-wrap"><input type="checkbox" id="masterCheck" onchange="window.toggleMasterCheck(this.checked)"/></div>
-          </th>
-          <th class="sortable" onclick="loadStudents()">STUDENT</th>
-          <th class="sortable" onclick="loadStudents()">BATCH &amp; COURSE</th>
-          <th>PHONE</th>
-          <th class="sortable" onclick="loadStudents()">FEE STATUS</th>
-          <th style="text-align:right;">ACTIONS</th>
-        </tr>
-      </thead>
-      <tbody id="studentsBody"></tbody>
-    </table>
+    <div class="table-responsive">
+      <table id="studentsTable" class="table premium-student-table">
+        <thead>
+          <tr>
+            <th style="width:48px; text-align:center;">
+               <div class="cb-wrap"><input type="checkbox" id="masterCheck" onchange="window.toggleMasterCheck(this.checked)"/></div>
+            </th>
+            <th class="sortable" onclick="loadStudents()">STUDENT</th>
+            <th class="sortable" onclick="loadStudents()">BATCH &amp; COURSE</th>
+            <th>PHONE</th>
+            <th class="sortable" onclick="loadStudents()">FEE STATUS</th>
+            <th style="text-align:right;">ACTIONS</th>
+          </tr>
+        </thead>
+        <tbody id="studentsBody"></tbody>
+      </table>
+    </div>
 
     <div class="empty-state" id="emptyState" style="display:none">
       <div class="empty-ico"><i class="fa-solid fa-magnifying-glass"></i></div>
@@ -351,48 +353,50 @@ window.renderAlumniList = async () => {
 
   <div class="pg-head">
     <div class="pg-left">
-      <div class="pg-ico"><i class="fa-solid fa-user-graduate"></i></div>
+      <div class="pg-ico" style="background: linear-gradient(135deg, #6366f1, #a855f7); color: #fff;">
+        <i class="fa-solid fa-user-graduate"></i>
+      </div>
       <div>
-        <div class="pg-title">Alumni Records</div>
-        <div class="pg-sub">View and manage passed out students</div>
+        <div class="pg-title" style="font-size: clamp(1.2rem, 3vw, 1.5rem);">Alumni Directory</div>
+        <div class="pg-sub">Historical records of graduated students</div>
       </div>
     </div>
     <div class="pg-acts">
-      <button class="btn bs" onclick="exportAlumniCSV()"><i class="fa-solid fa-download"></i> Export CSV</button>
-      <button class="btn bt" onclick="goNav('students', 'add')"><i class="fa-solid fa-user-plus"></i> Add Student</button>
+      <button class="btn bs" onclick="exportAlumniCSV()"><i class="fa-solid fa-file-export"></i> <span>Export</span></button>
+      <button class="btn bt" onclick="goNav('students', 'add')"><i class="fa-solid fa-plus"></i> <span>New Student</span></button>
     </div>
   </div>
 
-  <div class="toolbar">
+  <div class="toolbar" style="padding: clamp(10px, 2vw, 15px);">
     <div class="search-wrap">
-      <i class="fa-solid fa-search"></i>
-      <input type="text" id="searchInput" placeholder="Search by name or roll number…" oninput="filterAlumni()"/>
+      <i class="fa-solid fa-magnifying-glass"></i>
+      <input type="text" id="searchInput" placeholder="Search alumni records…" oninput="filterAlumni()"/>
     </div>
-    <div style="font-size:12px;color:var(--tl);white-space:nowrap" id="rowCount">Loading...</div>
+    <div class="row-count-badge" id="rowCount">0 Alumni</div>
   </div>
 
-  <div class="tw">
-    <table id="alumniTable">
+  <div class="premium-tw table-responsive">
+    <table class="premium-student-table" id="alumniTable">
       <thead>
         <tr>
-          <th class="sortable">Student</th>
-          <th class="sortable">Batch &amp; Course</th>
-          <th>Phone</th>
-          <th>Passout Date</th>
-          <th>Current Status</th>
-          <th style="text-align:right; text-transform:uppercase; font-size:10px;">Actions</th>
+          <th style="width: 30%;">Student Profile</th>
+          <th style="width: 25%;">Batch & Course</th>
+          <th style="width: 15%;">Contact</th>
+          <th style="width: 15%;">Graduation</th>
+          <th style="width: 15%; text-align: right;">Action</th>
         </tr>
       </thead>
       <tbody id="alumniBody"></tbody>
     </table>
 
-    <div class="empty-state" id="emptyState" style="display:none">
-      <i class="fa-solid fa-user-graduate"></i>
-      <p>No alumni records found.</p>
+    <div class="empty-state-premium" id="emptyState" style="display:none">
+       <div class="empty-ico"><i class="fa-solid fa-graduation-cap"></i></div>
+       <h4>No Alumni Records</h4>
+       <p>No students have been marked as alumni yet.</p>
     </div>
 
-    <div class="pagination" id="paginationBar">
-      <div class="pag-info" id="pagInfo"></div>
+    <div class="pagination-premium" id="paginationBar">
+      <div id="pagInfo"></div>
       <div class="pag-btns" id="pagBtns"></div>
     </div>
   </div>
@@ -454,30 +458,44 @@ window.loadAlumni = async (page) => {
         tbody.innerHTML = students.map(s => {
             const safeName = (s.full_name || '').replace(/'/g, "\\'");
             const photoUrl = s.photo_url || '';
+            const initials = (s.full_name || 'S').charAt(0).toUpperCase();
             const photoHtml = photoUrl 
-                ? `<img src="${photoUrl}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;">`
-                : `<div style="width:36px;height:36px;border-radius:50%;background:var(--brand);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600;">${(s.full_name || 'S').charAt(0).toUpperCase()}</div>`;
+                ? `<img src="${photoUrl}" class="std-img" alt="${safeName}">`
+                : `<div class="std-img initials">${initials}</div>`;
             
             return `
                 <tr>
                     <td>
-                        <div style="display:flex;align-items:center;gap:10px;">
+                        <div class="std-card">
                             ${photoHtml}
-                            <div>
-                                <div style="font-weight:600">${s.full_name || '-'}</div>
-                                <div style="font-size:11px;color:var(--tl)">${s.roll_no || s.student_id || '-'}</div>
+                            <div class="std-info">
+                                <div class="name">${s.full_name || '-'}</div>
+                                <div class="id">ID: ${s.student_id || s.roll_no || '-'}</div>
                             </div>
                         </div>
                     </td>
                     <td>
-                        <div style="font-weight:500">${s.batch_name || '-'}</div>
-                        <div style="font-size:11px;color:var(--tl)">${s.course_name || '-'}</div>
+                        <div class="premium-batch-box">
+                            <div class="batch-name">${s.batch_name || '-'}</div>
+                            <div class="course-tag">${s.course_name || '-'}</div>
+                        </div>
                     </td>
-                    <td>${s.phone || '-'}</td>
-                    <td>${s.passout_date || s.updated_at ? new Date(s.updated_at).toLocaleDateString() : '-'}</td>
-                    <td><span class="tag bg-y">Alumni</span></td>
+                    <td>
+                        <div style="font-size: 13px; font-weight: 600; color: #1e293b;">${s.phone || '-'}</div>
+                        <div style="font-size: 11px; color: #64748b;">${s.email || '-'}</div>
+                    </td>
+                    <td>
+                        <div style="font-size: 13px; font-weight: 700; color: #0f172a;">
+                            ${s.passout_date || (s.updated_at ? new Date(s.updated_at).toLocaleDateString() : '-')}
+                        </div>
+                        <span class="badge" style="background: #ecfdf5; color: #059669; font-size: 10px; padding: 2px 8px; border-radius: 12px; font-weight: 700;">GRADUATED</span>
+                    </td>
                     <td style="text-align:right">
-                        <button class="btn ic" onclick="goNav('students', 'view', ${s.id})" title="View Profile"><i class="fa-solid fa-eye"></i></button>
+                        <div class="d-flex justify-content-end gap-2">
+                            <button class="btn-icon-p" onclick="goNav('students', 'view', ${s.id})" title="View Profile">
+                                <i class="fa-solid fa-arrow-right"></i>
+                            </button>
+                        </div>
                     </td>
                 </tr>
             `;
@@ -788,25 +806,25 @@ window.renderEditStudentForm = async (id) => {
                 </div>
             </div>
 
-            <div class="card fu" style="max-width:1200px; margin:0 auto; padding:30px;">
+            <div class="card fu" style="max-width:1200px; margin:0 auto; padding:clamp(15px, 3vw, 30px);">
                 <form id="studentEditForm" enctype="multipart/form-data">
                     <input type="hidden" name="id" id="edit_std_id" value="${id}">
                     <input type="hidden" name="registration_status" id="edit_reg_status" value="">
                     
                     <!-- Photo & Basic Info Section -->
-                    <div style="display:flex; gap:30px; margin-bottom:30px; align-items:flex-start; padding-bottom:30px; border-bottom:1px solid #e2e8f0;">
-                        <div style="flex-shrink:0; text-align:center;">
-                            <div id="imagePreviewContainer" style="width:140px; height:140px; border-radius:15px; background:#f1f5f9; border:2px dashed #cbd5e1; display:flex; align-items:center; justify-content:center; overflow:hidden; position:relative; margin-bottom:12px;">
+                    <div style="display:flex; flex-wrap:wrap; gap:clamp(15px, 3vw, 30px); margin-bottom:clamp(20px, 4dvh, 30px); align-items:flex-start; padding-bottom:30px; border-bottom:1px solid #e2e8f0;">
+                        <div style="flex-shrink:0; text-align:center; width: clamp(140px, 100%, 160px); margin: 0 auto;">
+                            <div id="imagePreviewContainer" style="width:clamp(120px, 100%, 140px); height:clamp(120px, 100%, 140px); border-radius:15px; background:#f1f5f9; border:2px dashed #cbd5e1; display:flex; align-items:center; justify-content:center; overflow:hidden; position:relative; margin-bottom:12px; margin: 0 auto 12px;">
                                 <i class="fa-solid fa-user" id="stdImgIcon" style="font-size:3rem; color:#94a3b8;"></i>
                                 <img id="stdImgPreview" src="" style="width:100%; height:100%; object-fit:cover; display:none;">
                             </div>
-                            <label class="btn bs" style="cursor:pointer; font-size:12px; padding:6px 12px;">
+                            <label class="btn bs" style="cursor:pointer; font-size:12px; padding:6px 12px; width:100%;">
                                 <i class="fa-solid fa-camera"></i> Change Photo
                                 <input type="file" name="profile_image" id="stdImgInput" accept="image/*" style="display:none;" onchange="window._previewStdImage(this)">
                             </label>
                         </div>
-                        <div style="flex-grow:1;">
-                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+                        <div style="flex: 1; min-width: clamp(280px, 100%, 600px);">
+                            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(clamp(200px, 100%, 250px), 1fr)); gap:clamp(10px, 2vw, 20px);">
                                 <div class="form-group">
                                     <label class="form-label">Full Name *</label>
                                     <input type="text" name="full_name" id="edit_std_name" class="form-control" required>
@@ -839,10 +857,10 @@ window.renderEditStudentForm = async (id) => {
 
                     <!-- Personal Information Section -->
                     <div style="margin-bottom:30px;">
-                        <h3 style="font-size:1.1rem; font-weight:600; margin-bottom:20px; color:#0f172a; display:flex; align-items:center; gap:8px;">
+                        <h3 style="font-size:clamp(0.9rem, 2vw, 1.1rem); font-weight:600; margin-bottom:20px; color:#0f172a; display:flex; align-items:center; gap:8px;">
                             <i class="fa-solid fa-user-circle" style="color:#009E7E;"></i> Personal Information
                         </h3>
-                        <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:20px;">
+                        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(clamp(150px, 100%, 250px), 1fr)); gap:clamp(10px, 2vw, 20px);">
                             <div class="form-group">
                                 <label class="form-label">Father's Name</label>
                                 <input type="text" name="father_name" id="edit_father_name" class="form-control">
@@ -909,10 +927,10 @@ window.renderEditStudentForm = async (id) => {
 
                     <!-- Permanent Address Section -->
                     <div style="margin-bottom:30px;">
-                        <h3 style="font-size:1.1rem; font-weight:600; margin-bottom:20px; color:#0f172a; display:flex; align-items:center; gap:8px;">
+                        <h3 style="font-size:clamp(0.9rem, 2vw, 1.1rem); font-weight:600; margin-bottom:20px; color:#0f172a; display:flex; align-items:center; gap:8px;">
                             <i class="fa-solid fa-home" style="color:#009E7E;"></i> Permanent Address
                         </h3>
-                        <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:20px;">
+                        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(clamp(150px, 100%, 250px), 1fr)); gap:clamp(10px, 2vw, 20px);">
                             <div class="form-group">
                                 <label class="form-label">Province</label>
                                 <select name="permanent_province" id="edit_permanent_province" class="form-control" onchange="window._updateDistrictSelect(this.value, 'edit_permanent_district')">
@@ -938,10 +956,10 @@ window.renderEditStudentForm = async (id) => {
 
                     <!-- Temporary Address Section -->
                     <div style="margin-bottom:30px;">
-                        <h3 style="font-size:1.1rem; font-weight:600; margin-bottom:20px; color:#0f172a; display:flex; align-items:center; gap:8px;">
+                        <h3 style="font-size:clamp(0.9rem, 2vw, 1.1rem); font-weight:600; margin-bottom:20px; color:#0f172a; display:flex; align-items:center; gap:8px;">
                             <i class="fa-solid fa-location-arrow" style="color:#009E7E;"></i> Temporary Address
                         </h3>
-                        <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:20px;">
+                        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(clamp(150px, 100%, 250px), 1fr)); gap:clamp(10px, 2vw, 20px);">
                             <div class="form-group">
                                 <label class="form-label">Province</label>
                                 <select name="temporary_province" id="edit_temporary_province" class="form-control" onchange="window._updateDistrictSelect(this.value, 'edit_temporary_district')">
@@ -967,10 +985,10 @@ window.renderEditStudentForm = async (id) => {
 
                     <!-- Academic Selection Section -->
                     <div style="margin-bottom:30px;">
-                        <h3 style="font-size:1.1rem; font-weight:600; margin-bottom:20px; color:#0f172a; display:flex; align-items:center; gap:8px;">
+                        <h3 style="font-size:clamp(0.9rem, 2vw, 1.1rem); font-weight:600; margin-bottom:20px; color:#0f172a; display:flex; align-items:center; gap:8px;">
                             <i class="fa-solid fa-graduation-cap" style="color:#009E7E;"></i> Academic Selection
                         </h3>
-                        <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:20px;">
+                        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(clamp(150px, 100%, 250px), 1fr)); gap:clamp(10px, 2vw, 20px);">
                             <div class="form-group">
                                 <label class="form-label">Course *</label>
                                 <select name="course_id" id="edit_std_course" class="form-control" required onchange="window._loadBatchesForForm(this.value, 'edit_std_batch')">
@@ -1003,9 +1021,9 @@ window.renderEditStudentForm = async (id) => {
                         </button>
                     </div>
 
-                    <div style="margin-top:40px; display:flex; gap:10px; justify-content:flex-end;">
-                        <button type="button" class="btn bs" onclick="goNav('students')">Cancel</button>
-                        <button type="submit" class="btn bt">Save Changes</button>
+                    <div style="margin-top:clamp(20px, 4vw, 40px); display:flex; flex-wrap:wrap; gap:10px; justify-content:flex-end;">
+                        <button type="button" class="btn bs" style="flex:clamp(1, 1, 1);" onclick="goNav('students')">Cancel</button>
+                        <button type="submit" class="btn bt" style="flex:clamp(1, 1, 1);">Save Changes</button>
                     </div>
                 </form>
             </div>
@@ -1512,20 +1530,20 @@ window.loadStudents = async (page) => {
               </td>
               <td style="vertical-align: middle;">${feePill}</td>
               <td style="text-align:right; vertical-align: middle;">
-                <div class="premium-row-acts">
-                  <button class="act-btn act-view" title="View Profile" onclick="goNav('students','view',{id:${s.id}})">
+                <div class="premium-row-acts d-flex gap-2 justify-content-end">
+                  <button class="act-btn act-view btn btn-sm btn-primary" title="View Profile" onclick="goNav('students','view',{id:${s.id}})">
                     <i class="fa-solid fa-eye"></i>
                   </button>
-                  <button class="act-btn act-edit" title="Edit Student" onclick="goNav('students','edit',{id:${s.id}})">
+                  <button class="act-btn act-edit btn btn-sm btn-success" title="Edit Student" onclick="goNav('students','edit',{id:${s.id}})">
                     <i class="fa-solid fa-pen"></i>
                   </button>
-                  <button class="act-btn act-pay" title="Collect Fee" onclick="window.renderQuickPayment(${s.id})">
+                  <button class="act-btn act-pay btn btn-sm btn-warning" title="Collect Fee" onclick="window.renderQuickPayment(${s.id})">
                     <i class="fa-solid fa-hand-holding-dollar"></i>
                   </button>
-                  <button class="act-btn act-email" title="Send Email" onclick="sendEmailToStudent(${s.id}, '${safeName}', '${s.email || ''}')">
+                  <button class="act-btn act-email btn btn-sm btn-info" title="Send Email" onclick="sendEmailToStudent(${s.id}, '${safeName}', '${s.email || ''}')">
                     <i class="fa-solid fa-envelope"></i>
                   </button>
-                  <button class="act-btn act-delete" title="Delete Student" onclick="deleteStudent(${s.id}, '${safeName}')">
+                  <button class="act-btn act-delete btn btn-sm btn-danger" title="Delete Student" onclick="deleteStudent(${s.id}, '${safeName}')">
                     <i class="fa-solid fa-trash"></i>
                   </button>
                 </div>
@@ -2365,27 +2383,28 @@ window.openQuickAddStudent = async () => {
 
     // Create modal HTML
     const modalHtml = `
-    <div id="quickAddModal" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,0.6);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px;">
+    <div id="quickAddModal" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,0.6);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:9999;padding:clamp(10px, 4vw, 20px);">
         <div style="max-width:600px;width:100%;max-height:90vh;overflow-y:auto;background:#fff;border-radius:20px;box-shadow:0 8px 32px rgba(0,0,0,0.15);">
-            <div style="background:linear-gradient(135deg,#009E7E 0%,#00b894 100%);padding:32px 28px;text-align:center;color:#fff;border-radius:20px 20px 0 0;">
-                <div style="width:64px;height:64px;background:rgba(255,255,255,0.2);border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:28px;"><i class="fas fa-user-plus"></i></div>
-                <h1 style="font-size:1.75rem;font-weight:800;margin-bottom:8px;">Quick Registration</h1>
+            <div style="background:linear-gradient(135deg,#009E7E 0%,#00b894 100%);padding:clamp(20px, 5dvh, 32px) clamp(15px, 4vw, 28px);text-align:center;color:#fff;border-radius:20px 20px 0 0;">
+                <div style="width:clamp(48px, 12vw, 64px);height:clamp(48px, 12vw, 64px);background:rgba(255,255,255,0.2);border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:clamp(20px, 5vw, 28px);"><i class="fas fa-user-plus"></i></div>
+                <h1 style="font-size:clamp(1.25rem, 5vw, 1.75rem);font-weight:800;margin-bottom:8px;">Quick Registration</h1>
                 <p style="font-size:14px;opacity:0.9;">Get started in minutes, complete details later</p>
                 <span style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.2);padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;margin-top:12px;"><i class="fas fa-bolt"></i>Fast Track Mode</span>
             </div>
            
+            <div style="padding:clamp(15px, 4vw, 28px);">
                 <form id="quickAddStudentForm" autocomplete="off">
-                    <div style="margin-bottom:20px;"><label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:#1E293B;margin-bottom:8px;"><i class="fas fa-user"></i>Full Name<span style="color:#E11D48;font-size:14px;">*</span></label><div style="position:relative;"><i class="fas fa-user" style="position:absolute;left:16px;top:50%;transform:translateY(-50%);color:#94A3B8;font-size:14px;"></i><input type="text" id="qa_name" style="width:100%;padding:12px 16px 12px 44px;border:2px solid #E2E8F0;border-radius:10px;font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;color:#1E293B;transition:all 0.2s;background:#fff;" placeholder="Enter student full name" required></div></div>
-                    <div style="margin-bottom:20px;"><label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:#1E293B;margin-bottom:8px;"><i class="fas fa-phone"></i>Contact Number<span style="color:#E11D48;font-size:14px;">*</span></label><div style="position:relative;"><i class="fas fa-phone" style="position:absolute;left:16px;top:50%;transform:translateY(-50%);color:#94A3B8;font-size:14px;"></i><input type="tel" id="qa_phone" style="width:100%;padding:12px 16px 12px 44px;border:2px solid #E2E8F0;border-radius:10px;font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;color:#1E293B;transition:all 0.2s;background:#fff;" placeholder="98XXXXXXXX" pattern="[0-9]{10}" required></div><div style="font-size:11px;color:#94A3B8;margin-top:6px;"><i class="fas fa-info-circle"></i>10-digit mobile number for SMS notifications</div></div>
-                    <div style="margin-bottom:20px;"><label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:#1E293B;margin-bottom:8px;"><i class="fas fa-envelope"></i>Email Address<span style="color:#E11D48;font-size:14px;">*</span></label><div style="position:relative;"><i class="fas fa-envelope" style="position:absolute;left:16px;top:50%;transform:translateY(-50%);color:#94A3B8;font-size:14px;"></i><input type="email" id="qa_email" style="width:100%;padding:12px 16px 12px 44px;border:2px solid #E2E8F0;border-radius:10px;font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;color:#1E293B;transition:all 0.2s;background:#fff;" placeholder="your.email@example.com" required></div><div style="font-size:11px;color:#94A3B8;margin-top:6px;"><i class="fas fa-info-circle"></i>Used for login and important notifications</div></div>
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
-                        <div><label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:#1E293B;margin-bottom:8px;"><i class="fas fa-book"></i>Course<span style="color:#E11D48;font-size:14px;">*</span></label><select id="qa_course" onchange="window._qaLoadBatches(this.value)" style="width:100%;padding:12px 40px 12px 16px;border:2px solid #E2E8F0;border-radius:10px;font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;color:#1E293B;transition:all 0.2s;background:#fff;cursor:pointer;appearance:none;background-image:url('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2712%27 height=%2712%27 viewBox=%270 0 12 12%27%3E%3Cpath fill=%27%2394A3B8%27 d=%27M6 9L1 4h10z/%27%3E%3C/svg%3E');background-repeat:no-repeat;background-position:right 16px center;">${coursesHtml}</select></div>
-                        <div><label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:#1E293B;margin-bottom:8px;"><i class="fas fa-users"></i>Batch<span style="color:#E11D48;font-size:14px;">*</span></label><select id="qa_batch" disabled style="width:100%;padding:12px 40px 12px 16px;border:2px solid #E2E8F0;border-radius:10px;font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;color:#94A3B8;transition:all 0.2s;background:#fff;cursor:pointer;appearance:none;background-image:url('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2712%27 height=%2712%27 viewBox=%270 0 12 12%27%3E%3Cpath fill=%27%2394A3B8%27 d=%27M6 9L1 4h10z/%27%3E%3C/svg%3E');background-repeat:no-repeat;background-position:right 16px center;"><option value="">Select Course First</option></select></div>
+                    <div style="margin-bottom:20px;"><label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:#1E293B;margin-bottom:8px;"><i class="fas fa-user"></i>Full Name<span style="color:#E11D48;font-size:14px;">*</span></label><div style="position:relative;"><i class="fas fa-user" style="position:absolute;left:16px;top:50%;transform:translateY(-50%);color:#94A3B8;font-size:14px;"></i><input type="text" id="qa_name" style="width:100%;padding:12px 16px 12px 44px;border:2px solid #E2E8F0;border-radius:10px;font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;color:#1E293B;background:#fff;" placeholder="Enter student full name" required></div></div>
+                    <div style="margin-bottom:20px;"><label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:#1E293B;margin-bottom:8px;"><i class="fas fa-phone"></i>Contact Number<span style="color:#E11D48;font-size:14px;">*</span></label><div style="position:relative;"><i class="fas fa-phone" style="position:absolute;left:16px;top:50%;transform:translateY(-50%);color:#94A3B8;font-size:14px;"></i><input type="tel" id="qa_phone" style="width:100%;padding:12px 16px 12px 44px;border:2px solid #E2E8F0;border-radius:10px;font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;color:#1E293B;background:#fff;" placeholder="98XXXXXXXX" pattern="[0-9]{10}" required></div></div>
+                    <div style="margin-bottom:20px;"><label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:#1E293B;margin-bottom:8px;"><i class="fas fa-envelope"></i>Email Address<span style="color:#E11D48;font-size:14px;">*</span></label><div style="position:relative;"><i class="fas fa-envelope" style="position:absolute;left:16px;top:50%;transform:translateY(-50%);color:#94A3B8;font-size:14px;"></i><input type="email" id="qa_email" style="width:100%;padding:12px 16px 12px 44px;border:2px solid #E2E8F0;border-radius:10px;font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;color:#1E293B;background:#fff;" placeholder="your.email@example.com" required></div></div>
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(clamp(200px, 100%, 250px), 1fr));gap:clamp(12px, 2vw, 16px);margin-bottom:20px;">
+                        <div><label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:#1E293B;margin-bottom:8px;"><i class="fas fa-book"></i>Course<span style="color:#E11D48;font-size:14px;">*</span></label><select id="qa_course" onchange="window._qaLoadBatches(this.value)" style="width:100%;padding:12px 40px 12px 16px;border:2px solid #E2E8F0;border-radius:10px;font-size:14px;color:#1E293B;background:#fff;cursor:pointer;appearance:none;background-image:url('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2712%27 height=%2712%27 viewBox=%270 0 12 12%27%3E%3Cpath fill=%27%2394A3B8%27 d=%27M6 9L1 4h10z/%27%3E%3C/svg%3E');background-repeat:no-repeat;background-position:right 16px center;">${coursesHtml}</select></div>
+                        <div><label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:#1E293B;margin-bottom:8px;"><i class="fas fa-users"></i>Batch<span style="color:#E11D48;font-size:14px;">*</span></label><select id="qa_batch" disabled style="width:100%;padding:12px 40px 12px 16px;border:2px solid #E2E8F0;border-radius:10px;font-size:14px;color:#94A3B8;background:#fff;cursor:pointer;appearance:none;background-image:url('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2712%27 height=%2712%27 viewBox=%270 0 12 12%27%3E%3Cpath fill=%27%2394A3B8%27 d=%27M6 9L1 4h10z/%27%3E%3C/svg%3E');background-repeat:no-repeat;background-position:right 16px center;"><option value="">Select Course First</option></select></div>
                     </div>
-                    <div style="margin-bottom:20px;"><label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:#1E293B;margin-bottom:8px;"><i class="fas fa-lock"></i>Password<span style="color:#E11D48;font-size:14px;">*</span></label><div style="position:relative;"><i class="fas fa-lock" style="position:absolute;left:16px;top:50%;transform:translateY(-50%);color:#94A3B8;font-size:14px;"></i><input type="password" id="qa_password" style="width:100%;padding:12px 48px 12px 44px;border:2px solid #E2E8F0;border-radius:10px;font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;color:#1E293B;transition:all 0.2s;background:#fff;" placeholder="Min 6 characters" minlength="6" value="Student@123" required><span onclick="const p=document.getElementById('qa_password');const icon=document.getElementById('qa_password_icon');if(p.type==='password'){p.type='text';icon.classList.remove('fa-eye');icon.classList.add('fa-eye-slash');}else{p.type='password';icon.classList.remove('fa-eye-slash');icon.classList.add('fa-eye');}" style="position:absolute;right:16px;top:50%;transform:translateY(-50%);color:#94A3B8;cursor:pointer;font-size:14px;transition:color 0.2s;" onmouseover="this.style.color='#009E7E'" onmouseout="this.style.color='#94A3B8'"><i class="fas fa-eye" id="qa_password_icon"></i></span></div><div style="font-size:11px;color:#94A3B8;margin-top:6px;"><i class="fas fa-info-circle"></i>Login credentials will be emailed automatically</div></div>
+                    <div style="margin-bottom:20px;"><label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:#1E293B;margin-bottom:8px;"><i class="fas fa-lock"></i>Password<span style="color:#E11D48;font-size:14px;">*</span></label><div style="position:relative;"><i class="fas fa-lock" style="position:absolute;left:16px;top:50%;transform:translateY(-50%);color:#94A3B8;font-size:14px;"></i><input type="password" id="qa_password" style="width:100%;padding:12px 48px 12px 44px;border:2px solid #E2E8F0;border-radius:10px;font-size:14px;color:#1E293B;background:#fff;" placeholder="Min 6 characters" minlength="6" value="Student@123" required><span onclick="const p=document.getElementById('qa_password');const icon=document.getElementById('qa_password_icon');if(p.type==='password'){p.type='text';icon.classList.remove('fa-eye');icon.classList.add('fa-eye-slash');}else{p.type='password';icon.classList.remove('fa-eye-slash');icon.classList.add('fa-eye');}" style="position:absolute;right:16px;top:50%;transform:translateY(-50%);color:#94A3B8;cursor:pointer;font-size:14px;"><i class="fas fa-eye" id="qa_password_icon"></i></span></div></div>
                     <div style="margin-top:32px;display:flex;flex-direction:column;gap:12px;">
-                        <button type="submit" id="qa_submit_btn" style="width:100%;padding:14px 24px;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;transition:all 0.2s;border:none;display:flex;align-items:center;justify-content:center;gap:8px;background:linear-gradient(135deg,#009E7E 0%,#00b894 100%);color:#fff;box-shadow:0 4px 16px rgba(0,158,126,0.3);"><i class="fas fa-check-circle"></i>Complete Quick Registration</button>
-                        <button type="button" onclick="document.getElementById('quickAddModal').remove()" style="width:100%;padding:14px 24px;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;transition:all 0.2s;border:2px solid #E2E8F0;display:flex;align-items:center;justify-content:center;gap:8px;background:#fff;color:#475569;"><i class="fas fa-times"></i>Cancel</button>
+                        <button type="submit" id="qa_submit_btn" style="width:100%;padding:clamp(12px, 3vw, 14px);border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;border:none;display:flex;align-items:center;justify-content:center;gap:8px;background:linear-gradient(135deg,#009E7E 0%,#00b894 100%);color:#fff;box-shadow:0 4px 16px rgba(0,158,126,0.3);"><i class="fas fa-check-circle"></i>Complete Quick Registration</button>
+                        <button type="button" onclick="document.getElementById('quickAddModal').remove()" style="width:100%;padding:clamp(12px, 3vw, 14px);border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;border:2px solid #E2E8F0;display:flex;align-items:center;justify-content:center;gap:8px;background:#fff;color:#475569;"><i class="fas fa-times"></i>Cancel</button>
                     </div>
                 </form>
             </div>

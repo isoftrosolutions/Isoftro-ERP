@@ -17,6 +17,18 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 try {
     $pdo = getDBConnection();
     
+    // 0. Security Checks
+    $currentUserId = $_SESSION['userData']['id'] ?? null;
+    if (!$currentUserId) {
+        throw new Exception("Unauthorized: No active session.");
+    }
+    
+    // CSRF Check
+    $csrfToken = $_POST['csrf_token'] ?? $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
+    if (!verifyCSRFToken($csrfToken)) {
+        throw new Exception("Security violation: Invalid CSRF token.");
+    }
+
     // Get POST data
     $id = sanitizeInput($_POST['id'] ?? '');
     $name = sanitizeInput($_POST['name'] ?? '');
@@ -48,11 +60,19 @@ try {
     $stmt->execute([$name, $nepaliName, $subdomain, $brandColor, $tagline, $address, $phone, $plan, $status, $id]);
     
     // Log the action
-    $stmt = $pdo->prepare("INSERT INTO audit_logs (user_id, action, description, created_at) VALUES (?, 'Tenant Updated', ?, NOW())");
-    $stmt->execute([1, "Tenant '$name' ($subdomain) updated."]); // Mocking superadmin user_id = 1
+    $userIp = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+    $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? 'Unknown';
+
+    $stmt = $pdo->prepare("INSERT INTO audit_logs (user_id, action, ip_address, user_agent, description, created_at) VALUES (?, 'Tenant Updated', ?, ?, ?, NOW())");
+    $stmt->execute([$currentUserId, $userIp, $userAgent, "Tenant '$name' ($subdomain) updated."]);
     
     $pdo->commit();
     
+    // Send back the new CSRF token in header for synchronized AJAX requests
+    if (function_exists('getCsrfToken')) {
+        header('X-CSRF-Token: ' . getCsrfToken());
+    }
+
     echo json_encode([
         'success' => true, 
         'message' => 'Institute updated successfully!'

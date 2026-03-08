@@ -752,18 +752,170 @@ window.renderRBACSettings = function() {
 /* ══════════════════════════════════════════════════════════════════
    NOTIFICATIONS & AUTOMATION
 ══════════════════════════════════════════════════════════════════ */
-window.renderNotificationSettings = function() {
+window.renderNotificationSettings = async function() {
     const mc = document.getElementById('mainContent');
     mc.innerHTML = `<div class="pg fu">
         <div class="bc"><a href="#" onclick="goNav('overview')">Dashboard</a> <span class="bc-sep">&rsaquo;</span> <span class="bc-cur">Notification Rules</span></div>
-        <div class="pg-head"><div class="pg-left"><div class="pg-ico"><i class="fa-solid fa-bell-concierge"></i></div><div><div class="pg-title">Notification Settings</div><div class="pg-sub">Automate SMS and Email alerts for various events</div></div></div></div>
-        <div class="card fu" style="max-width:900px;margin:0 auto;padding:40px;text-align:center;">
-            <i class="fa-solid fa-robot" style="font-size:4rem;color:var(--teal);opacity:0.2;margin-bottom:20px;"></i>
-            <h2>Automation Engine</h2>
-            <p style="color:#64748b;max-width:500px;margin:15px auto;">We are finalizing the notification rules builder. This will allow you to trigger automatic SMS to parents when a student is absent or when fees are due.</p>
-            <button class="btn bt" style="margin-top:20px;" disabled>Configure Rules (Coming Soon)</button>
+        <div class="pg-head">
+            <div class="pg-left">
+                <div class="pg-ico" style="background:linear-gradient(135deg,#F59E0B,#D97706);"><i class="fa-solid fa-robot"></i></div>
+                <div><div class="pg-title">Automation Engine</div><div class="pg-sub">Configure automatic SMS alerts for students and parents</div></div>
+            </div>
+            <div class="pg-right">
+                <button class="btn bt" onclick="openRuleModal()"><i class="fa-solid fa-plus"></i> Create New Rule</button>
+            </div>
+        </div>
+
+        <div style="max-width:1100px;margin:0 auto;">
+            <div id="rulesLoading" style="text-align:center;padding:100px;"><i class="fa-solid fa-circle-notch fa-spin" style="font-size:3rem;color:#F59E0B"></i><p style="margin-top:15px;color:#64748b">Loading automation rules...</p></div>
+            <div id="rulesContainer" class="kpi-grid" style="display:grid;grid-template-columns:repeat(auto-fill, minmax(320px, 1fr));gap:20px;margin-top:20px;">
+                <!-- Rules will be injected here -->
+            </div>
+            <div id="noRulesMsg" style="display:none;text-align:center;padding:100px;background:#f8fafc;border-radius:24px;border:2px dashed #e2e8f0;">
+                <i class="fa-solid fa-ghost" style="font-size:3rem;color:#cbd5e1;margin-bottom:20px;"></i>
+                <h3>No automation rules yet</h3>
+                <p style="color:#64748b;margin-bottom:20px;">Create your first rule to start automating student notifications.</p>
+                <button class="btn bt" onclick="openRuleModal()"><i class="fa-solid fa-plus"></i> Build First Rule</button>
+            </div>
         </div>
     </div>`;
+
+    await _loadAutomationRules();
+};
+
+async function _loadAutomationRules() {
+    try {
+        const res = await fetch(APP_URL + '/api/admin/automation-rules');
+        const r = await res.json();
+        const container = document.getElementById('rulesContainer');
+        const loading = document.getElementById('rulesLoading');
+        const empty = document.getElementById('noRulesMsg');
+        
+        loading.style.display = 'none';
+        if (r.success && r.data && r.data.length > 0) {
+            empty.style.display = 'none';
+            container.style.display = 'grid';
+            container.innerHTML = r.data.map(rule => `
+                <div class="card rule-card glass" style="padding:25px;position:relative;border-left:4px solid ${rule.trigger_type === 'absent' ? '#ef4444' : '#3b82f6'};">
+                    <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:15px;">
+                        <div>
+                            <div class="bdg" style="background:${rule.is_active ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)'};color:${rule.is_active ? '#10b981' : '#ef4444'};margin-bottom:8px;">
+                                ${rule.is_active ? 'Active' : 'Paused'}
+                            </div>
+                            <h3 style="margin:0;font-size:16px;">${rule.name}</h3>
+                        </div>
+                        <div class="dropdown">
+                            <button class="btn bs btn-sm" onclick="openRuleModal(${rule.id})"><i class="fa-solid fa-pen"></i></button>
+                            <button class="btn bs btn-sm" style="color:#ef4444;" onclick="deleteRule(${rule.id})"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </div>
+                    <div style="font-size:13px;color:#64748b;margin-bottom:15px;">
+                        <i class="fa-solid fa-bolt" style="color:#F59E0B;margin-right:5px;"></i> Trigger: <strong>${rule.trigger_type === 'absent' ? 'Student Absence' : 'Fee Due'}</strong>
+                    </div>
+                    <div style="background:rgba(0,0,0,0.03);padding:12px;border-radius:10px;font-size:12px;color:#1e293b;font-family:monospace;white-space:pre-wrap;margin-top:10px;">${rule.message_template}</div>
+                </div>
+            `).join('');
+        } else {
+            container.style.display = 'none';
+            empty.style.display = 'block';
+        }
+    } catch(e) {
+        console.error('Rules load error', e);
+        Swal.fire('Error', 'Failed to load rules', 'error');
+    }
+}
+
+window.openRuleModal = async function(id = null) {
+    let rule = { name: '', trigger_type: 'absent', message_template: 'Dear parent, your ward {student_name} was marked absent today.', conditions: {}, is_active: 1 };
+    
+    if (id) {
+        const res = await fetch(APP_URL + `/api/admin/automation-rules?id=${id}`);
+        const r = await res.json();
+        if (r.success) rule = r.data;
+    }
+
+    const { value: formValues } = await Swal.fire({
+        title: id ? 'Edit Notification Rule' : 'Create New Automation Rule',
+        width: '600px',
+        html: `
+            <div style="text-align:left;">
+                <label class="form-label">Rule Name</label>
+                <input id="swal-rule-name" class="swal2-input" placeholder="e.g. Absence Alert to Parents" value="${rule.name}" style="width:100%;margin:5px 0 15px;">
+                
+                <label class="form-label">Trigger Event</label>
+                <select id="swal-rule-trigger" class="swal2-input" style="width:100%;margin:5px 0 15px;">
+                    <option value="absent" ${rule.trigger_type === 'absent' ? 'selected' : ''}>Student marked Absent</option>
+                    <option value="fee_due" ${rule.trigger_type === 'fee_due' ? 'selected' : ''}>Daily Fee Due Check</option>
+                </select>
+
+                <label class="form-label">Message Template</label>
+                <textarea id="swal-rule-msg" class="swal2-textarea" style="width:100%;height:120px;margin:5px 0 10px;font-family:monospace;">${rule.message_template}</textarea>
+                <div style="font-size:11px;color:#94a3b8;margin-bottom:15px;">
+                    Tags: {student_name}, {guardian_name}, {date}, {amount_due}
+                </div>
+
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <input type="checkbox" id="swal-rule-active" ${rule.is_active ? 'checked' : ''}>
+                    <label for="swal-rule-active" style="font-size:14px;font-weight:700;">Active & Running</label>
+                </div>
+            </div>
+        `,
+        focusConfirm: false,
+        showCancelButton: true,
+        confirmButtonColor: '#F59E0B',
+        preConfirm: () => {
+            return {
+                id: id,
+                name: document.getElementById('swal-rule-name').value,
+                trigger_type: document.getElementById('swal-rule-trigger').value,
+                message_template: document.getElementById('swal-rule-msg').value,
+                is_active: document.getElementById('swal-rule-active').checked ? 1 : 0,
+                action: 'save'
+            }
+        }
+    });
+
+    if (formValues) {
+        try {
+            const res = await fetch(APP_URL + '/api/admin/automation-rules', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formValues)
+            });
+            const result = await res.json();
+            if (result.success) {
+                Swal.fire('Success', result.message, 'success');
+                _loadAutomationRules();
+            } else throw new Error(result.message);
+        } catch(e) { Swal.fire('Error', e.message, 'error'); }
+    }
+};
+
+window.deleteRule = async function(id) {
+    const confirm = await Swal.fire({
+        title: 'Delete Rule?',
+        text: "You won't be able to revert this!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#64748b',
+        confirmButtonText: 'Yes, delete it!'
+    });
+
+    if (confirm.isConfirmed) {
+        try {
+            const res = await fetch(APP_URL + '/api/admin/automation-rules', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'delete', id: id })
+            });
+            const result = await res.json();
+            if (result.success) {
+                Swal.fire('Deleted!', 'Rule has been removed.', 'success');
+                _loadAutomationRules();
+            } else throw new Error(result.message);
+        } catch(e) { Swal.fire('Error', e.message, 'error'); }
+    }
 };
 
 /* ══════════════════════════════════════════════════════════════════

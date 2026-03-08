@@ -204,17 +204,17 @@ if (!isset($_GET['partial'])) {
     flex-shrink: 0;
 }
 .att-header-title {
-    font-size: 1.25rem; font-weight: 800;
+    font-size: clamp(1.1rem, 2.5vw, 1.4rem); font-weight: 800;
     color: var(--text-dark); letter-spacing: -0.5px;
     margin: 0;
 }
 .att-header-sub {
-    font-size: 12px; color: var(--text-light); margin: 2px 0 0;
+    font-size: clamp(11px, 1.1vw, 12px); color: var(--text-light); margin: 2px 0 0;
 }
 .att-today-badge {
     display: inline-flex; align-items: center; gap: 6px;
     background: #f0fdf4; color: #059669;
-    font-size: 12px; font-weight: 700;
+    font-size: clamp(11px, 1.1vw, 12px); font-weight: 700;
     padding: 6px 14px; border-radius: 20px;
     border: 1px solid #bbf7d0;
 }
@@ -241,7 +241,7 @@ if (!isset($_GET['partial'])) {
 }
 .att-filter-group { display: flex; flex-direction: column; }
 .att-label {
-    font-size: 11px; font-weight: 700; color: var(--text-light);
+    font-size: clamp(10px, 1vw, 11px); font-weight: 700; color: var(--text-light);
     text-transform: uppercase; letter-spacing: 0.5px;
     margin-bottom: 6px;
     display: flex; align-items: center; gap: 5px;
@@ -252,12 +252,13 @@ if (!isset($_GET['partial'])) {
     position: relative;
 }
 .att-select {
-    width: 100%; padding: 11px 36px 11px 14px;
+    width: 100%; padding: 13.5px 36px 13.5px 14px;
     border: 1.5px solid var(--card-border); border-radius: 10px;
-    font-size: 14px; font-family: var(--font);
+    font-size: clamp(13px, 1.2vw, 14px); font-family: var(--font);
     background: #fff; color: var(--text-dark);
     outline: none; appearance: none; cursor: pointer;
     transition: border-color 0.2s, box-shadow 0.2s;
+    min-height: 44px; /* Ensure 44px touch target */
 }
 .att-select:focus {
     border-color: var(--green);
@@ -268,26 +269,28 @@ if (!isset($_GET['partial'])) {
     font-size: 11px; color: var(--text-light); pointer-events: none;
 }
 .att-input {
-    width: 100%; padding: 11px 14px;
+    width: 100%; padding: 13.5px 14px;
     border: 1.5px solid var(--card-border); border-radius: 10px;
-    font-size: 14px; font-family: var(--font);
+    font-size: clamp(13px, 1.2vw, 14px); font-family: var(--font);
     background: #fff; color: var(--text-dark);
     outline: none;
     transition: border-color 0.2s, box-shadow 0.2s;
+    min-height: 44px;
 }
 .att-input:focus {
     border-color: var(--green);
     box-shadow: 0 0 0 3px rgba(0, 184, 148, 0.1);
 }
 .att-load-btn {
-    width: 100%; padding: 12px 20px;
+    width: 100%; padding: 14px 20px;
     background: linear-gradient(135deg, #1a1a2e, #16213e);
     color: #fff; border: none; border-radius: 10px;
-    font-size: 14px; font-weight: 700; font-family: var(--font);
+    font-size: clamp(13px, 1.2vw, 14px); font-weight: 700; font-family: var(--font);
     cursor: pointer;
     display: flex; align-items: center; justify-content: center; gap: 8px;
     transition: all 0.2s;
     box-shadow: 0 4px 12px rgba(26, 26, 46, 0.2);
+    min-height: 44px;
 }
 .att-load-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(26, 26, 46, 0.25); }
 .att-load-btn:active { transform: translateY(0); }
@@ -314,10 +317,10 @@ if (!isset($_GET['partial'])) {
     flex-wrap: wrap;
 }
 .att-batch-name {
-    font-size: 15px; font-weight: 800; color: var(--text-dark); margin: 0;
+    font-size: clamp(14px, 1.4vw, 16px); font-weight: 800; color: var(--text-dark); margin: 0;
 }
 .att-date-text {
-    font-size: 11px; color: var(--text-light); margin: 2px 0 0;
+    font-size: clamp(10px, 1vw, 11px); color: var(--text-light); margin: 2px 0 0;
 }
 .att-counters {
     display: flex; gap: 6px;
@@ -329,8 +332,8 @@ if (!isset($_GET['partial'])) {
     transition: transform 0.2s;
 }
 .att-counter:hover { transform: scale(1.05); }
-.att-counter-val { font-size: 18px; font-weight: 800; line-height: 1; }
-.att-counter-lbl { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+.att-counter-val { font-size: clamp(16px, 1.6vw, 20px); font-weight: 800; line-height: 1; }
+.att-counter-lbl { font-size: clamp(8px, 0.8vw, 10px); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
 .att-counter-p { background: #dcfce7; color: #166534; }
 .att-counter-a { background: #fee2e2; color: #b91c1c; }
 .att-counter-l { background: #fef3c7; color: #92400e; }
@@ -347,13 +350,14 @@ if (!isset($_GET['partial'])) {
 }
 .att-quick-btn {
     flex-shrink: 0;
-    padding: 7px 14px; border-radius: 8px;
-    font-size: 12px; font-weight: 700; font-family: var(--font);
+    padding: 10px 16px; border-radius: 8px;
+    font-size: clamp(11px, 1.1vw, 12px); font-weight: 700; font-family: var(--font);
     cursor: pointer; border: 1.5px solid var(--card-border);
     background: #fff; color: var(--text-body);
     display: flex; align-items: center; gap: 5px;
     transition: all 0.2s;
     white-space: nowrap;
+    min-height: 44px;
 }
 .att-quick-btn:hover { border-color: var(--green); color: var(--green); }
 .att-qb-present:active { background: #dcfce7; border-color: #10b981; color: #166534; }
@@ -368,11 +372,12 @@ if (!isset($_GET['partial'])) {
     font-size: 12px; color: var(--text-light);
 }
 .att-search-inline input {
-    width: 100%; padding: 7px 10px 7px 30px;
+    width: 100%; padding: 10px 10px 10px 30px;
     border: 1.5px solid var(--card-border); border-radius: 8px;
-    font-size: 12px; font-family: var(--font);
+    font-size: clamp(11px, 1.1vw, 12px); font-family: var(--font);
     outline: none; background: #f8fafc;
     transition: all 0.2s;
+    min-height: 44px;
 }
 .att-search-inline input:focus {
     background: #fff;
@@ -406,7 +411,7 @@ if (!isset($_GET['partial'])) {
 }
 
 .att-stu-num {
-    width: 24px; font-size: 11px; font-weight: 700;
+    width: 24px; font-size: clamp(10px, 1vw, 11px); font-weight: 700;
     color: var(--text-light); text-align: center; flex-shrink: 0;
 }
 .att-stu-avatar {
@@ -417,17 +422,17 @@ if (!isset($_GET['partial'])) {
 }
 .att-stu-info { flex: 1; min-width: 0; }
 .att-stu-name {
-    font-size: 13px; font-weight: 700; color: var(--text-dark);
+    font-size: clamp(13px, 1.2vw, 14px); font-weight: 700; color: var(--text-dark);
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .att-stu-roll {
-    font-size: 10px; color: var(--text-light); font-weight: 600;
+    font-size: clamp(9px, 0.9vw, 11px); color: var(--text-light); font-weight: 600;
     letter-spacing: 0.3px;
 }
 .att-stu-leave {
     display: inline-flex; align-items: center; gap: 3px;
     background: #dbeafe; color: #1d4ed8;
-    font-size: 8px; font-weight: 800;
+    font-size: clamp(8px, 0.8vw, 9px); font-weight: 800;
     padding: 1px 5px; border-radius: 4px;
     text-transform: uppercase; letter-spacing: 0.3px;
     margin-left: 6px;
@@ -435,13 +440,13 @@ if (!isset($_GET['partial'])) {
 
 /* Status Toggle Buttons */
 .att-status-group {
-    display: flex; gap: 4px; flex-shrink: 0;
+    display: flex; gap: 8px; flex-shrink: 0;
 }
 .att-pill {
-    width: 38px; height: 38px;
-    border-radius: 10px; border: 2px solid #e2e8f0;
+    width: 44px; height: 44px;
+    border-radius: 12px; border: 2px solid #e2e8f0;
     background: #fff; color: var(--text-light);
-    font-size: 13px; font-weight: 800;
+    font-size: clamp(13px, 1.2vw, 15px); font-weight: 800;
     display: flex; align-items: center; justify-content: center;
     cursor: pointer;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -484,13 +489,13 @@ if (!isset($_GET['partial'])) {
 }
 .att-save-footer.visible { display: flex; }
 .att-save-summary {
-    font-size: 12px; color: var(--text-light); font-weight: 600;
+    font-size: clamp(11px, 1.1vw, 12px); color: var(--text-light); font-weight: 600;
 }
 .att-save-btn {
     padding: 12px 28px;
     background: linear-gradient(135deg, #10B981, #059669);
     color: #fff; border: none; border-radius: 12px;
-    font-size: 14px; font-weight: 700; font-family: var(--font);
+    font-size: clamp(13px, 1.3vw, 15px); font-weight: 700; font-family: var(--font);
     cursor: pointer;
     display: flex; align-items: center; gap: 8px;
     transition: all 0.2s;
@@ -517,11 +522,11 @@ if (!isset($_GET['partial'])) {
     font-size: 28px; color: #10b981;
 }
 .att-empty h3 {
-    font-size: 16px; font-weight: 800; color: var(--text-dark);
+    font-size: clamp(15px, 1.5vw, 18px); font-weight: 800; color: var(--text-dark);
     margin-bottom: 8px;
 }
 .att-empty p {
-    font-size: 13px; color: var(--text-light); line-height: 1.6;
+    font-size: clamp(13px, 1.2vw, 14px); color: var(--text-light); line-height: 1.6;
     margin-bottom: 24px;
 }
 .att-empty-steps {
@@ -530,12 +535,12 @@ if (!isset($_GET['partial'])) {
 }
 .att-step {
     display: flex; align-items: center; gap: 6px;
-    font-size: 12px; font-weight: 600; color: var(--text-body);
+    font-size: clamp(11px, 1.1vw, 12px); font-weight: 600; color: var(--text-body);
 }
 .att-step-num {
     width: 22px; height: 22px; border-radius: 50%;
     background: var(--green); color: #fff;
-    font-size: 11px; font-weight: 800;
+    font-size: clamp(10px, 1vw, 11px); font-weight: 800;
     display: flex; align-items: center; justify-content: center;
 }
 .att-step-arrow { color: var(--text-light); font-size: 10px; }
@@ -545,7 +550,7 @@ if (!isset($_GET['partial'])) {
     position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) translateY(80px);
     background: #1e293b; color: #fff;
     padding: 12px 24px; border-radius: 12px;
-    font-size: 13px; font-weight: 600; font-family: var(--font);
+    font-size: clamp(12px, 1.2vw, 14px); font-weight: 600; font-family: var(--font);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
     opacity: 0; visibility: hidden;
     transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);

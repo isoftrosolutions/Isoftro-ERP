@@ -7,12 +7,35 @@
 window.renderSubjectList = async function() {
     const mc = document.getElementById('mainContent');
     mc.innerHTML = `<div class="pg fu">
-        <div class="bc"><a href="#" onclick="goNav('overview')">Dashboard</a> <span class="bc-sep">&rsaquo;</span> <span class="bc-cur">Subjects</span></div>
-        <div class="pg-head">
-            <div class="pg-left"><div class="pg-ico"><i class="fa-solid fa-book"></i></div><div><div class="pg-title">Subject Management</div><div class="pg-sub">Manage academic subjects</div></div></div>
-            <div class="pg-acts"><button class="btn bt" onclick="goNav('academic','subjects',{action:'add'})"><i class="fa-solid fa-plus"></i> Add Subject</button></div>
+        <div class="bc">
+            <a href="#" onclick="goNav('overview')"><i class="fa-solid fa-home"></i></a> 
+            <span class="bc-sep">/</span> 
+            <span class="bc-cur">Subjects</span>
         </div>
-        <div class="card" id="subjectListContainer"><div class="pg-loading"><i class="fa-solid fa-circle-notch fa-spin"></i><span>Loading subjects...</span></div></div>
+
+        <div class="pg-head">
+            <div class="pg-left">
+                <div class="pg-ico" style="background: linear-gradient(135deg, #f59e0b, #fbbf24); color: #fff;">
+                    <i class="fa-solid fa-book"></i>
+                </div>
+                <div>
+                    <div class="pg-title" style="font-size: clamp(1.2rem, 3vw, 1.5rem);">Subject Blueprint</div>
+                    <div class="pg-sub">Define core curriculum and academic subjects</div>
+                </div>
+            </div>
+            <div class="pg-acts">
+                <button class="btn bt" onclick="goNav('academic','subjects',{action:'add'})">
+                    <i class="fa-solid fa-plus"></i> <span class="d-none d-sm-inline">New Subject</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="premium-tw table-responsive" id="subjectListContainer">
+            <div class="pg-loading">
+                <i class="fa-solid fa-circle-notch fa-spin"></i>
+                <span>Loading curriculum subjects...</span>
+            </div>
+        </div>
     </div>`;
     await _loadSubjects();
 };
@@ -22,23 +45,63 @@ async function _loadSubjects() {
     try {
         const res = await fetch(APP_URL + '/api/admin/subjects');
         const result = await res.json(); if (!result.success) throw new Error(result.message);
-        if (!result.data.length) { c.innerHTML=`<div style="padding:60px;text-align:center;color:#94a3b8;"><i class="fa-solid fa-book-open" style="font-size:3rem;margin-bottom:15px;"></i><p>No subjects created yet.</p></div>`; return; }
-        let html = `<div class="table-responsive"><table class="table"><thead><tr><th>Code</th><th>Subject Name</th><th>Description</th><th>Status</th><th style="text-align:right">Actions</th></tr></thead><tbody>`;
+        if (!result.data.length) { 
+            c.innerHTML=`<div class="empty-state-premium" style="margin: 40px 0;">
+                <div class="empty-ico"><i class="fa-solid fa-book-open"></i></div>
+                <h4>No Subjects Defined</h4>
+                <p>Curriculum is empty. Start by adding a core subject.</p>
+            </div>`; 
+            return; 
+        }
+        
+        let html = `<table class="premium-student-table">
+            <thead>
+                <tr>
+                    <th style="width: 15%;">Subject Code</th>
+                    <th style="width: 30%;">Academic Subject</th>
+                    <th style="width: 30%;">Description</th>
+                    <th style="width: 15%;">Status</th>
+                    <th style="width: 10%; text-align: right;">Action</th>
+                </tr>
+            </thead>
+            <tbody>`;
+            
         result.data.forEach(s => {
+            const isActive = s.status === 'active';
             html += `<tr>
-                <td><span style="font-weight:700">${s.code}</span></td>
-                <td><div style="font-weight:600">${s.name}</div></td>
-                <td>${s.description || '-'}</td>
-                <td><span class="tag ${s.status==='active'?'bg-t':'bg-b'}">${s.status.toUpperCase()}</span></td>
-                <td style="text-align:right;white-space:nowrap">
-                    <button class="btn-icon" title="Edit" onclick="goNav('academic','subjects',{id:${s.id}})"><i class="fa-solid fa-pen"></i></button>
-                    <button class="btn-icon text-danger" title="Delete" onclick="deleteSubject(${s.id},'${s.name.replace(/'/g,"\\''")}')"><i class="fa-solid fa-trash"></i></button>
+                <td><span class="badge" style="background: rgba(245, 158, 11, 0.1); color: #b45309; font-weight: 700; font-size: 11px;">${s.code}</span></td>
+                <td>
+                    <div class="std-card">
+                        <div class="std-img initials" style="background: linear-gradient(135deg, #f59e0b, #fbbf24);">
+                            <i class="fa-solid fa-scroll" style="font-size: 14px;"></i>
+                        </div>
+                        <div class="std-info">
+                            <div class="name">${s.name}</div>
+                            <div class="id">Academic Discipline</div>
+                        </div>
+                    </div>
+                </td>
+                <td><div style="font-size: 13px; color: #64748b; line-height: 1.4;">${s.description || 'No detailed description.'}</div></td>
+                <td>
+                    <span class="badge" style="background: ${isActive?'#ecfdf5':'#fff1f2'}; color: ${isActive?'#059669':'#e11d48'}; font-weight: 700; font-size: 10px;">
+                        ${s.status.toUpperCase()}
+                    </span>
+                </td>
+                <td style="text-align:right">
+                    <div class="d-flex justify-content-end gap-2">
+                        <button class="btn-icon-p" title="Edit" onclick="goNav('academic','subjects',{id:${s.id}})">
+                            <i class="fa-solid fa-pen-to-square"></i>
+                        </button>
+                        <button class="btn-icon-p" style="color: #e11d48; border-color: #fecdd3;" title="Delete" onclick="deleteSubject(${s.id},'${s.name.replace(/'/g,"\\''")}')">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </div>
                 </td>
             </tr>`;
         });
-        html += `</tbody></table></div>`;
+        html += `</tbody></table>`;
         c.innerHTML = html;
-    } catch(e) { c.innerHTML=`<div style="padding:20px;color:var(--red);text-align:center">${e.message}</div>`; }
+    } catch(e) { c.innerHTML=`<div style="padding:40px;text-align:center;color:var(--red);"><i class="fa-solid fa-circle-exclamation" style="font-size: 2rem; margin-bottom: 10px;"></i><p>${e.message}</p></div>`; }
 }
 
 window.renderAddSubjectForm = function() {
@@ -127,25 +190,41 @@ window.deleteSubject = async function(id, name) {
 window.renderSubjectAllocation = async function() {
     const mc = document.getElementById('mainContent');
     mc.innerHTML = `<div class="pg fu">
-        <div class="bc"><a href="#" onclick="goNav('overview')">Dashboard</a> <span class="bc-sep">&rsaquo;</span> <span class="bc-cur">Teacher Allocation</span></div>
-        <div class="pg-head">
-            <div class="pg-left"><div class="pg-ico"><i class="fa-solid fa-users-rectangle"></i></div><div><div class="pg-title">Subject Allocation</div><div class="pg-sub">Assign teachers to subjects in batches</div></div></div>
+        <div class="bc">
+            <a href="#" onclick="goNav('overview')"><i class="fa-solid fa-home"></i></a> 
+            <span class="bc-sep">/</span> 
+            <span class="bc-cur">Faculty Allocation</span>
         </div>
-        <div class="card" style="margin-bottom:20px;padding:20px;">
-            <div style="display:flex;gap:20px;align-items:flex-end;">
-                <div class="form-group" style="margin-bottom:0;flex:1;">
-                    <label class="form-label">Select Batch</label>
-                    <select id="allocBatchSelect" class="form-control" onchange="_loadBatchAllocations(this.value)">
-                        <option value="">Choose Batch...</option>
-                    </select>
+
+        <div class="pg-head">
+            <div class="pg-left">
+                <div class="pg-ico" style="background: linear-gradient(135deg, #6366f1, #a855f7); color: #fff;">
+                    <i class="fa-solid fa-users-rectangle"></i>
                 </div>
-                <button class="btn bt" onclick="_openAllocModal()"><i class="fa-solid fa-plus"></i> New Allocation</button>
+                <div>
+                    <div class="pg-title" style="font-size: clamp(1.2rem, 3vw, 1.5rem);">Faculty Allocation</div>
+                    <div class="pg-sub">Assign subject leads and teachers to active batches</div>
+                </div>
             </div>
         </div>
-        <div class="card" id="allocationContainer">
-            <div style="padding:60px;text-align:center;color:#94a3b8;">
-                <i class="fa-solid fa-layer-group" style="font-size:3rem;margin-bottom:15px;"></i>
-                <p>Select a batch to view subject allocations</p>
+
+        <div class="toolbar" style="padding: clamp(15px, 2vw, 20px); margin-bottom: 25px; background: rgba(255,255,255,0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.4); border-radius: 16px; align-items: flex-end;">
+            <div class="form-group" style="margin-bottom: 0; flex: 1;">
+                <label class="form-label" style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em;">Select Target Batch</label>
+                <select id="allocBatchSelect" class="form-control" style="border-radius: 12px; height: 48px; font-weight: 600;" onchange="_loadBatchAllocations(this.value)">
+                    <option value="">Choose Batch...</option>
+                </select>
+            </div>
+            <button class="btn bt" onclick="_openAllocModal()" style="padding: 14px 24px; border-radius: 12px; font-weight: 700; height: 48px; display: flex; align-items: center; gap: 8px;">
+                <i class="fa-solid fa-plus-circle"></i> <span>Assign Teacher</span>
+            </button>
+        </div>
+
+        <div class="premium-tw table-responsive" id="allocationContainer">
+            <div class="empty-state-premium" style="margin: 40px 0;">
+                <div class="empty-ico"><i class="fa-solid fa-layer-group"></i></div>
+                <h4>Select a Batch</h4>
+                <p>Choose an academic batch above to manage its subject-teacher assignments.</p>
             </div>
         </div>
     </div>`;
@@ -164,27 +243,69 @@ async function _populateBatchesForAlloc() {
 }
 
 window._loadBatchAllocations = async function(batchId) {
-    const c = document.getElementById('allocationContainer'); if (!batchId) { c.innerHTML='<div style="padding:60px;text-align:center;color:#94a3b8;"><p>Select a batch to view subject allocations</p></div>'; return; }
-    c.innerHTML = '<div class="pg-loading"><i class="fa-solid fa-circle-notch fa-spin"></i><span>Loading allocations...</span></div>';
+    const c = document.getElementById('allocationContainer'); 
+    if (!batchId) { 
+        c.innerHTML='<div class="empty-state-premium" style="margin: 40px 0;"><div class="empty-ico"><i class="fa-solid fa-layer-group"></i></div><h4>Select a Batch</h4><p>Choose an academic batch above to manage its subject-teacher assignments.</p></div>'; 
+        return; 
+    }
+    c.innerHTML = '<div class="pg-loading"><i class="fa-solid fa-circle-notch fa-spin"></i><span>Loading faculty assignments...</span></div>';
     try {
         const res = await fetch(`${APP_URL}/api/admin/subject_allocation?batch_id=${batchId}`);
         const result = await res.json(); if (!result.success) throw new Error(result.message);
-        if (!result.data.length) { c.innerHTML=`<div style="padding:40px;text-align:center;color:#94a3b8;"><p>No subjects allocated to this batch yet.</p></div>`; return; }
+        if (!result.data.length) { 
+            c.innerHTML=`<div class="empty-state-premium" style="margin: 40px 0;">
+                <div class="empty-ico"><i class="fa-solid fa-user-slash"></i></div>
+                <h4>No Allocations</h4>
+                <p>No subjects have been allocated to this batch yet. Use the "Assign Teacher" button to begin.</p>
+            </div>`; 
+            return; 
+        }
         
-        let html = `<div class="table-responsive"><table class="table"><thead><tr><th>Subject</th><th>Assigned Teacher</th><th style="text-align:right">Actions</th></tr></thead><tbody>`;
+        let html = `<table class="premium-student-table">
+            <thead>
+                <tr>
+                    <th style="width: 35%;">Academic Subject</th>
+                    <th style="width: 45%;">Assigned Faculty Member</th>
+                    <th style="width: 20%; text-align: right;">Action</th>
+                </tr>
+            </thead>
+            <tbody>`;
+            
         result.data.forEach(a => {
+            const hasTeacher = !!a.teacher_name;
+            const teacherInitials = hasTeacher ? a.teacher_name.charAt(0).toUpperCase() : '?';
+            
             html += `<tr>
-                <td><div style="font-weight:600">${a.subject_name}</div><div style="font-size:11px;color:var(--text-light)">${a.subject_code}</div></td>
-                <td><div style="font-weight:600">${a.teacher_name || '<span style="color:var(--red);font-style:italic">Not Assigned</span>'}</div></td>
+                <td>
+                    <div style="font-weight: 700; color: #1e293b; font-size: 14px;">${a.subject_name}</div>
+                    <div style="font-size: 11px; color: #94a3b8; margin-top: 2px;">CODE: ${a.subject_code}</div>
+                </td>
+                <td>
+                    <div class="std-card">
+                        <div class="std-img initials" style="background: ${hasTeacher ? 'linear-gradient(135deg, #6366f1, #a855f7)' : '#f1f5f9; color: #94a3b8'};">
+                            ${teacherInitials}
+                        </div>
+                        <div class="std-info">
+                            <div class="name" style="${!hasTeacher ? 'color: #e11d48; font-style: italic;' : ''}">${a.teacher_name || 'No Teacher Assigned'}</div>
+                            <div class="id">${hasTeacher ? 'Faculty Lead' : 'Awaiting Assignment'}</div>
+                        </div>
+                    </div>
+                </td>
                 <td style="text-align:right">
-                    <button class="btn-icon" title="Edit Assignment" onclick="_editAllocation(${a.id}, '${a.subject_name.replace(/'/g,"\\'")}', ${a.teacher_id})"><i class="fa-solid fa-user-pen"></i></button>
-                    <button class="btn-icon text-danger" title="Remove" onclick="_removeAllocation(${a.id})"><i class="fa-solid fa-trash"></i></button>
+                    <div class="d-flex justify-content-end gap-2">
+                        <button class="btn-icon-p" title="Change Assignment" onclick="_editAllocation(${a.id}, '${a.subject_name.replace(/'/g,"\\'")}', ${a.teacher_id})">
+                            <i class="fa-solid fa-user-gear"></i>
+                        </button>
+                        <button class="btn-icon-p" style="color: #e11d48; border-color: #fecdd3;" title="Remove Allocation" onclick="_removeAllocation(${a.id})">
+                            <i class="fa-solid fa-user-minus"></i>
+                        </button>
+                    </div>
                 </td>
             </tr>`;
         });
-        html += `</tbody></table></div>`;
+        html += `</tbody></table>`;
         c.innerHTML = html;
-    } catch(e) { c.innerHTML=`<div style="padding:20px;color:var(--red);text-align:center">${e.message}</div>`; }
+    } catch(e) { c.innerHTML=`<div style="padding:40px;text-align:center;color:var(--red);"><i class="fa-solid fa-circle-exclamation" style="font-size: 2rem; margin-bottom: 10px;"></i><p>${e.message}</p></div>`; }
 };
 
 window._openAllocModal = async function() {

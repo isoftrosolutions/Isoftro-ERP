@@ -11,9 +11,6 @@ if (!defined('APP_NAME')) {
 $pageTitle = 'Report Engine';
 // Use the Super Admin specific header from layouts
 require_once VIEWS_PATH . '/layouts/header_1.php';
-
-// Include sidebar component
-require_once VIEWS_PATH . '/super-admin/sidebar.php';
 ?>
 
 <?php renderSuperAdminHeader(); ?>
@@ -129,7 +126,7 @@ async function generateReport(e) {
             method: 'POST',
             body: formData,
             headers: {
-                'X-CSRF-TOKEN': '<?php echo generateCSRFToken(); ?>'
+                'X-CSRF-TOKEN': window.CSRF_TOKEN
             }
         });
         

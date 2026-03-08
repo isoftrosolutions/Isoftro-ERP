@@ -17,7 +17,7 @@ return [
     'smtp_port'       => 587,
     'smtp_encryption' => 'tls',          // 'tls' | 'ssl' | 'none'
     'smtp_user'       => 'infohamrolabs@gmail.com',
-    'smtp_pass'       => 'tujw ophw wayy ktdb',
+    'smtp_pass'       => 'tujwophwwayyktdb',
 
     // ── System "from" identity (used when no institute name is set) ──
     'system_from_email' => 'infohamrolabs@gmail.com',
@@ -25,5 +25,5 @@ return [
 
     // ── Defaults ─────────────────────────────────────────────
     'timeout'   => 10,    // seconds
-    'debug'     => 0,     // 0=off, 1=errors, 2=verbose (for dev)
+    'debug'     => 2,     // 0=off, 1=errors, 2=verbose (for dev)
 ];

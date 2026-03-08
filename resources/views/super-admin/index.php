@@ -10,6 +10,7 @@ if (!defined('APP_NAME')) {
 }
 
 $pageTitle = 'Super Admin Dashboard';
+$stats = \App\Helpers\StatsHelper::getSuperAdminStats();
 // Use the Super Admin specific header from layouts
 require_once VIEWS_PATH . '/layouts/header_1.php';
 ?>
@@ -74,9 +75,9 @@ require_once VIEWS_PATH . '/layouts/header_1.php';
             <div class="sc fu">
                 <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
                     <span style="font-size:12px; font-weight:700; color:var(--tl); text-transform:uppercase;">Active Tenants</span>
-                    <span class="tag bg-t">+12 this month</span>
+                    <span class="tag bg-t">+<?php echo $stats['newTenantsThisMonth'] ?? 0; ?> this month</span>
                 </div>
-                <div class="sc-val">142</div>
+                <div class="sc-val"><?php echo $stats['totalTenants'] ?? 0; ?></div>
                 <p class="sc-delta">Institutes currently on platform</p>
             </div>
 
@@ -85,17 +86,20 @@ require_once VIEWS_PATH . '/layouts/header_1.php';
                 <span style="font-size:12px; font-weight:700; color:var(--tl); text-transform:uppercase;">Subscribed Plans</span>
                 <div style="display:flex; align-items:center; gap:12px; margin-top:12px;">
                     <div style="flex:1;">
-                        <div class="sc-val" style="font-size:20px;">128</div>
+                        <div class="sc-val" style="font-size:20px;"><?php echo array_sum($stats['planStats'] ?? []); ?></div>
                         <div style="display:flex; gap:4px; margin-top:8px;">
-                            <div title="Starter" style="height:6px; flex:1; background:#e2e8f0; border-radius:3px;"></div>
-                            <div title="Growth" style="height:6px; flex:2; background:#3b82f6; border-radius:3px;"></div>
-                            <div title="Professional" style="height:6px; flex:3; background:var(--sa-primary); border-radius:3px;"></div>
-                            <div title="Enterprise" style="height:6px; flex:1; background:#1e293b; border-radius:3px;"></div>
+                            <div title="Starter" style="height:6px; flex:<?php echo $stats['planStats']['starter'] ?? 1; ?>; background:#e2e8f0; border-radius:3px;"></div>
+                            <div title="Growth" style="height:6px; flex:<?php echo $stats['planStats']['growth'] ?? 1; ?>; background:#3b82f6; border-radius:3px;"></div>
+                            <div title="Professional" style="height:6px; flex:<?php echo $stats['planStats']['professional'] ?? 1; ?>; background:var(--sa-primary); border-radius:3px;"></div>
+                            <div title="Enterprise" style="height:6px; flex:<?php echo $stats['planStats']['enterprise'] ?? 1; ?>; background:#1e293b; border-radius:3px;"></div>
                         </div>
                     </div>
                 </div>
                 <div style="display:flex; justify-content:space-between; font-size:9px; margin-top:8px; font-weight:700;">
-                    <span>S: 24</span> <span>G: 32</span> <span>P: 58</span> <span>E: 14</span>
+                    <span>S: <?php echo $stats['planStats']['starter'] ?? 0; ?></span> 
+                    <span>G: <?php echo $stats['planStats']['growth'] ?? 0; ?></span> 
+                    <span>P: <?php echo $stats['planStats']['professional'] ?? 0; ?></span> 
+                    <span>E: <?php echo $stats['planStats']['enterprise'] ?? 0; ?></span>
                 </div>
             </div>
 
@@ -103,11 +107,11 @@ require_once VIEWS_PATH . '/layouts/header_1.php';
             <div class="sc fu">
                 <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
                     <span style="font-size:12px; font-weight:700; color:var(--tl); text-transform:uppercase;">SMS Consumption</span>
-                    <span class="tag bg-r">85% of quota</span>
+                    <span class="tag bg-r"><?php echo $stats['sms']['consumedPercent'] ?? 0; ?>% of quota</span>
                 </div>
-                <div class="sc-val">45.2K</div>
+                <div class="sc-val"><?php echo round(($stats['sms']['usedCredits'] ?? 0) / 1000, 1); ?>K</div>
                 <div style="height:6px; width:100%; background:#f1f5f9; border-radius:3px; margin-top:12px; overflow:hidden;">
-                    <div style="height:100%; width:85%; background:var(--red); border-radius:3px;"></div>
+                    <div style="height:100%; width:<?php echo $stats['sms']['consumedPercent'] ?? 0; ?>%; background:var(--red); border-radius:3px;"></div>
                 </div>
                 <p class="sc-delta">Monthly platform-wide usage</p>
             </div>
@@ -118,15 +122,15 @@ require_once VIEWS_PATH . '/layouts/header_1.php';
                 <div style="margin-top:12px;">
                     <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
                         <span style="font-size:11px; font-weight:600;">Uptime</span>
-                        <span style="font-size:11px; font-weight:700; color:var(--success);">99.98%</span>
+                        <span style="font-size:11px; font-weight:700; color:var(--success);"><?php echo $stats['health']['uptime'] ?? '99.9%'; ?></span>
                     </div>
                     <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
-                        <span style="font-size:11px; font-weight:600;">API p95</span>
-                        <span style="font-size:11px; font-weight:700;">142ms</span>
+                        <span style="font-size:11px; font-weight:600;">API Latency</span>
+                        <span style="font-size:11px; font-weight:700;"><?php echo $stats['health']['latency'] ?? '0ms'; ?></span>
                     </div>
                     <div style="display:flex; justify-content:space-between;">
                         <span style="font-size:11px; font-weight:600;">Redis Mem</span>
-                        <span style="font-size:11px; font-weight:700;">4.2GB</span>
+                        <span style="font-size:11px; font-weight:700;"><?php echo $stats['health']['redis'] ?? '0GB'; ?></span>
                     </div>
                 </div>
             </div>
@@ -142,8 +146,8 @@ require_once VIEWS_PATH . '/layouts/header_1.php';
                         <p style="font-size:12px; color:var(--tl);">Revenue trends with Year-over-Year comparison</p>
                     </div>
                     <div style="text-align:right;">
-                        <div style="font-size:22px; font-weight:800; color:var(--td);">रू 12.4M</div>
-                        <div style="font-size:11px; color:var(--success); font-weight:700;"><i class="fa-solid fa-arrow-trend-up"></i> 24.2% YoY</div>
+                        <div style="font-size:22px; font-weight:800; color:var(--td);"><?php echo $stats['mrrFormatted'] ?? 'रू 0'; ?></div>
+                        <div style="font-size:11px; color:var(--success); font-weight:700;"><i class="fa-solid fa-arrow-trend-up"></i> <?php echo $stats['yoyGrowth'] ?? 0; ?>% YoY</div>
                     </div>
                 </div>
                 <div style="height:200px; position:relative;">
@@ -159,25 +163,25 @@ require_once VIEWS_PATH . '/layouts/header_1.php';
                         <div style="width:8px; height:8px; border-radius:50%; background:var(--red); animation: pulse 2s infinite;"></div>
                         <div style="flex:1;">
                             <div style="font-size:13px; font-weight:700; color:#9f1239;">Critical Priority</div>
-                            <div style="font-size:10px; color:#be123c;">4 Tickets awaiting action</div>
+                            <div style="font-size:10px; color:#be123c;"><?php echo $stats['tickets']['critical'] ?? 0; ?> Tickets awaiting action</div>
                         </div>
-                        <div style="font-size:18px; font-weight:800; color:#9f1239;">4</div>
+                        <div style="font-size:18px; font-weight:800; color:#9f1239;"><?php echo $stats['tickets']['critical'] ?? 0; ?></div>
                     </div>
                     <div style="display:flex; align-items:center; gap:12px; padding:12px; border:1px solid var(--cb); border-radius:12px; background:#fff;">
                         <div style="width:8px; height:8px; border-radius:50%; background:var(--amber);"></div>
                         <div style="flex:1;">
                             <div style="font-size:13px; font-weight:700; color:var(--td);">High Priority</div>
-                            <div style="font-size:10px; color:var(--tl);">12 Pending tickets</div>
+                            <div style="font-size:10px; color:var(--tl);"><?php echo $stats['tickets']['high'] ?? 0; ?> Pending tickets</div>
                         </div>
-                        <div style="font-size:18px; font-weight:800; color:var(--td);">12</div>
+                        <div style="font-size:18px; font-weight:800; color:var(--td);"><?php echo $stats['tickets']['high'] ?? 0; ?></div>
                     </div>
                     <div style="display:flex; align-items:center; gap:12px; padding:12px; border:1px solid var(--cb); border-radius:12px; background:#fff;">
                         <div style="width:8px; height:8px; border-radius:50%; background:var(--blue);"></div>
                         <div style="flex:1;">
                             <div style="font-size:13px; font-weight:700; color:var(--td);">Standard</div>
-                            <div style="font-size:10px; color:var(--tl);">28 Open tickets</div>
+                            <div style="font-size:10px; color:var(--tl);"><?php echo $stats['tickets']['normal'] ?? 0; ?> Open tickets</div>
                         </div>
-                        <div style="font-size:18px; font-weight:800; color:var(--td);">28</div>
+                        <div style="font-size:18px; font-weight:800; color:var(--td);"><?php echo $stats['tickets']['normal'] ?? 0; ?></div>
                     </div>
                 </div>
                 <a href="<?php echo APP_URL; ?>/dash/super-admin/support-tickets" class="btn bt" style="width:100%; margin-top:20px; justify-content:center;">Manage Tickets</a>
@@ -203,33 +207,17 @@ require_once VIEWS_PATH . '/layouts/header_1.php';
                             </tr>
                         </thead>
                         <tbody>
+                            <?php foreach ($stats['recentSignups'] ?? [] as $s): ?>
                             <tr>
                                 <td style="padding:14px 0;">
-                                    <div style="font-size:13px; font-weight:700; color:var(--td);">Bright Future Academy</div>
-                                    <div style="font-size:10px; color:var(--tl);">Kathmandu, Nepal</div>
+                                    <div style="font-size:13px; font-weight:700; color:var(--td);"><?php echo htmlspecialchars($s['name']); ?></div>
+                                    <div style="font-size:10px; color:var(--tl);"><?php echo htmlspecialchars($s['subdomain']); ?>.hamroerp.com</div>
                                 </td>
-                                <td style="padding:14px 0;"><span class="tag bg-p">Professional</span></td>
-                                <td style="padding:14px 0; font-size:12px; font-weight:500;">Feb 22, 2026</td>
-                                <td style="padding:14px 0;"><span class="tag bg-g">Active</span></td>
+                                <td style="padding:14px 0;"><span class="tag bg-p"><?php echo ucfirst($s['plan']); ?></span></td>
+                                <td style="padding:14px 0; font-size:12px; font-weight:500;"><?php echo date('M d, Y', strtotime($s['created_at'])); ?></td>
+                                <td style="padding:14px 0;"><span class="tag bg-g"><?php echo ucfirst($s['status']); ?></span></td>
                             </tr>
-                            <tr>
-                                <td style="padding:14px 0;">
-                                    <div style="font-size:13px; font-weight:700; color:var(--td);">Little Angels School</div>
-                                    <div style="font-size:10px; color:var(--tl);">Lalitpur, Nepal</div>
-                                </td>
-                                <td style="padding:14px 0;"><span class="tag bg-y">Growth</span></td>
-                                <td style="padding:14px 0; font-size:12px; font-weight:500;">Feb 21, 2026</td>
-                                <td style="padding:14px 0;"><span class="tag bg-r">Setup Pending</span></td>
-                            </tr>
-                            <tr>
-                                <td style="padding:14px 0;">
-                                    <div style="font-size:13px; font-weight:700; color:var(--td);">Mount Everest College</div>
-                                    <div style="font-size:10px; color:var(--tl);">Pokhara, Nepal</div>
-                                </td>
-                                <td style="padding:14px 0;"><span class="tag bg-t">Enterprise</span></td>
-                                <td style="padding:14px 0; font-size:12px; font-weight:500;">Feb 19, 2026</td>
-                                <td style="padding:14px 0;"><span class="tag bg-g">Active</span></td>
-                            </tr>
+                            <?php endforeach; if(empty($stats['recentSignups'])) echo '<tr><td colspan="4" style="text-align:center;padding:10px;">No institutes found.</td></tr>'; ?>
                         </tbody>
                     </table>
                 </div>
@@ -241,7 +229,7 @@ require_once VIEWS_PATH . '/layouts/header_1.php';
                 <div style="display:flex; flex-direction:column; gap:16px;">
                     <div style="display:flex; align-items:center; justify-content:space-between; padding-bottom:12px; border-bottom:1px solid #1e293b;">
                         <span style="font-size:12px; color:rgba(255,255,255,0.6); font-weight:600;">Failed Logins (Prev 24h)</span>
-                        <span style="background:rgba(225,29,72,0.15); color:#f43f5e; padding:2px 10px; border-radius:12px; font-size:11px; font-weight:800; border:1px solid rgba(225,29,72,0.2);">14 Incidents</span>
+                        <span style="background:rgba(225,29,72,0.15); color:#f43f5e; padding:2px 10px; border-radius:12px; font-size:11px; font-weight:800; border:1px solid rgba(225,29,72,0.2);"><?php echo $stats['failedLogins'] ?? 0; ?> Incidents</span>
                     </div>
                     <div style="display:flex; align-items:center; gap:16px;">
                         <div style="width:36px; height:36px; border-radius:10px; background:rgba(239, 68, 68, 0.1); border:1px solid rgba(239, 68, 68, 0.15); display:flex; align-items:center; justify-content:center; color:#f87171;">
@@ -340,28 +328,20 @@ document.addEventListener('DOMContentLoaded', function() {
     new Chart(ctx, {
         type: 'line',
         data: {
-            labels: ['Mar 25', 'Apr 25', 'May 25', 'Jun 25', 'Jul 25', 'Aug 25', 'Sep 25', 'Oct 25', 'Nov 25', 'Dec 25', 'Jan 26', 'Feb 26'],
+            labels: <?php echo json_encode(array_column($stats['mrrTrend'] ?? [], 'month')); ?>,
             datasets: [
                 {
-                    label: 'Current Year Revenue',
-                    data: [8.2, 8.5, 8.9, 9.2, 9.8, 10.1, 10.5, 11.2, 11.8, 12.1, 12.3, 12.4],
+                    label: 'Monthly Revenue (In K)',
+                    data: <?php echo json_encode(array_column($stats['mrrTrend'] ?? [], 'mrrK')); ?>,
                     borderColor: '#009E7E',
                     borderWidth: 3,
                     fill: true,
                     backgroundColor: gradient,
                     tension: 0.4,
-                    pointRadius: 2,
-                    pointHoverRadius: 6
-                },
-                {
-                    label: 'Last Year Revenue',
-                    data: [6.5, 6.7, 7.0, 7.2, 7.5, 7.8, 8.0, 8.4, 8.8, 9.1, 9.4, 9.6],
-                    borderColor: '#cbd5e1',
-                    borderWidth: 2,
-                    borderDash: [5, 5],
-                    fill: false,
-                    tension: 0.4,
-                    pointRadius: 0
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                    pointBackgroundColor: '#fff',
+                    pointBorderColor: '#009E7E'
                 }
             ]
         },
@@ -384,7 +364,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     beginAtZero: true,
                     grid: { color: '#f1f5f9' },
                     ticks: {
-                        callback: function(value) { return 'रू ' + value + 'M'; },
+                        callback: function(value) { return 'रू ' + value + 'K'; },
                         font: { size: 10 }
                     }
                 },

@@ -111,6 +111,77 @@ window._showConfirmDialog = function(options) {
 };
 
 /* ═══════════════════════════════════════════════════════════════════
+   PROGRESS MODAL SYSTEM (Synchronous Operations)
+   ═══════════════════════════════════════════════════════════════════ */
+window._showProgressModal = function(title, subtitle, steps) {
+    const backdropId = 'fsProgressBackdrop';
+    const existing = document.getElementById(backdropId);
+    if (existing) existing.remove();
+
+    const backdrop = document.createElement('div');
+    backdrop.id = backdropId;
+    backdrop.className = 'fs-progress-backdrop';
+    
+    let stepsHtml = '';
+    steps.forEach((step, idx) => {
+        stepsHtml += `
+            <li class="fs-progress-step" id="fsStep${idx}">
+                <i class="fa-solid fa-circle-notch fa-spin"></i>
+                <span>${step}</span>
+            </li>
+        `;
+    });
+
+    backdrop.innerHTML = `
+        <div class="fs-progress-card">
+            <div class="fs-progress-icon">
+                <div class="fs-progress-spinner"></div>
+                <i class="fa-solid fa-paper-plane"></i>
+            </div>
+            <h2 class="fs-progress-title">${title}</h2>
+            <p class="fs-progress-subtitle">${subtitle}</p>
+            
+            <div class="fs-progress-bar-container">
+                <div class="fs-progress-bar-fill" id="fsProgressBar"></div>
+            </div>
+            
+            <ul class="fs-progress-steps">
+                ${stepsHtml}
+            </ul>
+        </div>
+    `;
+
+    document.body.appendChild(backdrop);
+    setTimeout(() => backdrop.classList.add('active'), 10);
+    
+    return {
+        updateStep: (index, status) => {
+            const step = document.getElementById(`fsStep${index}`);
+            if (!step) return;
+            
+            step.classList.remove('active', 'completed');
+            const icon = step.querySelector('i');
+            
+            if (status === 'active') {
+                step.classList.add('active');
+                icon.className = 'fa-solid fa-circle-notch fa-spin';
+            } else if (status === 'completed') {
+                step.classList.add('completed');
+                icon.className = 'fa-solid fa-circle-check';
+            }
+        },
+        updateProgress: (percent) => {
+            const bar = document.getElementById('fsProgressBar');
+            if (bar) bar.style.width = percent + '%';
+        },
+        close: () => {
+            backdrop.classList.remove('active');
+            setTimeout(() => backdrop.remove(), 400);
+        }
+    };
+};
+
+/* ═══════════════════════════════════════════════════════════════════
    FORM VALIDATION UTILITIES
    ═══════════════════════════════════════════════════════════════════ */
 function _validateFormInput(input) {
@@ -446,27 +517,22 @@ window.renderQuickPayment = async (studentId) => {
 
         document.getElementById('quickPaymentForm').onsubmit = async (e) => {
             e.preventDefault();
-            const btn = e.target.querySelector('button[type="submit"]');
-            const orig = btn.innerHTML;
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Processing...';
-
             const formData = new FormData(e.target);
             const data = Object.fromEntries(formData.entries());
-            data.action = 'record_payment'; // Reuse existing logic if possible, or we might need to adjust it
+            
+            const progress = _showProgressModal(
+                'Processing Payment', 
+                'Please wait while we secure your transaction and prepare your receipt.',
+                ['Recording Payment', 'Generating PDF Receipt', 'Sending Email to Student']
+            );
 
             try {
-                // Since our new UI might pay multiple items, we need a special backend handler or 
-                // handle it here by calling record_payment multiple times (not efficient)
-                // OR adapt record_payment to handle "auto-distribute"
+                // Phase 1: Contacting Server
+                progress.updateStep(0, 'active');
+                progress.updateProgress(10);
                 
-                // For now, let's assume we use the existing record_payment logic 
-                // but we need to know WHICH fee record. The diagram shows a "Consolidated" payment.
-                // In FinanceService.php, recordPayment handles one record at a time.
-                // WE NEED A BULK PAYMENT ACTION IN BACKEND.
-                
-                // Let's call a new bulk action
-                const result = await _safeFetch(`${window.APP_URL}/api/admin/fees`, {
+                let isFinished = false;
+                const apiPromise = _safeFetch(`${window.APP_URL}/api/admin/fees`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -475,23 +541,54 @@ window.renderQuickPayment = async (studentId) => {
                         amount: data.amount,
                         payment_mode: data.payment_mode,
                         payment_date: data.payment_date,
-                        notes: data.notes
+                        notes: data.notes,
+                        sync_email: true
                     })
                 });
-                
+
+                // Simulate "Smooth" Progress across steps while waiting
+                const animateProgress = async () => {
+                    if (isFinished) return;
+                    
+                    // Step 1 (~1.5s)
+                    await new Promise(r => setTimeout(r, 1200));
+                    if (isFinished) return;
+                    progress.updateStep(0, 'completed');
+                    progress.updateStep(1, 'active');
+                    progress.updateProgress(45);
+                    
+                    // Step 2 (~2.5s)
+                    await new Promise(r => setTimeout(r, 2500));
+                    if (isFinished) return;
+                    progress.updateStep(1, 'completed');
+                    progress.updateStep(2, 'active');
+                    progress.updateProgress(80);
+                };
+
+                // Start animation and wait for API
+                animateProgress();
+                const result = await apiPromise;
+                isFinished = true;
+
                 if (result.success) {
-                    const d = result.data;
-                    // Redirect to the new details page
-                    goNav('fee', 'details', { receipt_no: d.receipt_no });
-                }
-                else {
-                    Swal.fire('Error', result.message, 'error');
-                    btn.disabled = false; btn.innerHTML = orig;
+                    // Force complete all steps
+                    for(let i=0; i<3; i++) progress.updateStep(i, 'completed');
+                    progress.updateProgress(100);
+                    
+                    setTimeout(() => {
+                        progress.close();
+                        _showToast('Payment recorded and receipt sent!', 'success');
+                        goNav('fee', 'details', { receipt_no: result.data.receipt_no });
+                    }, 600);
+                } else {
+                    progress.close();
+                    Swal.fire('Payment Error', result.message, 'error');
                 }
             } catch (err) {
+                isFinished = true;
                 console.error(err);
-                Swal.fire('Error', 'Something went wrong', 'error');
-                btn.disabled = false; btn.innerHTML = orig;
+                progress.close();
+                Swal.fire('Error', 'An error occurred during synchronization. Please check your internet and try again.', 'error');
             }
         };
 
@@ -1504,9 +1601,7 @@ async function _loadPaymentHistory() {
                 <td style="text-align:right;">
                     <div style="display:flex; gap:8px; justify-content:flex-end;">
                         <button class="btn bs" style="padding:6px 10px;" onclick="window.open('${APP_URL}/api/admin/fees?action=generate_receipt_html&transaction_id=${t.id}&receipt_no=${t.receipt_no}&is_pdf=1', '_blank')" title="Download PDF Receipt"><i class="fa-solid fa-file-pdf"></i></button>
-                        <button class="btn bs" style="padding:6px 10px;" onclick="viewPayment(${t.id})" title="Details"><i class="fa-solid fa-eye"></i></button>
-                        <button class="btn bs" style="padding:6px 10px;" onclick="editPayment(${t.id})" title="Edit"><i class="fa-solid fa-pen"></i></button>
-                        <button class="btn bs" style="padding:6px 10px; color:#ef4444;" onclick="deletePayment(${t.id})" title="Delete"><i class="fa-solid fa-trash"></i></button>
+                        <button class="btn bs" style="padding:6px 10px;" onclick="goNav('fee', 'details', { receipt_no: '${t.receipt_no}' })" title="Details"><i class="fa-solid fa-eye"></i></button>
                     </div>
                 </td>
             </tr>`;
@@ -1625,9 +1720,7 @@ function _renderLedgerUI(data) {
                                     <td><span class="tag bg-t">COMPLETED</span></td>
                                     <td>
                                         <button class="btn bs" style="padding:4px 8px;font-size:12px;" onclick="window.handleDownloadPdf('${t.receipt_number}')" title="Download PDF"><i class="fa-solid fa-file-pdf"></i></button>
-                                        <button class="btn bs" style="padding:4px 8px;font-size:12px;" onclick="viewPayment(${t.id})" title="View"><i class="fa-solid fa-eye"></i></button>
-                                        <button class="btn bs" style="padding:4px 8px;font-size:12px;" onclick="editPayment(${t.id})" title="Edit"><i class="fa-solid fa-pen"></i></button>
-                                        <button class="btn bs" style="padding:4px 8px;font-size:12px;color:var(--red);" onclick="deletePayment(${t.id})" title="Delete"><i class="fa-solid fa-trash"></i></button>
+                                        <button class="btn bs" style="padding:4px 8px;font-size:12px;" onclick="goNav('fee', 'details', { receipt_no: '${t.receipt_number}' })" title="View"><i class="fa-solid fa-eye"></i></button>
                                     </td>
                                 </tr>
                             `; }).join('')}

@@ -40,7 +40,7 @@ $scCardId    = 'scCard_' . $componentId;
     --glass: rgba(255, 255, 255, 0.75);
     --glass-b: blur(12px);
     --sh-p: 0 20px 40px -10px rgba(0, 0, 0, 0.08);
-    --rad-p: 24px;
+    --rad-p: clamp(16px, 4vw, 24px);
     --trans: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -53,8 +53,8 @@ $scCardId    = 'scCard_' . $componentId;
 .adm-hero {
     background: linear-gradient(135deg, var(--p-d), var(--p));
     border-radius: var(--rad-p);
-    /* padding: 3rem 1.5rem;
-    margin-bottom: 2rem; */
+    padding: clamp(1.5rem, 5cvh, 3rem) clamp(1rem, 3vw, 1.5rem);
+    margin-bottom: clamp(1.5rem, 4dvh, 2rem);
     color: #fff;
     position: relative;
     overflow: hidden;
@@ -72,13 +72,13 @@ $scCardId    = 'scCard_' . $componentId;
     background: var(--glass);
     backdrop-filter: var(--glass-b);
     border: 1px solid rgba(255, 255, 255, 0.5);
-    border-radius: 20px;
-    padding: 2rem;
-    margin-bottom: 2rem;
+    border-radius: clamp(16px, 3vw, 20px);
+    padding: clamp(1rem, 4vw, 2rem);
+    margin-bottom: clamp(1.5rem, 4dvh, 2rem);
     box-shadow: var(--sh-p);
 }
 
-.sc-title { font-size: 1.1rem; font-weight: 800; color: #1e293b; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 12px; }
+.sc-title { font-size: clamp(0.95rem, 2.5vw, 1.1rem); font-weight: 800; color: #1e293b; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 12px; }
 .sc-title i { color: var(--p); width: 32px; height: 32px; background: var(--p-lt); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 14px; }
 
 /* Grid System - Strictly Mobile-First */
@@ -94,15 +94,15 @@ $scCardId    = 'scCard_' . $componentId;
 
 /* Premium Inputs */
 .f-grp { margin-bottom: 0.5rem; }
-.f-lbl { display: block; font-size: 13px; font-weight: 700; color: #475569; margin-bottom: 8px; margin-left: 4px; }
+.f-lbl { display: block; font-size: clamp(11px, 1.2vw, 13px); font-weight: 700; color: #475569; margin-bottom: 8px; margin-left: 4px; }
 .f-lbl.req::after { content: '*'; color: var(--a); margin-left: 4px; }
 
 .ipt-box { position: relative; }
 .ipt-box i { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 15px; pointer-events: none; transition: var(--trans); }
 
 .fi {
-    width: 100%; padding: 14px 16px 14px 48px; border: 2px solid #e2e8f0; border-radius: 14px;
-    font-size: 14px; font-weight: 600; outline: none; transition: var(--trans); background: #fff;
+    width: 100%; padding: clamp(10px, 2vw, 14px) clamp(12px, 2vw, 16px) clamp(10px, 2vw, 14px) 48px; border: 2px solid #e2e8f0; border-radius: clamp(10px, 2vw, 14px);
+    font-size: clamp(13px, 1.5vw, 14px); font-weight: 600; outline: none; transition: var(--trans); background: #fff;
     color: #1e293b; font-family: inherit;
 }
 .fi:focus { border-color: var(--p); box-shadow: 0 0 0 5px var(--p-lt); }
@@ -119,7 +119,7 @@ $scCardId    = 'scCard_' . $componentId;
 .callout-s { border-color: #fecdd3; background: #fff1f2; }
 
 /* Buttons */
-.btn-p { width: 100%; padding: 18px; background: linear-gradient(135deg, var(--p-d), var(--p)); color: #fff; border: none; border-radius: 16px; font-size: 16px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 12px; transition: var(--trans); box-shadow: 0 10px 25px -5px rgba(0, 184, 148, 0.4); }
+.btn-p { width: 100%; padding: clamp(14px, 3vw, 18px); background: linear-gradient(135deg, var(--p-d), var(--p)); color: #fff; border: none; border-radius: 16px; font-size: clamp(14px, 1.5vw, 16px); font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 12px; transition: var(--trans); box-shadow: 0 10px 25px -5px rgba(0, 184, 148, 0.4); }
 .btn-p:hover { transform: translateY(-3px); box-shadow: 0 20px 35px -5px rgba(0, 184, 148, 0.5); }
 .btn-p:active { transform: translateY(0); }
 
@@ -133,7 +133,7 @@ $scCardId    = 'scCard_' . $componentId;
 <div class="pg">
 
     <!-- Standard Header with Breadcrumb Integration -->
-    <div class="pg-head" style="background: none; border: none; padding: 0; margin-bottom: 1.5rem;">
+    <div class="pg-head" style="background: none; border: none; padding: 0; margin-bottom: clamp(1rem, 3dvh, 1.5rem);">
         <div class="pg-left">
             <div class="pg-ico"><i class="fas fa-user-plus"></i></div>
             <div>
@@ -141,22 +141,12 @@ $scCardId    = 'scCard_' . $componentId;
                
             </div>
         </div>
-        <div class="pg-acts">
-            <a href="<?= htmlspecialchars($viewAllStudentsUrl) ?>" class="btn-p" style="padding: 10px 20px; font-size: 13px; border-radius: 12px; box-shadow: none;">
-                <i class="fas fa-users"></i> View All Students
-            </a>
-        </div>
+       
     </div>
 
     <form id="<?= $formId ?>" onsubmit="handleAdmissionSubmit_<?= $componentId ?>(event)">
 
-        <!-- Hero Section Inside Form for Context -->
-        <div class="adm-hero">
-            <div class="adm-hero-content">
-                <div class="adm-hero-ico"></div>
-                <h2 style="font-size: 2rem; font-weight: 900; margin: 0; letter-spacing: -0.03em;">New Student Enrollment</h2>
-            </div>
-        </div>
+
 
         <!-- Section 1: Academic High Priority -->
         <div class="sc-adm callout-p">

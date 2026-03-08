@@ -71,21 +71,21 @@ class MailHelper
         \PDO $db,
         int $tenantId,
         int $studentId,
-        string $receiptNo,
+        string $subject,
         string $email,
         string $status,
         ?string $error = null
     ): void {
         try {
             $stmt = $db->prepare("
-                INSERT INTO email_logs (tenant_id, student_id, receipt_no, recipient_email, status, error_message)
-                VALUES (:tid, :sid, :rno, :email, :status, :err)
+                INSERT INTO email_logs (tenant_id, student_id, email, subject, status, error_message)
+                VALUES (:tid, :sid, :email, :subj, :status, :err)
             ");
             $stmt->execute([
                 'tid' => $tenantId,
                 'sid' => $studentId,
-                'rno' => $receiptNo,
                 'email' => $email,
+                'subj' => $subject,
                 'status' => $status,
                 'err' => $error
             ]);
@@ -210,7 +210,7 @@ class MailHelper
 
         if ($jobType === 'payment_receipt' || $jobType === 'send_email_receipt') {
             // Use FinanceEmailHelper templates or generic logic
-            $templateKey = $payload['template_key'] ?? ($payload['amount_due'] > 0 ? 'payment_success_partial' : 'payment_success_full');
+            $templateKey = $payload['template_key'] ?? (($payload['amount_due'] ?? 0) > 0 ? 'payment_success_partial' : 'payment_success_full');
             $branding = self::getTenantBranding($db, $tenantId);
             $tplData = array_merge($payload, ['institute_name' => $branding['institute_name']]);
             $tpl = self::getStaticTemplate($templateKey, $tplData);
@@ -258,9 +258,10 @@ class MailHelper
             }
 
             $success = $mail->send();
-            self::logEmail($db, $tenantId, 0, 'N/A', $toEmail, $success ? 'sent' : 'failed');
+            self::logEmail($db, $tenantId, 0, $subject, $toEmail, $success ? 'sent' : 'failed');
             return $success;
         } catch (\Throwable $e) {
+            self::logEmail($db, $tenantId, 0, $subject, $toEmail, 'failed', $e->getMessage());
             error_log("[MailHelper] Send Direct Error: " . $e->getMessage());
             return false;
         }

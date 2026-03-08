@@ -179,6 +179,14 @@ if (!class_exists('App\Helpers\CsrfHelper')) {
     require_once APP_ROOT . '/app/Helpers/CsrfHelper.php';
 }
 
+if (!class_exists('App\Helpers\Logger')) {
+    require_once APP_ROOT . '/app/Helpers/Logger.php';
+}
+
+if (!class_exists('App\Helpers\StatsHelper')) {
+    require_once APP_ROOT . '/app/Helpers/StatsHelper.php';
+}
+
 if (!function_exists('generateCSRFToken')) {
     function generateCSRFToken() {
         return \App\Helpers\CsrfHelper::getCsrfToken();
@@ -188,6 +196,24 @@ if (!function_exists('generateCSRFToken')) {
 if (!function_exists('verifyCSRFToken')) {
     function verifyCSRFToken($token) {
         return \App\Helpers\CsrfHelper::validateCsrfToken($token);
+    }
+}
+
+if (!function_exists('getCsrfToken')) {
+    function getCsrfToken() {
+        return \App\Helpers\CsrfHelper::getCsrfToken();
+    }
+}
+
+if (!function_exists('csrfMetaTag')) {
+    function csrfMetaTag() {
+        return \App\Helpers\CsrfHelper::csrfMetaTag();
+    }
+}
+
+if (!function_exists('csrfJsHeader')) {
+    function csrfJsHeader() {
+        return \App\Helpers\CsrfHelper::csrfJsHeader();
     }
 }
 
@@ -282,6 +308,72 @@ if (!function_exists('showTenantNotFound')) {
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
+
+if (!function_exists('checkRememberMe')) {
+    function checkRememberMe() {
+        if (!isLoggedIn() && isset($_COOKIE['remember_token'])) {
+            $token = $_COOKIE['remember_token'];
+            $db = getDBConnection();
+            try {
+                $stmt = $db->prepare("SELECT user_id FROM remember_tokens WHERE token = :token AND expires_at > NOW() LIMIT 1");
+                $stmt->execute([':token' => hash('sha256', $token)]);
+                $result = $stmt->fetch();
+                
+                if ($result) {
+                    $stmt = $db->prepare("SELECT * FROM users WHERE id = :id AND status = 'active' LIMIT 1");
+                    $stmt->execute([':id' => $result['user_id']]);
+                    $user = $stmt->fetch();
+                    
+                    if ($user) {
+                        session_regenerate_id(true);
+                        
+                        $tenantLogo = null;
+                        if (!empty($user['tenant_id'])) {
+                            $stmtTenant = $db->prepare("SELECT logo_path FROM tenants WHERE id = :tid LIMIT 1");
+                            $stmtTenant->execute([':tid' => $user['tenant_id']]);
+                            $tenantData = $stmtTenant->fetch();
+                            if ($tenantData && !empty($tenantData['logo_path'])) {
+                                $tenantLogo = $tenantData['logo_path'];
+                                if (strpos($tenantLogo, '/uploads/') === 0 && strpos($tenantLogo, '/public/') !== 0) {
+                                    $tenantLogo = '/public' . $tenantLogo;
+                                }
+                            }
+                        }
+
+                        $_SESSION['userData'] = [
+                            'id' => $user['id'],
+                            'email' => $user['email'],
+                            'name' => $user['full_name'] ?? $user['name'] ?? $user['email'],
+                            'role' => $user['role'],
+                            'tenant_id' => $user['tenant_id'],
+                            'avatar' => $user['avatar'] ?? $user['photo_url'] ?? null,
+                            'last_login' => date('Y-m-d H:i:s'),
+                            'ip_address' => $_SERVER['REMOTE_ADDR'],
+                        ];
+                        
+                        $_SESSION['tenant_logo'] = $tenantLogo;
+                        $_SESSION['institute_logo'] = $tenantLogo;
+                        $_SESSION['last_activity'] = time();
+
+                        $stmt = $db->prepare("UPDATE users SET last_login_at = NOW() WHERE id = :id");
+                        $stmt->execute([':id' => $user['id']]);
+                        
+                        return true;
+                    }
+                }
+            } catch (Exception $e) {
+                // Ignore errors
+            }
+            
+            // Clear invalid token
+            setcookie('remember_token', '', time() - 3600, '/', '', false, true);
+        }
+        return false;
+    }
+}
+
+// Check for remember me cookie
+checkRememberMe();
 
 // Set timezone
 date_default_timezone_set(TIMEZONE);

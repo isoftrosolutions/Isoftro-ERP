@@ -17,6 +17,18 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 try {
     $pdo = getDBConnection();
     
+    // 0. Security Checks
+    $currentUserId = $_SESSION['userData']['id'] ?? null;
+    if (!$currentUserId) {
+        throw new Exception("Unauthorized: No active session.");
+    }
+    
+    // CSRF Check
+    $csrfToken = $_POST['csrf_token'] ?? $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
+    if (!verifyCSRFToken($csrfToken)) {
+        throw new Exception("Security violation: Invalid CSRF token.");
+    }
+
     // Get POST data
     $name = sanitizeInput($_POST['name'] ?? '');
     $nepaliName = sanitizeInput($_POST['nepaliName'] ?? '');
@@ -39,6 +51,18 @@ try {
     if (!$name || !$subdomain || !$adminEmail || !$adminPass) {
         throw new Exception("Required fields are missing.");
     }
+
+    // Password strength validation
+    $passwordErrors = [];
+    if (strlen($adminPass) < 8) $passwordErrors[] = "at least 8 characters";
+    if (!preg_match('/[A-Z]/', $adminPass)) $passwordErrors[] = "one uppercase letter";
+    if (!preg_match('/[a-z]/', $adminPass)) $passwordErrors[] = "one lowercase letter";
+    if (!preg_match('/[0-9]/', $adminPass)) $passwordErrors[] = "one number";
+    if (!preg_match('/[^A-Za-z0-9]/', $adminPass)) $passwordErrors[] = "one special character";
+    
+    if (!empty($passwordErrors)) {
+        throw new Exception("Password must contain: " . implode(", ", $passwordErrors) . ".");
+    }
     
     // Check if subdomain exists
     $stmt = $pdo->prepare("SELECT id FROM tenants WHERE subdomain = ?");
@@ -57,8 +81,8 @@ try {
     $pdo->beginTransaction();
     
     // 1. Insert Tenant
-    $stmt = $pdo->prepare("INSERT INTO tenants (name, nepali_name, subdomain, brand_color, tagline, address, phone, plan, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())");
-    $stmt->execute([$name, $nepaliName, $subdomain, $brandColor, $tagline, $address, $phone, $plan, $status]);
+    $stmt = $pdo->prepare("INSERT INTO tenants (name, nepali_name, subdomain, brand_color, tagline, address, phone, email, plan, status, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())");
+    $stmt->execute([$name, $nepaliName, $subdomain, $brandColor, $tagline, $address, $phone, $email, $plan, $status, $currentUserId]);
     $tenantId = $pdo->lastInsertId();
     
     // 2. Create Admin User
@@ -68,11 +92,19 @@ try {
     $userId = $pdo->lastInsertId();
     
     // 3. Log the action
-    $stmt = $pdo->prepare("INSERT INTO audit_logs (user_id, action, description, created_at) VALUES (?, 'Tenant Created', ?, NOW())");
-    $stmt->execute([1, "New tenant '$name' ($subdomain) created with admin '$adminEmail'"]); // Mocking superadmin user_id = 1
+    $userIp = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+    $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? 'Unknown';
+
+    $stmt = $pdo->prepare("INSERT INTO audit_logs (user_id, action, ip_address, user_agent, description, created_at) VALUES (?, 'Tenant Created', ?, ?, ?, NOW())");
+    $stmt->execute([$currentUserId, $userIp, $userAgent, "New tenant '$name' ($subdomain) created with admin '$adminEmail'"]);
     
     $pdo->commit();
     
+    // Send back the new CSRF token in header for synchronized AJAX requests
+    if (function_exists('getCsrfToken')) {
+        header('X-CSRF-Token: ' . getCsrfToken());
+    }
+
     echo json_encode([
         'success' => true, 
         'message' => 'Institute registered successfully!',

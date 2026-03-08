@@ -69,8 +69,8 @@ body {
 }
 
 .sb-toggle {
-    width: 36px;
-    height: 36px;
+    width: 44px;
+    height: 44px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -152,8 +152,8 @@ body {
 }
 
 .hbtn {
-    width: 34px;
-    height: 34px;
+    width: 44px;
+    height: 44px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -780,10 +780,12 @@ textarea.form-inp {
     border: 1px solid transparent;
 }
 
-.hbtn:hover {
-    background: #f1f5f9;
-    color: var(--green);
-    border-color: var(--card-border);
+@media (hover: hover) {
+    .hbtn:hover {
+        background: #f1f5f9;
+        color: var(--green);
+        border-color: var(--card-border);
+    }
 }
 
 /* User Profile Chip */
@@ -799,9 +801,11 @@ textarea.form-inp {
     user-select: none;
 }
 
-.u-chip:hover {
-    border-color: var(--green);
-    box-shadow: var(--shadow);
+@media (hover: hover) {
+    .u-chip:hover {
+        border-color: var(--green);
+        box-shadow: var(--shadow);
+    }
 }
 
 .u-av {
@@ -1934,12 +1938,15 @@ table {
 
 /* ── MOBILE BOTTOM NAVIGATION ── */
 .mobile-bottom-nav {
-    display: none; /* Hidden on desktop */
+    display: none;
+    /* Hidden on desktop */
 }
 
 @media (max-width: 1023px) {
+
     /* Add padding to body/main so content isn't hidden behind the bottom nav */
-    main.main, .page {
+    main.main,
+    .page {
         padding-bottom: 80px;
     }
 

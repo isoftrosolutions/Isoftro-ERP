@@ -4,7 +4,10 @@
  * Configure platform-wide branding settings
  */
 
-require_once __DIR__ . '/../../config.php';
+if (!defined('APP_NAME')) {
+    require_once __DIR__ . '/../../../config/config.php';
+}
+require_once VIEWS_PATH . '/layouts/header_1.php';
 
 $pdo = getDBConnection();
 
@@ -13,30 +16,36 @@ $messageType = '';
 
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    try {
-        $settings = [
-            ['platform_name', $_POST['platform_name'] ?? 'Hamro Labs ERP', 'string'],
-            ['platform_logo', $_POST['platform_logo'] ?? '/logo.png', 'string'],
-            ['platform_primary_color', $_POST['primary_color'] ?? '#009E7E', 'string'],
-            ['platform_secondary_color', $_POST['secondary_color'] ?? '#6c757d', 'string'],
-            ['platform_footer_text', $_POST['footer_text'] ?? '© 2026 Hamro Labs. All rights reserved.', 'string'],
-            ['support_email', $_POST['support_email'] ?? 'support@hamrolabs.com', 'string'],
-        ];
-        
-        foreach ($settings as $setting) {
-            $stmt = $pdo->prepare("
-                INSERT INTO platform_settings (setting_key, setting_value, setting_type, description, is_public)
-                VALUES (?, ?, ?, 'Platform branding', 1)
-                ON DUPLICATE KEY UPDATE setting_value = ?
-            ");
-            $stmt->execute([$setting[0], $setting[1], $setting[2], $setting[1]]);
-        }
-        
-        $message = 'Branding settings saved successfully!';
-        $messageType = 'success';
-    } catch (Exception $e) {
-        $message = 'Error: ' . $e->getMessage();
+    // CSRF Check
+    if (!verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+        $message = 'Security violation: Invalid CSRF token.';
         $messageType = 'error';
+    } else {
+        try {
+            $settings = [
+                ['platform_name', $_POST['platform_name'] ?? 'Hamro Labs ERP', 'string'],
+                ['platform_logo', $_POST['platform_logo'] ?? '/logo.png', 'string'],
+                ['platform_primary_color', $_POST['primary_color'] ?? '#009E7E', 'string'],
+                ['platform_secondary_color', $_POST['secondary_color'] ?? '#6c757d', 'string'],
+                ['platform_footer_text', $_POST['footer_text'] ?? '© 2026 Hamro Labs. All rights reserved.', 'string'],
+                ['support_email', $_POST['support_email'] ?? 'support@hamrolabs.com', 'string'],
+            ];
+            
+            foreach ($settings as $setting) {
+                $stmt = $pdo->prepare("
+                    INSERT INTO platform_settings (setting_key, setting_value, setting_type, description, is_public)
+                    VALUES (?, ?, ?, 'Platform branding', 1)
+                    ON DUPLICATE KEY UPDATE setting_value = ?
+                ");
+                $stmt->execute([$setting[0], $setting[1], $setting[2], $setting[1]]);
+            }
+            
+            $message = 'Branding settings saved successfully!';
+            $messageType = 'success';
+        } catch (Exception $e) {
+            $message = 'Error: ' . $e->getMessage();
+            $messageType = 'error';
+        }
     }
 }
 
@@ -63,8 +72,6 @@ $defaults = [
 $settings = array_merge($defaults, $settings);
 
 $pageTitle = 'Platform Branding';
-include __DIR__ . '/header.php';
-
 renderSuperAdminHeader();
 renderSidebar('branding.php');
 ?>
@@ -107,6 +114,7 @@ renderSidebar('branding.php');
         </div>
 
         <form method="POST">
+            <input type="hidden" name="csrf_token" value="<?php echo getCsrfToken(); ?>">
             <div class="g7-3">
                 <!-- Basic Settings -->
                 <div class="card">
@@ -169,6 +177,14 @@ renderSidebar('branding.php');
     </div>
 </main>
 
+<script>
+document.querySelectorAll('input[type="color"]').forEach(input => {
+    input.addEventListener('input', (e) => {
+        e.target.nextElementSibling.value = e.target.value.toUpperCase();
+    });
+});
+</script>
+
 <style>
 .color-input {
     display: flex;
@@ -195,4 +211,4 @@ renderSidebar('branding.php');
 }
 </style>
 
-<?php include __DIR__ . '/footer.php'; ?>
+<?php include 'footer.php'; ?>

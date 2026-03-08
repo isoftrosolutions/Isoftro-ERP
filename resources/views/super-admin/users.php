@@ -95,107 +95,117 @@ $activePage = 'users.php';
         </div>
 
         <!-- Stats -->
-        <div class="stat-grid" style="margin-bottom:24px;">
-            <div class="card stat-card">
+        <div class="sg" style="margin-bottom:24px;">
+            <div class="sc fu">
                 <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
                     <div style="width:38px;height:38px;background:#f0fdf4;border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--green);font-size:16px;">
-                        <i class="fa fa-users"></i>
+                        <i class="fa-solid fa-users"></i>
                     </div>
                     <span style="font-size:12px;color:var(--text-body);font-weight:600;">Total Users (Platform)</span>
                 </div>
-                <div class="stat-val"><?php echo number_format($totalUsers); ?></div>
+                <div class="sc-val"><?php echo number_format($totalUsers); ?></div>
                 <div style="font-size:12px;color:var(--text-light);margin-top:4px;">Across <?php echo $totalInst; ?> institutes</div>
             </div>
-            <div class="card stat-card">
+            <div class="sc fu" style="animation-delay: 0.1s;">
                 <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
                     <div style="width:38px;height:38px;background:#eff6ff;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#3b82f6;font-size:16px;">
-                        <i class="fa fa-circle-dot"></i>
+                        <i class="fa-solid fa-circle-dot"></i>
                     </div>
                     <span style="font-size:12px;color:var(--text-body);font-weight:600;">Active (Last 7 Days)</span>
                 </div>
-                <div class="stat-val" style="color:#3b82f6;"><?php echo number_format($active7d); ?></div>
+                <div class="sc-val" style="color:#3b82f6;"><?php echo number_format($active7d); ?></div>
                 <div style="font-size:12px;color:var(--text-light);margin-top:4px;"><?php echo $engRate; ?>% engagement rate</div>
             </div>
-            <div class="card stat-card">
+            <div class="sc fu" style="animation-delay: 0.2s;">
                 <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
                     <div style="width:38px;height:38px;background:#fef3c7;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#d97706;font-size:16px;">
-                        <i class="fa fa-right-to-bracket"></i>
+                        <i class="fa-solid fa-right-to-bracket"></i>
                     </div>
                     <span style="font-size:12px;color:var(--text-body);font-weight:600;">Logins Today</span>
                 </div>
-                <div class="stat-val" style="color:#d97706;"><?php echo number_format($loginsToday); ?></div>
+                <div class="sc-val" style="color:#d97706;"><?php echo number_format($loginsToday); ?></div>
                 <div style="font-size:12px;color:var(--text-light);margin-top:4px;">Live data</div>
             </div>
-            <div class="card stat-card">
+            <div class="sc fu" style="animation-delay: 0.3s;">
                 <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
                     <div style="width:38px;height:38px;background:#fef2f2;border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--red);font-size:16px;">
-                        <i class="fa fa-user-slash"></i>
+                        <i class="fa-solid fa-user-slash"></i>
                     </div>
                     <span style="font-size:12px;color:var(--text-body);font-weight:600;">Inactive 30+ Days</span>
                 </div>
-                <div class="stat-val" style="color:var(--red);"><?php echo number_format($inactive30d); ?></div>
+                <div class="sc-val" style="color:var(--red);"><?php echo number_format($inactive30d); ?></div>
                 <div style="font-size:12px;color:var(--text-light);margin-top:4px;"><?php echo $inactivePct; ?>% of all users</div>
             </div>
         </div>
 
         <div class="g2" style="margin-bottom:20px;">
             <!-- Role Breakdown -->
-            <div class="card">
+            <div class="sc fu">
                 <div style="font-size:14px;font-weight:800;margin-bottom:16px;display:flex;align-items:center;gap:8px;">
-                    <i class="fa fa-pie-chart" style="color:var(--green);"></i> Users by Role
+                    <i class="fa-solid fa-chart-pie" style="color:var(--green);"></i> Users by Role
                 </div>
-                <canvas id="roleChart" height="220"></canvas>
+                <div style="position:relative; height:220px;">
+                    <canvas id="roleChart"></canvas>
+                </div>
                 <div id="roleLegend" style="display:flex;flex-direction:column;gap:8px;margin-top:16px;"></div>
             </div>
 
             <!-- Daily Active Users Chart -->
-            <div class="card">
+            <div class="sc fu">
                 <div style="font-size:14px;font-weight:800;margin-bottom:16px;display:flex;align-items:center;gap:8px;">
-                    <i class="fa fa-chart-line" style="color:var(--green);"></i> Daily Active Users (Last 7 Days)
+                    <i class="fa-solid fa-chart-line" style="color:var(--green);"></i> Daily Active Users (Last 7 Days)
                 </div>
-                <canvas id="dauChart" height="220"></canvas>
+                <div style="position:relative; height:220px;">
+                    <canvas id="dauChart"></canvas>
+                </div>
             </div>
         </div>
 
         <!-- Top Active Institutes + User Table -->
         <div class="g2">
-            <div class="tbl-wrap">
-                <div class="tbl-head"><div class="tbl-title"><i class="fa fa-trophy"></i> Most Active Institutes</div></div>
-                <table>
-                    <thead>
-                        <tr style="background:#f8fafc;">
-                            <th style="padding:12px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--text-light);text-transform:uppercase;border-bottom:1px solid var(--card-border);">Institute</th>
-                            <th style="padding:12px 16px;text-align:center;font-size:11px;font-weight:700;color:var(--text-light);text-transform:uppercase;border-bottom:1px solid var(--card-border);">Users</th>
-                            <th style="padding:12px 16px;text-align:center;font-size:11px;font-weight:700;color:var(--text-light);text-transform:uppercase;border-bottom:1px solid var(--card-border);">Logins/Day</th>
-                            <th style="padding:12px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--text-light);text-transform:uppercase;border-bottom:1px solid var(--card-border);">Engagement</th>
-                        </tr>
-                    </thead>
-                    <tbody id="activeInsts"></tbody>
-                </table>
+            <div class="sc fu">
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px;">
+                    <h3 style="font-size:14px; font-weight:800; color:var(--td);"><i class="fa-solid fa-trophy" style="color:var(--amber);"></i> Most Active Institutes</h3>
+                </div>
+                <div style="overflow-x:auto;">
+                    <table style="width:100%; border-collapse:collapse;">
+                        <thead>
+                            <tr style="background:#f8fafc;">
+                                <th style="padding:12px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--text-light);text-transform:uppercase;border-bottom:1px solid var(--cb);">Institute</th>
+                                <th style="padding:12px 16px;text-align:center;font-size:11px;font-weight:700;color:var(--text-light);text-transform:uppercase;border-bottom:1px solid var(--cb);">Users</th>
+                                <th style="padding:12px 16px;text-align:center;font-size:11px;font-weight:700;color:var(--text-light);text-transform:uppercase;border-bottom:1px solid var(--cb);">Logins/Day</th>
+                                <th style="padding:12px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--text-light);text-transform:uppercase;border-bottom:1px solid var(--cb);">Engagement</th>
+                            </tr>
+                        </thead>
+                        <tbody id="activeInsts"></tbody>
+                    </table>
+                </div>
             </div>
 
-            <div class="tbl-wrap">
-                <div class="tbl-head">
-                    <div class="tbl-title"><i class="fa fa-user-clock"></i> Recent Logins</div>
-                    <select class="filter-sel" onchange="filterRole(this.value)">
+            <div class="sc fu">
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px;">
+                    <h3 style="font-size:14px; font-weight:800; color:var(--td);"><i class="fa-solid fa-user-clock" style="color:var(--blue);"></i> Recent Logins</h3>
+                    <select class="filter-sel" onchange="filterRole(this.value)" style="padding:4px 8px; border-radius:6px; border:1px solid var(--cb); outline:none;">
                         <option value="">All Roles</option>
-                        <option>Admin</option>
-                        <option>Teacher</option>
-                        <option>Student</option>
-                        <option>Guardian</option>
+                        <option value="admin">Admin</option>
+                        <option value="teacher">Teacher</option>
+                        <option value="student">Student</option>
+                        <option value="guardian">Guardian</option>
                     </select>
                 </div>
-                <table>
-                    <thead>
-                        <tr style="background:#f8fafc;">
-                            <th style="padding:12px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--text-light);text-transform:uppercase;border-bottom:1px solid var(--card-border);">User</th>
-                            <th style="padding:12px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--text-light);text-transform:uppercase;border-bottom:1px solid var(--card-border);">Role</th>
-                            <th style="padding:12px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--text-light);text-transform:uppercase;border-bottom:1px solid var(--card-border);">Institute</th>
-                            <th style="padding:12px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--text-light);text-transform:uppercase;border-bottom:1px solid var(--card-border);">Last Login</th>
-                        </tr>
-                    </thead>
-                    <tbody id="recentLogins"></tbody>
-                </table>
+                <div style="overflow-x:auto;">
+                    <table style="width:100%; border-collapse:collapse;">
+                        <thead>
+                            <tr style="background:#f8fafc;">
+                                <th style="padding:12px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--text-light);text-transform:uppercase;border-bottom:1px solid var(--cb);">User</th>
+                                <th style="padding:12px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--text-light);text-transform:uppercase;border-bottom:1px solid var(--cb);">Role</th>
+                                <th style="padding:12px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--text-light);text-transform:uppercase;border-bottom:1px solid var(--cb);">Institute</th>
+                                <th style="padding:12px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--text-light);text-transform:uppercase;border-bottom:1px solid var(--cb);">Last Login</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recentLogins"></tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
@@ -261,80 +271,103 @@ $activePage = 'users.php';
         ];
     }, $topInstitutes)); ?>;
 
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
     const loginsRaw = <?php echo json_encode($recentLogins); ?>;
     const logins = loginsRaw.map(l => ({
-        name: l.name.split('@')[0], 
-        role: roleFormat[l.role] || l.role,
-        inst: l.inst,
+        name: escapeHtml(l.name.split('@')[0]), 
+        role: escapeHtml(roleFormat[l.role] || l.role),
+        inst: escapeHtml(l.inst),
         time: timeAgo(l.time),
         roleColor: roleColors[l.role] || '#64748b'
     }));
 
     // Render Active Institutes Table
-    document.getElementById('activeInsts').innerHTML = institutes.map(i => `
-        <tr style="border-bottom:1px solid var(--card-border);" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background=''">
-            <td style="padding:12px 16px;font-size:13px;font-weight:700;">${i.name}</td>
-            <td style="padding:12px 16px;text-align:center;font-size:13px;font-weight:600;">${i.users.toLocaleString()}</td>
-            <td style="padding:12px 16px;text-align:center;font-size:13px;font-weight:600;color:var(--green);">${i.logins}</td>
-            <td style="padding:12px 16px;">
-                <div style="display:flex;align-items:center;gap:8px;">
-                    <div style="flex:1;height:6px;background:#f1f5f9;border-radius:3px;">
-                        <div style="width:${i.pct}%;height:6px;background:var(--green);border-radius:3px;"></div>
+    document.addEventListener('DOMContentLoaded', function() {
+        const activeInstsEl = document.getElementById('activeInsts');
+        if (activeInstsEl) {
+            activeInstsEl.innerHTML = institutes.map(i => `
+                <tr style="border-bottom:1px solid var(--cb);" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background=''">
+                    <td style="padding:14px 16px;font-size:13px;font-weight:700;">${escapeHtml(i.name)}</td>
+                    <td style="padding:14px 16px;text-align:center;font-size:13px;font-weight:600;">${i.users.toLocaleString()}</td>
+                    <td style="padding:14px 16px;text-align:center;font-size:13px;font-weight:600;color:var(--success);">${i.logins}</td>
+                    <td style="padding:14px 16px;">
+                        <div style="display:flex;align-items:center;gap:8px;">
+                            <div style="flex:1;height:6px;background:#f1f5f9;border-radius:3px;">
+                                <div style="width:${i.pct}%;height:6px;background:var(--success);border-radius:3px;"></div>
+                            </div>
+                            <span style="font-size:12px;font-weight:700;color:var(--success);">${i.pct}%</span>
+                        </div>
+                    </td>
+                </tr>`).join('');
+        }
+
+        // Render Recent Logins Table
+        const recentLoginsEl = document.getElementById('recentLogins');
+        if (recentLoginsEl) {
+            recentLoginsEl.innerHTML = logins.map(l => `
+                <tr style="border-bottom:1px solid var(--cb);" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background=''">
+                    <td style="padding:14px 16px;">
+                        <div style="display:flex;align-items:center;gap:8px;">
+                            <div style="width:28px;height:28px;border-radius:50%;background:${l.roleColor};color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;">${l.name[0]}</div>
+                            <span style="font-size:13px;font-weight:600;color:var(--td);">${l.name}</span>
+                        </div>
+                    </td>
+                    <td style="padding:14px 16px;"><span style="background:${l.roleColor}1a;color:${l.roleColor};padding:4px 8px;border-radius:6px;font-size:11px;font-weight:700;">${l.role}</span></td>
+                    <td style="padding:14px 16px;font-size:12px;color:var(--tb);">${l.inst}</td>
+                    <td style="padding:14px 16px;font-size:12px;color:var(--tl);">${l.time}</td>
+                </tr>`).join('');
+        }
+
+        // Role Donut Chart
+        const roleCtx = document.getElementById('roleChart')?.getContext('2d');
+        if (roleCtx && typeof Chart !== 'undefined') {
+            new Chart(roleCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: roleData.map(r => r.role),
+                    datasets: [{ data: roleData.map(r => r.count), backgroundColor: roleData.map(r => r.color), borderWidth: 2, borderColor: '#fff', hoverOffset: 6 }]
+                },
+                options: { responsive: true, plugins: { legend: { display: false } }, cutout: '65%' }
+            });
+        }
+        
+        const roleLegendEl = document.getElementById('roleLegend');
+        if (roleLegendEl) {
+            roleLegendEl.innerHTML = roleData.map(r => `
+                <div style="display:flex;align-items:center;justify-content:space-between;">
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <div style="width:10px;height:10px;border-radius:50%;background:${r.color};"></div>
+                        <span style="font-size:13px;color:var(--text-body);">${escapeHtml(r.role)}</span>
                     </div>
-                    <span style="font-size:12px;font-weight:700;color:var(--green);">${i.pct}%</span>
-                </div>
-            </td>
-        </tr>`).join('');
+                    <span style="font-size:13px;font-weight:700;">${r.count.toLocaleString()}</span>
+                </div>`).join('');
+        }
 
-    // Render Recent Logins Table
-    document.getElementById('recentLogins').innerHTML = logins.map(l => `
-        <tr style="border-bottom:1px solid var(--card-border);" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background=''">
-            <td style="padding:11px 16px;">
-                <div style="display:flex;align-items:center;gap:8px;">
-                    <div style="width:28px;height:28px;border-radius:50%;background:${l.roleColor};color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;">${l.name[0]}</div>
-                    <span style="font-size:13px;font-weight:600;">${l.name}</span>
-                </div>
-            </td>
-            <td style="padding:11px 16px;"><span style="background:${l.roleColor}1a;color:${l.roleColor};padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700;">${l.role}</span></td>
-            <td style="padding:11px 16px;font-size:12px;color:var(--text-body);">${l.inst}</td>
-            <td style="padding:11px 16px;font-size:12px;color:var(--text-light);">${l.time}</td>
-        </tr>`).join('');
-
-    // Role Donut Chart
-    const roleCtx = document.getElementById('roleChart').getContext('2d');
-    new Chart(roleCtx, {
-        type: 'doughnut',
-        data: {
-            labels: roleData.map(r => r.role),
-            datasets: [{ data: roleData.map(r => r.count), backgroundColor: roleData.map(r => r.color), borderWidth: 3, borderColor: '#fff', hoverOffset: 6 }]
-        },
-        options: { responsive: true, plugins: { legend: { display: false } }, cutout: '65%' }
-    });
-    document.getElementById('roleLegend').innerHTML = roleData.map(r => `
-        <div style="display:flex;align-items:center;justify-content:space-between;">
-            <div style="display:flex;align-items:center;gap:8px;">
-                <div style="width:10px;height:10px;border-radius:50%;background:${r.color};"></div>
-                <span style="font-size:13px;color:var(--text-body);">${r.role}</span>
-            </div>
-            <span style="font-size:13px;font-weight:700;">${r.count.toLocaleString()}</span>
-        </div>`).join('');
-
-    // DAU Chart
-    const dauData = <?php echo json_encode($dauChartData); ?>;
-    const dauCtx = document.getElementById('dauChart').getContext('2d');
-    new Chart(dauCtx, {
-        type: 'bar',
-        data: {
-            labels: ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Today'],
-            datasets: [{ label: 'Active Users', data: dauData, backgroundColor: 'rgba(0,184,148,.15)', borderColor: 'var(--green)', borderWidth: 2, borderRadius: 6 }]
-        },
-        options: {
-            responsive: true,
-            plugins: { legend: { display: false } },
-            scales: {
-                y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,.04)' }, ticks: { font: { size: 11 } } },
-                x: { grid: { display: false }, ticks: { font: { size: 11 } } }
-            }
+        // DAU Chart
+        const dauData = <?php echo json_encode($dauChartData); ?>;
+        const dauCtx = document.getElementById('dauChart')?.getContext('2d');
+        if (dauCtx && typeof Chart !== 'undefined') {
+            new Chart(dauCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Today'],
+                    datasets: [{ label: 'Active Users', data: dauData, backgroundColor: 'rgba(0,184,148,.15)', borderColor: 'var(--success)', borderWidth: 2, borderRadius: 6 }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,.04)' }, ticks: { font: { size: 11 } } },
+                        x: { grid: { display: false }, ticks: { font: { size: 11 } } }
+                    }
+                }
+            });
         }
     });
 
@@ -347,18 +380,18 @@ $activePage = 'users.php';
         }
     }
     function filterRole(v) {
-        const filtered = v ? logins.filter(l => l.role === v) : logins;
+        const filtered = v ? logins.filter(l => l.role.toLowerCase() === v.toLowerCase()) : logins;
         document.getElementById('recentLogins').innerHTML = filtered.map(l => `
-            <tr style="border-bottom:1px solid var(--card-border);">
-                <td style="padding:11px 16px;">
+            <tr style="border-bottom:1px solid var(--cb);" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background=''">
+                <td style="padding:14px 16px;">
                     <div style="display:flex;align-items:center;gap:8px;">
                         <div style="width:28px;height:28px;border-radius:50%;background:${l.roleColor};color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;">${l.name[0]}</div>
-                        <span style="font-size:13px;font-weight:600;">${l.name}</span>
+                        <span style="font-size:13px;font-weight:600;color:var(--td);">${l.name}</span>
                     </div>
                 </td>
-                <td style="padding:11px 16px;"><span style="background:${l.roleColor}1a;color:${l.roleColor};padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700;">${l.role}</span></td>
-                <td style="padding:11px 16px;font-size:12px;color:var(--text-body);">${l.inst}</td>
-                <td style="padding:11px 16px;font-size:12px;color:var(--text-light);">${l.time}</td>
+                <td style="padding:14px 16px;"><span style="background:${l.roleColor}1a;color:${l.roleColor};padding:4px 8px;border-radius:6px;font-size:11px;font-weight:700;">${l.role}</span></td>
+                <td style="padding:14px 16px;font-size:12px;color:var(--tb);">${l.inst}</td>
+                <td style="padding:14px 16px;font-size:12px;color:var(--tl);">${l.time}</td>
             </tr>`).join('');
     }
 </script>

@@ -319,6 +319,7 @@ $activePage = 'tenant-management.php'; // Highlighting the management section
     function saveInstitute() {
         const formData = new FormData();
         formData.append('name', document.getElementById('instName').value);
+        formData.append('nepaliName', document.getElementById('instNameNp').value);
         formData.append('subdomain', document.getElementById('subdomainInp').value);
         formData.append('address', document.getElementById('instAddress').value);
         formData.append('phone', document.getElementById('instPhone').value);
@@ -330,6 +331,8 @@ $activePage = 'tenant-management.php'; // Highlighting the management section
         formData.append('adminPass', document.getElementById('adminPass').value);
         
         formData.append('plan', document.getElementById('billingPlan').value);
+        formData.append('brandColor', document.getElementById('themeColor').value);
+        formData.append('tagline', 'Education evolved.'); // Static or from an input if available
         
         const payStatus = document.querySelector('input[name="pay_status"]:checked').value;
         formData.append('status', payStatus === 'paid' ? 'active' : 'trial');
@@ -342,8 +345,11 @@ $activePage = 'tenant-management.php'; // Highlighting the management section
             if (result.isConfirmed) {
                 SuperAdmin.showNotification("Registering institute...", "info");
                 
-                fetch('../../api/save_tenant.php', {
+                fetch(window.APP_URL + '/api/super-admin/tenants/save', {
                     method: 'POST',
+                    headers: {
+                        'X-CSRF-Token': window.CSRF_TOKEN
+                    },
                     body: formData
                 })
                 .then(res => res.json())

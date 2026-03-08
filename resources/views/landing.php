@@ -29,15 +29,19 @@
       <a href="#how-it-works">How It Works</a>
       <a href="#pricing">Pricing</a>
       <a href="#faq">FAQ</a>
-      <a href="#contact" class="btn btn--primary btn--small" style="display:none;">Request a Demo</a>
+      <div class="l-navbar__mobile-cta">
+        <a href="#contact" class="btn btn--primary btn--small">Request a Demo</a>
+      </div>
     </div>
-    <div class="l-navbar__cta">
-      <a href="<?= $BASE ?>/login" class="btn btn--outline btn--small">Log In</a>
-      <a href="#contact" class="btn btn--primary btn--small">Request a Demo</a>
+    <div class="l-navbar__right">
+      <div class="l-navbar__cta">
+        <a href="<?= $BASE ?>/login" class="btn btn--outline btn--small">Log In</a>
+        <a href="#contact" class="btn btn--primary btn--small l-navbar__cta--desktop">Request a Demo</a>
+      </div>
+      <button class="l-navbar__toggle" id="navToggle" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
     </div>
-    <button class="l-navbar__toggle" id="navToggle" aria-label="Toggle menu">
-      <span></span><span></span><span></span>
-    </button>
   </div>
 </nav>
 

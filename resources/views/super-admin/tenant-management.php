@@ -185,6 +185,13 @@ async function loadTenants() {
     }
 }
 
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
 function renderTenants(tenants) {
     const grid = document.getElementById('tenantsGrid');
     const count = document.getElementById('tenantCount');
@@ -205,30 +212,37 @@ function renderTenants(tenants) {
         const planClass = 'bg-' + (t.plan === 'starter' ? 't' : t.plan === 'growth' ? 'y' : t.plan === 'professional' ? 'p' : 'i');
         const statusClass = 'bg-' + (t.status === 'active' ? 'g' : t.status === 'trial' ? 'y' : 'r');
 
+        const escapedName = escapeHtml(t.name);
+        const escapedSubdomain = escapeHtml(t.subdomain);
+        const escapedNepaliName = escapeHtml(t.nepali_name);
+        const escapedTagline = escapeHtml(t.tagline);
+        const escapedPlan = escapeHtml(t.plan);
+        const escapedStatus = escapeHtml(t.status);
+
         card.innerHTML = `
             <div style="height:60px; background:${t.brand_color || '#009E7E'}; position:relative;">
                 <div style="position:absolute; bottom:-20px; left:20px; width:48px; height:48px; border-radius:12px; background:#fff; box-shadow:0 4px 10px rgba(0,0,0,0.1); display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:800; color:${t.brand_color || '#009E7E'};">
-                    ${t.name.charAt(0)}
+                    ${escapedName.charAt(0)}
                 </div>
             </div>
             <div style="padding:24px 20px 20px; margin-top:10px;">
                 <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:4px;">
-                    <h3 style="font-size:16px; font-weight:800; color:var(--td); margin:0;">${t.name}</h3>
-                    <span class="tag ${statusClass}">${t.status}</span>
+                    <h3 style="font-size:16px; font-weight:800; color:var(--td); margin:0;">${escapedName}</h3>
+                    <span class="tag ${statusClass}">${escapedStatus}</span>
                 </div>
                 <div style="font-size:11px; color:var(--tl); margin-bottom:12px; display:flex; gap:8px;">
-                    <span><i class="fa-solid fa-link"></i> ${t.subdomain}.hamroerp.com</span>
-                    ${t.nepali_name ? `<span>| ${t.nepali_name}</span>` : ''}
+                    <span><i class="fa-solid fa-link"></i> ${escapedSubdomain}.hamroerp.com</span>
+                    ${escapedNepaliName ? `<span>| ${escapedNepaliName}</span>` : ''}
                 </div>
                 
                 <p style="font-size:12px; color:var(--tb); line-height:1.4; margin-bottom:16px; height:34px; overflow:hidden;">
-                    ${t.tagline || 'No tagline set for this institute.'}
+                    ${escapedTagline || 'No tagline set for this institute.'}
                 </p>
 
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:20px; padding:12px; background:#f8fafc; border-radius:10px;">
                     <div>
                         <div style="font-size:9px; color:var(--tl); font-weight:700; text-transform:uppercase;">Plan</div>
-                        <div style="font-size:12px; font-weight:700;"><span class="tag ${planClass}">${t.plan}</span></div>
+                        <div style="font-size:12px; font-weight:700;"><span class="tag ${planClass}">${escapedPlan}</span></div>
                     </div>
                     <div>
                         <div style="font-size:9px; color:var(--tl); font-weight:700; text-transform:uppercase;">SMS Balance</div>
@@ -238,8 +252,8 @@ function renderTenants(tenants) {
 
                 <div style="display:flex; gap:8px;">
                     <button class="btn bs" style="flex:1; justify-content:center; padding:8px;" onclick='openEditTenantModal(${JSON.stringify(t)})'><i class="fa-solid fa-pen-to-square"></i> Edit</button>
-                    <button class="btn bs" style="flex:1; justify-content:center; padding:8px;" onclick="impersonateAdmin('${t.subdomain}')"><i class="fa-solid fa-user-secret"></i> Log In</button>
-                    <button class="btn bs" style="width:40px; justify-content:center; padding:8px; color:var(--red);" onclick="confirmDeleteTenant(${t.id}, '${t.name}')"><i class="fa-solid fa-trash"></i></button>
+                    <button class="btn bs" style="flex:1; justify-content:center; padding:8px;" onclick="impersonateAdmin('${escapedSubdomain}')"><i class="fa-solid fa-user-secret"></i> Log In</button>
+                    <button class="btn bs" style="width:40px; justify-content:center; padding:8px; color:var(--red);" onclick="confirmDeleteTenant(${t.id}, '${escapedName.replace(/'/g, "\\'")}')"><i class="fa-solid fa-trash"></i></button>
                 </div>
             </div>
         `;

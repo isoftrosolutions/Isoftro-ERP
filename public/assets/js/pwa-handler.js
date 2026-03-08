@@ -12,10 +12,6 @@ function injectPwaModal() {
     <div class="pwa-modal-overlay" id="pwaInstallModal">
         <div class="pwa-modal">
             <div class="pwa-close" onclick="closePwaModal()">&times;</div>
-            <div class="pwa-icon-showcase">
-                <img src="${window.APP_URL || ''}/public/assets/images/logo.png" alt="Hamro ERP">
-                <div class="pwa-badge">PRO v3.0</div>
-            </div>
             <h2>Install Hamro ERP</h2>
             <p class="modal-desc">Access your dashboard instantly from your home screen with our optimized mobile experience.</p>
             

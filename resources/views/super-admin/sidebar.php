@@ -96,6 +96,7 @@ function getSuperAdminMenu() {
                     'submenu_id'  => 'supp_mgmt',
                     'submenu'     => [
                         ['label' => 'Open Tickets',            'href' => APP_URL . '/dash/super-admin/support-tickets?status=open'],
+                        ['label' => 'User Feedbacks',          'href' => APP_URL . '/dash/super-admin/feedbacks'],
                         ['label' => 'Tenant Impersonation Log', 'href' => APP_URL . '/dash/super-admin/impersonation-logs'],
                         ['label' => 'Resolved History',        'href' => APP_URL . '/dash/super-admin/support-tickets?status=resolved'],
                     ]

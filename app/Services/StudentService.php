@@ -120,7 +120,7 @@ class StudentService {
             if ($batchId) {
                 if ($this->db instanceof \PDO) {
                     $stmt = $this->db->prepare("
-                        SELECT b.name as batch_name, c.id as course_id, c.name as course_name, c.fee 
+                        SELECT b.name as batch_name, b.shift as batch_shift, c.id as course_id, c.name as course_name, c.fee 
                         FROM batches as b
                         JOIN courses as c ON b.course_id = c.id
                         WHERE b.id = ? AND b.tenant_id = ?
@@ -130,7 +130,7 @@ class StudentService {
                 } elseif (class_exists('Illuminate\Support\Facades\DB')) {
                     $courseData = \Illuminate\Support\Facades\DB::table('batches as b')
                         ->join('courses as c', 'b.course_id', '=', 'c.id')
-                        ->select('b.name as batch_name', 'c.id as course_id', 'c.name as course_name', 'c.fee')
+                        ->select('b.name as batch_name', 'b.shift as batch_shift', 'c.id as course_id', 'c.name as course_name', 'c.fee')
                         ->where('b.id', $batchId)
                         ->where('b.tenant_id', $tenantId)
                         ->first();
@@ -285,7 +285,7 @@ class StudentService {
 
             // 6. Post-Registration: Send Welcome Email
             if (!empty($email) && !empty($password)) {
-                 $this->sendWelcomeEmail($tenantId, $studentId, $fullName, $email, $password, isset($courseData) ? (array) $courseData : null);
+                 $this->sendWelcomeEmail($tenantId, $studentId, $fullName, $email, $password, isset($courseData) ? (array) $courseData : null, $student['roll_no'] ?? 'N/A');
             }
 
             return [
@@ -307,15 +307,16 @@ class StudentService {
         }
     }
 
-    private function sendWelcomeEmail($tenantId, $studentId, $fullName, $email, $password, $courseData) {
+    private function sendWelcomeEmail($tenantId, $studentId, $fullName, $email, $password, $courseData, $rollNo = 'N/A') {
         $payload = [
             'student_id'      => $studentId,
-            'full_name'       => $fullName,
-            'email'           => $email,
-            'plain_password'  => $password,
+            'student_name'    => $fullName,
+            'student_email'   => $email,
+            'temp_password'   => $password,
             'course_name'     => $courseData['course_name'] ?? 'N/A',
             'batch_name'      => $courseData['batch_name'] ?? 'N/A',
-            'roll_no'         => 'N/A', // Potentially fetch if needed
+            'batch_shift'     => ucfirst($courseData['batch_shift'] ?? 'N/A'),
+            'roll_no'         => $rollNo,
             'admission_date'  => date('Y-m-d'),
             'login_url'       => (defined('APP_URL') ? APP_URL : 'http://localhost/erp') . '/login'
         ];

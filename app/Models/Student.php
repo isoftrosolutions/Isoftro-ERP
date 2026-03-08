@@ -23,7 +23,7 @@ class Student {
      * Get all students
      */
     public function all() {
-        $stmt = $this->db->query("SELECT * FROM {$this->table} ORDER BY created_at DESC");
+        $stmt = $this->db->query("SELECT * FROM {$this->table} WHERE deleted_at IS NULL ORDER BY created_at DESC");
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
     
@@ -31,7 +31,7 @@ class Student {
      * Find student by ID
      */
     public function find($id) {
-        $stmt = $this->db->prepare("SELECT * FROM {$this->table} WHERE id = ?");
+        $stmt = $this->db->prepare("SELECT * FROM {$this->table} WHERE id = ? AND deleted_at IS NULL");
         $stmt->execute([$id]);
         $student = $stmt->fetch(\PDO::FETCH_ASSOC);
         
@@ -51,7 +51,7 @@ class Student {
      * Find student by roll number
      */
     public function findByRollNo($rollNo, $tenantId) {
-        $stmt = $this->db->prepare("SELECT * FROM {$this->table} WHERE roll_no = ? AND tenant_id = ?");
+        $stmt = $this->db->prepare("SELECT * FROM {$this->table} WHERE roll_no = ? AND tenant_id = ? AND deleted_at IS NULL");
         $stmt->execute([$rollNo, $tenantId]);
         $result = $stmt->fetch(\PDO::FETCH_ASSOC);
         return $result ? $result : null;
@@ -61,7 +61,7 @@ class Student {
      * Get students by batch
      */
     public function getByBatch($batchId, $tenantId) {
-        $stmt = $this->db->prepare("SELECT * FROM {$this->table} WHERE batch_id = ? AND tenant_id = ? AND status = 'active' ORDER BY roll_no");
+        $stmt = $this->db->prepare("SELECT * FROM {$this->table} WHERE batch_id = ? AND tenant_id = ? AND status = 'active' AND deleted_at IS NULL ORDER BY roll_no");
         $stmt->execute([$batchId, $tenantId]);
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
@@ -71,10 +71,10 @@ class Student {
      */
     public function getByTenant($tenantId, $status = null) {
         if ($status) {
-            $stmt = $this->db->prepare("SELECT * FROM {$this->table} WHERE tenant_id = ? AND status = ? ORDER BY created_at DESC");
+            $stmt = $this->db->prepare("SELECT * FROM {$this->table} WHERE tenant_id = ? AND status = ? AND deleted_at IS NULL ORDER BY created_at DESC");
             $stmt->execute([$tenantId, $status]);
         } else {
-            $stmt = $this->db->prepare("SELECT * FROM {$this->table} WHERE tenant_id = ? ORDER BY created_at DESC");
+            $stmt = $this->db->prepare("SELECT * FROM {$this->table} WHERE tenant_id = ? AND deleted_at IS NULL ORDER BY created_at DESC");
             $stmt->execute([$tenantId]);
         }
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
@@ -279,7 +279,7 @@ class Student {
      */
     public function search($term, $tenantId) {
         $query = "SELECT * FROM {$this->table} 
-                  WHERE tenant_id = ? AND (full_name LIKE ? OR roll_no LIKE ?)
+                  WHERE tenant_id = ? AND deleted_at IS NULL AND (full_name LIKE ? OR roll_no LIKE ?)
                   ORDER BY full_name LIMIT 20";
         $stmt = $this->db->prepare($query);
         $searchArg = "%{$term}%";

@@ -97,6 +97,10 @@ function getIASidebarConfig() {
                     'label' => 'Homework',
                     'icon' => 'fa-clipboard-list',
                     'permission' => 'exams.view',
+                    'sub' => [
+                        ['id' => 'list',   'l' => 'All Homework', 'icon' => 'fa-list'],
+                        ['id' => 'create', 'l' => 'Assign Homework', 'icon' => 'fa-plus'],
+                    ],
                 ],
             ],
         ],

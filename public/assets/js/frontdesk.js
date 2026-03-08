@@ -19,7 +19,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const sbClose = document.getElementById('sbClose');
     const sbOverlay = document.getElementById('sbOverlay');
 
-    // global CSRF header helper
+    // ── NAVIGATION LOGIC ──
+    window._iaRenderBreadcrumb = (items) => {
+        const breadcrumb = document.getElementById('iaBreadcrumb');
+        if (!breadcrumb) return;
+        
+        let html = '';
+        items.forEach((item, idx) => {
+            if (idx === items.length - 1) {
+                html += `<span class="bc-item-active">${item.label}</span>`;
+            } else {
+                html += `<a href="${item.link || '#'}" class="bc-item">${item.label}</a> <i class="fa fa-chevron-right bc-sep"></i> `;
+            }
+        });
+        breadcrumb.innerHTML = html;
+        breadcrumb.style.display = 'flex';
+    };
+
     window.getHeaders = (options = {}) => {
         const headers = options.headers || {};
         if (window.CSRF_TOKEN) {
@@ -38,28 +54,47 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ── NAVIGATION TREE ──
     const NAV = [
-        { id: "dashboard", icon: "fa-chart-pie", label: "Overview", sub: null, sec: "Main" },
-        { id: "admissions", icon: "fa-user-graduate", label: "Admissions", sub: [
-            { id: "adm-form", l: "New Admission", icon: "fa-user-plus" },
-            { id: "adm-all", l: "Students List", icon: "fa-users" }
-        ], sec: "Admissions" },
-        { id: "fee", icon: "fa-money-bill-transfer", label: "Fee & Finance", sub: [
-            { id: "fee-coll", l: "Collect Fee", icon: "fa-money-bill-transfer" },
-            { id: "fee-sum", l: "Fee Reports", icon: "fa-file-invoice-dollar" }
-        ], sec: "Fee & Finance" },
-        { id: "operations", icon: "fa-magnifying-glass-plus", label: "Operations", sub: [
-            { id: "inq-list", l: "Inquiries", icon: "fa-magnifying-glass-plus" },
-            { id: "visitor-log", l: "Visits Log", icon: "fa-address-book" }
-        ], sec: "Operations" }
+        { sec: "Overview", items: [
+            { id: "dashboard", icon: "fa-th-large", l: "Dashboard" },
+            { id: "attendance", icon: "fa-calendar-check", l: "Today's Attendance", badge: { val: 12, c: "amber" } }
+        ]},
+        { sec: "Admissions", items: [
+            { id: "admissions-adm-all", icon: "fa-user-graduate", l: "Student Lookup" },
+            { id: "admissions-adm-form", icon: "fa-user-plus", l: "New Admission" },
+            { id: "operations-inq-list", icon: "fa-comments", l: "Inquiries", badge: { val: 7 } }
+        ]},
+        { sec: "Fee & Finance", items: [
+            { id: "fee-fee-coll", icon: "fa-money-bill-wave", l: "Fee Collection" },
+            { id: "transactions", icon: "fa-exchange-alt", l: "Transactions" },
+            { id: "pending-dues", icon: "fa-clock", l: "Pending Dues", badge: { val: 18 } },
+            { id: "receipts", icon: "fa-receipt", l: "Receipts" }
+        ]},
+        { sec: "Operations", items: [
+            { id: "leave-requests", icon: "fa-user-clock", l: "Leave Requests", badge: { val: 5, c: "amber" } },
+            { id: "library", icon: "fa-book", l: "Library Desk" },
+            { id: "timetable", icon: "fa-table", l: "Today's Timetable" },
+            { id: "announcements", icon: "fa-bullhorn", l: "Announcements", badge: { val: 2, c: "green" } }
+        ]},
+        { sec: "System", divider: true, items: [
+            { id: "support", icon: "fa-headset", l: "Support Tickets" },
+            { id: "audit-log", icon: "fa-shield-alt", l: "Activity Log" }
+        ]}
     ];
 
     // ── NAVIGATION LOGIC ──
-    window.goNav = (id, subActive = null) => {
+    window.goNav = (id, subActive = null, extraParams = '') => {
         activeNav = subActive ? `${id}-${subActive}` : id;
 
         // Update URL via pushState
-        const url = new URL(window.location);
+        const url = new URL(window.location.origin + window.location.pathname);
         url.searchParams.set('page', activeNav);
+        
+        if (extraParams) {
+            const ep = extraParams.startsWith('&') || extraParams.startsWith('?') ? extraParams.substring(1) : extraParams;
+            const p = new URLSearchParams(ep);
+            p.forEach((v, k) => url.searchParams.set(k, v));
+        }
+
         window.history.pushState({ activeNav }, '', url);
 
         if (window.innerWidth < 1024) closeSidebar();
@@ -85,35 +120,32 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     function renderSidebar() {
-        const sections = [...new Set(NAV.map(n => n.sec))];
+        const sbBody = document.getElementById('sbBody');
+        if (!sbBody) return;
+
         let html = '';
-
-        sections.forEach(sec => {
-            const sectionItems = NAV.filter(n => n.sec === sec);
-            const sectionTitle = sectionItems[0].sec;
-            html += `<div class="sb-sec"><div class="sb-lbl">${sectionTitle}</div>`;
-
-            sectionItems.forEach(nav => {
-                if (nav.sub) {
-                    nav.sub.forEach(s => {
-                        const navId = `${nav.id}-${s.id}`;
-                        const isActive = activeNav === navId;
-                        html += `
-                            <button class="nb-btn ${isActive ? 'active' : ''}" onclick="goNav('${nav.id}', '${s.id}')">
-                                <i class="fa-solid ${s.icon}"></i>
-                                <span class="nb-lbl">${s.l}</span>
-                            </button>`;
-                    });
+        NAV.forEach(section => {
+            if (section.divider) html += '<div class="sb-divider"></div>';
+            if (section.sec) html += `<div class="sb-sec-lbl">${section.sec}</div>`;
+            
+            section.items.forEach(item => {
+                const isActive = activeNav === item.id;
+                // Parse IDs like 'admissions-adm-all' back into goNav calls
+                let onclick = '';
+                if (item.id.includes('-')) {
+                    const parts = item.id.split('-');
+                    onclick = `goNav('${parts[0]}', '${parts.slice(1).join('-')}')`;
                 } else {
-                    const isActive = activeNav === nav.id;
-                    html += `
-                        <button class="nb-btn ${isActive ? 'active' : ''}" onclick="goNav('${nav.id}')">
-                            <i class="fa-solid ${nav.icon}"></i>
-                            <span class="nb-lbl">${nav.label}</span>
-                        </button>`;
+                    onclick = `goNav('${item.id}')`;
                 }
+
+                html += `
+                <button class="sb-btn ${isActive ? 'active' : ''}" onclick="${onclick}">
+                    <i class="fa ${item.icon}"></i>
+                    <span class="sb-lbl">${item.l}</span>
+                    ${item.badge ? `<span class="sb-badge ${item.badge.c || ''}">${item.badge.val}</span>` : ''}
+                </button>`;
             });
-            html += `</div>`;
         });
 
         sbBody.innerHTML = html;
@@ -154,178 +186,418 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (activeNav === 'dashboard') {
             renderDashboard();
-            return;
+        } 
+        // ── STUDENT MODULES ──
+        else if (activeNav === 'students' || activeNav === 'admissions-adm-all') {
+            if (window.renderStudentList) window.renderStudentList();
+        } else if (activeNav === 'new-admission' || activeNav === 'admissions-adm-form') {
+            if (window.renderAddStudentForm) window.renderAddStudentForm();
+        } else if (activeNav === 'alumni') {
+            if (window.renderAlumniList) window.renderAlumniList();
         }
-
-        // Simplified Routing
-        const parts = activeNav.split('-');
-        const module = parts[0];
-        const sub = parts.slice(1).join('-');
-
-        if (module === 'admissions') {
-            if (sub === 'adm-form') renderAdmissionForm();
-            else if (sub === 'adm-all') renderAllStudents();
-            return;
+        // ── ATTENDANCE MODULES ──
+        else if (activeNav === 'attendance') {
+            if (window.renderAttendanceTake) window.renderAttendanceTake();
+        } else if (activeNav === 'attendance-report') {
+            if (window.renderAttendanceReport) window.renderAttendanceReport();
+        } else if (activeNav === 'leave-requests') {
+            if (window.renderLeaveRequests) window.renderLeaveRequests();
         }
-
-        if (module === 'fee') {
-            if (sub === 'fee-coll') renderFeeRecord();
-            else if (sub === 'fee-sum') renderFeeRep();
-            else if (sub === 'fee-details') renderFeeDetails();
-            return;
+        // ── FINANCE MODULES ──
+        else if (activeNav === 'fee-fee-coll') {
+            if (window.renderFeeCollect) window.renderFeeCollect();
+        } else if (activeNav === 'pending-dues' || activeNav === 'finance-fee-outstanding' || activeNav === 'outstanding') {
+            if (window.renderFeeOutstanding) window.renderFeeOutstanding();
+        } else if (activeNav === 'receipts' || activeNav === 'transactions') {
+            if (window.renderFeeReceipts) window.renderFeeReceipts();
+        } else if (activeNav === 'fee-details' || activeNav.includes('fee-details')) {
+            if (window.renderFeeDetails) window.renderFeeDetails();
         }
-
-        if (module === 'operations') {
-            if (sub === 'inq-list') renderInquiryList();
-            else if (sub === 'visitor-log') renderVisitorLog();
-            return;
+        // ── ACADEMIC MODULES ──
+        else if (activeNav === 'academic-courses' || activeNav === 'courses') {
+            if (window.renderCourseList) window.renderCourseList();
+        } else if (activeNav === 'academic-batches' || activeNav === 'batches') {
+            if (window.renderBatchList) window.renderBatchList();
+        } else if (activeNav === 'academic-subjects' || activeNav === 'subjects') {
+            if (window.renderSubjectList) window.renderSubjectList();
         }
-
-        renderDashboard();
+        // ── OPERATIONS MODULES ──
+        else if (activeNav === 'inquiries' || activeNav === 'operations-inq-list') {
+            if (window.renderInquiryList) window.renderInquiryList();
+        } else if (activeNav === 'reception-visitor' || activeNav === 'visitor-log') {
+            renderVisitorLog();
+        } else if (activeNav === 'reception-appointment' || activeNav === 'appointments') {
+            renderAppointmentSchedule();
+        } else if (activeNav === 'reception-call' || activeNav === 'call-logs') {
+            renderCallLog();
+        } else if (activeNav === 'reception-complaint' || activeNav === 'complaints') {
+            renderComplaints();
+        } else if (activeNav === 'timetable') {
+            if (window.renderTimetable) window.renderTimetable();
+        } else if (activeNav === 'exams' || activeNav === 'assessments') {
+            if (window.renderExamList) window.renderExamList();
+        } else if (activeNav === 'homework') {
+            if (window.renderHomeworkList) window.renderHomeworkList();
+        } else if (activeNav === 'staff') {
+            if (window.renderStaffList) window.renderStaffList();
+        } else if (activeNav === 'salary' || activeNav === 'payroll') {
+            if (window.renderSalaryList) window.renderSalaryList();
+        } else if (activeNav === 'study-materials') {
+            if (window.renderStudyMaterials) window.renderStudyMaterials();
+        } else if (activeNav === 'inq-add' || activeNav === 'add-inq') {
+            if (window.renderAddInquiryForm) window.renderAddInquiryForm();
+        } else if (activeNav === 'inq-analytics' || activeNav === 'analytics') {
+            if (window.renderInquiryAnalytics) window.renderInquiryAnalytics();
+        } else if (activeNav === 'adm-form' || activeNav === 'admission-form') {
+            if (window.renderAdmissionForm) window.renderAdmissionForm();
+        } else if (activeNav === 'audit-log') {
+            if (window.renderAuditLogs) window.renderAuditLogs();
+        } else if (activeNav === 'support') {
+            if (window.renderSupportTickets) window.renderSupportTickets();
+        } else if (activeNav === 'settings') {
+            if (window.renderInstituteSettings) window.renderInstituteSettings();
+        }
+        else {
+            // Fallback for subpages or missing ones
+            mainContent.innerHTML = `
+                <div class="pg fu">
+                    <div style="text-align:center; padding:100px;">
+                        <i class="fa-solid fa-screwdriver-wrench" style="font-size:48px; color:#cbd5e1; margin-bottom:20px;"></i>
+                        <h2 style="color:#1e293b;">${activeNav.split('-').join(' ').toUpperCase()}</h2>
+                        <p style="color:#64748b;">This module is being connected to the administrative logic...</p>
+                    </div>
+                </div>`;
+        }
     }
 
     async function renderDashboard() {
-        mainContent.innerHTML = `
-            <div class="pg fu">
-                <div class="dashboard-hero skeleton" style="height: 160px; margin-bottom: 24px;"></div>
-                <div class="stat-grid mb">
-                    <div class="stat-card skeleton" style="height: 100px;"></div>
-                    <div class="stat-card skeleton" style="height: 100px;"></div>
-                    <div class="stat-card skeleton" style="height: 100px;"></div>
-                    <div class="stat-card skeleton" style="height: 100px;"></div>
-                </div>
-            </div>
-        `;
+        window.scrollTo(0, 0);
+        mainContent.innerHTML = '<div class="pg fu"><div class="pg-loading"><i class="fa-solid fa-circle-notch fa-spin"></i><span>Loading Dashboard...</span></div></div>';
+    
 
         try {
-            const res = await fetch(`${APP_URL}/api/frontdesk/stats`, getHeaders());
+            const res = await fetch(`${APP_URL}/api/admin/stats`, getHeaders());
             const result = await res.json();
             if (!result.success) throw new Error(result.message);
             const s = result.data;
+            
+            // Helper functions
+            const fmtNum = (n) => parseInt(n || 0).toLocaleString('en-IN');
+            const fmtMoney = (n) => parseFloat(n || 0).toLocaleString('en-IN');
+            
+            // 1. KPI Fees
+            const moneyCollectedToday = s.fee_summary?.reduce((sum, f) => sum + parseFloat(f.total), 0) || 0;
+            const duesPending = s.kpi_dues?.amount || 0;
+            const studentsOverdue = s.kpi_dues?.count || 0;
+
+            // 2. Attendance & Admissions
+            const attendancePct = s.attendance_rate || 0;
+            const attToday = s.attendance_overview?.today || { present: 0, total: 0, absent: 0 };
+            const admissionsToday = s.kpi_students?.new || 0;
+
+            // 3. Chips
+            const openInquiries = s.secondary_kpi?.inquiries || 0;
+            const pendingLeaves = s.pending_leaves?.length || 0;
+            const libraryIssuesToday = s.today_library_issues?.length || 0;
+            const lastReceipt = s.recent_transactions?.[0]?.receipt_no || '--';
 
             mainContent.innerHTML = `
-                <div class="pg fu">
-                    <div class="dashboard-hero">
-                        <div class="hero-content">
-                            <h2>Welcome back, ${result.user?.name || 'Operator'}!</h2>
-                            <p>Here's what's happening at ${result.tenant_name || 'Institute'} today. You have ${s.pending_dues > 0 ? 'outstanding dues' : 'all accounts clear'}.</p>
+            <div class="pg fu">
+                <div class="page-hdr" style="margin-bottom:16px;">
+                    <div class="page-hdr-left">
+                        <h1 class="pg-title"><i class="fa fa-th-large" style="color:var(--green);margin-right:8px"></i>Front Desk Dashboard</h1>
+                        <p class="pg-sub">${new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })} &nbsp;·&nbsp; Academic Year ${s.header?.academic_year || ''} &nbsp;·&nbsp; All data for ${result.header?.institute_name || window.tenantName || 'Institute'}</p>
+                    </div>
+                </div>
+
+                <div class="search-bar" style="background:#fff;border:1px solid #E5E9F0;border-radius:6px;height:40px;padding:0 16px;display:flex;align-items:center;gap:8px;margin-bottom:16px;">
+                    <i class="fa fa-search" style="color:#A8BCCF;font-size:16px;"></i>
+                    <input type="text" placeholder="Search student, roll no, receipt..." style="border:none;outline:none;flex:1;font-size:13px;color:#A8BCCF;"/>
+                    <button class="btn btn-primary" style="background:#00A86B;color:#fff;border-radius:6px;padding:8px 20px;font-size:13px;font-weight:600;border:none;" onclick="goNav('fee','fee-coll')">
+                        <i class="fa-solid fa-circle-plus"></i> Record Payment
+                    </button>
+                </div>
+
+                ${studentsOverdue > 0 ? `
+                <div id="alert-banner" style="background:#FFF8E1;border:1px solid #F5A623;border-radius:8px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;gap:12px;">
+                    <i class="fa-solid fa-triangle-exclamation" style="color:#F5A623;font-size:16px;"></i>
+                    <div style="flex:1;">
+                        <strong style="color:#E65100;">${studentsOverdue} students</strong>
+                        <span style="color:#92400E;font-size:13px;">have fee dues overdue. Reminders sent via SMS.</span>
+                    </div>
+                    <button class="btn" style="background:transparent;border:none;color:#1565C0;font-size:12px;cursor:pointer;text-decoration:underline;">View All</button>
+                    <button class="btn" style="background:transparent;border:none;color:#6B7A99;font-size:12px;cursor:pointer;" onclick="this.parentElement.style.display='none'">Dismiss</button>
+                </div>` : ''}
+
+                <div class="dashboard-grid">
+                    <!-- KPI Row 1 -->
+                    <div class="col-6 panel kpi-card">
+                        <div class="kpi-top">
+                            <div class="c-icon bg-green-soft"><i class="fa-solid fa-wallet"></i></div>
+                        </div>
+                        <div class="kpi-val">Rs ${fmtMoney(moneyCollectedToday)}</div>
+                        <div class="kpi-lbl">Today's Collection</div>
+                        <div class="kpi-sub">${s.recent_transactions?.length || 0} transactions</div>
+                    </div>
+                    
+                    <div class="col-6 panel kpi-card">
+                        <div class="kpi-top">
+                            <div class="c-icon bg-amber-soft"><i class="fa-regular fa-clock"></i></div>
+                        </div>
+                        <div class="kpi-val danger">Rs ${fmtMoney(duesPending)}</div>
+                        <div class="kpi-lbl">Pending Dues</div>
+                        <div class="kpi-sub">${studentsOverdue} students with dues</div>
+                    </div>
+
+                    <!-- KPI Row 2 -->
+                    <div class="col-6 panel kpi-card">
+                        <div class="kpi-top">
+                            <div class="c-icon bg-blue-soft"><i class="fa-solid fa-users"></i></div>
+                        </div>
+                        <div class="kpi-val">${attendancePct}%</div>
+                        <div class="kpi-lbl">Attendance Today</div>
+                        <div class="kpi-sub">${attToday.present}/${attToday.total} present across all batches</div>
+                    </div>
+
+                    <div class="col-6 panel kpi-card">
+                        <div class="kpi-top">
+                            <div class="c-icon bg-purple-soft"><i class="fa-solid fa-user-plus"></i></div>
+                        </div>
+                        <div class="kpi-val">${admissionsToday}</div>
+                        <div class="kpi-lbl">New Admissions This Month</div>
+                        <div class="kpi-sub">Total Active: ${fmtNum(s.kpi_students?.total || 0)}</div>
+                    </div>
+
+                    <!-- Status Chips -->
+                    <div class="col-12 chip-row">
+                        <div class="chip">
+                            <div class="c-icon sm bg-amber-soft"><i class="fa-regular fa-message"></i></div>
+                            <div style="flex:1;"><div class="chip-val">${openInquiries}</div><div class="chip-lbl">Open Inquiries</div></div>
+                            <div class="pill green">New</div>
+                        </div>
+                        <div class="chip">
+                            <div class="c-icon sm bg-amber-soft"><i class="fa-solid fa-calendar-xmark"></i></div>
+                            <div style="flex:1;"><div class="chip-val">${pendingLeaves}</div><div class="chip-lbl">Leave Requests</div></div>
+                            ${pendingLeaves > 0 ? '<div class="pill orange">Pending</div>' : ''}
+                        </div>
+                        <div class="chip">
+                            <div class="c-icon sm bg-blue-soft"><i class="fa-solid fa-book-open"></i></div>
+                            <div style="flex:1;"><div class="chip-val">${libraryIssuesToday}</div><div class="chip-lbl">Library Issues Today</div></div>
+                        </div>
+                        <div class="chip">
+                            <div class="c-icon sm bg-purple-soft"><i class="fa-solid fa-receipt"></i></div>
+                            <div style="flex:1;"><div class="chip-val" style="font-size:13px;font-family:monospace;">${lastReceipt}</div><div class="chip-lbl">Last Receipt No.</div></div>
                         </div>
                     </div>
 
-                    <div class="quick-actions">
-                        <button class="qa-btn" onclick="goNav('admissions', 'adm-form')">
-                            <i class="fa-solid fa-user-plus ic-blue"></i>
-                            <span>New Admission</span>
-                        </button>
-                        <button class="qa-btn" onclick="goNav('fee', 'fee-coll')">
-                            <i class="fa-solid fa-money-bill-transfer ic-teal"></i>
-                            <span>Collect Fee</span>
-                        </button>
-                        <button class="qa-btn" onclick="goNav('operations', 'inq-list')">
-                            <i class="fa-solid fa-magnifying-glass-plus ic-purple"></i>
-                            <span>Inquiry</span>
-                        </button>
-                        <button class="qa-btn" onclick="goNav('operations', 'visitor-log')">
-                            <i class="fa-solid fa-address-book ic-amber"></i>
-                            <span>Visit Log</span>
-                        </button>
-                        <button class="qa-btn" onclick="goNav('library', 'lib-issue')">
-                            <i class="fa-solid fa-book-open ic-navy"></i>
-                            <span>Library</span>
-                        </button>
-                    </div>
-
-                    <div class="stat-grid">
-                        <div class="stat-card">
-                            <div class="stat-header">
-                                <span class="stat-label">Total Admissions</span>
-                                <span class="stat-trend ${s.stu_trend >= 0 ? 'up' : 'down'}">
-                                    <i class="fa-solid fa-arrow-${s.stu_trend >= 0 ? 'up' : 'down'}"></i> ${Math.abs(s.stu_trend)}%
-                                </span>
+                    <!-- Quick Actions -->
+                    <div class="col-12 panel">
+                        <div class="panel-sub">⚡ QUICK ACTIONS</div>
+                        <div class="qa-row">
+                            <div class="qa-item" onclick="goNav('fee','fee-coll')">
+                                <div class="qa-icon bg-green-soft"><i class="fa-solid fa-money-bill-transfer"></i></div>
+                                <div><div class="qa-lbl">Collect Fee</div><div class="qa-sub">Record payment</div></div>
                             </div>
-                            <div class="stat-value">${s.total_students}</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-header">
-                                <span class="stat-label">Library Users</span>
-                                <span class="stat-trend up">
-                                    <i class="fa-solid fa-arrow-up"></i> 0%
-                                </span>
+                            <div class="qa-item" onclick="goNav('admissions','adm-form')">
+                                <div class="qa-icon bg-blue-soft"><i class="fa-solid fa-user-plus"></i></div>
+                                <div><div class="qa-lbl">New Admission</div><div class="qa-sub">Register student</div></div>
                             </div>
-                            <div class="stat-value">${s.library_active}</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-header">
-                                <span class="stat-label">Monthly Revenue</span>
-                                <span class="stat-trend ${s.rev_trend >= 0 ? 'up' : 'down'}">
-                                    <i class="fa-solid fa-arrow-${s.rev_trend >= 0 ? 'up' : 'down'}"></i> ${Math.abs(s.rev_trend)}%
-                                </span>
+                            <div class="qa-item" onclick="goNav('attendance')">
+                                <div class="qa-icon bg-amber-soft"><i class="fa-solid fa-clipboard-user"></i></div>
+                                <div><div class="qa-lbl">Mark Attendance</div><div class="qa-sub">Today's class</div></div>
                             </div>
-                            <div class="stat-value">Rs. ${formatMoney(s.monthly_revenue)}</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-header">
-                                <span class="stat-label">Inquiries</span>
-                                <span class="stat-trend ${s.inq_trend >= 0 ? 'up' : 'down'}">
-                                    <i class="fa-solid fa-arrow-${s.inq_trend >= 0 ? 'up' : 'down'}"></i> ${Math.abs(s.inq_trend)}%
-                                </span>
+                            <div class="qa-item" onclick="goNav('operations','inq-list')">
+                                <div class="qa-icon bg-purple-soft"><i class="fa-solid fa-message"></i></div>
+                                <div><div class="qa-lbl">Add Inquiry</div><div class="qa-sub">Log new inquiry</div></div>
                             </div>
-                            <div class="stat-value">${s.total_inquiries}</div>
+                            <div class="qa-item" onclick="goNav('fee','fee-sum')">
+                                <div class="qa-icon bg-orange-soft"><i class="fa-solid fa-print"></i></div>
+                                <div><div class="qa-lbl">Print Receipt</div><div class="qa-sub">Reprints & copies</div></div>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="g65 mt">
-                        <div class="card">
-                            <div class="card-header pb">
-                                <div class="ct"><i class="fa-solid fa-receipt"></i> Recent Transactions</div>
-                                <button class="btn bs btn-sm" onclick="goNav('fee', 'fee-rcp')">View All</button>
-                            </div>
-                            <div class="tw">
-                                ${s.today_transactions && s.today_transactions.length ? `
-                                    <table>
-                                        <thead>
-                                            <tr>
-                                                <th>Student</th>
-                                                <th>Receipt</th>
-                                                <th style="text-align:right;">Amount</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            ${s.today_transactions.map(t => `
-                                                <tr>
-                                                    <td><div style="font-weight:600">${t.student_name}</div></td>
-                                                    <td><span class="tag bg-t">${t.receipt_no}</span></td>
-                                                    <td style="text-align:right; font-weight:700; color:var(--green);">Rs. ${formatMoney(t.amount_paid)}</td>
-                                                </tr>
-                                            `).join('')}
-                                        </tbody>
-                                    </table>
-                                ` : '<div style="padding:40px; text-align:center; color:var(--text-light);">No transactions today.</div>'}
-                            </div>
+                    <!-- Recent Transactions & Summary -->
+                    <div class="col-8 panel" style="padding:0; overflow:hidden;">
+                        <div class="panel-header" style="padding:16px 20px; border-bottom:1px solid #E5E9F0; margin:0; background:#FAFAFA;">
+                            <div class="panel-title"><i class="fa-solid fa-receipt" style="color:#00A86B;"></i> Today's Fee Transactions</div>
+                            <button class="btn" style="background:transparent;border:1px solid #E5E9F0;color:#6B7A99;font-size:12px;padding:4px 10px;border-radius:4px;"><i class="fa-solid fa-cloud-arrow-down"></i> Export</button>
                         </div>
+                        <table class="dash-table">
+                            <thead>
+                                <tr><th>Receipt No.</th><th>Student</th><th>Amount</th><th>Method</th><th>Time</th></tr>
+                            </thead>
+                            <tbody>
+                                ${s.recent_transactions && s.recent_transactions.length ? s.recent_transactions.map((t, i) => `
+                                <tr class="${i%2===0?'':'even'}">
+                                    <td style="font-family:monospace;">${t.receipt_no}</td>
+                                    <td><div style="font-weight:600;">${t.student_name}</div><div style="font-size:10px;color:#6B7A99;">${t.roll_no||''} · ${t.batch_name||''}</div></td>
+                                    <td style="font-weight:700;">Rs ${fmtMoney(t.amount)}</td>
+                                    <td><span class="pill ${t.payment_method==='cash'?'green':t.payment_method==='esewa'?'blue':'magenta'}">${t.payment_method}</span></td>
+                                    <td style="color:#6B7A99;font-size:11px;">--</td>
+                                </tr>`).join('') : '<tr><td colspan="5" style="text-align:center;">No transactions today.</td></tr>'}
+                            </tbody>
+                        </table>
+                    </div>
 
-                        <div class="card">
-                            <div class="card-header pb">
-                                <div class="ct"><i class="fa-solid fa-calendar-days"></i> Upcoming Batches</div>
+                    <div class="col-4 panel">
+                        <div class="panel-title mb" style="margin-bottom:16px;">Today's Fee Summary</div>
+                        ${s.fee_summary && s.fee_summary.length ? `
+                            <div class="stacked-bar">
+                                ${s.fee_summary.map(f => {
+                                    let c = '#4CAF50'; if(f.payment_method==='esewa') c='#2196F3'; else if(f.payment_method==='khalti') c='#9C27B0'; else if(f.payment_method==='bank') c='#FF9800';
+                                    let pct = moneyCollectedToday > 0 ? (f.total/moneyCollectedToday)*100 : 0;
+                                    return `<div class="sb-segment" style="width:${pct}%;background:${c};"></div>`;
+                                }).join('')}
                             </div>
-                            <div class="tw">
-                                ${s.upcoming_batches && s.upcoming_batches.length ? s.upcoming_batches.map(b => `
-                                    <div class="ai" style="padding:12px 16px;">
-                                        <div class="ad ic-blue">${(b.name || '').charAt(0)}</div>
-                                        <div class="nm-row" style="flex:1">
-                                            <div>
-                                                <div class="nm" style="font-size:14px;">${b.name}</div>
-                                                <div class="sub-txt">Starts: ${b.start_date} · Max: ${b.max_strength}</div>
-                                            </div>
-                                            <i class="fa-solid fa-chevron-right" style="color:#cbd5e1; font-size:12px;"></i>
-                                        </div>
+                            ${s.fee_summary.map(f => `
+                                <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #F0F2F5;">
+                                    <span style="font-size:13px;color:#6B7A99;text-transform:capitalize;">${f.payment_method}</span>
+                                    <span style="font-size:13px;font-weight:700;">Rs ${fmtMoney(f.total)}</span>
+                                </div>
+                            `).join('')}
+                        ` : '<div style="color:#6B7A99;font-size:13px;text-align:center;">No collections yet.</div>'}
+                        <div style="display:flex;justify-content:space-between;padding-top:10px;border-top:2px solid #E5E9F0;margin-top:8px;">
+                            <span style="font-size:13px;font-weight:700;">Total Collected</span>
+                            <span style="font-size:15px;font-weight:700;color:#00A86B;">Rs ${fmtMoney(moneyCollectedToday)}</span>
+                        </div>
+                    </div>
+
+                    <!-- Announcements & Snapshots Row -->
+                    <div class="col-4 panel">
+                        <div class="panel-header">
+                            <div class="panel-title"><i class="fa-solid fa-clipboard-check" style="color:#00A86B;"></i> Attendance Snapshot</div>
+                        </div>
+                        <div class="panel-sub" style="margin-bottom:12px;text-transform:none;">All Batches</div>
+                        <div class="att-boxes">
+                            <div class="att-box bg-green-soft"><div class="att-num">${attToday.present}</div><div class="att-lbl">Present</div></div>
+                            <div class="att-box bg-red-soft"><div class="att-num">${attToday.absent}</div><div class="att-lbl">Absent</div></div>
+                            <div class="att-box bg-blue-soft"><div class="att-num">${attToday.total - (attToday.present+attToday.absent)}</div><div class="att-lbl">Other</div></div>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                            <span style="font-size:11px;color:#6B7A99;">Attendance Rate</span>
+                            <span style="font-size:12px;font-weight:700;color:#00A86B;">${attendancePct}%</span>
+                        </div>
+                        <div class="prog-track mb"><div class="prog-fill" style="width:${attendancePct}%"></div></div>
+                        <div class="panel-sub" style="margin-top:12px;margin-bottom:8px;">BY BATCH</div>
+                        ${s.batch_attendance && s.batch_attendance.length ? s.batch_attendance.slice(0,4).map(b => `
+                            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                                <div class="c-icon sm bg-green-soft">${b.batch_name.charAt(0)}</div>
+                                <div style="flex:1;font-size:12px;font-weight:500;">${b.batch_name}</div>
+                                <div style="font-size:12px;font-weight:700;color:#00A86B;">${b.rate}%</div>
+                            </div>
+                        `).join('') : '<div style="font-size:12px;color:#6B7A99;text-align:center;">No batch data today.</div>'}
+                    </div>
+
+                    <div class="col-4 panel">
+                        <div class="panel-header">
+                            <div class="panel-title"><i class="fa-solid fa-message" style="color:#3B82F6;"></i> Today's Inquiries</div>
+                            <div style="display:flex;gap:6px;"><span class="pill red">${openInquiries} Open</span><button class="pill green" style="border:none;cursor:pointer;" onclick="goNav('operations','inq-list')">+ Add</button></div>
+                        </div>
+                        <div>
+                            ${s.today_inquiries && s.today_inquiries.length ? s.today_inquiries.map(i => `
+                                <div class="list-item">
+                                    <div class="li-avatar bg-blue-soft">${(i.name || i.contact_name || '?').charAt(0)}</div>
+                                    <div style="flex:1;">
+                                        <div class="li-title">${i.name || i.contact_name || 'Visitor'}</div>
+                                        <div class="li-sub">${i.program_of_interest || 'General Inquiry'}</div>
                                     </div>
-                                `).join('') : '<div style="padding:40px; text-align:center; color:var(--text-light);">No upcoming batches.</div>'}
-                            </div>
+                                    <div style="text-align:right;">
+                                        <div style="font-size:10px;color:#6B7A99;margin-bottom:4px;">${new Date(i.created_at).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</div>
+                                        <span class="pill ${i.status==='new'?'green':'orange'}">${i.status}</span>
+                                    </div>
+                                </div>
+                            `).join('') : '<div style="font-size:12px;color:#6B7A99;text-align:center;">No inquiries today.</div>'}
+                        </div>
+                    </div>
+
+                    <div class="col-4 panel">
+                        <div class="panel-header">
+                            <div class="panel-title"><i class="fa-solid fa-calendar-xmark" style="color:#F5A623;"></i> Pending Leave</div>
+                            <div class="c-icon sm bg-amber-soft" style="font-size:10px;font-weight:bold;">${pendingLeaves}</div>
+                        </div>
+                        <div>
+                            ${s.pending_leaves && s.pending_leaves.length ? s.pending_leaves.map(l => `
+                                <div class="list-item">
+                                    <div class="li-avatar bg-orange-soft">${(l.student_name || '?').charAt(0)}</div>
+                                    <div style="flex:1;">
+                                        <div class="li-title">${l.student_name || 'Student'}</div>
+                                        <div class="li-sub">${l.start_date || l.from_date || ''} · ${l.reason || 'Leave'}</div>
+                                    </div>
+                                    <div style="display:flex;gap:4px;">
+                                        <button class="c-icon sm bg-green-soft" style="border:none;cursor:pointer;"><i class="fa-solid fa-check"></i></button>
+                                        <button class="c-icon sm bg-red-soft" style="border:none;cursor:pointer;"><i class="fa-solid fa-times"></i></button>
+                                    </div>
+                                </div>
+                            `).join('') : '<div style="font-size:12px;color:#6B7A99;text-align:center;">No pending requests.</div>'}
+                        </div>
+                    </div>
+
+                    <!-- Bottom row: Timetable, Activity, Library -->
+                    <div class="col-4 panel">
+                        <div class="panel-header">
+                            <div class="panel-title"><i class="fa-regular fa-clock"></i> Today's Timetable</div>
+                            <span class="pill blue">${new Date().toLocaleDateString('en-US',{weekday:'long'})}</span>
+                        </div>
+                        <div>
+                            ${s.today_timetable && s.today_timetable.length ? s.today_timetable.map(ts => {
+                                let cTime = new Date().toTimeString().substring(0,8);
+                                let isOngoing = ts.start_time <= cTime && ts.end_time >= cTime;
+                                return `
+                                <div style="margin-bottom:12px;">
+                                    <div style="font-size:11px;font-weight:500;color:#6B7A99;margin-bottom:4px;">${ts.start_time.substring(0,5)} - ${ts.end_time.substring(0,5)}</div>
+                                    <div style="background:${isOngoing?'#F0FFF8':'#FAFAFA'};border-left:3px solid ${isOngoing?'#00A86B':'#E5E9F0'};border-radius:0 6px 6px 0;padding:8px 12px;display:flex;justify-content:space-between;align-items:center;">
+                                        <div>
+                                            <div style="font-size:13px;font-weight:600;color:#1A1F36;">${ts.subject_name || 'Class'}</div>
+                                            <div style="font-size:11px;color:#6B7A99;">${ts.batch_name||''} · ${ts.room_name||''}</div>
+                                        </div>
+                                        ${isOngoing ? '<span class="pill green">Ongoing</span>' : ''}
+                                    </div>
+                                </div>`;
+                            }).join('') : '<div style="font-size:12px;color:#6B7A99;text-align:center;">No classes scheduled today.</div>'}
+                        </div>
+                    </div>
+
+                    <div class="col-4 panel">
+                        <div class="panel-header">
+                            <div class="panel-title"><i class="fa-solid fa-bolt" style="color:#8141A5;"></i> Activity Log</div>
+                        </div>
+                        <div class="timeline">
+                            ${s.activity_log && s.activity_log.length ? s.activity_log.slice(0,5).map((a,i) => `
+                                <div class="tl-item">
+                                    <div class="tl-dot ${i%2===0?'green':i%3===0?'blue':'orange'}"></div>
+                                    <div class="tl-text">${a.description}</div>
+                                    <div class="tl-sub">${a.user_name || 'System'}</div>
+                                </div>
+                            `).join('') : '<div style="font-size:12px;color:#6B7A99;text-align:center;">No recent activity.</div>'}
+                        </div>
+                    </div>
+
+                    <div class="col-4 panel">
+                        <div class="panel-header">
+                            <div class="panel-title"><i class="fa-solid fa-book" style="color:#3B82F6;"></i> Library Desk</div>
+                            <button class="pill green" style="border:none;cursor:pointer;">+ Issue</button>
+                        </div>
+                        <div class="panel-sub" style="margin-bottom:12px;">RECENT ISSUES TODAY</div>
+                        <div>
+                            ${s.today_library_issues && s.today_library_issues.length ? s.today_library_issues.map((li, i) => {
+                                let c = ['bg-green-soft','bg-blue-soft','bg-red-soft','bg-amber-soft'][i%4];
+                                return `
+                                <div class="list-item">
+                                    <div style="width:32px;height:40px;border-radius:4px;" class="${c} flex items-center justify-center">
+                                        <i class="fa-solid fa-book" style="font-size:12px;"></i>
+                                    </div>
+                                    <div style="flex:1;">
+                                        <div class="li-title">${li.book_title.length>15 ? li.book_title.substring(0,15)+'...' : li.book_title}</div>
+                                        <div class="li-sub">${li.student_name} · Due ${li.due_date}</div>
+                                    </div>
+                                    <span class="pill green">Issued</span>
+                                </div>`;
+                            }).join('') : '<div style="font-size:12px;color:#6B7A99;text-align:center;">No issues today.</div>'}
                         </div>
                     </div>
                 </div>
-            `;
+            </div>`;
         } catch (e) {
             mainContent.innerHTML = `<div class="alert alert-danger">Failed to load dashboard: ${e.message}</div>`;
         }
@@ -564,7 +836,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ═══════════════════════════════════════════════════════════════
     // RECEIPT HISTORY MODULE
     // ═══════════════════════════════════════════════════════════════
-    async function renderRecentPayments() {
+    window.renderFeeReceipts = async function() {
         mainContent.innerHTML = `
             <div class="pg fu">
                 <div class="bc">
@@ -632,9 +904,17 @@ document.addEventListener('DOMContentLoaded', () => {
                                     <td style="text-align:right; font-weight:700; color:#10B981;">Rs. ${formatMoney(p.amount_paid)}</td>
                                     <td style="text-align:center;"><span class="tag bg-t">${p.payment_mode}</span></td>
                                     <td style="text-align:center;">
-                                        <button class="btn bt" style="padding:4px 8px;" onclick="window.open('${APP_URL}/api/frontdesk/fees?action=generate_receipt_html&transaction_id=${p.id}', '_blank')">
-                                            <i class="fa-solid fa-print"></i>
-                                        </button>
+                                        <div style="display:flex; justify-content:center; gap:6px;">
+                                            <button class="btn bt" style="padding:6px 10px; font-size:12px;" onclick="goNav('fee', 'fee-details', '&receipt_no=${p.receipt_no}')" title="View Details">
+                                                <i class="fa-solid fa-eye" style="color:#6366F1;"></i>
+                                            </button>
+                                            <button class="btn bt" style="padding:6px 10px; font-size:12px;" onclick="window.open('${APP_URL}/api/frontdesk/fees?action=generate_receipt_html&is_pdf=1&receipt_no=${p.receipt_no}', '_blank')" title="Print">
+                                                <i class="fa-solid fa-print" style="color:#64748b;"></i>
+                                            </button>
+                                            <button class="btn bt" style="padding:6px 10px; font-size:12px;" onclick="emailReceiptFromHistory('${p.receipt_no}', this)" title="Email Receipt">
+                                                <i class="fa-solid fa-envelope" style="color:#3B82F6;"></i>
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             `).join('')}
@@ -648,50 +928,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ═══════════════════════════════════════════════════════════════
-    // STUDENT & INQUIRY RENDERERS
+    // PARTIAL FETCH RENDERERS (RECEPTION & MISC)
     // ═══════════════════════════════════════════════════════════════
-    
-    async function renderAllStudents() {
-        mainContent.innerHTML = `<div class="pg fu"><div class="pg-loading"><i class="fa-solid fa-circle-notch fa-spin"></i><span>Loading Students...</span></div></div>`;
-        try {
-            const res = await fetch(`${APP_URL}/dash/front-desk/students?partial=true`);
-            const html = await res.text();
-            mainContent.innerHTML = `<div class="pg fu">${html}</div>`;
-            // Execute scripts if any
-            const scripts = mainContent.querySelectorAll('script');
-            scripts.forEach(s => eval(s.innerHTML));
-        } catch (e) {
-            mainContent.innerHTML = `<div class="alert alert-danger">Error loading students list</div>`;
-        }
-    }
 
-    async function renderInquiryList() {
-        mainContent.innerHTML = `<div class="pg fu"><div class="pg-loading"><i class="fa-solid fa-circle-notch fa-spin"></i><span>Loading Inquiries...</span></div></div>`;
-        try {
-            const res = await fetch(`${APP_URL}/dash/front-desk/inquiries?partial=true`);
-            const html = await res.text();
-            mainContent.innerHTML = `<div class="pg fu">${html}</div>`;
-            const scripts = mainContent.querySelectorAll('script');
-            scripts.forEach(s => eval(s.innerHTML));
-        } catch (e) {
-            mainContent.innerHTML = `<div class="alert alert-danger">Error loading inquiries list</div>`;
-        }
-    }
-
-    async function renderAdmissionForm() {
-        mainContent.innerHTML = `<div class="pg fu"><div class="pg-loading"><i class="fa-solid fa-circle-notch fa-spin"></i><span>Loading Form...</span></div></div>`;
-        try {
-            const res = await fetch(`${APP_URL}/dash/front-desk/admission-form?partial=true`);
-            const html = await res.text();
-            mainContent.innerHTML = `<div class="pg fu">${html}</div>`;
-            const scripts = mainContent.querySelectorAll('script');
-            scripts.forEach(s => eval(s.innerHTML));
-        } catch (e) {
-            mainContent.innerHTML = `<div class="alert alert-danger">Error loading admission form</div>`;
-        }
-    }
-
-    // ── RECEPTION RENDERERS ──
     async function renderVisitorLog() {
         mainContent.innerHTML = `<div class="pg fu"><div class="pg-loading"><i class="fa-solid fa-circle-notch fa-spin"></i><span>Loading Visitor Log...</span></div></div>`;
         try {
@@ -700,7 +939,7 @@ document.addEventListener('DOMContentLoaded', () => {
             mainContent.innerHTML = `<div class="pg fu">${html}</div>`;
             const scripts = mainContent.querySelectorAll('script');
             scripts.forEach(s => eval(s.innerHTML));
-        } catch (e) { mainContent.innerHTML = `<div class="alert alert-danger">Error</div>`; }
+        } catch (e) { mainContent.innerHTML = `<div class="alert alert-danger">Error loading visitor log</div>`; }
     }
 
     async function renderAppointmentSchedule() {
@@ -711,7 +950,7 @@ document.addEventListener('DOMContentLoaded', () => {
             mainContent.innerHTML = `<div class="pg fu">${html}</div>`;
             const scripts = mainContent.querySelectorAll('script');
             scripts.forEach(s => eval(s.innerHTML));
-        } catch (e) { mainContent.innerHTML = `<div class="alert alert-danger">Error</div>`; }
+        } catch (e) { mainContent.innerHTML = `<div class="alert alert-danger">Error loading appointments</div>`; }
     }
 
     async function renderCallLog() {
@@ -722,7 +961,7 @@ document.addEventListener('DOMContentLoaded', () => {
             mainContent.innerHTML = `<div class="pg fu">${html}</div>`;
             const scripts = mainContent.querySelectorAll('script');
             scripts.forEach(s => eval(s.innerHTML));
-        } catch (e) { mainContent.innerHTML = `<div class="alert alert-danger">Error</div>`; }
+        } catch (e) { mainContent.innerHTML = `<div class="alert alert-danger">Error loading call logs</div>`; }
     }
 
     async function renderComplaints() {
@@ -731,424 +970,65 @@ document.addEventListener('DOMContentLoaded', () => {
             const res = await fetch(`${APP_URL}/dash/front-desk/complaints?partial=true`);
             const html = await res.text();
             mainContent.innerHTML = `<div class="pg fu">${html}</div>`;
-            const scripts = mainContent.querySelectorAll('script');
-            scripts.forEach(s => eval(s.innerHTML));
-        } catch (e) { mainContent.innerHTML = `<div class="alert alert-danger">Error</div>`; }
+            const innerScripts = mainContent.querySelectorAll('script');
+            innerScripts.forEach(s => eval(s.innerHTML));
+        } catch (e) { mainContent.innerHTML = `<div class="alert alert-danger">Error loading complaints</div>`; }
     }
 
     // ═══════════════════════════════════════════════════════════════
-    // ACADEMIC RENDERERS
+    // MISC UTILITIES
     // ═══════════════════════════════════════════════════════════════
 
-    async function renderIDCardGen() {
-        mainContent.innerHTML = `<div class="pg fu"><div class="pg-loading"><i class="fa-solid fa-circle-notch fa-spin"></i><span>Initialing Generator...</span></div></div>`;
-        try {
-            const res = await fetch(`${APP_URL}/dash/front-desk/id-cards?partial=true`);
-            const html = await res.text();
-            mainContent.innerHTML = `<div class="pg fu">${html}</div>`;
-            const scripts = mainContent.querySelectorAll('script');
-            scripts.forEach(s => eval(s.innerHTML));
-        } catch (e) { mainContent.innerHTML = `<div class="alert alert-danger">Error</div>`; }
-    }
-
-    async function renderDocVerify() {
-        mainContent.innerHTML = `<div class="pg fu"><div class="pg-loading"><i class="fa-solid fa-circle-notch fa-spin"></i><span>Loading...</span></div></div>`;
-        try {
-            const res = await fetch(`${APP_URL}/dash/front-desk/documents?partial=true`);
-            const html = await res.text();
-            mainContent.innerHTML = `<div class="pg fu">${html}</div>`;
-            const scripts = mainContent.querySelectorAll('script');
-            scripts.forEach(s => eval(s.innerHTML));
-        } catch (e) { mainContent.innerHTML = `<div class="alert alert-danger">Error</div>`; }
-    }
-
-    // ═══════════════════════════════════════════════════════════════
-    // LIBRARY RENDERERS
-    // ═══════════════════════════════════════════════════════════════
-
-    async function renderBookIssue() {
-        mainContent.innerHTML = `<div class="pg fu"><div class="pg-loading"><i class="fa-solid fa-circle-notch fa-spin"></i><span>Loading Library...</span></div></div>`;
-        try {
-            const res = await fetch(`${APP_URL}/dash/front-desk/book-issue?partial=true`);
-            const html = await res.text();
-            mainContent.innerHTML = `<div class="pg fu">${html}</div>`;
-            const scripts = mainContent.querySelectorAll('script');
-            scripts.forEach(s => eval(s.innerHTML));
-        } catch (e) { mainContent.innerHTML = `<div class="alert alert-danger">Error</div>`; }
-    }
-
-    async function renderBookReturn() {
-        mainContent.innerHTML = `<div class="pg fu"><div class="pg-loading"><i class="fa-solid fa-circle-notch fa-spin"></i><span>Loading Library...</span></div></div>`;
-        try {
-            const res = await fetch(`${APP_URL}/dash/front-desk/book-return?partial=true`);
-            const html = await res.text();
-            mainContent.innerHTML = `<div class="pg fu">${html}</div>`;
-            const scripts = mainContent.querySelectorAll('script');
-            scripts.forEach(s => eval(s.innerHTML));
-        } catch (e) { mainContent.innerHTML = `<div class="alert alert-danger">Error</div>`; }
-    }
-
-    async function renderBookOverdue() {
-        mainContent.innerHTML = `<div class="pg fu"><div class="pg-loading"><i class="fa-solid fa-circle-notch fa-spin"></i><span>Scanning...</span></div></div>`;
-        try {
-            const res = await fetch(`${APP_URL}/dash/front-desk/book-overdue?partial=true`);
-            const html = await res.text();
-            mainContent.innerHTML = `<div class="pg fu">${html}</div>`;
-            const scripts = mainContent.querySelectorAll('script');
-            scripts.forEach(s => eval(s.innerHTML));
-        } catch (e) { mainContent.innerHTML = `<div class="alert alert-danger">Error</div>`; }
-    }
-
-    // ═══════════════════════════════════════════════════════════════
-    // COMMUNICATION RENDERERS
-    // ═══════════════════════════════════════════════════════════════
-
-    async function renderSMSSender() {
-        mainContent.innerHTML = `<div class="pg fu"><div class="pg-loading"><i class="fa-solid fa-circle-notch fa-spin"></i><span>Connecting...</span></div></div>`;
-        try {
-            const res = await fetch(`${APP_URL}/dash/front-desk/sms-send?partial=true`);
-            const html = await res.text();
-            mainContent.innerHTML = `<div class="pg fu">${html}</div>`;
-            const scripts = mainContent.querySelectorAll('script');
-            scripts.forEach(s => eval(s.innerHTML));
-        } catch (e) { mainContent.innerHTML = `<div class="alert alert-danger">Error</div>`; }
-    }
-
-    async function renderEmailSender() {
-        mainContent.innerHTML = `<div class="pg fu"><div class="pg-loading"><i class="fa-solid fa-circle-notch fa-spin"></i><span>Connecting...</span></div></div>`;
-        try {
-            const res = await fetch(`${APP_URL}/dash/front-desk/email-send?partial=true`);
-            const html = await res.text();
-            mainContent.innerHTML = `<div class="pg fu">${html}</div>`;
-            const scripts = mainContent.querySelectorAll('script');
-            scripts.forEach(s => eval(s.innerHTML));
-        } catch (e) { mainContent.innerHTML = `<div class="alert alert-danger">Error</div>`; }
-    }
-
-    // ═══════════════════════════════════════════════════════════════
-    // ACADEMIC RENDERERS
-    // ═══════════════════════════════════════════════════════════════
-
-    async function renderMarkAttendance() {
-        mainContent.innerHTML = `<div class="pg fu"><div class="pg-loading"><i class="fa-solid fa-circle-notch fa-spin"></i><span>Loading...</span></div></div>`;
-        try {
-            const res = await fetch(`${APP_URL}/dash/front-desk/attendance-mark?partial=true`);
-            const html = await res.text();
-            mainContent.innerHTML = `<div class="pg fu">${html}</div>`;
-            const scripts = mainContent.querySelectorAll('script');
-            scripts.forEach(s => eval(s.innerHTML));
-        } catch (e) { mainContent.innerHTML = `<div class="alert alert-danger">Error</div>`; }
-    }
-
-    async function renderAttendanceReport() {
-        mainContent.innerHTML = `<div class="pg fu"><div class="pg-loading"><i class="fa-solid fa-circle-notch fa-spin"></i><span>Analyzing...</span></div></div>`;
-        try {
-            const res = await fetch(`${APP_URL}/dash/front-desk/attendance-report?partial=true`);
-            const html = await res.text();
-            mainContent.innerHTML = `<div class="pg fu">${html}</div>`;
-            const scripts = mainContent.querySelectorAll('script');
-            scripts.forEach(s => eval(s.innerHTML));
-        } catch (e) { mainContent.innerHTML = `<div class="alert alert-danger">Error</div>`; }
-    }
-
-    // ═══════════════════════════════════════════════════════════════
-    // REPORT RENDERERS
-    // ═══════════════════════════════════════════════════════════════
-
-    async function renderDailyOpsRep() {
-        mainContent.innerHTML = `<div class="pg fu"><div class="pg-loading"><i class="fa-solid fa-circle-notch fa-spin"></i><span>Aggregating...</span></div></div>`;
-        try {
-            const res = await fetch(`${APP_URL}/dash/front-desk/report-daily?partial=true`);
-            const html = await res.text();
-            mainContent.innerHTML = `<div class="pg fu">${html}</div>`;
-            const scripts = mainContent.querySelectorAll('script');
-            scripts.forEach(s => eval(s.innerHTML));
-        } catch (e) { mainContent.innerHTML = `<div class="alert alert-danger">Error</div>`; }
-    }
-
-    async function renderRevenueRep() {
-        mainContent.innerHTML = `<div class="pg fu"><div class="pg-loading"><i class="fa-solid fa-circle-notch fa-spin"></i><span>Loading Analytics...</span></div></div>`;
-        try {
-            const res = await fetch(`${APP_URL}/dash/front-desk/report-revenue?partial=true`);
-            const html = await res.text();
-            mainContent.innerHTML = `<div class="pg fu">${html}</div>`;
-            const scripts = mainContent.querySelectorAll('script');
-            scripts.forEach(s => eval(s.innerHTML));
-        } catch (e) { mainContent.innerHTML = `<div class="alert alert-danger">Error</div>`; }
-    }
-
-    async function renderEnrollmentRep() {
-        mainContent.innerHTML = `<div class="pg fu"><div class="pg-loading"><i class="fa-solid fa-circle-notch fa-spin"></i><span>Loading Trends...</span></div></div>`;
-        try {
-            const res = await fetch(`${APP_URL}/dash/front-desk/report-enrollment?partial=true`);
-            const html = await res.text();
-            mainContent.innerHTML = `<div class="pg fu">${html}</div>`;
-            const scripts = mainContent.querySelectorAll('script');
-            scripts.forEach(s => eval(s.innerHTML));
-        } catch (e) { mainContent.innerHTML = `<div class="alert alert-danger">Error</div>`; }
-    }
-
-    async function renderFeeRep() {
-        mainContent.innerHTML = `<div class="pg fu"><div class="pg-loading"><i class="fa-solid fa-circle-notch fa-spin"></i><span>Analyzing Dues...</span></div></div>`;
-        try {
-            const res = await fetch(`${APP_URL}/dash/front-desk/report-fees?partial=true`);
-            const html = await res.text();
-            mainContent.innerHTML = `<div class="pg fu">${html}</div>`;
-            const scripts = mainContent.querySelectorAll('script');
-            scripts.forEach(s => eval(s.innerHTML));
-        } catch (e) { mainContent.innerHTML = `<div class="alert alert-danger">Error</div>`; }
-    }
-
-    // ═══════════════════════════════════════════════════════════════
-    // INQUIRY HELPERS
-    // ═══════════════════════════════════════════════════════════════
-
-    async function renderInquiryAdd() {
-        mainContent.innerHTML = `<div class="pg fu"><div class="pg-loading"><i class="fa-solid fa-circle-notch fa-spin"></i><span>Loading...</span></div></div>`;
-        try {
-            const res = await fetch(`${APP_URL}/dash/front-desk/inquiry-add?partial=true`);
-            const html = await res.text();
-            mainContent.innerHTML = `<div class="pg fu">${html}</div>`;
-            const scripts = mainContent.querySelectorAll('script');
-            scripts.forEach(s => eval(s.innerHTML));
-        } catch (e) { mainContent.innerHTML = `<div class="alert alert-danger">Error</div>`; }
-    }
-
-    async function renderInquiryFollowups() {
-        mainContent.innerHTML = `<div class="pg fu"><div class="pg-loading"><i class="fa-solid fa-circle-notch fa-spin"></i><span>Loading Reminders...</span></div></div>`;
-        try {
-            const res = await fetch(`${APP_URL}/dash/front-desk/inquiry-followup?partial=true`);
-            const html = await res.text();
-            mainContent.innerHTML = `<div class="pg fu">${html}</div>`;
-            const scripts = mainContent.querySelectorAll('script');
-            scripts.forEach(s => eval(s.innerHTML));
-        } catch (e) { mainContent.innerHTML = `<div class="alert alert-danger">Error</div>`; }
-    }
-
-    async function renderInquiryReport() {
-        mainContent.innerHTML = `<div class="pg fu"><div class="pg-loading"><i class="fa-solid fa-circle-notch fa-spin"></i><span>Loading Report...</span></div></div>`;
-        try {
-            const res = await fetch(`${APP_URL}/dash/front-desk/inquiry-report?partial=true`);
-            const html = await res.text();
-            mainContent.innerHTML = `<div class="pg fu">${html}</div>`;
-            const scripts = mainContent.querySelectorAll('script');
-            scripts.forEach(s => eval(s.innerHTML));
-        } catch (e) { mainContent.innerHTML = `<div class="alert alert-danger">Error</div>`; }
-    }
-
-    async function renderBatches() {
-        mainContent.innerHTML = `<div class="pg fu"><div class="pg-loading"><i class="fa-solid fa-circle-notch fa-spin"></i><span>Loading Batches...</span></div></div>`;
-        try {
-            const res = await fetch(`${APP_URL}/dash/front-desk/batches?partial=true`);
-            const html = await res.text();
-            mainContent.innerHTML = `<div class="pg fu">${html}</div>`;
-            const scripts = mainContent.querySelectorAll('script');
-            scripts.forEach(s => eval(s.innerHTML));
-        } catch (e) { mainContent.innerHTML = `<div class="alert alert-danger">Error</div>`; }
-    }
-
-    async function renderCourses() {
-        mainContent.innerHTML = `<div class="pg fu"><div class="pg-loading"><i class="fa-solid fa-circle-notch fa-spin"></i><span>Loading Courses...</span></div></div>`;
-        try {
-            const res = await fetch(`${APP_URL}/dash/front-desk/courses?partial=true`);
-            const html = await res.text();
-            mainContent.innerHTML = `<div class="pg fu">${html}</div>`;
-            const scripts = mainContent.querySelectorAll('script');
-            scripts.forEach(s => eval(s.innerHTML));
-        } catch (e) { mainContent.innerHTML = `<div class="alert alert-danger">Error</div>`; }
-    }
-
-    async function renderProfile() {
-        mainContent.innerHTML = `<div class="pg fu"><div class="pg-loading"><i class="fa-solid fa-circle-notch fa-spin"></i><span>Loading Profile...</span></div></div>`;
-        try {
-            const res = await fetch(`${APP_URL}/dash/front-desk/profile?partial=true`);
-            const html = await res.text();
-            mainContent.innerHTML = `<div class="pg fu">${html}</div>`;
-            const scripts = mainContent.querySelectorAll('script');
-            scripts.forEach(s => eval(s.innerHTML));
-        } catch (e) { mainContent.innerHTML = `<div class="alert alert-danger">Error</div>`; }
-    }
-
-    async function renderPassword() {
-        mainContent.innerHTML = `<div class="pg fu"><div class="pg-loading"><i class="fa-solid fa-circle-notch fa-spin"></i><span>Loading Security...</span></div></div>`;
-        try {
-            const res = await fetch(`${APP_URL}/dash/front-desk/password?partial=true`);
-            const html = await res.text();
-            mainContent.innerHTML = `<div class="pg fu">${html}</div>`;
-            const scripts = mainContent.querySelectorAll('script');
-            scripts.forEach(s => eval(s.innerHTML));
-        } catch (e) { mainContent.innerHTML = `<div class="alert alert-danger">Error</div>`; }
-    }
-
-    async function renderBatchStatus() {
-        mainContent.innerHTML = `<div class="pg fu"><div class="pg-loading"><i class="fa-solid fa-circle-notch fa-spin"></i><span>Loading Status...</span></div></div>`;
-        try {
-            const res = await fetch(`${APP_URL}/dash/front-desk/batch-status?partial=true`);
-            const html = await res.text();
-            mainContent.innerHTML = `<div class="pg fu">${html}</div>`;
-            const scripts = mainContent.querySelectorAll('script');
-            scripts.forEach(s => eval(s.innerHTML));
-        } catch (e) { mainContent.innerHTML = `<div class="alert alert-danger">Error</div>`; }
-    }
-
-    async function renderNotifHistory() {
-        mainContent.innerHTML = `<div class="pg fu"><div class="pg-loading"><i class="fa-solid fa-circle-notch fa-spin"></i><span>Loading History...</span></div></div>`;
-        try {
-            const res = await fetch(`${APP_URL}/dash/front-desk/notifications?partial=true`, getHeaders());
-            const html = await res.text();
-            mainContent.innerHTML = `<div class="pg fu">${html}</div>`;
-            const scripts = mainContent.querySelectorAll('script');
-            scripts.forEach(s => eval(s.innerHTML));
-        } catch (e) { mainContent.innerHTML = `<div class="alert alert-danger">Error</div>`; }
-    }
-
-    // ═══════════════════════════════════════════════════════════════
-    // DAILY SUMMARY MODULE (Native implementation continued)
-    // ═══════════════════════════════════════════════════════════════
-    async function renderDailySummary() {
-        mainContent.innerHTML = `
-            <div class="pg fu">
-                <div class="pg-head">
-                    <div class="pg-left">
-                        <div class="pg-ico" style="background:linear-gradient(135deg, #10B981, #059669);"><i class="fa-solid fa-calendar-day"></i></div>
-                        <div>
-                            <div class="pg-title">Daily Summary</div>
-                            <div class="pg-sub">Collection summary for today: ${new Date().toLocaleDateString()}</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="sg mb" id="dailySummaryStats">
-                    <div class="sc">
-                        <div class="sc-top"><div class="sc-ico ic-teal"><i class="fa-solid fa-coins"></i></div></div>
-                        <div class="sc-val" id="todayTotalValue">-</div>
-                        <div class="sc-lbl">Today's Collection</div>
-                    </div>
-                    <div class="sc">
-                        <div class="sc-top"><div class="sc-ico ic-blue"><i class="fa-solid fa-receipt"></i></div></div>
-                        <div class="sc-val" id="todayCountValue">-</div>
-                        <div class="sc-lbl">Transactions</div>
-                    </div>
-                </div>
-
-                <div class="card" id="dailyBreakdownContainer">
-                    <div class="pg-loading"><i class="fa-solid fa-circle-notch fa-spin"></i><span>Generating summary...</span></div>
-                </div>
-            </div>
-        `;
-
-        try {
-            const res = await fetch(APP_URL + '/api/frontdesk/fee-reports?action=collection_summary');
-            const result = await res.json();
-            const container = document.getElementById('dailyBreakdownContainer');
-
-            if (result.success && Array.isArray(result.data)) {
-                const total = result.data.reduce((sum, item) => sum + parseFloat(item.total || 0), 0);
-                const count = result.data.reduce((sum, item) => sum + parseInt(item.count || 0), 0);
-                
-                document.getElementById('todayTotalValue').textContent = 'Rs. ' + formatMoney(total);
-                document.getElementById('todayCountValue').textContent = count;
-
-                container.innerHTML = `
-                    <div style="padding:20px;">
-                        <h4 style="margin-bottom:15px; color:#1a1a2e;">Breakdown by Payment Method</h4>
-                        ${result.data.length ? result.data.map(item => `
-                            <div style="display:flex; justify-content:space-between; align-items:center; padding:15px; background:#f8fafc; border-radius:12px; margin-bottom:10px;">
-                                <div style="display:flex; align-items:center; gap:12px;">
-                                    <div style="width:40px; height:40px; border-radius:10px; background:#fff; display:flex; align-items:center; justify-content:center; font-size:18px; border:1px solid #e2e8f0;">
-                                        ${item.payment_method === 'cash' ? '💵' : '🏦'}
-                                    </div>
-                                    <div style="font-weight:700; text-transform:capitalize;">${(item.payment_method || '').replace('_', ' ')}</div>
-                                </div>
-                                <div style="text-align:right;">
-                                    <div style="font-weight:800; color:#10B981; font-size:18px;">Rs. ${formatMoney(item.total || 0)}</div>
-                                    <div style="font-size:12px; color:#64748b;">${item.count || 0} transactions</div>
-                                </div>
-                            </div>
-                        `).join('') : '<div style="padding:20px; text-align:center; color:#64748b;">No breakdown data available.</div>'}
-                        
-                        <button class="btn" style="width:100%; justify-content:center; margin-top:20px; background:#1a1a2e; color:#fff; padding:15px;" onclick="window.print()">
-                            <i class="fa-solid fa-print"></i> Print End of Day Report
-                        </button>
-                    </div>
-                `;
-            }
-        } catch (e) {
-            container.innerHTML = '<div class="alert alert-danger">Failed to load summary</div>';
+    async function handleHeaderSearch(query) {
+        if (!query || query.length < 2) {
+            searchResults.style.display = 'none';
+            return;
         }
-    }
 
-    // ── UTILS ──
-    function formatMoney(n) {
-        return parseFloat(n).toLocaleString('en-IN', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        });
-    }
-
-    // ═══════════════════════════════════════════════════════════════
-    // ADMISSION RENDERERS
-    // ═══════════════════════════════════════════════════════════════
-
-
-
-    async function renderIDCardGen() {
-        mainContent.innerHTML = `<div class="pg fu"><div class="pg-loading"><i class="fa-solid fa-circle-notch fa-spin"></i><span>Loading Generator...</span></div></div>`;
         try {
-            const res = await fetch(`${APP_URL}/dash/front-desk/id-cards?partial=true`);
+            const res = await fetch(`${APP_URL}/api/frontdesk/students?action=search&query=${encodeURIComponent(query)}`, getHeaders());
+            const data = await res.json();
+            
+            if (!data.success) return;
+
+            let html = '<div class="search-res-list">';
+            if (data.data && data.data.length > 0) {
+                html += '<div class="search-cat">Students</div>';
+                data.data.forEach(s => {
+                    html += `<div class="search-res-item" onclick="goNav('students'); closeSearch();">
+                        <div class="res-main">${s.full_name}</div>
+                        <div class="res-sub">${s.roll_no || ''} • ${s.phone || ''}</div>
+                    </div>`;
+                });
+            } else {
+                html += '<div style="padding:15px; text-align:center; color:#94a3b8;">No matches found</div>';
+            }
+            html += '</div>';
+            searchResults.innerHTML = html;
+            searchResults.style.display = 'block';
+        } catch (e) { console.error('Search error:', e); }
+    }
+
+    window.focusSearch = () => {
+        if (hdrSearch) hdrSearch.focus();
+    };
+
+    window.closeSearch = () => {
+        if (hdrSearch) hdrSearch.value = '';
+        if (searchResults) searchResults.style.display = 'none';
+    };
+
+    window.renderFeeDetails = async function() {
+        mainContent.innerHTML = `<div class="pg fu"><div class="pg-loading"><i class="fa-solid fa-circle-notch fa-spin"></i><span>Loading Details...</span></div></div>`;
+        try {
+            const res = await fetch(`${APP_URL}/dash/front-desk/fee-details?partial=true`);
             const html = await res.text();
             mainContent.innerHTML = `<div class="pg fu">${html}</div>`;
-            const scripts = mainContent.querySelectorAll('script');
-            scripts.forEach(s => eval(s.innerHTML));
-        } catch (e) { mainContent.innerHTML = `<div class="alert alert-danger">Error</div>`; }
-    }
-
-    async function renderDocVerify() {
-        mainContent.innerHTML = `<div class="pg fu"><div class="pg-loading"><i class="fa-solid fa-circle-notch fa-spin"></i><span>Loading Documents...</span></div></div>`;
-        try {
-            const res = await fetch(`${APP_URL}/dash/front-desk/documents?partial=true`);
-            const html = await res.text();
-            mainContent.innerHTML = `<div class="pg fu">${html}</div>`;
-            const scripts = mainContent.querySelectorAll('script');
-            scripts.forEach(s => eval(s.innerHTML));
-        } catch (e) { mainContent.innerHTML = `<div class="alert alert-danger">Error</div>`; }
-    }
-
-    // ═══════════════════════════════════════════════════════════════
-    // FEE RENDERERS
-    // ═══════════════════════════════════════════════════════════════
-
-    async function renderFeeRecord() {
-        mainContent.innerHTML = `<div class="pg fu"><div class="pg-loading"><i class="fa-solid fa-circle-notch fa-spin"></i><span>Connecting...</span></div></div>`;
-        try {
-            const res = await fetch(`${APP_URL}/dash/front-desk/fee-collect?partial=true`);
-            const html = await res.text();
-            mainContent.innerHTML = `<div class="pg fu">${html}</div>`;
-            const scripts = mainContent.querySelectorAll('script');
-            scripts.forEach(s => eval(s.innerHTML));
-        } catch (e) { mainContent.innerHTML = `<div class="alert alert-danger">Error</div>`; }
-    }
-
-    async function renderFeeOutstanding() {
-        mainContent.innerHTML = `<div class="pg fu"><div class="pg-loading"><i class="fa-solid fa-circle-notch fa-spin"></i><span>Scanning Arrears...</span></div></div>`;
-        try {
-            const res = await fetch(`${APP_URL}/dash/front-desk/fee-outstanding?partial=true`);
-            const html = await res.text();
-            mainContent.innerHTML = `<div class="pg fu">${html}</div>`;
-            const scripts = mainContent.querySelectorAll('script');
-            scripts.forEach(s => eval(s.innerHTML));
-        } catch (e) { mainContent.innerHTML = `<div class="alert alert-danger">Error</div>`; }
-    }
-
-    async function renderRecentPayments() {
-        mainContent.innerHTML = `<div class="pg fu"><div class="pg-loading"><i class="fa-solid fa-circle-notch fa-spin"></i><span>Fetching History...</span></div></div>`;
-        try {
-            const res = await fetch(`${APP_URL}/dash/front-desk/fee-receipts?partial=true`);
-            const html = await res.text();
-            mainContent.innerHTML = `<div class="pg fu">${html}</div>`;
-            const scripts = mainContent.querySelectorAll('script');
-            scripts.forEach(s => eval(s.innerHTML));
-        } catch (e) { mainContent.innerHTML = `<div class="alert alert-danger">Error</div>`; }
+            const innerScripts = mainContent.querySelectorAll('script');
+            innerScripts.forEach(s => eval(s.innerHTML));
+        } catch (e) {
+            mainContent.innerHTML = `<div class="alert alert-danger">Error loading details</div>`;
+        }
     }
 
     // ── SEARCH & PROFILE DROPDOWN logic ──
@@ -1186,13 +1066,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             searchTimeout = setTimeout(async () => {
-                try {
-                    const res = await fetch(`${APP_URL}/api/admin/global-search?q=${encodeURIComponent(q)}`);
-                    const data = await res.json();
-                    renderSearchResults(data);
-                } catch (err) {
-                    console.error('Search error:', err);
-                }
+                handleHeaderSearch(q);
             }, 300);
         });
 
@@ -1202,58 +1076,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 searchResults.style.display = 'none';
             }
         });
-    }
-
-    function renderSearchResults(data) {
-        if (!data.success || data.total === 0) {
-            searchResults.innerHTML = '<div class="search-no-results">No results found</div>';
-            searchResults.style.display = 'block';
-            return;
-        }
-
-        let html = '<div class="search-results-list">';
-        
-        if (data.students && data.students.length > 0) {
-            html += '<div class="search-cat">Students</div>';
-            data.students.forEach(s => {
-                html += `<div class="search-res-item" onclick="goNav('admissions', 'adm-all'); closeSearch();">
-                    <div class="res-main">${s.name}</div>
-                    <div class="res-sub">${s.roll_no || ''} • ${s.phone || ''}</div>
-                </div>`;
-            });
-        }
-
-        if (data.batches && data.batches.length > 0) {
-            html += '<div class="search-cat">Batches</div>';
-            data.batches.forEach(b => {
-                html += `<div class="search-res-item" onclick="goNav('academic', 'batches'); closeSearch();">
-                    <div class="res-main">${b.name}</div>
-                    <div class="res-sub">${b.course_name || ''}</div>
-                </div>`;
-            });
-        }
-
-        html += '</div>';
-        searchResults.innerHTML = html;
-        searchResults.style.display = 'block';
-    }
-
-    window.closeSearch = () => {
-        if (hdrSearch) hdrSearch.value = '';
-        if (searchResults) searchResults.style.display = 'none';
-    };
-
-    async function renderFeeDetails() {
-        mainContent.innerHTML = `<div class="pg fu"><div class="pg-loading"><i class="fa-solid fa-circle-notch fa-spin"></i><span>Loading Details...</span></div></div>`;
-        try {
-            const res = await fetch(`${APP_URL}/dash/front-desk/fee-details?partial=true`);
-            const html = await res.text();
-            mainContent.innerHTML = `<div class="pg fu">${html}</div>`;
-            const scripts = mainContent.querySelectorAll('script');
-            scripts.forEach(s => eval(s.innerHTML));
-        } catch (e) {
-            mainContent.innerHTML = `<div class="alert alert-danger">Error loading details</div>`;
-        }
     }
 
     // Init

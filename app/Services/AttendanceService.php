@@ -57,7 +57,25 @@ class AttendanceService {
             ];
         }
         
-        return $this->attendance->bulkUpsert($records, $tenantId);
+        $result = $this->attendance->bulkUpsert($records, $tenantId);
+
+        // TRIGGER: Automation Engine for Absences
+        try {
+            $automationService = new \App\Services\NotificationAutomationService();
+            foreach ($records as $rec) {
+                if ($rec['status'] === 'absent') {
+                    $automationService->evalRulesForEvent('absent', [
+                        'tenant_id' => $tenantId,
+                        'student_id' => $rec['student_id'],
+                        'attendance_date' => $rec['attendance_date']
+                    ]);
+                }
+            }
+        } catch (\Exception $e) {
+            error_log("Automation trigger error (takeAttendance): " . $e->getMessage());
+        }
+
+        return $result;
     }
 
     public function bulkSave($records, $userId, $tenantId) {
@@ -78,6 +96,20 @@ class AttendanceService {
         
         $newRecord = $this->attendance->find($id);
         
+        // TRIGGER: Automation Engine for Absences
+        try {
+            if ($newRecord['status'] === 'absent') {
+                $automationService = new \App\Services\NotificationAutomationService();
+                $automationService->evalRulesForEvent('absent', [
+                    'tenant_id' => $tenantId,
+                    'student_id' => $newRecord['student_id'],
+                    'attendance_date' => $newRecord['attendance_date']
+                ]);
+            }
+        } catch (\Exception $e) {
+            error_log("Automation trigger error (editAttendance): " . $e->getMessage());
+        }
+
         $this->auditLog->log([
             'tenant_id' => $tenantId,
             'attendance_id' => $id,

@@ -55,11 +55,12 @@ class DashboardCacheService {
         ];
 
         // --- SECTION B: PRIMARY KPI ROW ---
-        // 1. Fee Collection (Monthly)
+        // 1. Fee Collection (Monthly & Today)
         $stmt = $db->prepare("
             SELECT 
                 SUM(CASE WHEN DATE_FORMAT(payment_date, '%Y-%m') = :curr THEN amount ELSE 0 END) as curr_month,
-                SUM(CASE WHEN DATE_FORMAT(payment_date, '%Y-%m') = :prev THEN amount ELSE 0 END) as prev_month
+                SUM(CASE WHEN DATE_FORMAT(payment_date, '%Y-%m') = :prev THEN amount ELSE 0 END) as prev_month,
+                SUM(CASE WHEN DATE(payment_date) = CURDATE() THEN amount ELSE 0 END) as today_collection
             FROM payment_transactions 
             WHERE tenant_id = :tid 
             AND payment_date >= DATE_SUB(DATE_FORMAT(NOW() ,'%Y-%m-01'), INTERVAL 1 MONTH)
@@ -69,6 +70,7 @@ class DashboardCacheService {
         $feeData = $stmt->fetch(PDO::FETCH_ASSOC);
         $currFee = (float)$feeData['curr_month'];
         $prevFee = (float)$feeData['prev_month'];
+        $todayCollection = (float)$feeData['today_collection'];
         
         // Get Target
         $stmtTarget = $db->prepare("SELECT fee_collection_target, enrollment_target FROM monthly_targets WHERE tenant_id = :tid AND year = :y AND month = :m");
@@ -77,6 +79,7 @@ class DashboardCacheService {
         
         $stats['kpi_fees'] = [
             'collected' => $currFee,
+            'today_collection' => $todayCollection,
             'target' => (float)$targets['fee_collection_target'],
             'growth' => $prevFee > 0 ? round((($currFee - $prevFee) / $prevFee) * 100, 1) : ($currFee > 0 ? 100 : 0)
         ];
@@ -287,6 +290,98 @@ class DashboardCacheService {
             $stats['library'] = $stmt->fetch(PDO::FETCH_ASSOC);
         } catch (Exception $e) {
             $stats['library'] = null;
+        }
+
+        // --- SECTION L: FRONT DESK - INQUIRIES ---
+        try {
+            $stmt = $db->prepare("
+                SELECT *
+                FROM inquiries 
+                WHERE tenant_id = :tid AND DATE(created_at) = CURDATE()
+                ORDER BY created_at DESC LIMIT 10
+            ");
+            $stmt->execute(['tid' => $tenantId]);
+            $stats['today_inquiries'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Exception $e) {
+            $stats['today_inquiries'] = [];
+        }
+
+        // --- SECTION M: FRONT DESK - LEAVE REQUESTS ---
+        try {
+            $stmt = $db->prepare("
+                SELECT l.*, s.full_name as student_name, s.roll_no, s.photo_url 
+                FROM leave_requests l
+                JOIN students s ON s.id = l.student_id
+                WHERE l.tenant_id = :tid AND l.status = 'pending' 
+                ORDER BY l.created_at ASC LIMIT 10
+            ");
+            $stmt->execute(['tid' => $tenantId]);
+            $stats['pending_leaves'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Exception $e) {
+            $stats['pending_leaves'] = [];
+        }
+
+        // --- SECTION N: FRONT DESK - TIMETABLE ---
+        try {
+            $stmt = $db->prepare("
+                SELECT ts.*, s.name as subject_name, b.name as batch_name, r.name as room_name, u.full_name as teacher_name
+                FROM timetable_slots ts
+                LEFT JOIN subjects s ON ts.subject_id = s.id
+                LEFT JOIN batches b ON ts.batch_id = b.id
+                LEFT JOIN rooms r ON ts.room_id = r.id
+                LEFT JOIN users u ON ts.teacher_id = u.id
+                WHERE ts.tenant_id = :tid AND ts.day_of_week = DAYOFWEEK(CURDATE())
+                ORDER BY ts.start_time ASC
+            ");
+            $stmt->execute(['tid' => $tenantId]);
+            $stats['today_timetable'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Exception $e) {
+            $stats['today_timetable'] = [];
+        }
+
+        // --- SECTION O: FRONT DESK - RECENT TRANSACTIONS & SUMMARY ---
+        try {
+            $stmt = $db->prepare("
+                SELECT pt.id, pt.transaction_id as receipt_no, s.full_name as student_name, s.roll_no,
+                       b.name as batch_name, pt.amount, pt.payment_method, pt.payment_date as receipt_time,
+                       pt.remarks as fee_item_name
+                FROM payment_transactions pt
+                JOIN students s ON pt.student_id = s.id
+                LEFT JOIN batches b ON s.batch_id = b.id
+                WHERE pt.tenant_id = :tid AND DATE(pt.payment_date) = CURDATE()
+                ORDER BY pt.created_at DESC LIMIT 10
+            ");
+            $stmt->execute(['tid' => $tenantId]);
+            $stats['recent_transactions'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            $stmt = $db->prepare("
+                SELECT payment_method, SUM(amount) as total, COUNT(*) as count
+                FROM payment_transactions
+                WHERE tenant_id = :tid AND DATE(payment_date) = CURDATE()
+                GROUP BY payment_method
+                ORDER BY total DESC
+            ");
+            $stmt->execute(['tid' => $tenantId]);
+            $stats['fee_summary'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Exception $e) {
+            $stats['recent_transactions'] = [];
+            $stats['fee_summary'] = [];
+        }
+
+        // --- SECTION P: FRONT DESK - LIBRARY ISSUES TODAY ---
+        try {
+            $stmt = $db->prepare("
+                SELECT li.id, lb.title as book_title, lb.author, s.full_name as student_name, li.issue_date, li.due_date, li.return_date
+                FROM library_issues li
+                JOIN library_books lb ON li.book_id = lb.id
+                JOIN students s ON li.student_id = s.id
+                WHERE li.tenant_id = :tid AND DATE(li.issue_date) = CURDATE()
+                ORDER BY li.created_at DESC LIMIT 5
+            ");
+            $stmt->execute(['tid' => $tenantId]);
+            $stats['today_library_issues'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Exception $e) {
+            $stats['today_library_issues'] = [];
         }
 
         return $stats;

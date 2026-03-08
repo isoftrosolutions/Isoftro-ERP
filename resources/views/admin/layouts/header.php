@@ -60,6 +60,10 @@ $currentPage = basename($_SERVER['PHP_SELF'], '.php');
     <?php echo \App\Helpers\CsrfHelper::csrfMetaTag(); ?>
     <?php echo \App\Helpers\CsrfHelper::csrfJsHeader(); ?>
     
+    <!-- Dedicated Styles -->
+    <link rel="stylesheet" href="<?php echo APP_URL; ?>/public/assets/css/profile-dropdown.css">
+    <link rel="stylesheet" href="<?php echo APP_URL; ?>/public/assets/css/ia-support.css">
+
     <!-- Header Styles -->
     <style>
         /* CSS Variables */
@@ -661,7 +665,24 @@ $currentPage = basename($_SERVER['PHP_SELF'], '.php');
                 display: none;
             }
         }
+        @media (max-width: 767px) {
+            .pd-menu-new {
+                position: fixed;
+                top: auto;
+                bottom: 20px;
+                left: 20px;
+                right: 20px;
+                width: auto;
+                transform: translateY(100%);
+            }
+            .pd-menu-new.active {
+                transform: translateY(0);
+            }
+        }
     </style>
+    
+    <!-- Profile Dropdown JS -->
+    <script src="<?php echo APP_URL; ?>/public/assets/js/profile-dropdown.js" defer></script>
 </head>
 <body>
     <!-- Header -->
@@ -708,7 +729,7 @@ $currentPage = basename($_SERVER['PHP_SELF'], '.php');
 
             <!-- Quick Actions (Desktop) -->
             <div class="quick-actions">
-                <button class="btn-icon" onclick="window.location.href='<?php echo APP_URL; ?>/dash/admin?page=inquiries'" data-tooltip="KYC / Admission">
+                <button class="btn-icon" onclick="goNav('inq', 'list')" data-tooltip="KYC / Admission">
                     <i class="fa-solid fa-id-card"></i>
                 </button>
                 
@@ -716,83 +737,88 @@ $currentPage = basename($_SERVER['PHP_SELF'], '.php');
                     <i class="fa-solid fa-rotate-right"></i>
                 </button>
                 
-                <button class="btn-icon" onclick="window.location.href='<?php echo APP_URL; ?>/dash/admin?page=communications'" data-tooltip="Messages">
+                <button class="btn-icon" onclick="goNav('comms', 'sms')" data-tooltip="Messages">
                     <i class="fa-solid fa-comment-dots"></i>
                     <span class="badge" id="msgBadge" style="display:none">0</span>
                 </button>
                 
-                <button class="btn-icon" id="notifToggle" data-tooltip="Notifications">
+                <button class="btn-icon" onclick="goNav('settings', 'notif')" data-tooltip="Notifications">
                     <i class="fa-solid fa-bell"></i>
                     <span class="badge" id="notifBadge">3</span>
                 </button>
                 
-                <button class="btn-icon" onclick="window.location.href='<?php echo APP_URL; ?>/dash/admin/support'" data-tooltip="Support">
+                <button class="btn-icon" onclick="goNav('support')" data-tooltip="Support">
                     <i class="fa-solid fa-headset"></i>
                 </button>
             </div>
 
-            <!-- Institute Logo Profile -->
-            <div class="profile-section">
-                <button class="profile-btn" id="profileToggle" aria-label="Institute Menu" title="<?php echo htmlspecialchars($tenantName); ?>">
+            <!-- ── PREMIUM PROFILE DROPDOWN ── -->
+            <div class="pd-container">
+                <button class="pd-trigger" id="pdTrigger" aria-label="User Menu">
                     <?php if (!empty($logoUrl)): ?>
-                        <img src="<?php echo htmlspecialchars($logoUrl); ?>" alt="<?php echo htmlspecialchars($tenantName); ?>" 
-                             style="width:100%; height:100%; object-fit:cover;"
-                             onerror="this.style.display='none'; this.parentElement.querySelector('.profile-initials').style.display='flex';">
-                        <div class="profile-initials" style="display:none; background:linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);">
-                            <?php echo strtoupper(substr($tenantName, 0, 1)); ?>
-                        </div>
+                        <img src="<?php echo htmlspecialchars($logoUrl); ?>" alt="Avatar" 
+                             onerror="this.style.display='none'; this.parentElement.querySelector('.pd-initials').style.display='flex';">
+                        <div class="pd-initials" style="display:none;"><?php echo $initials; ?></div>
                     <?php else: ?>
-                        <div class="profile-initials" style="background:linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);">
-                            <?php echo strtoupper(substr($tenantName, 0, 1)); ?>
-                        </div>
+                        <div class="pd-initials"><?php echo $initials; ?></div>
                     <?php endif; ?>
                 </button>
 
-                <!-- Profile Dropdown -->
-                <div class="dropdown" id="profileDropdown">
-                    <div class="dropdown-header">
-                        <div class="u-av-lg"><?php echo $initials; ?></div>
-                        <div class="user-meta">
-                            <div class="name"><?php echo htmlspecialchars($user['name'] ?? 'Administrator'); ?></div>
-                            <div class="role"><?php echo htmlspecialchars($user['role'] ?? 'Institute Admin'); ?></div>
-                        </div>
+                <div class="pd-menu-new" id="pdMenuNew">
+                    <div class="pd-header-new">
+                        <span class="pd-user-name"><?php echo htmlspecialchars($user['name'] ?? 'Priyanka Kumari Sah'); ?></span>
+                        <span class="pd-user-role"><?php echo htmlspecialchars($user['role'] ?? 'Institute Admin'); ?></span>
                     </div>
-                    <ul class="dropdown-menu">
-                        <li>
-                            <a href="<?php echo APP_URL; ?>/dash/admin?page=settings">
-                                <i class="fa-solid fa-building-columns"></i>
-                                Institute Profile
+
+                    <div class="pd-divider-new"></div>
+
+                    <ul class="pd-list-new">
+                        <li class="pd-item-new">
+                            <a href="javascript:void(0)" onclick="goNav('settings', 'user-prof')">
+                                <i class="fa-regular fa-circle-user"></i> My Profile
                             </a>
                         </li>
-                        <li>
-                            <a href="<?php echo APP_URL; ?>/dash/admin?page=settings&tab=security">
-                                <i class="fa-solid fa-shield-halved"></i>
-                                Account Security
+                        <li class="pd-item-new">
+                            <a href="javascript:void(0)" onclick="goNav('settings', 'prof')">
+                                <i class="fa-solid fa-sliders"></i> Settings
                             </a>
                         </li>
-                        <li>
-                            <a href="<?php echo APP_URL; ?>/dash/admin?page=settings&tab=branding">
-                                <i class="fa-solid fa-wand-magic-sparkles"></i>
-                                UI & Branding
+                        <li class="pd-item-new">
+                            <a href="javascript:void(0)" onclick="goNav('settings', 'notif')">
+                                <i class="fa-regular fa-bell"></i> Notifications 
+                                <span class="pd-badge-new">3</span>
                             </a>
                         </li>
-                        <li class="dropdown-divider"></li>
-                        <li>
-                            <a href="<?php echo APP_URL; ?>/dash/admin/support">
-                                <i class="fa-solid fa-life-ring"></i>
-                                Help & Support Center
+                    </ul>
+
+                    <div class="pd-divider-new"></div>
+
+                    <ul class="pd-list-new">
+                        <li class="pd-item-new">
+                            <a href="javascript:void(0)" onclick="goNav('support')">
+                                <i class="fa-solid fa-circle-question"></i> Help & Support
                             </a>
                         </li>
-                        <li class="dropdown-divider"></li>
-                        <li>
-                            <a href="<?php echo APP_URL; ?>/logout" class="logout">
-                                <i class="fa-solid fa-power-off"></i>
-                                Sign Out
+                        <li class="pd-item-new">
+                            <a href="javascript:void(0)" onclick="goNav('feedback')">
+                                <i class="fa-regular fa-paper-plane"></i> Feedback
+                            </a>
+                        </li>
+                    </ul>
+
+                    <div class="pd-divider-new"></div>
+
+                    <ul class="pd-list-new">
+                        <li class="pd-item-new danger">
+                            <a href="<?php echo APP_URL; ?>/logout">
+                                <i class="fa-solid fa-power-off"></i> Logout
                             </a>
                         </li>
                     </ul>
                 </div>
             </div>
+
+            <!-- (REMOVED: profile dropdown logic moved to profile-dropdown.js) -->
         </div>
     </header>
 

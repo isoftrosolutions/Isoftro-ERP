@@ -9,18 +9,49 @@ window.renderStaffList = async function(role) {
     const nav   = role==='teacher' ? 'teachers'   : 'frontdesk';
     const mc = document.getElementById('mainContent');
     mc.innerHTML = `<div class="pg fu">
-        <div class="bc"><a href="#" onclick="goNav('overview')">Dashboard</a> <span class="bc-sep">&rsaquo;</span> <span class="bc-cur">${title}</span></div>
-        <div class="pg-head">
-            <div class="pg-left"><div class="pg-ico"><i class="fa-solid ${icon}"></i></div><div><div class="pg-title">${title}</div><div class="pg-sub">Manage ${title.toLowerCase()} profiles</div></div></div>
-            <div class="pg-acts"><button class="btn bt" onclick="goNav('${nav}','add')"><i class="fa-solid fa-plus"></i> Add ${role==='teacher'?'Teacher':'Front Desk'}</button></div>
+        <div class="bc">
+            <a href="#" onclick="goNav('overview')"><i class="fa-solid fa-home"></i></a> 
+            <span class="bc-sep">/</span> 
+            <span class="bc-cur">${title}</span>
         </div>
-        <div class="card mb" style="padding:15px;">
-            <div style="display:flex;gap:15px;flex-wrap:wrap;">
-                <div style="flex:1;min-width:250px;"><input type="text" id="staffSearch" class="form-control" placeholder="Search by name or email..." oninput="filterStaff(this.value,'${role}')"></div>
-                <div style="width:150px;"><select id="staffStatusFilter" class="form-control" onchange="filterStaff(document.getElementById('staffSearch').value,'${role}',this.value)"><option value="">All Status</option><option value="active">Active</option><option value="inactive">Inactive</option></select></div>
+        <div class="pg-head">
+            <div class="pg-left">
+                <div class="pg-ico" style="background: linear-gradient(135deg, ${role==='teacher'?'#6366f1, #a855f7':'#10b981, #34d399'}); color: #fff;">
+                    <i class="fa-solid ${icon}"></i>
+                </div>
+                <div>
+                    <div class="pg-title" style="font-size: clamp(1.2rem, 3vw, 1.5rem);">${title} Directory</div>
+                    <div class="pg-sub">Manage academic and administrative staff profiles</div>
+                </div>
+            </div>
+            <div class="pg-acts">
+                <button class="btn bt" onclick="goNav('${nav}','add')" style="padding: 10px clamp(15px, 2vw, 20px); font-size: clamp(11px, 1.2vw, 13px); border-radius: 12px; box-shadow: none;">
+                    <i class="fa-solid fa-plus"></i> <span>Add ${role==='teacher'?'Teacher':'Staff'}</span>
+                </button>
             </div>
         </div>
-        <div class="card" id="staffTableContainer"><div class="pg-loading"><i class="fa-solid fa-circle-notch fa-spin"></i><span>Loading ${title.toLowerCase()}...</span></div></div>
+        
+        <div class="toolbar" style="padding: clamp(10px, 2vw, 15px); margin-bottom: 25px; background: rgba(255,255,255,0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.4); border-radius: 16px;">
+            <div class="search-wrap" style="flex: 1; min-width: 250px;">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="searchInput" placeholder="Search by name, email or phone..." oninput="filterStaff(this.value,'${role}')">
+            </div>
+            <div style="width: clamp(120px, 20vw, 180px);">
+                <select id="staffStatusFilter" class="form-control" style="border-radius: 12px; height: 42px; font-size: 13px;" onchange="filterStaff(document.getElementById('searchInput').value,'${role}',this.value)">
+                    <option value="">All Status</option>
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                </select>
+            </div>
+            <div class="row-count-badge" id="rowCount">0 Records</div>
+        </div>
+
+        <div class="premium-tw table-responsive" id="staffTableContainer">
+            <div class="pg-loading">
+                <i class="fa-solid fa-circle-notch fa-spin"></i>
+                <span>Loading ${title.toLowerCase()}...</span>
+            </div>
+        </div>
     </div>`;
     window.currentStaffData = [];
     await loadStaff(role);
@@ -40,33 +71,93 @@ window.filterStaff = function(search='', role, status='') {
     const filtered = (window.currentStaffData||[]).filter(s => {
         const n = (s.full_name||s.name||'').toLowerCase();
         const em = (s.email||'').toLowerCase();
-        const matchSearch = !search || n.includes(search.toLowerCase()) || em.includes(search.toLowerCase());
+        const ph = (s.phone||'').toLowerCase();
+        const matchSearch = !search || n.includes(search.toLowerCase()) || em.includes(search.toLowerCase()) || ph.includes(search.toLowerCase());
         const matchStatus = !status || s.status===status;
         return matchSearch && matchStatus;
     });
+    
+    if (document.getElementById('rowCount')) {
+        const label = role === 'teacher' ? 'Teachers' : 'Staff';
+        document.getElementById('rowCount').textContent = `${filtered.length} ${label}`;
+    }
+    
     _renderStaffTable(filtered, role);
 };
 
 function _renderStaffTable(staff, role) {
     const c = document.getElementById('staffTableContainer'); if (!c) return;
-    if (!staff.length) { c.innerHTML=`<div style="padding:60px;text-align:center;color:#94a3b8;"><i class="fa-solid fa-users-slash" style="font-size:3rem;margin-bottom:15px;"></i><p>No staff found.</p></div>`; return; }
-    let html = `<div class="table-responsive"><table class="table"><thead><tr><th>Name</th><th>Contact</th>${role==='teacher'?'<th>Employee ID</th><th>Specialization</th>':'<th>Joined Date</th>'}<th>Salary</th><th>Status</th><th style="text-align:right">Actions</th></tr></thead><tbody>`;
+    if (!staff.length) { 
+        c.innerHTML=`<div class="empty-state-premium" style="margin: 40px 0;">
+            <div class="empty-ico"><i class="fa-solid fa-users-slash"></i></div>
+            <h4>No Records Found</h4>
+            <p>We couldn't find any ${role==='teacher'?'teachers':'staff members'} matching your criteria.</p>
+        </div>`; 
+        return; 
+    }
+    
+    let html = `<table class="premium-student-table">
+        <thead>
+            <tr>
+                <th style="width: 25%;">Profile</th>
+                <th style="width: 20%;">Contact</th>
+                ${role==='teacher'?'<th style="width: 15%;">Credentials</th><th style="width: 15%;">Expertise</th>':'<th style="width: 20%;">Joined</th>'}
+                <th style="width: 15%;">Salary</th>
+                <th style="width: 10%;">Status</th>
+                <th style="width: 10%; text-align: right;">Actions</th>
+            </tr>
+        </thead>
+        <tbody>`;
+        
     staff.forEach(s => {
-        const sc = s.status==='active'?'bg-t':'bg-r';
-        const n  = s.full_name||s.name||'N/A';
+        const isActive = s.status==='active';
+        const n = s.full_name||s.name||'N/A';
+        const initials = n.charAt(0).toUpperCase();
+        
         html += `<tr>
-            <td><div style="display:flex;align-items:center;gap:10px;"><div style="width:32px;height:32px;border-radius:50%;background:var(--teal);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;">${n.charAt(0)}</div><div style="font-weight:600">${n}</div></div></td>
-            <td><div style="font-size:13px">${s.email||'No email'}</div><div style="font-size:11px;color:var(--tl)">${s.phone||'No phone'}</div></td>
-            ${role==='teacher'?`<td><span class="tag bg-b">${s.employee_id||'N/A'}</span></td><td>${s.specialization||'General'}</td>`:`<td>${new Date(s.created_at).toLocaleDateString()}</td>`}
-            <td><span class="tag bg-b">NPR ${parseFloat(s.monthly_salary || 0).toLocaleString()}</span></td>
-            <td><span class="tag ${sc}">${s.status.toUpperCase()}</span></td>
-            <td style="text-align:right;white-space:nowrap">
-                <button class="btn-icon" title="Edit" onclick="editStaff('${role}',${s.user_id})"><i class="fa-solid fa-pen"></i></button>
-                <button class="btn-icon text-danger" title="Delete" onclick="deleteStaff('${role}',${s.user_id},'${n.replace(/'/g,"\\''")}')"><i class="fa-solid fa-trash"></i></button>
+            <td>
+                <div class="std-card">
+                    <div class="std-img initials" style="background: linear-gradient(135deg, ${role==='teacher'?'#6366f1, #a855f7':'#10b981, #34d399'}); color: #fff;">
+                        ${initials}
+                    </div>
+                    <div class="std-info">
+                        <div class="name">${n}</div>
+                        <div class="id">${role==='teacher'?'Teacher':'Administrative'}</div>
+                    </div>
+                </div>
+            </td>
+            <td>
+                <div style="font-size: 13px; font-weight: 600; color: #1e293b;">${s.email||'-'}</div>
+                <div style="font-size: 11px; color: #64748b;">${s.phone||'-'}</div>
+            </td>
+            ${role==='teacher'?`
+                <td><span class="badge" style="background: #eff6ff; color: #1d4ed8; font-size: 10px; padding: 4px 10px;">${s.employee_id||'N/A'}</span></td>
+                <td><div style="font-size: 13px; color: #334155; font-weight: 500;">${s.specialization||'General'}</div></td>
+            ` : `
+                <td><div style="font-size: 13px; color: #334155;">${new Date(s.created_at).toLocaleDateString()}</div></td>
+            `}
+            <td>
+                <div style="font-size: 13px; font-weight: 700; color: #0a524a;">NPR ${parseFloat(s.monthly_salary || 0).toLocaleString()}</div>
+            </td>
+            <td>
+                <span class="badge" style="background: ${isActive?'#ecfdf5':'#fff1f2'}; color: ${isActive?'#059669':'#e11d48'}; font-weight: 700; font-size: 10px;">
+                    ${s.status.toUpperCase()}
+                </span>
+            </td>
+            <td style="text-align:right">
+                <div class="d-flex justify-content-end gap-2">
+                    <button class="btn-icon-p" title="Edit Profile" onclick="editStaff('${role}',${s.user_id})">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                    </button>
+                    <button class="btn-icon-p" style="color: #e11d48; border-color: #fecdd3;" title="Delete Record" onclick="deleteStaff('${role}',${s.user_id},'${n.replace(/'/g,"\\''")}')">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                </div>
             </td>
         </tr>`;
     });
-    html += `</tbody></table></div>`;
+    
+    html += `</tbody></table>`;
     c.innerHTML = html;
 }
 
@@ -86,27 +177,81 @@ function _renderEditStaffForm(role, staff) {
     const n = staff.full_name||staff.name||'';
     const mc = document.getElementById('mainContent');
     mc.innerHTML = `<div class="pg fu">
-        <div class="bc"><a href="#" onclick="goNav('overview')">Dashboard</a> <span class="bc-sep">&rsaquo;</span> <a href="#" onclick="goNav('${nav}','profiles')">${role==='teacher'?'Teachers':'Front Desk'}</a> <span class="bc-sep">&rsaquo;</span> <span class="bc-cur">Edit ${title}</span></div>
-        <div class="pg-head"><div class="pg-left"><div class="pg-ico"><i class="fa-solid fa-user-pen"></i></div><div><div class="pg-title">Edit ${title}</div><div class="pg-sub">Update credentials and profile</div></div></div></div>
-        <div class="card fu" style="max-width:800px;margin:0 auto;padding:30px;">
+        <div class="bc">
+            <a href="#" onclick="goNav('overview')"><i class="fa-solid fa-home"></i></a> 
+            <span class="bc-sep">/</span> 
+            <a href="#" onclick="goNav('${nav}','profiles')">${role==='teacher'?'Teachers':'Staff'}</a> 
+            <span class="bc-sep">/</span> 
+            <span class="bc-cur">Edit Profile</span>
+        </div>
+        <div class="pg-head">
+            <div class="pg-left">
+                <div class="pg-ico" style="background: linear-gradient(135deg, #d4d5e6ff, #55f7c6ff); color: #fff;">
+                    <i class="fa-solid fa-user-pen"></i>
+                </div>
+                <div>
+                    <div class="pg-title" style="font-size: clamp(1.2rem, 3vw, 1.5rem);">Edit ${title}</div>
+                    <div class="pg-sub">Update credentials and professional profile</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card fu" style="max-width: 900px; margin: 0 auto; padding: clamp(20px, 4vw, 40px); border-radius: 20px;">
             <form id="editStaffForm">
                 <input type="hidden" name="role" value="${role}">
                 <input type="hidden" name="user_id" value="${staff.user_id}">
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
-                    <div class="form-group" style="grid-column:span 2;"><label class="form-label">Full Name *</label><input type="text" name="name" class="form-control" required value="${n}"></div>
-                    <div class="form-group"><label class="form-label">Email Address</label><input type="email" name="email" class="form-control" value="${staff.email||''}" disabled><small style="color:var(--tl);">Email cannot be changed</small></div>
-                    <div class="form-group"><label class="form-label">Phone Number</label><input type="text" name="phone" class="form-control" value="${staff.phone||''}"></div>
-                    <div class="form-group"><label class="form-label">Status</label><select name="status" class="form-control"><option value="active" ${staff.status==='active'?'selected':''}>Active</option><option value="inactive" ${staff.status==='inactive'?'selected':''}>Inactive</option></select></div>
-                    <div class="form-group"><label class="form-label">Monthly Salary (NPR) *</label><input type="number" name="monthly_salary" class="form-control" value="${staff.monthly_salary || 0}" step="0.01" required></div>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(clamp(200px, 100%, 300px), 1fr)); gap: clamp(15px, 3vw, 25px);">
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <label class="form-label">Full Name *</label>
+                        <input type="text" name="name" class="form-control" required value="${n}" style="border-radius: 12px; padding: 12px 16px;">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Email Address</label>
+                        <input type="email" name="email" class="form-control" value="${staff.email||''}" disabled style="border-radius: 12px; padding: 12px 16px; background: #f8fafc;">
+                        <small style="color: #64748b; font-size: 11px; margin-top: 5px; display: block;">Email is used for login and cannot be modified.</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Phone Number</label>
+                        <input type="text" name="phone" class="form-control" value="${staff.phone||''}" style="border-radius: 12px; padding: 12px 16px;">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Status</label>
+                        <select name="status" class="form-control" style="border-radius: 12px; padding: 0 16px; height: 50px;">
+                            <option value="active" ${staff.status==='active'?'selected':''}>Active</option>
+                            <option value="inactive" ${staff.status==='inactive'?'selected':''}>Inactive</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Monthly Salary (NPR) *</label>
+                        <input type="number" name="monthly_salary" class="form-control" value="${staff.monthly_salary || 0}" step="0.01" required style="border-radius: 12px; padding: 12px 16px;">
+                    </div>
+                    
                     ${role==='teacher'?`
-                    <div class="form-group"><label class="form-label">Employee ID</label><input type="text" class="form-control" value="${staff.employee_id||'N/A'}" disabled></div>
-                    <div class="form-group"><label class="form-label">Specialization</label><input type="text" name="specialization" class="form-control" value="${staff.specialization||''}"></div>
-                    <div class="form-group"><label class="form-label">Qualification</label><input type="text" name="qualification" class="form-control" value="${staff.qualification||''}"></div>
+                    <div class="form-group">
+                        <label class="form-label">Employee ID</label>
+                        <input type="text" class="form-control" value="${staff.employee_id||'N/A'}" disabled style="border-radius: 12px; padding: 12px 16px; background: #f8fafc;">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Specialization</label>
+                        <input type="text" name="specialization" class="form-control" value="${staff.specialization||''}" style="border-radius: 12px; padding: 12px 16px;">
+                    </div>
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <label class="form-label">Qualification</label>
+                        <input type="text" name="qualification" class="form-control" value="${staff.qualification||''}" style="border-radius: 12px; padding: 12px 16px;">
+                    </div>
                     `:''}
                 </div>
-                <div style="margin-top:30px;display:flex;gap:10px;justify-content:flex-end;">
-                    <button type="button" class="btn bs" onclick="goNav('${nav}','profiles')">Cancel</button>
-                    <button type="submit" class="btn bt">Update ${title}</button>
+                
+                <div style="margin-top: 40px; display: flex; flex-wrap: wrap; gap: 15px; justify-content: flex-end;">
+                    <button type="button" class="btn bs" onclick="goNav('${nav}','profiles')" style="min-width: 120px; border-radius: 12px; padding: 12px 24px;">Cancel</button>
+                    <button type="submit" class="btn bt" style="min-width: 180px; border-radius: 12px; padding: 12px 24px; background: linear-gradient(135deg, #6366f1, #a855f7); color: #fff; border: none; font-weight: 700;">
+                        Update Profile
+                    </button>
                 </div>
             </form>
         </div>
@@ -130,27 +275,85 @@ window.renderAddStaffForm = function(role) {
     const title = role==='teacher' ? 'Teacher' : 'Front Desk Operator';
     const nav   = role==='teacher' ? 'teachers' : 'frontdesk';
     const mc = document.getElementById('mainContent');
+        const grad = role==='teacher' ? 'linear-gradient(135deg, #6366f1, #8b5cf6)' : 'linear-gradient(135deg, #10b981, #059669)';
+        const accent = role==='teacher' ? '#6366f1' : '#10b981';
+
     mc.innerHTML = `<div class="pg fu">
-        <div class="bc"><a href="#" onclick="goNav('overview')">Dashboard</a> <span class="bc-sep">&rsaquo;</span> <a href="#" onclick="goNav('${nav}','profiles')">${role==='teacher'?'Teachers':'Front Desk'}</a> <span class="bc-sep">&rsaquo;</span> <span class="bc-cur">Add ${title}</span></div>
-        <div class="pg-head"><div class="pg-left"><div class="pg-ico"><i class="fa-solid fa-user-plus"></i></div><div><div class="pg-title">Add New ${title}</div><div class="pg-sub">Setup credentials for new staff member</div></div></div></div>
-        <div class="card fu" style="max-width:800px;margin:0 auto;padding:30px;">
+        <div class="bc">
+            <a href="#" onclick="goNav('overview')"><i class="fa-solid fa-home"></i></a> 
+            <span class="bc-sep">/</span> 
+            <a href="#" onclick="goNav('${nav}','profiles')">${role==='teacher'?'Teachers':'Staff'}</a> 
+            <span class="bc-sep">/</span> 
+            <span class="bc-cur">Add Member</span>
+        </div>
+        <div class="pg-head">
+            <div class="pg-left">
+                <div class="pg-ico" style="background: ${grad}; color: #fff;">
+                    <i class="fa-solid fa-user-plus"></i>
+                </div>
+                <div>
+                    <div class="pg-title" style="font-size: clamp(1.2rem, 3vw, 1.5rem);">Register ${title}</div>
+                    <div class="pg-sub">Define professional profile and institutional records</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card fu" style="max-width: 900px; margin: 0 auto; padding: clamp(20px, 4vw, 40px); border-radius: 20px;">
             <form id="addStaffForm">
                 <input type="hidden" name="role" value="${role}">
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
-                    <div class="form-group" style="grid-column:span 2;"><label class="form-label">Full Name *</label><input type="text" name="name" class="form-control" required placeholder="Display Name"></div>
-                    <div class="form-group"><label class="form-label">Email Address *</label><input type="email" name="email" class="form-control" required placeholder="login@institute.com"></div>
-                    <div class="form-group"><label class="form-label">Phone Number</label><input type="text" name="phone" class="form-control" placeholder="98XXXXXXXX"></div>
-                    <div class="form-group"><label class="form-label">Temporary Password</label><input type="text" name="password" class="form-control" value="Staff@123"><small style="color:var(--tl);">User will be prompted to change on first login</small></div>
-                    <div class="form-group"><label class="form-label">Monthly Salary (NPR) *</label><input type="number" name="monthly_salary" class="form-control" placeholder="0.00" step="0.01" required></div>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(clamp(200px, 100%, 300px), 1fr)); gap: clamp(15px, 3vw, 25px);">
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <label class="form-label">Full Name *</label>
+                        <input type="text" name="name" class="form-control" required placeholder="Full Name" style="border-radius: 12px; padding: 12px 16px;">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Email Address *</label>
+                        <input type="email" name="email" class="form-control" required placeholder="login@institute.com" style="border-radius: 12px; padding: 12px 16px;">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Phone Number</label>
+                        <input type="text" name="phone" class="form-control" placeholder="98XXXXXXXX" style="border-radius: 12px; padding: 12px 16px;">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Access Password</label>
+                        <input type="text" name="password" class="form-control" value="Staff@123" style="border-radius: 12px; padding: 12px 16px;">
+                        <small style="color: #64748b; font-size: 11px; margin-top: 5px; display: block;">Default password. Member can reset after login.</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Monthly Salary (NPR) *</label>
+                        <input type="number" name="monthly_salary" class="form-control" placeholder="0.00" step="0.01" required style="border-radius: 12px; padding: 12px 16px;">
+                    </div>
+                    
                     ${role==='teacher'?`
-                    <div class="form-group"><label class="form-label">Employee ID</label><input type="text" name="employee_id" class="form-control" placeholder="TCH-00X"></div>
-                    <div class="form-group"><label class="form-label">Specialization</label><input type="text" name="specialization" class="form-control" placeholder="e.g. Mathematics, Nepali"></div>
-                    <div class="form-group"><label class="form-label">Employment Type</label><select name="employment_type" class="form-control"><option value="full_time">Full Time</option><option value="part_time">Part Time</option><option value="visiting">Visiting Faculty</option></select></div>
+                    <div class="form-group">
+                        <label class="form-label">Employee ID</label>
+                        <input type="text" name="employee_id" class="form-control" placeholder="TCH-00X" style="border-radius: 12px; padding: 12px 16px;">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Specialization</label>
+                        <input type="text" name="specialization" class="form-control" placeholder="e.g. Mathematics" style="border-radius: 12px; padding: 12px 16px;">
+                    </div>
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <label class="form-label">Employment Type</label>
+                        <select name="employment_type" class="form-control" style="border-radius: 12px; padding: 0 16px; height: 50px;">
+                            <option value="full_time">Full Time</option>
+                            <option value="part_time">Part Time</option>
+                            <option value="visiting">Visiting Faculty</option>
+                        </select>
+                    </div>
                     `:''}
                 </div>
-                <div style="margin-top:30px;display:flex;gap:10px;justify-content:flex-end;">
-                    <button type="button" class="btn bs" onclick="goNav('${nav}','list')">Cancel</button>
-                    <button type="submit" class="btn bt">Create ${title}</button>
+                
+                <div style="margin-top: 40px; display: flex; flex-wrap: wrap; gap: 15px; justify-content: flex-end;">
+                    <button type="button" class="btn bs" onclick="goNav('${nav}','profiles')" style="min-width: 120px; border-radius: 12px; padding: 12px 24px;">Cancel</button>
+                    <button type="submit" class="btn bt" style="min-width: 180px; border-radius: 12px; padding: 12px 24px; background: ${grad}; color: #fff; border: none; font-weight: 700; box-shadow: 0 4px 15px ${role==='teacher'?'rgba(99, 102, 241, 0.3)':'rgba(16, 185, 129, 0.3)'};">
+                        Confirm ${title}
+                    </button>
                 </div>
             </form>
         </div>

@@ -38,6 +38,7 @@ if (!in_array($role, ['instituteadmin', 'frontdesk', 'superadmin'])) {
 }
 
 use App\Helpers\ReceiptHelper;
+use App\Helpers\MailHelper;
 use App\Helpers\CsrfHelper;
 
 try {
@@ -556,24 +557,54 @@ try {
                 $transactionId = $result['transaction_id'];
                 $receiptNo = $result['receipt_no'];
 
-                // 1. Dispatch Background Job (Instant <1ms)
-                $queueService = new QueueService();
-                $jobId = $queueService->dispatch('payment_receipt', [
-                    'transaction_id' => $transactionId,
-                    'receipt_no' => $receiptNo,
-                    'student_id' => $result['fee_record']['student_id']
-                ], $tenantId);
+                // 1. Dispatch Background Job or Send Synchronously
+                $syncEmail = $input['sync_email'] ?? false;
+                $emailStatus = 'queued';
+                $jobId = null;
+
+                if ($syncEmail) {
+                    try {
+                        $pdfPath = ReceiptHelper::generatePdf($db, $tenantId, $transactionId, $receiptNo);
+                        
+                        // Fetch student info for template
+                        $stmt = $db->prepare("SELECT s.full_name as name, COALESCE(NULLIF(s.email, ''), u.email) as email 
+                                            FROM students s LEFT JOIN users u ON s.user_id = u.id 
+                                            WHERE s.id = ?");
+                        $stmt->execute([$result['fee_record']['student_id']]);
+                        $student = $stmt->fetch();
+
+                        if ($student && !empty($student['email'])) {
+                            $sent = MailHelper::sendPaymentReceiptEmail($db, $tenantId, [
+                                'transaction_id' => $transactionId,
+                                'receipt_no' => $receiptNo,
+                                'student_name' => $student['name'],
+                                'email' => $student['email'],
+                                'amount_due' => $result['fee_record']['amount_due'] - $result['fee_record']['amount_paid']
+                            ], $pdfPath);
+                            $emailStatus = $sent ? 'sent' : 'failed';
+                        }
+                    } catch (\Exception $e) {
+                        $emailStatus = 'failed';
+                    }
+                } else {
+                    $queueService = new QueueService();
+                    $jobId = $queueService->dispatch('payment_receipt', [
+                        'transaction_id' => $transactionId,
+                        'receipt_no' => $receiptNo,
+                        'student_id' => $result['fee_record']['student_id']
+                    ], $tenantId);
+                }
 
                 echo json_encode([
                     'success' => true, 
-                    'message' => 'Payment recorded successfully! Receipt is being prepared.',
+                    'message' => 'Payment recorded successfully!' . ($syncEmail ? " Email $emailStatus." : " Receipt is being prepared."),
                     'data' => [
                         'receipt_no' => $receiptNo,
                         'transaction_id' => $transactionId,
                         'job_id' => $jobId,
                         'amount_paid' => $result['amount_paid'],
                         'student_name' => $result['student_name'],
-                        'email_status' => 'queued',
+                        'email_status' => $emailStatus,
                         'student_id' => $result['fee_record']['student_id'],
                         'redirect_url' => '?page=fee-details&receipt_no=' . $receiptNo
                     ]
@@ -592,24 +623,54 @@ try {
                 $transactionId = $result['transaction_ids'][0] ?? null;
                 $receiptNo = $result['receipt_no'];
 
-                // 1. Dispatch Background Job (Instant <1ms)
-                $queueService = new QueueService();
-                $jobId = $queueService->dispatch('payment_receipt', [
-                    'transaction_id' => $transactionId,
-                    'receipt_no' => $receiptNo,
-                    'student_id' => $data['student_id']
-                ], $tenantId);
+                // 1. Dispatch Background Job or Send Synchronously
+                $syncEmail = $input['sync_email'] ?? false;
+                $emailStatus = 'queued';
+                $jobId = null;
+
+                if ($syncEmail) {
+                    try {
+                        $pdfPath = ReceiptHelper::generatePdf($db, $tenantId, $transactionId, $receiptNo);
+                        
+                        // Fetch student info 
+                        $stmt = $db->prepare("SELECT s.full_name as name, COALESCE(NULLIF(s.email, ''), u.email) as email 
+                                            FROM students s LEFT JOIN users u ON s.user_id = u.id 
+                                            WHERE s.id = ?");
+                        $stmt->execute([$data['student_id']]);
+                        $student = $stmt->fetch();
+
+                        if ($student && !empty($student['email'])) {
+                            $sent = MailHelper::sendPaymentReceiptEmail($db, $tenantId, [
+                                'transaction_id' => $transactionId,
+                                'receipt_no' => $receiptNo,
+                                'student_name' => $student['name'],
+                                'email' => $student['email'],
+                                'amount_due' => 0 // Simple assumption for bulk success
+                            ], $pdfPath);
+                            $emailStatus = $sent ? 'sent' : 'failed';
+                        }
+                    } catch (\Exception $e) {
+                        $emailStatus = 'failed';
+                    }
+                } else {
+                    $queueService = new QueueService();
+                    $jobId = $queueService->dispatch('payment_receipt', [
+                        'transaction_id' => $transactionId,
+                        'receipt_no' => $receiptNo,
+                        'student_id' => $data['student_id']
+                    ], $tenantId);
+                }
 
                 echo json_encode([
                     'success' => true,
-                    'message' => 'Bulk payment recorded! Receipt is being prepared.',
+                    'message' => 'Bulk payment recorded!' . ($syncEmail ? " Email $emailStatus." : " Receipt is being prepared."),
                     'data' => [
                         'receipt_no' => $receiptNo,
                         'transaction_ids' => $result['transaction_ids'],
                         'job_id' => $jobId,
                         'amount_paid' => $result['amount_paid'],
                         'student_name' => $result['student_name'] ?? 'Student',
-                        'email_status' => 'queued'
+                        'email_status' => $emailStatus
                     ]
                 ]);
             } else {

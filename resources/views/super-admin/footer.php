@@ -43,8 +43,8 @@ function renderInlineConfig() {
 
     <!-- App JS -->
     <script src="<?php echo SUPERADMIN_JS_PATH; ?>/super_admin.js?v=<?php echo SUPERADMIN_ASSETS_VERSION; ?>"></script>
-    <script src="<?php echo APP_URL; ?>/js/pwa-handler.js"></script>
-    <script src="<?php echo APP_URL; ?>/js/breadcrumb.js"></script>
+    <script src="<?php echo SUPERADMIN_JS_PATH; ?>/pwa-handler.js?v=<?php echo SUPERADMIN_ASSETS_VERSION; ?>"></script>
+    <script src="<?php echo SUPERADMIN_JS_PATH; ?>/breadcrumb.js?v=<?php echo SUPERADMIN_ASSETS_VERSION; ?>"></script>
 
     <?php renderInlineConfig(); ?>
 </body>

@@ -1136,6 +1136,19 @@ tr:hover td {
     }
 }
 
+.g2 {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+@media (min-width: 1024px) {
+    .g2 {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
 .bar-ch {
     display: flex;
     align-items: flex-end;

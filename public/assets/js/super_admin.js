@@ -58,6 +58,15 @@ const SuperAdmin = (function () {
     initCharts();
     initModals();
     renderPage();
+    
+    // Auto-refresh dashboard data every 2 minutes if on overview
+    setInterval(() => {
+        if (activeNav === 'overview' || activeNav === 'index') {
+            console.log("[SuperAdmin] Periodic refresh...");
+            renderDashboard();
+        }
+    }, 120000);
+
     console.log("[SuperAdmin] Module initialised");
   }
 
@@ -403,6 +412,42 @@ const SuperAdmin = (function () {
                     </div>
                 </div>
             </div>
+
+            <!-- ── DAILY WORKFLOW ── -->
+            <div style="margin-bottom: 24px;">
+                <div class="sc fu" style="background:var(--bg-card); border-left:4px solid var(--sa-primary);">
+                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
+                        <div>
+                            <h3 style="font-size:16px; font-weight:800; color:var(--td); margin:0;">Daily Workflow</h3>
+                            <p style="font-size:12px; color:var(--tl); margin:4px 0 0;">Platform initialization checklist</p>
+                        </div>
+                        <span class="tag bg-g" id="workflowStatus">0 / 5 Completed</span>
+                    </div>
+                    <div style="display:flex; flex-direction:column; gap:12px;">
+                        <label style="display:flex; align-items:flex-start; gap:12px; cursor:pointer;" onclick="SuperAdmin.updateWorkflow()">
+                            <input type="checkbox" class="wf-check" style="width:18px; height:18px; margin-top:2px; accent-color:var(--sa-primary);">
+                            <div>
+                                <div style="font-size:14px; font-weight:600; color:var(--td);">1. Check System Health</div>
+                                <div style="font-size:12px; color:var(--tl);">Review health widgets for overnight alerts</div>
+                            </div>
+                        </label>
+                        <label style="display:flex; align-items:flex-start; gap:12px; cursor:pointer;" onclick="SuperAdmin.updateWorkflow()">
+                            <input type="checkbox" class="wf-check" style="width:18px; height:18px; margin-top:2px; accent-color:var(--sa-primary);">
+                            <div>
+                                <div style="font-size:14px; font-weight:600; color:var(--td);">2. Process New Signups</div>
+                                <div style="font-size:12px; color:var(--tl);">Review pending institutes and plans</div>
+                            </div>
+                        </label>
+                        <label style="display:flex; align-items:flex-start; gap:12px; cursor:pointer;" onclick="SuperAdmin.updateWorkflow()">
+                            <input type="checkbox" class="wf-check" style="width:18px; height:18px; margin-top:2px; accent-color:var(--sa-primary);">
+                            <div>
+                                <div style="font-size:14px; font-weight:600; color:var(--td);">3. Manage Support Tickets</div>
+                                <div style="font-size:12px; color:var(--tl);">Process critical priority tickets first</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </div>
         </div>
       `;
       // Re-init chart after rendering HTML
@@ -428,7 +473,7 @@ const SuperAdmin = (function () {
     }
 
     const labels = trendData.map(d => d.month);
-    const data   = trendData.map(d => d.mrr / 1000000); // In Millions for readability
+    const data   = trendData.map(d => d.mrrK); // Use Kilo for better granularity on small datasets
 
     // Create gradient
     const gradient = ctx.createLinearGradient(0, 0, 0, 300);
@@ -474,7 +519,7 @@ const SuperAdmin = (function () {
                     beginAtZero: true,
                     grid: { color: '#f1f5f9' },
                     ticks: {
-                        callback: function(value) { return 'रू ' + value + 'M'; },
+                        callback: function(value) { return 'रू ' + value + 'K'; },
                         font: { size: 10 }
                     }
                 },
@@ -945,6 +990,16 @@ function goNav(id, subId = null) {
     }
   }
 
+  function updateWorkflow() {
+    setTimeout(() => {
+        const checks = document.querySelectorAll('.wf-check');
+        let done = 0;
+        checks.forEach(c => { if(c.checked) done++; });
+        const statusEl = document.getElementById('workflowStatus');
+        if (statusEl) statusEl.textContent = `${done} / 5 Completed`;
+    }, 50);
+  }
+
   /* ============================================================
      PUBLIC API
      ============================================================ */
@@ -961,6 +1016,7 @@ function goNav(id, subId = null) {
     closeModal,
     closeAllModals,
     updateStatCard,
+    updateWorkflow,
     charts,
     dataTables,
   };

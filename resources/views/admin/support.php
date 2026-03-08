@@ -2,6 +2,8 @@
 /**
  * Support & Help Center - Institute Admin
  * Contains: YouTube tutorials, contact details, FAQ with 50 articles
+ * 
+ * SPA-enabled page with external CSS and JS support
  */
 require_once __DIR__ . '/../../../config/config.php';
 requirePermission('dashboard.view');
@@ -15,442 +17,25 @@ $activePage = 'support';
 
 $isSPA = isset($_GET['spa']) && $_GET['spa'] === 'true';
 
+// Generate version for cache busting
+$assetVersion = defined('ASSET_VERSION') ? ASSET_VERSION : time();
+
 if (!$isSPA) {
     include VIEWS_PATH . '/layouts/header.php';
     include __DIR__ . '/layouts/sidebar.php';
-}
-?>
+    ?>
 
-<?php if (!$isSPA): ?>
 <div class="main">
     <?php include __DIR__ . '/layouts/header.php'; ?>
 
     <div class="content" id="mainContent">
-<?php endif; ?>
-        <style>
-            /* Support Page Styles - Brand Compliant & Responsive */
-            .support-wrapper {
-                padding: 20px;
-                max-width: 1400px;
-                margin: 0 auto;
-            }
-            
-            /* Hero Header */
-            .support-hero {
-                background: linear-gradient(135deg, var(--green) 0%, #00a884 100%);
-                border-radius: 16px;
-                padding: 40px 30px;
-                margin-bottom: 24px;
-                text-align: center;
-                color: white;
-                position: relative;
-                overflow: hidden;
-            }
-            .support-hero::before {
-                content: '';
-                position: absolute;
-                top: -50%;
-                right: -10%;
-                width: 300px;
-                height: 300px;
-                background: rgba(255,255,255,0.1);
-                border-radius: 50%;
-            }
-            .support-hero h1 {
-                font-size: clamp(1.5rem, 4vw, 2.5rem);
-                margin-bottom: 12px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                gap: 12px;
-                position: relative;
-                z-index: 1;
-            }
-            .support-hero p {
-                font-size: clamp(0.9rem, 2vw, 1.1rem);
-                opacity: 0.95;
-                max-width: 600px;
-                margin: 0 auto;
-                position: relative;
-                z-index: 1;
-            }
-            
-            /* Quick Help Grid */
-            .quick-help-grid {
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-                gap: 16px;
-                margin-bottom: 24px;
-            }
-            .quick-help-card {
-                background: white;
-                border-radius: 12px;
-                padding: 24px 16px;
-                text-align: center;
-                border: 1px solid var(--card-border);
-                cursor: pointer;
-                transition: all 0.3s ease;
-                text-decoration: none;
-                color: inherit;
-            }
-            .quick-help-card:hover {
-                border-color: var(--green);
-                transform: translateY(-4px);
-                box-shadow: 0 8px 24px rgba(0,0,0,0.1);
-            }
-            .quick-help-card i {
-                font-size: 2rem;
-                color: var(--green);
-                margin-bottom: 12px;
-                display: block;
-            }
-            .quick-help-card.whatsapp i {
-                color: #25d366;
-            }
-            .quick-help-card.youtube i {
-                color: #ff0000;
-            }
-            .quick-help-card h3 {
-                font-size: 0.95rem;
-                color: var(--text-dark);
-                margin: 0;
-                font-weight: 600;
-            }
-            
-            /* Support Cards Grid */
-            .support-cards-grid {
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-                gap: 24px;
-                margin-bottom: 24px;
-            }
-            .support-card {
-                background: white;
-                border-radius: 12px;
-                padding: 24px;
-                border: 1px solid var(--card-border);
-                box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-            }
-            .support-card h2 {
-                color: var(--text-dark);
-                font-size: 1.2rem;
-                margin-bottom: 20px;
-                display: flex;
-                align-items: center;
-                gap: 10px;
-                padding-bottom: 16px;
-                border-bottom: 2px solid var(--bg);
-            }
-            .support-card h2 i {
-                color: var(--green);
-                font-size: 1.4rem;
-            }
-            
-            /* YouTube Links */
-            .youtube-list {
-                display: flex;
-                flex-direction: column;
-                gap: 10px;
-            }
-            .youtube-item {
-                display: flex;
-                align-items: center;
-                gap: 12px;
-                padding: 12px;
-                background: #f8f9fa;
-                border-radius: 8px;
-                text-decoration: none;
-                color: var(--text-dark);
-                transition: all 0.2s;
-            }
-            .youtube-item:hover {
-                background: #ff0000;
-                color: white;
-            }
-            .youtube-item:hover i {
-                color: white;
-            }
-            .youtube-item i {
-                font-size: 24px;
-                color: #ff0000;
-                transition: color 0.2s;
-            }
-            .youtube-item div {
-                flex: 1;
-                min-width: 0;
-            }
-            .youtube-item strong {
-                display: block;
-                font-size: 0.95rem;
-                margin-bottom: 2px;
-            }
-            .youtube-item span {
-                font-size: 0.8rem;
-                opacity: 0.8;
-            }
-            
-            /* Contact Items */
-            .contact-list {
-                display: flex;
-                flex-direction: column;
-                gap: 12px;
-            }
-            .contact-item {
-                display: flex;
-                align-items: center;
-                gap: 12px;
-                padding: 14px;
-                background: #f8f9fa;
-                border-radius: 10px;
-                transition: background 0.2s;
-            }
-            .contact-item:hover {
-                background: #e9ecef;
-            }
-            .contact-item i {
-                width: 40px;
-                height: 40px;
-                background: var(--green);
-                color: white;
-                border-radius: 50%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 1rem;
-                flex-shrink: 0;
-            }
-            .contact-item div {
-                flex: 1;
-                min-width: 0;
-            }
-            .contact-item .label {
-                font-size: 0.75rem;
-                color: var(--text-light);
-                margin-bottom: 2px;
-            }
-            .contact-item a, .contact-item strong {
-                color: var(--green);
-                text-decoration: none;
-                font-weight: 600;
-                font-size: 0.95rem;
-            }
-            .contact-item a:hover {
-                text-decoration: underline;
-            }
-            
-            /* FAQ Section */
-            .faq-wrapper {
-                background: white;
-                border-radius: 12px;
-                padding: 24px;
-                border: 1px solid var(--card-border);
-                box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-            }
-            .faq-wrapper h2 {
-                color: var(--text-dark);
-                font-size: 1.2rem;
-                margin-bottom: 20px;
-                display: flex;
-                align-items: center;
-                gap: 10px;
-            }
-            .faq-wrapper h2 i {
-                color: var(--green);
-            }
-            
-            /* Search Box */
-            .faq-search-box {
-                position: relative;
-                margin-bottom: 24px;
-            }
-            .faq-search-box i {
-                position: absolute;
-                left: 16px;
-                top: 50%;
-                transform: translateY(-50%);
-                color: var(--text-light);
-            }
-            .faq-search-box input {
-                width: 100%;
-                padding: 14px 16px 14px 48px;
-                border: 2px solid var(--card-border);
-                border-radius: 10px;
-                font-size: 1rem;
-                outline: none;
-                transition: border-color 0.2s;
-                background: white;
-            }
-            .faq-search-box input:focus {
-                border-color: var(--green);
-            }
-            
-            /* FAQ Items */
-            .faq-container {
-                display: flex;
-                flex-direction: column;
-                gap: 12px;
-            }
-            .faq-item {
-                border: 1px solid var(--card-border);
-                border-radius: 10px;
-                overflow: hidden;
-                transition: box-shadow 0.2s;
-            }
-            .faq-item:hover {
-                box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-            }
-            .faq-question {
-                padding: 16px 20px;
-                background: #f8f9fa;
-                cursor: pointer;
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                font-weight: 600;
-                color: var(--text-dark);
-                transition: background 0.2s;
-            }
-            .faq-question:hover {
-                background: #e9ecef;
-            }
-            .faq-question.active {
-                background: var(--green);
-                color: white;
-            }
-            .faq-question i {
-                transition: transform 0.3s;
-                font-size: 0.9rem;
-            }
-            .faq-question.active i {
-                transform: rotate(180deg);
-            }
-            .faq-category {
-                display: inline-block;
-                padding: 4px 12px;
-                background: rgba(0, 158, 126, 0.1);
-                color: var(--green);
-                border-radius: 20px;
-                font-size: 0.7rem;
-                font-weight: 700;
-                text-transform: uppercase;
-                letter-spacing: 0.5px;
-                margin-bottom: 8px;
-            }
-            .faq-answer {
-                display: none;
-                padding: 20px;
-                background: white;
-                color: var(--text-light);
-                line-height: 1.7;
-                border-top: 1px solid var(--card-border);
-            }
-            .faq-answer.active {
-                display: block;
-            }
-            .faq-answer strong {
-                color: var(--text-dark);
-            }
-            .faq-answer ol, .faq-answer ul {
-                margin: 12px 0;
-                padding-left: 24px;
-            }
-            .faq-answer li {
-                margin: 8px 0;
-            }
-            
-            /* Responsive Breakpoints */
-            @media (max-width: 1024px) {
-                .support-wrapper {
-                    padding: 16px;
-                }
-                .support-cards-grid {
-                    grid-template-columns: 1fr;
-                }
-            }
-            
-            @media (max-width: 768px) {
-                .support-hero {
-                    padding: 30px 20px;
-                }
-                .quick-help-grid {
-                    grid-template-columns: repeat(2, 1fr);
-                }
-                .quick-help-card {
-                    padding: 20px 12px;
-                }
-                .quick-help-card i {
-                    font-size: 1.5rem;
-                }
-                .quick-help-card h3 {
-                    font-size: 0.85rem;
-                }
-                .support-card {
-                    padding: 20px;
-                }
-                .youtube-item {
-                    padding: 10px;
-                }
-                .youtube-item strong {
-                    font-size: 0.9rem;
-                }
-                .contact-item {
-                    padding: 12px;
-                }
-                .faq-question {
-                    padding: 14px 16px;
-                    font-size: 0.95rem;
-                }
-                .faq-answer {
-                    padding: 16px;
-                }
-            }
-            
-            @media (max-width: 480px) {
-                .support-wrapper {
-                    padding: 12px;
-                }
-                .support-hero {
-                    padding: 24px 16px;
-                    border-radius: 12px;
-                }
-                .quick-help-grid {
-                    grid-template-columns: repeat(2, 1fr);
-                    gap: 10px;
-                }
-                .quick-help-card {
-                    padding: 16px 10px;
-                }
-                .youtube-item i {
-                    font-size: 20px;
-                }
-                .contact-item i {
-                    width: 36px;
-                    height: 36px;
-                    font-size: 0.9rem;
-                }
-                .faq-search-box input {
-                    padding: 12px 12px 12px 44px;
-                    font-size: 0.95rem;
-                }
-            }
-            
-            /* Print Styles */
-            @media print {
-                .sidebar, .top-header, .quick-help-grid {
-                    display: none !important;
-                }
-                .main {
-                    margin-left: 0 !important;
-                }
-                .support-hero {
-                    background: #f5f5f5 !important;
-                    color: black !important;
-                    -webkit-print-color-adjust: exact;
-                }
-            }
-        </style>
+<?php } else { ?>
+        <!-- SPA mode: content only -->
+<?php } ?>
 
-        <div class="support-wrapper">
+        <!-- Support content (CSS loaded in header) -->
+
+        <div class="support-wrapper" id="supportContent">
             <!-- Hero Header -->
             <div class="support-hero">
                 <h1><i class="fa-solid fa-headset"></i> Support & Help Center</h1>
@@ -584,7 +169,7 @@ if (!$isSPA) {
                 
                 <div class="faq-search-box">
                     <i class="fa-solid fa-search"></i>
-                    <input type="text" id="faqSearch" placeholder="Search for answers..." onkeyup="searchFAQ()">
+                    <input type="text" id="faqSearch" placeholder="Search for answers..." oninput="debouncedSearchFAQ()">
                 </div>
 
                 <div class="faq-container" id="faqContainer">
@@ -1003,52 +588,11 @@ if (!$isSPA) {
                             <strong>Step-by-step guide:</strong>
                             <ol>
                                 <li>Navigate to "Batches" → "All Batches"</li>
-                                <li>Find and click on the batch</li>
-                                <li>Click "Edit" button</li>
+                                <li>Click on the batch you want to assign a class teacher to</li>
+                                <li>Click "Edit" or "Settings"</li>
                                 <li>Find "Class Teacher" field</li>
-                                <li>Select teacher from dropdown</li>
+                                <li>Select a teacher from the dropdown</li>
                                 <li>Click "Save Changes"</li>
-                            </ol>
-                        </div>
-                    </div>
-
-                    <!-- Timetable -->
-                    <div class="faq-item" data-category="timetable">
-                        <span class="faq-category">Timetable</span>
-                        <div class="faq-question" onclick="toggleFAQ(this)">
-                            21. How do I create a class timetable?
-                            <i class="fa-solid fa-chevron-down"></i>
-                        </div>
-                        <div class="faq-answer">
-                            <strong>Step-by-step guide:</strong>
-                            <ol>
-                                <li>Go to "Timetable" → "Create Timetable"</li>
-                                <li>Select the batch/class</li>
-                                <li>Set academic year and effective date</li>
-                                <li>Click on a time slot in the grid</li>
-                                <li>Select subject from dropdown</li>
-                                <li>Select teacher (auto-filters based on subject)</li>
-                                <li>Set period duration</li>
-                                <li>Repeat for all days and periods</li>
-                                <li>Click "Save Timetable"</li>
-                            </ol>
-                        </div>
-                    </div>
-
-                    <div class="faq-item" data-category="timetable">
-                        <span class="faq-category">Timetable</span>
-                        <div class="faq-question" onclick="toggleFAQ(this)">
-                            22. How do I view/print class timetable?
-                            <i class="fa-solid fa-chevron-down"></i>
-                        </div>
-                        <div class="faq-answer">
-                            <strong>Step-by-step guide:</strong>
-                            <ol>
-                                <li>Navigate to "Timetable" → "View Timetable"</li>
-                                <li>Select the batch/class</li>
-                                <li>The timetable grid will display</li>
-                                <li>Click "Print" button for printing</li>
-                                <li>Or click "Download PDF" to save</li>
                             </ol>
                         </div>
                     </div>
@@ -1057,21 +601,17 @@ if (!$isSPA) {
                     <div class="faq-item" data-category="library">
                         <span class="faq-category">Library</span>
                         <div class="faq-question" onclick="toggleFAQ(this)">
-                            23. How do I add books to the library?
+                            21. How do I add books to the library?
                             <i class="fa-solid fa-chevron-down"></i>
                         </div>
                         <div class="faq-answer">
                             <strong>Step-by-step guide:</strong>
                             <ol>
-                                <li>Go to "Library" → "Add Books"</li>
-                                <li>Enter book title</li>
-                                <li>Enter author name(s)</li>
-                                <li>Add ISBN number</li>
-                                <li>Select category/genre</li>
-                                <li>Enter publisher and publication year</li>
-                                <li>Add number of copies</li>
-                                <li>Set rack/location in library</li>
-                                <li>Click "Add Book"</li>
+                                <li>Go to "Library" → "Add Book"</li>
+                                <li>Enter book details (title, author, ISBN, publisher)</li>
+                                <li>Set quantity available</li>
+                                <li>Add rack/shelf location</li>
+                                <li>Click "Add Book" to save</li>
                             </ol>
                         </div>
                     </div>
@@ -1079,124 +619,131 @@ if (!$isSPA) {
                     <div class="faq-item" data-category="library">
                         <span class="faq-category">Library</span>
                         <div class="faq-question" onclick="toggleFAQ(this)">
-                            24. How do I issue a book to a student?
+                            22. How do I issue a book to a student?
                             <i class="fa-solid fa-chevron-down"></i>
                         </div>
                         <div class="faq-answer">
                             <strong>Step-by-step guide:</strong>
                             <ol>
                                 <li>Navigate to "Library" → "Issue Book"</li>
-                                <li>Scan or enter book ISBN/ID</li>
-                                <li>Search and select student</li>
-                                <li>Set issue date (defaults to today)</li>
-                                <li>Set due date (auto-calculated based on rules)</li>
-                                <li>Add remarks if needed</li>
+                                <li>Search for the student</li>
+                                <li>Select the book to issue</li>
+                                <li>Set return due date</li>
                                 <li>Click "Issue Book"</li>
-                                <li>Print issue slip if required</li>
                             </ol>
                         </div>
                     </div>
 
-                    <!-- Transport -->
-                    <div class="faq-item" data-category="transport">
-                        <span class="faq-category">Transport</span>
+                    <!-- Timetable -->
+                    <div class="faq-item" data-category="timetable">
+                        <span class="faq-category">Timetable</span>
                         <div class="faq-question" onclick="toggleFAQ(this)">
-                            25. How do I add a transport route?
+                            23. How do I create a class timetable?
                             <i class="fa-solid fa-chevron-down"></i>
                         </div>
                         <div class="faq-answer">
                             <strong>Step-by-step guide:</strong>
                             <ol>
-                                <li>Go to "Transport" → "Routes"</li>
-                                <li>Click "+ Add Route"</li>
-                                <li>Enter route name/number</li>
-                                <li>Add start and end points</li>
-                                <li>Add stops with timings</li>
-                                <li>Assign vehicle</li>
-                                <li>Assign driver</li>
-                                <li>Set route fees</li>
-                                <li>Click "Save Route"</li>
+                                <li>Go to "Timetable" → "Create Timetable"</li>
+                                <li>Select the batch/class</li>
+                                <li>Choose the day of the week</li>
+                                <li>Add periods with subject and teacher</li>
+                                <li>Set start and end time for each period</li>
+                                <li>Click "Save Timetable"</li>
                             </ol>
                         </div>
                     </div>
 
-                    <!-- Communications -->
-                    <div class="faq-item" data-category="communications">
-                        <span class="faq-category">Communications</span>
+                    <div class="faq-item" data-category="timetable">
+                        <span class="faq-category">Timetable</span>
                         <div class="faq-question" onclick="toggleFAQ(this)">
-                            26. How do I send SMS to parents?
+                            24. How do I view teacher's timetable?
                             <i class="fa-solid fa-chevron-down"></i>
                         </div>
                         <div class="faq-answer">
                             <strong>Step-by-step guide:</strong>
                             <ol>
-                                <li>Navigate to "Communications" → "SMS"</li>
-                                <li>Select recipients (All, Batch, or Individual)</li>
-                                <li>If batch, select the batch name</li>
-                                <li>Choose SMS template or type custom message</li>
-                                <li>Preview the message</li>
-                                <li>Click "Send SMS"</li>
-                                <li>Confirm recipient count</li>
-                                <li>Click "Confirm Send"</li>
+                                <li>Navigate to "Timetable" → "Teacher Timetable"</li>
+                                <li>Select the teacher from dropdown</li>
+                                <li>View their weekly schedule</li>
                             </ol>
                         </div>
                     </div>
 
-                    <div class="faq-item" data-category="communications">
-                        <span class="faq-category">Communications</span>
+                    <!-- Study Materials -->
+                    <div class="faq-item" data-category="lms">
+                        <span class="faq-category">Study Materials</span>
                         <div class="faq-question" onclick="toggleFAQ(this)">
-                            27. How do I send emails to parents?
+                            25. How do I upload study materials for students?
                             <i class="fa-solid fa-chevron-down"></i>
                         </div>
                         <div class="faq-answer">
                             <strong>Step-by-step guide:</strong>
                             <ol>
-                                <li>Go to "Communications" → "Email"</li>
-                                <li>Select recipients</li>
-                                <li>Enter email subject</li>
-                                <li>Type message or use template</li>
-                                <li>Attach files if needed</li>
-                                <li>Click "Preview" to check</li>
-                                <li>Click "Send Email"</li>
+                                <li>Go to "Study Materials" → "Upload"</li>
+                                <li>Select the batch/course</li>
+                                <li>Choose subject</li>
+                                <li>Upload file (PDF, Video, etc.)</li>
+                                <li>Add title and description</li>
+                                <li>Set visibility (students can access)</li>
+                                <li>Click "Upload"</li>
                             </ol>
                         </div>
                     </div>
 
-                    <!-- Reports -->
-                    <div class="faq-item" data-category="reports">
-                        <span class="faq-category">Reports</span>
+                    <div class="faq-item" data-category="lms">
+                        <span class="faq-category">Study Materials</span>
                         <div class="faq-question" onclick="toggleFAQ(this)">
-                            28. How do I generate admission/enquiry reports?
+                            26. How do students access study materials?
+                            <i class="fa-solid fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <strong>For Students:</strong>
+                            <ol>
+                                <li>Log in to student portal</li>
+                                <li>Go to "Study Materials" or "LMS"</li>
+                                <li>Select batch/course</li>
+                                <li>Browse and download available materials</li>
+                            </ol>
+                        </div>
+                    </div>
+
+                    <!-- Front Desk -->
+                    <div class="faq-item" data-category="frontdesk">
+                        <span class="faq-category">Front Desk</span>
+                        <div class="faq-question" onclick="toggleFAQ(this)">
+                            27. How do I manage visitor logs?
                             <i class="fa-solid fa-chevron-down"></i>
                         </div>
                         <div class="faq-answer">
                             <strong>Step-by-step guide:</strong>
                             <ol>
-                                <li>Navigate to "Inquiries" → "Reports"</li>
-                                <li>Select report type</li>
-                                <li>Choose date range</li>
-                                <li>Select course/batch (optional)</li>
-                                <li>Select enquiry status</li>
-                                <li>Click "Generate Report"</li>
-                                <li>Export as needed</li>
+                                <li>Go to "Front Desk" → "Visitor Log"</li>
+                                <li>Click "New Visitor" button</li>
+                                <li>Enter visitor details (name, phone, purpose)</li>
+                                <li>Select person to meet</li>
+                                <li>Click "Check In"</li>
+                                <li>When visitor leaves, click "Check Out"</li>
                             </ol>
                         </div>
                     </div>
 
-                    <div class="faq-item" data-category="reports">
-                        <span class="faq-category">Reports</span>
+                    <div class="faq-item" data-category="frontdesk">
+                        <span class="faq-category">Front Desk</span>
                         <div class="faq-question" onclick="toggleFAQ(this)">
-                            29. How do I view the institute dashboard statistics?
+                            28. How do I manage phone call logs?
                             <i class="fa-solid fa-chevron-down"></i>
                         </div>
                         <div class="faq-answer">
                             <strong>Step-by-step guide:</strong>
                             <ol>
-                                <li>Click on "Dashboard" in the sidebar</li>
-                                <li>View overview cards (Students, Staff, Fees, Attendance)</li>
-                                <li>Scroll down for charts and graphs</li>
-                                <li>Use date filters to change period</li>
-                                <li>Click on any stat to see details</li>
+                                <li>Navigate to "Front Desk" → "Call Logs"</li>
+                                <li>Click "Log Call" button</li>
+                                <li>Enter caller information</li>
+                                <li>Note the purpose of call</li>
+                                <li>Select staff member the call is for</li>
+                                <li>Mark as "Pending" or "Resolved"</li>
+                                <li>Click "Save"</li>
                             </ol>
                         </div>
                     </div>
@@ -1205,18 +752,16 @@ if (!$isSPA) {
                     <div class="faq-item" data-category="settings">
                         <span class="faq-category">Settings</span>
                         <div class="faq-question" onclick="toggleFAQ(this)">
-                            30. How do I change institute settings?
+                            29. How do I configure institute profile?
                             <i class="fa-solid fa-chevron-down"></i>
                         </div>
                         <div class="faq-answer">
                             <strong>Step-by-step guide:</strong>
                             <ol>
                                 <li>Go to "Settings" → "Institute Profile"</li>
-                                <li>Update institute name</li>
-                                <li>Update address and contact details</li>
-                                <li>Upload/change institute logo</li>
-                                <li>Set branding colors</li>
-                                <li>Update registration numbers</li>
+                                <li>Edit institute name, logo, address</li>
+                                <li>Update contact information</li>
+                                <li>Configure academic details</li>
                                 <li>Click "Save Changes"</li>
                             </ol>
                         </div>
@@ -1225,59 +770,208 @@ if (!$isSPA) {
                     <div class="faq-item" data-category="settings">
                         <span class="faq-category">Settings</span>
                         <div class="faq-question" onclick="toggleFAQ(this)">
+                            30. How do I set up email notifications?
+                            <i class="fa-solid fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <strong>Step-by-step guide:</strong>
+                            <ol>
+                                <li>Navigate to "Settings" → "Email Settings"</li>
+                                <li>Configure SMTP server details</li>
+                                <li>Set sender email and name</li>
+                                <li>Test email configuration</li>
+                                <li>Enable/disable notification types</li>
+                                <li>Save settings</li>
+                            </ol>
+                        </div>
+                    </div>
+
+                    <!-- User Roles & Permissions -->
+                    <div class="faq-item" data-category="security">
+                        <span class="faq-category">Security</span>
+                        <div class="faq-question" onclick="toggleFAQ(this)">
                             31. How do I manage user roles and permissions?
                             <i class="fa-solid fa-chevron-down"></i>
                         </div>
                         <div class="faq-answer">
                             <strong>Step-by-step guide:</strong>
                             <ol>
-                                <li>Navigate to "Settings" → "User Management"</li>
-                                <li>Click on a user to edit</li>
-                                <li>Select role (Admin, Teacher, Accountant, etc.)</li>
-                                <li>Set specific permissions</li>
-                                <li>Click "Save" to apply changes</li>
+                                <li>Go to "Settings" → "User Roles"</li>
+                                <li>Create new role or edit existing</li>
+                                <li>Assign permissions to role</li>
+                                <li>Save role configuration</li>
                             </ol>
                         </div>
                     </div>
 
-                    <div class="faq-item" data-category="settings">
-                        <span class="faq-category">Settings</span>
+                    <div class="faq-item" data-category="security">
+                        <span class="faq-category">Security</span>
                         <div class="faq-question" onclick="toggleFAQ(this)">
-                            32. How do I configure SMS/Email settings?
+                            32. How do I enable two-factor authentication?
                             <i class="fa-solid fa-chevron-down"></i>
                         </div>
                         <div class="faq-answer">
                             <strong>Step-by-step guide:</strong>
                             <ol>
-                                <li>Go to "Settings" → "Email Settings"</li>
-                                <li>Enter SMTP server details</li>
-                                <li>Enter username and password</li>
-                                <li>Test the configuration</li>
-                                <li>For SMS, go to "SMS Settings"</li>
-                                <li>Enter SMS gateway API details</li>
-                                <li>Save settings</li>
+                                <li>Go to "Settings" → "Security"</li>
+                                <li>Find "Two-Factor Authentication" option</li>
+                                <li>Click "Enable"</li>
+                                <li>Scan QR code with authenticator app</li>
+                                <li>Enter verification code</li>
+                                <li>Save backup codes securely</li>
                             </ol>
                         </div>
                     </div>
 
-                    <!-- Academic Calendar -->
-                    <div class="faq-item" data-category="academic">
-                        <span class="faq-category">Academic Calendar</span>
+                    <!-- Reports & Analytics -->
+                    <div class="faq-item" data-category="reports">
+                        <span class="faq-category">Reports</span>
                         <div class="faq-question" onclick="toggleFAQ(this)">
-                            33. How do I add events to the academic calendar?
+                            33. How do I generate student performance reports?
                             <i class="fa-solid fa-chevron-down"></i>
                         </div>
                         <div class="faq-answer">
                             <strong>Step-by-step guide:</strong>
                             <ol>
-                                <li>Navigate to "Academic Calendar"</li>
-                                <li>Click on the date or "+ Add Event"</li>
-                                <li>Enter event name</li>
-                                <li>Select event type (Holiday, Exam, Event, etc.)</li>
-                                <li>Set start and end dates</li>
-                                <li>Add description</li>
-                                <li>Select batches affected</li>
-                                <li>Click "Save Event"</li>
+                                <li>Go to "Reports" → "Student Performance"</li>
+                                <li>Select batch/class</li>
+                                <li>Choose exam or date range</li>
+                                <li>Select metrics to include</li>
+                                <li>Click "Generate Report"</li>
+                                <li>Export as PDF or Excel</li>
+                            </ol>
+                        </div>
+                    </div>
+
+                    <div class="faq-item" data-category="reports">
+                        <span class="faq-category">Reports</span>
+                        <div class="faq-question" onclick="toggleFAQ(this)">
+                            34. How do I view financial summaries?
+                            <i class="fa-solid fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <strong>Step-by-step guide:</strong>
+                            <ol>
+                                <li>Navigate to "Fees" → "Reports"</li>
+                                <li>Select "Financial Summary"</li>
+                                <li>Choose date range</li>
+                                <li>View income, expenses, and balance</li>
+                                <li>Export report if needed</li>
+                            </ol>
+                        </div>
+                    </div>
+
+                    <!-- Backup & Data -->
+                    <div class="faq-item" data-category="backup">
+                        <span class="faq-category">Backup & Data</span>
+                        <div class="faq-question" onclick="toggleFAQ(this)">
+                            35. How do I backup my data?
+                            <i class="fa-solid fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <strong>Step-by-step guide:</strong>
+                            <ol>
+                                <li>Go to "Settings" → "Backup"</li>
+                                <li>Click "Create Backup"</li>
+                                <li>Select what to include (full or partial)</li>
+                                <li>Choose backup destination</li>
+                                <li>Wait for backup to complete</li>
+                                <li>Download backup file</li>
+                            </ol>
+                            <p><strong>Note:</strong> Regular automated backups are also performed by the system.</p>
+                        </div>
+                    </div>
+
+                    <div class="faq-item" data-category="backup">
+                        <span class="faq-category">Backup & Data</span>
+                        <div class="faq-question" onclick="toggleFAQ(this)">
+                            36. How do I import student data from Excel?
+                            <i class="fa-solid fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <strong>Step-by-step guide:</strong>
+                            <ol>
+                                <li>Go to "Students" → "Import"</li>
+                                <li>Download the template CSV/Excel file</li>
+                                <li>Fill in student data following the template format</li>
+                                <li>Upload the completed file</li>
+                                <li>Map columns if needed</li>
+                                <li>Click "Import"</li>
+                                <li>Review and confirm import</li>
+                            </ol>
+                        </div>
+                    </div>
+
+                    <!-- Mobile App -->
+                    <div class="faq-item" data-category="mobile">
+                        <span class="faq-category">Mobile App</span>
+                        <div class="faq-question" onclick="toggleFAQ(this)">
+                            37. Is there a mobile app for parents?
+                            <i class="fa-solid fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Yes! Hamro ERP offers mobile apps for:</p>
+                            <ul>
+                                <li><strong>Parents/Guardians:</strong> Available on Google Play Store and Apple App Store</li>
+                                <li><strong>Students:</strong> Available on Google Play Store and Apple App Store</li>
+                            </ul>
+                            <p>Download "Hamro ERP" app and log in with your credentials to access student information, fees, attendance, and more.</p>
+                        </div>
+                    </div>
+
+                    <div class="faq-item" data-category="mobile">
+                        <span class="faq-category">Mobile App</span>
+                        <div class="faq-question" onclick="toggleFAQ(this)">
+                            38. How do parents view their child's attendance on the app?
+                            <i class="fa-solid fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <strong>Step-by-step guide:</strong>
+                            <ol>
+                                <li>Open Hamro ERP app</li>
+                                <li>Log in with parent credentials</li>
+                                <li>Select child (if multiple)</li>
+                                <li>Go to "Attendance" tab</li>
+                                <li>View daily/monthly attendance</li>
+                            </ol>
+                        </div>
+                    </div>
+
+                    <!-- Notifications -->
+                    <div class="faq-item" data-category="notifications">
+                        <span class="faq-category">Notifications</span>
+                        <div class="faq-question" onclick="toggleFAQ(this)">
+                            39. How do I send SMS notifications to parents?
+                            <i class="fa-solid fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <strong>Step-by-step guide:</strong>
+                            <ol>
+                                <li>Go to "Communications" → "SMS"</li>
+                                <li>Click "Compose SMS"</li>
+                                <li>Select recipients (all parents, specific batch, etc.)</li>
+                                <li>Write your message</li>
+                                <li>Click "Send"</li>
+                            </ol>
+                            <p><strong>Note:</strong> SMS credits are required. Contact admin to purchase credits.</p>
+                        </div>
+                    </div>
+
+                    <div class="faq-item" data-category="notifications">
+                        <span class="faq-category">Notifications</span>
+                        <div class="faq-question" onclick="toggleFAQ(this)">
+                            40. How do I send email notifications?
+                            <i class="fa-solid fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <strong>Step-by-step guide:</strong>
+                            <ol>
+                                <li>Navigate to "Communications" → "Email"</li>
+                                <li>Click "Compose Email"</li>
+                                <li>Select recipients or import list</li>
+                                <li>Choose email template (optional)</li>
+                                <li>Edit subject and body</li>
+                                <li>Click "Send"</li>
                             </ol>
                         </div>
                     </div>
@@ -1286,15 +980,16 @@ if (!$isSPA) {
                     <div class="faq-item" data-category="leave">
                         <span class="faq-category">Leave Management</span>
                         <div class="faq-question" onclick="toggleFAQ(this)">
-                            34. How do I apply for leave?
+                            41. How do I apply for leave?
                             <i class="fa-solid fa-chevron-down"></i>
                         </div>
                         <div class="faq-answer">
                             <strong>Step-by-step guide:</strong>
                             <ol>
-                                <li>Go to "Leave" → "Apply Leave"</li>
-                                <li>Select leave type (Casual, Medical, etc.)</li>
-                                <li>Select start and end dates</li>
+                                <li>Go to "Attendance" → "Leave Request"</li>
+                                <li>Click "Apply for Leave"</li>
+                                <li>Select leave type</li>
+                                <li>Choose start and end dates</li>
                                 <li>Enter reason for leave</li>
                                 <li>Upload supporting document (if required)</li>
                                 <li>Click "Submit Application"</li>
@@ -1305,301 +1000,162 @@ if (!$isSPA) {
                     <div class="faq-item" data-category="leave">
                         <span class="faq-category">Leave Management</span>
                         <div class="faq-question" onclick="toggleFAQ(this)">
-                            35. How do I approve/reject leave applications?
+                            42. How do I approve leave requests?
                             <i class="fa-solid fa-chevron-down"></i>
                         </div>
                         <div class="faq-answer">
                             <strong>Step-by-step guide:</strong>
                             <ol>
-                                <li>Navigate to "Leave" → "Pending Approvals"</li>
-                                <li>View list of pending leave requests</li>
+                                <li>Go to "Attendance" → "Leave Requests"</li>
+                                <li>View pending leave applications</li>
                                 <li>Click on a request to view details</li>
-                                <li>Review the application</li>
+                                <li>Review the reason and documents</li>
                                 <li>Click "Approve" or "Reject"</li>
-                                <li>Add remarks (optional)</li>
-                                <li>Confirm the action</li>
+                                <li>Add remarks if needed</li>
                             </ol>
                         </div>
                     </div>
 
-                    <!-- More Common Questions -->
-                    <div class="faq-item" data-category="general">
-                        <span class="faq-category">General</span>
+                    <!-- Assignments -->
+                    <div class="faq-item" data-category="assignments">
+                        <span class="faq-category">Assignments</span>
                         <div class="faq-question" onclick="toggleFAQ(this)">
-                            36. How do I backup my data?
+                            43. How do I create an assignment for students?
                             <i class="fa-solid fa-chevron-down"></i>
                         </div>
                         <div class="faq-answer">
                             <strong>Step-by-step guide:</strong>
                             <ol>
-                                <li>Go to "Settings" → "Backup & Restore"</li>
-                                <li>Click "Create Backup"</li>
-                                <li>Select data to backup (All or specific modules)</li>
-                                <li>Click "Start Backup"</li>
-                                <li>Wait for backup to complete</li>
-                                <li>Download the backup file</li>
-                                <li>Store in a secure location</li>
+                                <li>Go to "Assignments" → "Create Assignment"</li>
+                                <li>Select batch and subject</li>
+                                <li>Enter assignment title and description</li>
+                                <li>Set due date and marks</li>
+                                <li>Upload files if needed</li>
+                                <li>Click "Publish"</li>
                             </ol>
                         </div>
                     </div>
 
-                    <div class="faq-item" data-category="general">
-                        <span class="faq-category">General</span>
+                    <div class="faq-item" data-category="assignments">
+                        <span class="faq-category">Assignments</span>
                         <div class="faq-question" onclick="toggleFAQ(this)">
-                            37. How do I restore data from a backup?
+                            44. How do I check submitted assignments?
                             <i class="fa-solid fa-chevron-down"></i>
                         </div>
                         <div class="faq-answer">
                             <strong>Step-by-step guide:</strong>
                             <ol>
-                                <li>Navigate to "Settings" → "Backup & Restore"</li>
-                                <li>Click "Restore" tab</li>
-                                <li>Upload backup file</li>
-                                <li>Verify backup details</li>
-                                <li>Click "Start Restore"</li>
-                                <li>Confirm the action (warning: current data may be overwritten)</li>
-                                <li>Wait for restoration to complete</li>
+                                <li>Navigate to "Assignments"</li>
+                                <li>Click on the assignment</li>
+                                <li>Go to "Submissions" tab</li>
+                                <li>View list of submissions</li>
+                                <li>Click on each to review</li>
+                                <li>Add marks and feedback</li>
+                                <li>Click "Submit Grades"</li>
                             </ol>
                         </div>
                     </div>
 
-                    <div class="faq-item" data-category="general">
-                        <span class="faq-category">General</span>
+                    <!-- ID Cards -->
+                    <div class="faq-item" data-category="idcards">
+                        <span class="faq-category">ID Cards</span>
                         <div class="faq-question" onclick="toggleFAQ(this)">
-                            38. How do I change my password?
+                            45. How do I generate bulk ID cards?
                             <i class="fa-solid fa-chevron-down"></i>
                         </div>
                         <div class="faq-answer">
                             <strong>Step-by-step guide:</strong>
                             <ol>
-                                <li>Click on your profile icon</li>
-                                <li>Select "My Account"</li>
-                                <li>Click "Change Password"</li>
-                                <li>Enter current password</li>
-                                <li>Enter new password</li>
-                                <li>Confirm new password</li>
-                                <li>Click "Update Password"</li>
+                                <li>Go to "ID Cards" → "Bulk Generate"</li>
+                                <li>Select batch/course</li>
+                                <li>Choose ID card template</li>
+                                <li>Preview all cards</li>
+                                <li>Click "Generate All"</li>
+                                <li>Download as PDF or print directly</li>
                             </ol>
                         </div>
                     </div>
 
-                    <div class="faq-item" data-category="general">
-                        <span class="faq-category">General</span>
+                    <!-- Online Payments -->
+                    <div class="faq-item" data-category="payments">
+                        <span class="faq-category">Online Payments</span>
                         <div class="faq-question" onclick="toggleFAQ(this)">
-                            39. How do I enable two-factor authentication?
+                            46. How do I enable online fee payment?
                             <i class="fa-solid fa-chevron-down"></i>
                         </div>
                         <div class="faq-answer">
                             <strong>Step-by-step guide:</strong>
                             <ol>
-                                <li>Go to "Settings" → "Security"</li>
-                                <li>Find "Two-Factor Authentication"</li>
-                                <li>Click "Enable"</li>
-                                <li>Scan QR code with authenticator app</li>
-                                <li>Enter verification code from app</li>
-                                <li>Save backup codes</li>
-                                <li>2FA is now enabled</li>
+                                <li>Contact Hamro Labs to enable payment gateway</li>
+                                <li>Configure payment settings in "Fees" → "Settings"</li>
+                                <li>Connect bank account details</li>
+                                <li>Enable payment methods (eSewa, Khalti, Bank Transfer)</li>
+                                <li>Test with a small transaction</li>
                             </ol>
                         </div>
                     </div>
 
-                    <div class="faq-item" data-category="general">
-                        <span class="faq-category">General</span>
+                    <div class="faq-item" data-category="payments">
+                        <span class="faq-category">Online Payments</span>
                         <div class="faq-question" onclick="toggleFAQ(this)">
-                            40. How do I view system logs?
+                            47. How do parents pay fees online?
+                            <i class="fa-solid fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <strong>For Parents:</strong>
+                            <ol>
+                                <li>Log in to parent portal or app</li>
+                                <li>Go to "Fees" → "Pay Online"</li>
+                                <li>View pending fees</li>
+                                <li>Click "Pay Now"</li>
+                                <li>Choose payment method</li>
+                                <li>Complete payment</li>
+                                <li>Receive confirmation and receipt</li>
+                            </ol>
+                        </div>
+                    </div>
+
+                    <!-- Academic Calendar -->
+                    <div class="faq-item" data-category="calendar">
+                        <span class="faq-category">Academic Calendar</span>
+                        <div class="faq-question" onclick="toggleFAQ(this)">
+                            48. How do I manage the academic calendar?
                             <i class="fa-solid fa-chevron-down"></i>
                         </div>
                         <div class="faq-answer">
                             <strong>Step-by-step guide:</strong>
                             <ol>
-                                <li>Navigate to "Settings" → "System Logs"</li>
-                                <li>Select log type (Activity, Error, Login)</li>
-                                <li>Choose date range</li>
-                                <li>Click "View Logs"</li>
-                                <li>Use filters to search specific events</li>
-                                <li>Export logs if needed</li>
+                                <li>Navigate to "Academic Calendar"</li>
+                                <li>Click "Add Event"</li>
+                                <li>Enter event title, date, description</li>
+                                <li>Select event type (holiday, exam, activity)</li>
+                                <li>Set visibility (all, staff only, students)</li>
+                                <li>Save event</li>
                             </ol>
                         </div>
                     </div>
 
-                    <div class="faq-item" data-category="students">
-                        <span class="faq-category">Student Management</span>
+                    <!-- Troubleshooting -->
+                    <div class="faq-item" data-category="troubleshooting">
+                        <span class="faq-category">Troubleshooting</span>
                         <div class="faq-question" onclick="toggleFAQ(this)">
-                            41. How do I transfer a student to another batch?
+                            49. Why am I unable to log in?
                             <i class="fa-solid fa-chevron-down"></i>
                         </div>
                         <div class="faq-answer">
-                            <strong>Step-by-step guide:</strong>
+                            <p><strong>Possible solutions:</strong></p>
                             <ol>
-                                <li>Go to "Students" and find the student</li>
-                                <li>Open student profile</li>
-                                <li>Click "Transfer" button</li>
-                                <li>Select new batch/course</li>
-                                <li>Set transfer date</li>
-                                <li>Add reason for transfer</li>
-                                <li>Click "Confirm Transfer"</li>
+                                <li>Check your internet connection</li>
+                                <li>Verify your email and password are correct</li>
+                                <li>Clear browser cache and cookies</li>
+                                <li>Try a different browser</li>
+                                <li>Use "Forgot Password" to reset</li>
+                                <li>Contact administrator if issue persists</li>
                             </ol>
                         </div>
                     </div>
 
-                    <div class="faq-item" data-category="students">
-                        <span class="faq-category">Student Management</span>
-                        <div class="faq-question" onclick="toggleFAQ(this)">
-                            42. How do I issue a transfer certificate (TC)?
-                            <i class="fa-solid fa-chevron-down"></i>
-                        </div>
-                        <div class="faq-answer">
-                            <strong>Step-by-step guide:</strong>
-                            <ol>
-                                <li>Navigate to "Students" → "Issue TC"</li>
-                                <li>Search and select student</li>
-                                <li>Verify student details</li>
-                                <li>Enter TC details (reason, date, etc.)</li>
-                                <li>Clear any pending dues</li>
-                                <li>Click "Generate TC"</li>
-                                <li>Print or download the certificate</li>
-                            </ol>
-                        </div>
-                    </div>
-
-                    <div class="faq-item" data-category="fees">
-                        <span class="faq-category">Fee Management</span>
-                        <div class="faq-question" onclick="toggleFAQ(this)">
-                            43. How do I handle partial fee payments?
-                            <i class="fa-solid fa-chevron-down"></i>
-                        </div>
-                        <div class="faq-answer">
-                            <strong>Step-by-step guide:</strong>
-                            <ol>
-                                <li>Go to "Fees" → "Collect Fee"</li>
-                                <li>Select the student</li>
-                                <li>View total pending amount</li>
-                                <li>Enter the partial amount being paid</li>
-                                <li>System will show remaining balance</li>
-                                <li>Complete the payment</li>
-                                <li>Receipt will show paid and pending amounts</li>
-                            </ol>
-                        </div>
-                    </div>
-
-                    <div class="faq-item" data-category="fees">
-                        <span class="faq-category">Fee Management</span>
-                        <div class="faq-question" onclick="toggleFAQ(this)">
-                            44. How do I add a new fee category?
-                            <i class="fa-solid fa-chevron-down"></i>
-                        </div>
-                        <div class="faq-answer">
-                            <strong>Step-by-step guide:</strong>
-                            <ol>
-                                <li>Navigate to "Fees" → "Fee Categories"</li>
-                                <li>Click "+ Add Category"</li>
-                                <li>Enter category name (e.g., "Library Fee")</li>
-                                <li>Add description</li>
-                                <li>Set if it's mandatory or optional</li>
-                                <li>Click "Save Category"</li>
-                            </ol>
-                        </div>
-                    </div>
-
-                    <div class="faq-item" data-category="exams">
-                        <span class="faq-category">Exams & Results</span>
-                        <div class="faq-question" onclick="toggleFAQ(this)">
-                            45. How do I create an exam timetable?
-                            <i class="fa-solid fa-chevron-down"></i>
-                        </div>
-                        <div class="faq-answer">
-                            <strong>Step-by-step guide:</strong>
-                            <ol>
-                                <li>Go to "Exams" → "Exam Timetable"</li>
-                                <li>Select the exam</li>
-                                <li>Click "Add Schedule" for each subject</li>
-                                <li>Select subject</li>
-                                <li>Set exam date and time</li>
-                                <li>Enter duration</li>
-                                <li>Add room/venue</li>
-                                <li>Save each schedule</li>
-                            </ol>
-                        </div>
-                    </div>
-
-                    <div class="faq-item" data-category="exams">
-                        <span class="faq-category">Exams & Results</span>
-                        <div class="faq-question" onclick="toggleFAQ(this)">
-                            46. How do I calculate grades automatically?
-                            <i class="fa-solid fa-chevron-down"></i>
-                        </div>
-                        <div class="faq-answer">
-                            <strong>Step-by-step guide:</strong>
-                            <ol>
-                                <li>Navigate to "Exams" → "Grading System"</li>
-                                <li>Click "+ Add Grade Range"</li>
-                                <li>Define grade ranges (A: 90-100, B: 80-89, etc.)</li>
-                                <li>Set grade points for each</li>
-                                <li>Save the grading system</li>
-                                <li>When entering marks, grades auto-calculate</li>
-                            </ol>
-                        </div>
-                    </div>
-
-                    <div class="faq-item" data-category="staff">
-                        <span class="faq-category">Staff Management</span>
-                        <div class="faq-question" onclick="toggleFAQ(this)">
-                            47. How do I record staff attendance?
-                            <i class="fa-solid fa-chevron-down"></i>
-                        </div>
-                        <div class="faq-answer">
-                            <strong>Step-by-step guide:</strong>
-                            <ol>
-                                <li>Go to "Staff" → "Attendance"</li>
-                                <li>Select date</li>
-                                <li>Mark Present/Absent for each staff</li>
-                                <li>Add late remarks if needed</li>
-                                <li>Click "Save Attendance"</li>
-                            </ol>
-                        </div>
-                    </div>
-
-                    <div class="faq-item" data-category="staff">
-                        <span class="faq-category">Staff Management</span>
-                        <div class="faq-question" onclick="toggleFAQ(this)">
-                            48. How do I process staff salary?
-                            <i class="fa-solid fa-chevron-down"></i>
-                        </div>
-                        <div class="faq-answer">
-                            <strong>Step-by-step guide:</strong>
-                            <ol>
-                                <li>Navigate to "Staff" → "Payroll"</li>
-                                <li>Select month and year</li>
-                                <li>Click "Generate Payroll"</li>
-                                <li>Review salary calculations</li>
-                                <li>Adjust for leaves/deductions if needed</li>
-                                <li>Click "Process Payroll"</li>
-                                <li>Generate payslips</li>
-                            </ol>
-                        </div>
-                    </div>
-
-                    <div class="faq-item" data-category="inquiries">
-                        <span class="faq-category">Inquiries</span>
-                        <div class="faq-question" onclick="toggleFAQ(this)">
-                            49. How do I record a new admission inquiry?
-                            <i class="fa-solid fa-chevron-down"></i>
-                        </div>
-                        <div class="faq-answer">
-                            <strong>Step-by-step guide:</strong>
-                            <ol>
-                                <li>Go to "Inquiries" → "Add Inquiry"</li>
-                                <li>Enter student/parent name</li>
-                                <li>Add contact details</li>
-                                <li>Select course/program interested</li>
-                                <li>Add source of inquiry</li>
-                                <li>Enter expected joining date</li>
-                                <li>Add notes/remarks</li>
-                                <li>Click "Save Inquiry"</li>
-                            </ol>
-                        </div>
-                    </div>
-
+                    <!-- Inquiries -->
                     <div class="faq-item" data-category="inquiries">
                         <span class="faq-category">Inquiries</span>
                         <div class="faq-question" onclick="toggleFAQ(this)">
@@ -1623,46 +1179,69 @@ if (!$isSPA) {
 
                 </div>
             </div>
-        </div>
+        <?php if (!$isSPA): ?>
+    </div>
+</div>
+
+<?php $v = time(); ?>
+<script src="<?php echo APP_URL; ?>/public/assets/js/pwa-handler.js?v=<?php echo $v; ?>"></script>
+</body>
+</html>
+<?php endif; ?>
+        <script src="<?php echo APP_URL; ?>/public/assets/js/ia-support.js?v=<?php echo $assetVersion; ?>"></script>
 
         <script>
-            // Toggle FAQ answer
-            function toggleFAQ(element) {
-                const answer = element.nextElementSibling;
-                const isActive = element.classList.contains('active');
-                
-                // Close all others
-                document.querySelectorAll('.faq-question').forEach(q => q.classList.remove('active'));
-                document.querySelectorAll('.faq-answer').forEach(a => a.classList.remove('active'));
-                
-                // Toggle current
-                if (!isActive) {
-                    element.classList.add('active');
-                    answer.classList.add('active');
-                }
-            }
-
-            // Search FAQ
-            function searchFAQ() {
-                const searchTerm = document.getElementById('faqSearch').value.toLowerCase();
-                const faqItems = document.querySelectorAll('.faq-item');
-                
-                faqItems.forEach(item => {
-                    const question = item.querySelector('.faq-question').textContent.toLowerCase();
-                    const answer = item.querySelector('.faq-answer').textContent.toLowerCase();
+            // Initialize support page when DOM is ready
+            document.addEventListener('DOMContentLoaded', function() {
+                // Legacy function aliases for backward compatibility
+                window.toggleFAQ = window.toggleFAQ || function(element) {
+                    const answer = element.nextElementSibling;
+                    const isActive = element.classList.contains('active');
                     
-                    if (question.includes(searchTerm) || answer.includes(searchTerm)) {
-                        item.style.display = 'block';
-                    } else {
-                        item.style.display = 'none';
+                    // Close all others
+                    document.querySelectorAll('.faq-question').forEach(q => q.classList.remove('active'));
+                    document.querySelectorAll('.faq-answer').forEach(a => a.classList.remove('active'));
+                    
+                    // Toggle current
+                    if (!isActive) {
+                        element.classList.add('active');
+                        answer.classList.add('active');
                     }
-                });
-            }
+                };
 
-            // Scroll to section
-            function scrollToSection(id) {
-                document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
-            }
+                window.searchFAQ = window.searchFAQ || function() {
+                    const searchTerm = document.getElementById('faqSearch').value.toLowerCase();
+                    const faqItems = document.querySelectorAll('.faq-item');
+                    
+                    faqItems.forEach(item => {
+                        const question = item.querySelector('.faq-question').textContent.toLowerCase();
+                        const answer = item.querySelector('.faq-answer').textContent.toLowerCase();
+                        
+                        if (question.includes(searchTerm) || answer.includes(searchTerm)) {
+                            item.style.display = 'block';
+                        } else {
+                            item.style.display = 'none';
+                        }
+                    });
+                };
+
+                window.debouncedSearchFAQ = window.debouncedSearchFAQ || function() {
+                    var timeout;
+                    clearTimeout(timeout);
+                    timeout = setTimeout(function() {
+                        searchFAQ();
+                    }, 300);
+                };
+
+                window.scrollToSection = window.scrollToSection || function(id) {
+                    document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
+                };
+
+                // Initialize the SPA functionality
+                if (typeof window.initSupportPage === 'function') {
+                    window.initSupportPage();
+                }
+            });
         </script>
 <?php if (!$isSPA): ?>
     </div>

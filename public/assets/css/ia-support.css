@@ -1,0 +1,1133 @@
+/**
+ * Support Page Styles - ia-support.css
+ * Brand Compliant & Responsive Design System
+ * Follows design tokens from ia-dashboard-new.css
+ */
+
+
+/* ========================================
+   SPA Layout & Alignment Utilities
+   ======================================== */
+.pg {
+    width: 100%;
+    min-height: calc(100vh - var(--hdr-h, 60px));
+    display: flex;
+    flex-direction: column;
+    animation: supportFadeIn 0.4s ease-out;
+}
+
+.fu {
+    flex: 1;
+    width: 100%;
+}
+
+.pg-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 100px 20px;
+    color: #94A3B8;
+    gap: 16px;
+}
+
+/* ========================================
+   SPA Alignment Fixes
+   ======================================== */
+#mainContent .support-wrapper,
+.content .support-wrapper {
+    padding-top: 0;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+@media (max-width: 768px) {
+
+    #mainContent .support-wrapper,
+    .content .support-wrapper {
+        padding: 0;
+    }
+}
+
+.pg-loading i {
+    font-size: 2.5rem;
+    color: #00B894;
+}
+
+@keyframes supportFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ========================================
+   Design Tokens (imported from parent)
+   ========================================
+   :root variables are defined in ia-dashboard-new.css
+   - --green: #00B894 (primary)
+   - --green-d: #007a62
+   - --green-h: #00A180
+   - --text-dark: #1E293B
+   - --text-body: #475569
+   - --text-light: #94A3B8
+   - --card-border: #E2E8F0
+   - --bg: #F8FAFC
+   - --white: #ffffff
+   - --shadow: 0 1px 3px rgba(0, 0, 0, .08), 0 1px 2px rgba(0, 0, 0, .05)
+   - --shadow-md: 0 4px 16px rgba(0, 0, 0, .08)
+   ======================================== */
+
+/* ========================================
+   Support Wrapper
+   ======================================== */
+.support-wrapper {
+    padding: 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* ========================================
+   Hero Header
+   ======================================== */
+.support-hero {
+    background: linear-gradient(135deg, var(--green) 0%, #00a884 100%);
+    border-radius: 16px;
+    padding: 40px 30px;
+    margin-bottom: 24px;
+    text-align: center;
+    color: white;
+    position: relative;
+    overflow: hidden;
+}
+
+.support-hero::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -10%;
+    width: 300px;
+    height: 300px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+}
+
+.support-hero h1 {
+    font-size: clamp(1.5rem, 4vw, 2.5rem);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    position: relative;
+    z-index: 1;
+}
+
+.support-hero p {
+    font-size: clamp(0.9rem, 2vw, 1.1rem);
+    opacity: 0.95;
+    max-width: 600px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+}
+
+/* ========================================
+   Quick Help Grid
+   ======================================== */
+.quick-help-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.quick-help-card {
+    background: white;
+    border-radius: 12px;
+    padding: 24px 16px;
+    text-align: center;
+    border: 1px solid var(--card-border);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+@media (hover: hover) {
+    .quick-help-card:hover {
+        border-color: var(--green);
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    }
+}
+
+.quick-help-card i {
+    font-size: 2rem;
+    color: var(--green);
+    margin-bottom: 12px;
+    display: block;
+}
+
+.quick-help-card.whatsapp i {
+    color: #25d366;
+}
+
+.quick-help-card.youtube i {
+    color: #ff0000;
+}
+
+.quick-help-card h3 {
+    font-size: 0.95rem;
+    color: var(--text-dark);
+    margin: 0;
+    font-weight: 600;
+}
+
+/* ========================================
+   Support Cards Grid
+   ======================================== */
+.support-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 24px;
+    margin-bottom: 24px;
+}
+
+.support-card {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    border: 1px solid var(--card-border);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.support-card h2 {
+    color: var(--text-dark);
+    font-size: 1.2rem;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid var(--bg);
+}
+
+.support-card h2 i {
+    color: var(--green);
+    font-size: 1.4rem;
+}
+
+/* ========================================
+   YouTube Links
+   ======================================== */
+.youtube-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.youtube-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    text-decoration: none;
+    color: var(--text-dark);
+    transition: all 0.2s;
+}
+
+@media (hover: hover) {
+    .youtube-item:hover {
+        background: #ff0000;
+        color: white;
+    }
+
+    .youtube-item:hover i {
+        color: white;
+    }
+}
+
+.youtube-item i {
+    font-size: 24px;
+    color: #ff0000;
+    transition: color 0.2s;
+    flex-shrink: 0;
+}
+
+.youtube-item div {
+    flex: 1;
+    min-width: 0;
+}
+
+.youtube-item strong {
+    display: block;
+    font-size: 0.95rem;
+    margin-bottom: 2px;
+}
+
+.youtube-item span {
+    font-size: 0.8rem;
+    opacity: 0.8;
+}
+
+/* ========================================
+   Contact Items
+   ======================================== */
+.contact-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.contact-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    transition: background 0.2s;
+}
+
+.contact-item:hover {
+    background: #e9ecef;
+}
+
+.contact-item i {
+    width: 44px;
+    /* was 40px */
+    height: 44px;
+    /* was 40px */
+    background: var(--green);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+.contact-item div {
+    flex: 1;
+    min-width: 0;
+}
+
+.contact-item .label {
+    font-size: 0.75rem;
+    color: var(--text-light);
+    margin-bottom: 2px;
+}
+
+.contact-item a,
+.contact-item strong {
+    color: var(--green);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.contact-item a:hover {
+    text-decoration: underline;
+}
+
+/* ========================================
+   FAQ Section
+   ======================================== */
+.faq-wrapper {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    border: 1px solid var(--card-border);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.faq-wrapper h2 {
+    color: var(--text-dark);
+    font-size: 1.2rem;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.faq-wrapper h2 i {
+    color: var(--green);
+}
+
+/* ========================================
+   Search Box
+   ======================================== */
+.faq-search-box {
+    position: relative;
+    margin-bottom: 24px;
+}
+
+.faq-search-box i {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-light);
+}
+
+.faq-search-box input {
+    width: 100%;
+    padding: 14px 16px 14px 48px;
+    border: 2px solid var(--card-border);
+    border-radius: 10px;
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.2s;
+    background: white;
+    font-family: inherit;
+}
+
+.faq-search-box input:focus {
+    border-color: var(--green);
+}
+
+.faq-search-box input::placeholder {
+    color: var(--text-light);
+}
+
+/* ========================================
+   FAQ Items
+   ======================================== */
+.faq-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.faq-item {
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    overflow: hidden;
+    transition: box-shadow 0.2s;
+}
+
+.faq-item:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.faq-question {
+    padding: 16px 20px;
+    background: #f8f9fa;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 600;
+    color: var(--text-dark);
+    transition: background 0.2s;
+    border: none;
+    width: 100%;
+    text-align: left;
+    font-family: inherit;
+    font-size: 1rem;
+}
+
+.faq-question:hover {
+    background: #e9ecef;
+}
+
+.faq-question.active {
+    background: var(--green);
+    color: white;
+}
+
+.faq-question i {
+    transition: transform 0.3s;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+}
+
+.faq-question.active i {
+    transform: rotate(180deg);
+}
+
+.faq-category {
+    display: inline-block;
+    padding: 4px 12px;
+    background: rgba(0, 158, 126, 0.1);
+    color: var(--green);
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+}
+
+.faq-answer {
+    display: none;
+    padding: 20px;
+    background: white;
+    color: var(--text-body);
+    line-height: 1.7;
+    border-top: 1px solid var(--card-border);
+}
+
+.faq-answer.active {
+    display: block;
+}
+
+.faq-answer strong {
+    color: var(--text-dark);
+}
+
+.faq-answer ol,
+.faq-answer ul {
+    margin: 12px 0;
+    padding-left: 24px;
+}
+
+.faq-answer li {
+    margin: 8px 0;
+}
+
+.faq-answer p {
+    margin: 12px 0;
+}
+
+/* ========================================
+   Ticket Form
+   ======================================== */
+.ticket-form-wrapper {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    border: 1px solid var(--card-border);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    margin-top: 24px;
+}
+
+.ticket-form-wrapper h2 {
+    color: var(--text-dark);
+    font-size: 1.2rem;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.ticket-form-wrapper h2 i {
+    color: var(--green);
+}
+
+.ticket-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.form-group label {
+    font-weight: 600;
+    color: var(--text-dark);
+    font-size: 0.9rem;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+    padding: 12px 14px;
+    border: 2px solid var(--card-border);
+    border-radius: 8px;
+    font-size: 16px;
+    /* was 0.95rem - prevents iOS zoom */
+    font-family: inherit;
+    transition: border-color 0.2s;
+    background: white;
+    min-height: 44px;
+    /* ensures touch target */
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: var(--green);
+}
+
+.form-group textarea {
+    min-height: 120px;
+    resize: vertical;
+}
+
+.form-group .help-text {
+    font-size: 0.8rem;
+    color: var(--text-light);
+}
+
+.ticket-submit-btn {
+    background: var(--green);
+    color: white;
+    border: none;
+    padding: 14px 28px;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-family: inherit;
+}
+
+@media (hover: hover) {
+    .ticket-submit-btn:hover {
+        background: var(--green-d);
+        transform: translateY(-2px);
+    }
+}
+
+.ticket-submit-btn:disabled {
+    background: var(--text-light);
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* ========================================
+   Ticket List
+   ======================================== */
+.ticket-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.ticket-item {
+    background: white;
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.ticket-item:hover {
+    border-color: var(--green);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.ticket-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 8px;
+}
+
+.ticket-title {
+    font-weight: 600;
+    color: var(--text-dark);
+    font-size: 1rem;
+}
+
+.ticket-status {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.ticket-status.open {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+.ticket-status.pending {
+    background: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+}
+
+.ticket-status.resolved {
+    background: rgba(34, 197, 94, 0.1);
+    color: #22c55e;
+}
+
+.ticket-meta {
+    display: flex;
+    gap: 16px;
+    font-size: 0.85rem;
+    color: var(--text-light);
+}
+
+.ticket-meta i {
+    margin-right: 4px;
+}
+
+/* ========================================
+   Loading State
+   ======================================== */
+.support-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    color: var(--text-light);
+}
+
+.support-loading i {
+    font-size: 3rem;
+    margin-bottom: 16px;
+    animation: spin 1s linear infinite;
+}
+
+.support-loading p {
+    font-size: 1rem;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ========================================
+   Empty State
+   ======================================== */
+.support-empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-light);
+}
+
+.support-empty i {
+    font-size: 3rem;
+    margin-bottom: 16px;
+    opacity: 0.5;
+}
+
+.support-empty h3 {
+    color: var(--text-dark);
+    margin-bottom: 8px;
+}
+
+/* ========================================
+   Tabs Navigation
+   ======================================== */
+.support-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+    border-bottom: 2px solid var(--card-border);
+    padding-bottom: 0;
+}
+
+.support-tab {
+    padding: 12px 20px;
+    background: transparent;
+    border: none;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-light);
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    font-family: inherit;
+}
+
+.support-tab:hover {
+    color: var(--text-dark);
+}
+
+.support-tab.active {
+    color: var(--green);
+}
+
+.support-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--green);
+}
+
+.support-tab-content {
+    display: none;
+}
+
+.support-tab-content.active {
+    display: block;
+}
+
+/* ========================================
+   Toast Notifications
+   ======================================== */
+.support-toast {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 14px 20px;
+    border-radius: 8px;
+    color: white;
+    font-weight: 500;
+    z-index: 10000;
+    animation: slideIn 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.support-toast.success {
+    background: #22c55e;
+}
+
+.support-toast.error {
+    background: #ef4444;
+}
+
+.support-toast.info {
+    background: #3b82f6;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* ========================================
+   Modal
+   ======================================== */
+.support-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s;
+}
+
+.support-modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.support-modal {
+    background: white;
+    border-radius: 12px;
+    max-width: 600px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    transform: scale(0.9);
+    transition: transform 0.3s;
+}
+
+.support-modal-overlay.active .support-modal {
+    transform: scale(1);
+}
+
+.support-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--card-border);
+}
+
+.support-modal-header h3 {
+    font-size: 1.1rem;
+    color: var(--text-dark);
+}
+
+.support-modal-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: var(--text-light);
+    cursor: pointer;
+    padding: 4px;
+    line-height: 1;
+}
+
+.support-modal-close:hover {
+    color: var(--text-dark);
+}
+
+.support-modal-body {
+    padding: 24px;
+}
+
+/* ========================================
+   Responsive Breakpoints
+   ======================================== */
+@media (max-width: 1024px) {
+    .support-wrapper {
+        padding: 16px;
+    }
+
+    .support-cards-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .support-hero {
+        padding: 30px 20px;
+    }
+
+    .quick-help-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .quick-help-card {
+        padding: 20px 12px;
+    }
+
+    .quick-help-card i {
+        font-size: 1.5rem;
+    }
+
+    .quick-help-card h3 {
+        font-size: 0.85rem;
+    }
+
+    .support-card {
+        padding: 20px;
+    }
+
+    .youtube-item {
+        padding: 10px;
+    }
+
+    .youtube-item strong {
+        font-size: 0.9rem;
+    }
+
+    .contact-item {
+        padding: 12px;
+    }
+
+    .faq-question {
+        padding: 14px 16px;
+        font-size: 0.95rem;
+    }
+
+    .faq-answer {
+        padding: 16px;
+    }
+
+    .support-tabs {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .support-tab {
+        padding: 10px 16px;
+        white-space: nowrap;
+    }
+
+    .ticket-header {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .ticket-meta {
+        flex-wrap: wrap;
+    }
+}
+
+@media (max-width: 480px) {
+    .support-wrapper {
+        padding: 12px;
+    }
+
+    .support-hero {
+        padding: 24px 16px;
+        border-radius: 12px;
+    }
+
+    .quick-help-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+
+    .quick-help-card {
+        padding: 16px 10px;
+    }
+
+    .youtube-item i {
+        font-size: 20px;
+    }
+
+    .contact-item i {
+        width: 44px;
+        /* was 36px in regression */
+        height: 44px;
+        /* was 36px in regression */
+        font-size: 0.9rem;
+    }
+
+    .faq-search-box input {
+        padding: 12px 12px 12px 44px;
+        font-size: 0.95rem;
+    }
+
+    .support-modal {
+        width: 95%;
+    }
+
+    .support-toast {
+        left: 10px;
+        right: 10px;
+        bottom: 10px;
+        padding-bottom: max(14px, env(safe-area-inset-bottom));
+    }
+}
+
+/* ── PHASE 3.1: Safe Area Insets ── */
+.support-wrapper {
+    padding-top: max(20px, env(safe-area-inset-top));
+    padding-bottom: max(20px, env(safe-area-inset-bottom));
+}
+
+/* ── PHASE 3.5: Hover Guards for Touch ── */
+@media (hover: none) {
+
+    .quick-help-card:hover,
+    .youtube-item:hover,
+    .contact-item:hover,
+    .faq-question:hover,
+    .ticket-submit-btn:hover,
+    .ticket-item:hover {
+        transform: none !important;
+        box-shadow: inherit !important;
+    }
+
+    .ticket-submit-btn:active {
+        transform: scale(0.98);
+        background: var(--green-d);
+    }
+}
+
+/* ── PHASE 3.7: Focus Visible ── */
+.faq-question:focus-visible,
+.ticket-submit-btn:focus-visible,
+.support-tab:focus-visible,
+.quick-help-card:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+    outline: 2px solid var(--green);
+    outline-offset: 2px;
+}
+
+/* ========================================
+   Print Styles
+   ======================================== */
+@media print {
+
+    .sidebar,
+    .top-header,
+    .quick-help-grid,
+    .support-tabs,
+    .ticket-form-wrapper,
+    .support-modal-overlay {
+        display: none !important;
+    }
+
+    .main {
+        margin-left: 0 !important;
+    }
+
+    .support-hero {
+        background: #f5f5f5 !important;
+        color: black !important;
+        -webkit-print-color-adjust: exact;
+    }
+
+    .faq-answer {
+        display: block !important;
+    }
+}
+
+/* ========================================
+   Utility Classes
+   ======================================== */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.text-right {
+    text-align: right;
+}
+
+.mt-1 {
+    margin-top: 8px;
+}
+
+.mt-2 {
+    margin-top: 16px;
+}
+
+.mt-3 {
+    margin-top: 24px;
+}
+
+.mb-1 {
+    margin-bottom: 8px;
+}
+
+.mb-2 {
+    margin-bottom: 16px;
+}
+
+.mb-3 {
+    margin-bottom: 24px;
+}

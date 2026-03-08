@@ -213,6 +213,10 @@ function _iaRenderPage() {
         if (sub==='qbank')        { mc.innerHTML=`<div class="pg fu"><div class="card" style="text-align:center;padding:100px 40px;"><i class="fa-solid fa-database" style="font-size:3rem;color:var(--purple);margin-bottom:20px;opacity:.5"></i><h2>Question Bank</h2><p style="color:var(--text-body);margin-top:10px">Coming in V3.1</p></div></div>`; return; }
         window.renderExamList?.(); return;
     }
+    if (nav==='homework') {
+        if (sub==='list' || !sub) { window.renderHomeworkList?.(); return; }
+        if (sub==='create') { window.renderCreateHomeworkForm?.(); return; }
+    }
     if (nav==='fee' && sub==='setup') { window.renderFeeSetup?.(); return; }
     if (nav==='fee' && sub==='record') { window.renderFeeRecord?.(); return; }
     if (nav==='fee' && sub==='details') { window.renderFeeDetails?.(urlParams.get('receipt_no')); return; }
@@ -257,6 +261,14 @@ function _iaRenderPage() {
     }
     if (nav==='auditlogs') {
         window.renderAuditLogs?.();
+        return;
+    }
+    if (nav==='support') {
+        window.renderSupportPage?.();
+        return;
+    }
+    if (nav==='feedback') {
+        window.renderFeedbackPage?.();
         return;
     }
     mc.innerHTML = `<div class="pg fu"><div class="card" style="text-align:center;padding:100px 40px;"><i class="fa-solid fa-cubes-stacked" style="font-size:3rem;color:var(--tl);margin-bottom:20px;"></i><h2>${(sub||nav).toUpperCase()} Module</h2><p style="color:var(--tb);margin-top:10px;">Coming soon in V3.1.</p></div></div>`;
@@ -326,6 +338,21 @@ async function _iaRenderDashboard() {
 
             <!-- SECTION B: PRIMARY KPI ROW -->
             <div class="kpi-row-v2">
+                <!-- 0. Today's Collection -->
+                <div class="kpi-card-v2">
+                    <div class="kpi-v2-header">
+                        <div class="kpi-v2-label">Today's Collection</div>
+                        <div class="kpi-v2-icon green"><i class="fa-solid fa-coins"></i></div>
+                    </div>
+                    <div class="kpi-v2-value">₹${formatMoney(s.kpi_fees.today_collection)}</div>
+                    <div class="kpi-v2-meta">
+                        <i class="fa-solid fa-calendar-day" style="opacity:0.7"></i> Received today
+                    </div>
+                    <div class="kpi-v2-progress">
+                        <div class="kpi-v2-progress-fill" style="width: 100%; background: #10b981; opacity:0.3;"></div>
+                    </div>
+                </div>
+
                 <!-- 1. Fee Collection -->
                 <div class="kpi-card-v2">
                     <div class="kpi-v2-header">
@@ -438,7 +465,7 @@ async function _iaRenderDashboard() {
                             <option>Last 12 Months</option>
                         </select>
                     </div>
-                    <div class="panel-v2-body" style="height: 350px;">
+                    <div class="panel-v2-body chart-container-v2" style="height: clamp(200px, 40dvh, 400px); max-width: 100%;">
                         <canvas id="revenueChartV2"></canvas>
                     </div>
                 </div>
@@ -510,24 +537,26 @@ async function _iaRenderDashboard() {
                         <h3><i class="fa-solid fa-user-plus"></i> Recent Admissions</h3>
                     </div>
                     <div class="panel-v2-body">
-                        <table class="v2-table">
-                            ${s.recent_admissions.map(adm => `
-                                <tr>
-                                    <td>
-                                        <div class="v2-student-row">
-                                            <div class="v2-avatar">${adm.full_name[0]}</div>
-                                            <div>
-                                                <div style="font-size:13px; font-weight:700;">${adm.full_name}</div>
-                                                <div style="font-size:11px; color:var(--text-light)">${adm.course_name}</div>
+                        <div class="table-responsive">
+                            <table class="v2-table">
+                                ${s.recent_admissions.map(adm => `
+                                    <tr>
+                                        <td>
+                                            <div class="v2-student-row">
+                                                <div class="v2-avatar">${adm.full_name[0]}</div>
+                                                <div>
+                                                    <div style="font-size:13px; font-weight:700;">${adm.full_name}</div>
+                                                    <div style="font-size:11px; color:var(--text-light)">${adm.course_name}</div>
+                                                </div>
                                             </div>
-                                        </div>
-                                    </td>
-                                    <td align="right">
-                                        <span class="v2-status-badge ${adm.status === 'active' ? 'active' : 'pending'}">${adm.status}</span>
-                                    </td>
-                                </tr>
-                            `).join('')}
-                        </table>
+                                        </td>
+                                        <td align="right">
+                                            <span class="v2-status-badge ${adm.status === 'active' ? 'active' : 'pending'}">${adm.status}</span>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </table>
+                        </div>
                     </div>
                 </div>
 
@@ -590,20 +619,22 @@ async function _iaRenderDashboard() {
                         <h3><i class="fa-solid fa-file-pen"></i> Upcoming Exams</h3>
                     </div>
                     <div class="panel-v2-body">
-                        <table class="v2-table">
-                            ${s.upcoming_exams.map(ex => `
-                                <tr>
-                                    <td>
-                                        <div style="font-size:13px; font-weight:700;">${ex.title}</div>
-                                        <div style="font-size:11px; color:var(--text-light);">${ex.course}</div>
-                                    </td>
-                                    <td align="right">
-                                        <div style="font-size:12px; font-weight:700; color:var(--blue-pure)">${new Date(ex.exam_date).toLocaleDateString('en-IN', {day:'numeric', month:'short'})}</div>
-                                        <div style="font-size:10px; color:var(--text-light)">${ex.start_time}</div>
-                                    </td>
-                                </tr>
-                            `).join('')}
-                        </table>
+                        <div class="table-responsive">
+                            <table class="v2-table">
+                                ${s.upcoming_exams.map(ex => `
+                                    <tr>
+                                        <td>
+                                            <div style="font-size:13px; font-weight:700;">${ex.title}</div>
+                                            <div style="font-size:11px; color:var(--text-light);">${ex.course}</div>
+                                        </td>
+                                        <td align="right">
+                                            <div style="font-size:12px; font-weight:700; color:var(--blue-pure)">${new Date(ex.exam_date).toLocaleDateString('en-IN', {day:'numeric', month:'short'})}</div>
+                                            <div style="font-size:10px; color:var(--text-light)">${ex.start_time}</div>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </table>
+                        </div>
                     </div>
                 </div>
 
@@ -658,7 +689,14 @@ function _iaInitRevenueChartV2(trendData) {
     const canvas = document.getElementById('revenueChartV2');
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
-    
+
+    // Destroy existing chart instance if any (for resize re-draw)
+    const existing = typeof Chart !== 'undefined' && Chart.getChart ? Chart.getChart(canvas) : null;
+    if (existing) existing.destroy();
+
+    const isMobile = window.innerWidth < 768;
+    const isTablet = window.innerWidth >= 768 && window.innerWidth < 1024;
+
     const labels = trendData.map(d => d.month_name);
     const data   = trendData.map(d => d.collected);
 
@@ -678,7 +716,7 @@ function _iaInitRevenueChartV2(trendData) {
                 fill: true,
                 backgroundColor: gradient,
                 tension: 0.4,
-                pointRadius: 5,
+                pointRadius: isMobile ? 3 : 5,
                 pointBackgroundColor: '#fff',
                 pointBorderColor: '#10b981',
                 pointBorderWidth: 2
@@ -686,32 +724,38 @@ function _iaInitRevenueChartV2(trendData) {
         },
         options: {
             responsive: true,
-            maintainAspectRatio: false,
-            plugins: { 
+            maintainAspectRatio: true,
+            aspectRatio: isMobile ? 1.4 : isTablet ? 2.0 : 2.5,
+            plugins: {
                 legend: { display: false },
-                tooltip: { 
+                tooltip: {
                     backgroundColor: '#1e293b',
                     padding: 12,
-                    titleFont: { family: 'Plus Jakarta Sans', size: 13 },
-                    bodyFont: { family: 'Plus Jakarta Sans', size: 13 }
+                    titleFont: { family: 'Plus Jakarta Sans', size: isMobile ? 11 : 13 },
+                    bodyFont:  { family: 'Plus Jakarta Sans', size: isMobile ? 11 : 13 }
                 }
             },
             scales: {
-                y: { 
-                    beginAtZero: true, 
+                y: {
+                    beginAtZero: true,
                     grid: { color: '#f1f5f9', borderDash: [5, 5] },
-                    ticks: { 
-                        font: { size: 10 },
-                        callback: v => '₹' + (v >= 1000 ? (v/1000).toFixed(0) + 'K' : v) 
+                    ticks: {
+                        font: { size: isMobile ? 9 : 10 },
+                        callback: v => '₹' + (v >= 1000 ? (v/1000).toFixed(0) + 'K' : v)
                     }
                 },
-                x: { 
+                x: {
                     grid: { display: false },
-                    ticks: { font: { size: 10, weight: '700' } }
+                    ticks: {
+                        font: { size: isMobile ? 9 : 10, weight: '700' },
+                        maxRotation: isMobile ? 45 : 0
+                    }
                 }
             }
         }
     });
+    // Cache trend data for resize re-draw
+    window._iaLastRevenueTrendData = trendData;
 }
 
 function _iaDrawTargetCircle(canvasId, percent, color) {
@@ -813,7 +857,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const sbSearch = document.getElementById('sbSearch');
 
     const toggleSB = () => {
-        if (window.innerWidth >= 1024) {
+        if (window.innerWidth >= 768) {
             document.body.classList.toggle('sb-collapsed');
             localStorage.setItem('_ia_sb_collapsed', document.body.classList.contains('sb-collapsed') ? '1' : '0');
         } else {
@@ -822,11 +866,13 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // Restore collapsed state on desktop
-    if (window.innerWidth >= 1024 && localStorage.getItem('_ia_sb_collapsed') === '1') {
+    if (window.innerWidth >= 768 && localStorage.getItem('_ia_sb_collapsed') === '1') {
         document.body.classList.add('sb-collapsed');
     }
 
     if (sbToggle)  sbToggle.addEventListener('click', toggleSB);
+    const menuToggle = document.getElementById('menuToggle');
+    if (menuToggle) menuToggle.addEventListener('click', toggleSB);
     if (sbClose)   sbClose.addEventListener('click', () => document.body.classList.remove('sb-active'));
     if (sbOverlay) sbOverlay.addEventListener('click', () => document.body.classList.remove('sb-active'));
     
@@ -1024,4 +1070,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     _iaRenderSidebar(); _iaRenderPage();
+
+    // ── Phase 1.9: Debounced resize handler for chart re-draw ──
+    let _iaResizeTimer;
+    window.addEventListener('resize', () => {
+        clearTimeout(_iaResizeTimer);
+        _iaResizeTimer = setTimeout(() => {
+            // Re-draw bottom nav active state
+            _iaRenderBottomNav();
+            // Re-draw revenue chart if on dashboard and data is cached
+            if (window._IA && window._IA.activeNav === 'overview') {
+                const canvas = document.getElementById('revenueChartV2');
+                if (canvas && window._iaLastRevenueTrendData) {
+                    _iaInitRevenueChartV2(window._iaLastRevenueTrendData);
+                }
+            }
+        }, 250);
+    });
 });
