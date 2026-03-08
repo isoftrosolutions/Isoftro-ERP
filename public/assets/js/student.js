@@ -69,10 +69,9 @@ document.addEventListener('DOMContentLoaded', () => {
         ], sec: "PERSONAL" },
 
         { id: "study", icon: "fa-book-open", label: "Study Materials", sub: [
-            { id: "notes",     l: "Notes & Resources",      nav: "study", sub: "notes"     },
-            { id: "papers",    l: "Previous Year Papers",   nav: "study", sub: "papers"    },
-            { id: "bookmarks", l: "Bookmarks",              nav: "study", sub: "bookmarks" },
-            { id: "downloads", l: "Downloads",              nav: "study", sub: "downloads" }
+            { id: "overview",  l: "Library Overview",   nav: "study", sub: "overview"  },
+            { id: "materials", l: "All Resources",      nav: "study", sub: "materials" },
+            { id: "favorites", l: "My Favorites",       nav: "study", sub: "favorites" }
         ], sec: "PERSONAL" },
 
         { id: "library", icon: "fa-book-bookmark", label: "Library", sub: [
@@ -622,15 +621,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (activeNav === 'fee') {
             if (activeSub === 'status') { renderFeeStatus(); return; }
             if (activeSub === 'pay') { renderFeePaymentHistory(); return; }
-            if (activeSub === 'receipts') { renderFeeReceipts(); return; }
         }
-
         // Study Materials
         if (activeNav === 'study') {
-            if (activeSub === 'notes') { renderStudyNotes(); return; }
-            if (activeSub === 'papers') { renderStudyPapers(); return; }
-            if (activeSub === 'bookmarks') { renderStudyBookmarks(); return; }
-            if (activeSub === 'downloads') { renderStudyDownloads(); return; }
+            window.renderStudentLMS?.(activeSub || 'overview');
+            return;
         }
 
         // Library

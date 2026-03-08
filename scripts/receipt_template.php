@@ -46,22 +46,26 @@ $fine     = htmlspecialchars($r['fine_amount'] ?? '0');
 $autoDownload = isset($isDownload) ? $isDownload : true;
 
 // Payment mode display with highlight
-function paymentModeDisplay($mode) {
-    $modes = ['cash' => 'Cash', 'esewa' => 'eSewa', 'khalti' => 'Khalti', 'bank_transfer' => 'Bank', 'cheque' => 'Cheque', 'fonepay' => 'FonePay'];
-    $parts = [];
-    foreach ($modes as $key => $label) {
-        if ($key === $mode) {
-            $parts[] = '<strong style="text-decoration:underline; color:#c0392b;">' . $label . '</strong>';
-        } else {
-            $parts[] = $label;
+if (!function_exists('paymentModeDisplay')) {
+    function paymentModeDisplay($mode) {
+        $modes = ['cash' => 'Cash', 'esewa' => 'eSewa', 'khalti' => 'Khalti', 'bank_transfer' => 'Bank', 'cheque' => 'Cheque', 'fonepay' => 'FonePay'];
+        $parts = [];
+        foreach ($modes as $key => $label) {
+            if ($key === $mode) {
+                $parts[] = '<strong style="text-decoration:underline; color:#c0392b;">' . $label . '</strong>';
+            } else {
+                $parts[] = $label;
+            }
         }
+        return implode('&nbsp; / &nbsp;', $parts);
     }
-    return implode('&nbsp; / &nbsp;', $parts);
 }
 
 // Format money
-function fmtMoney($val) {
-    return number_format(floatval($val), 2);
+if (!function_exists('fmtMoney')) {
+    function fmtMoney($val) {
+        return number_format(floatval($val), 2);
+    }
 }
 ?>
 <!DOCTYPE html>

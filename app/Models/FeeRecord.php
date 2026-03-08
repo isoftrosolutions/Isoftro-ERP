@@ -5,6 +5,8 @@
 
 namespace App\Models;
 
+use App\Helpers\AuditLogger;
+
 class FeeRecord {
     protected $table = 'fee_records';
     protected $db;
@@ -90,6 +92,8 @@ class FeeRecord {
      */
     public function recordPayment($id, $data) {
         $oldValues = $this->find($id);
+        $oldPaid = $oldValues['amount_paid'] ?? 0;
+        $amountPaid = floatval($data['amount_paid']);
         
         $query = "UPDATE {$this->table} SET 
                   amount_paid = amount_paid + ?, 
@@ -105,25 +109,25 @@ class FeeRecord {
                   
         $stmt = $this->db->prepare($query);
         $stmt->execute([
-            floatval($data['amount_paid']),
+            $amountPaid,
             $data['paid_date'] ?? date('Y-m-d'),
             $data['receipt_no'],
             $data['receipt_path'] ?? null,
             $data['payment_mode'],
             $data['cashier_user_id'],
             floatval($data['fine_applied'] ?? 0),
-            $data['status'],
+            $data['status'] ?? 'paid',
             $id
         ]);
-            
-        $newValues = $this->find($id);
         
-        // Log the payment record update
+        // Log the payment record update with in-memory data
         if (class_exists('\App\Helpers\AuditLogger')) {
+            $newValues = $oldValues;
+            $newValues['amount_paid'] += $amountPaid;
             \App\Helpers\AuditLogger::log('PAYMENT_RECORDED', $this->table, $id, $oldValues, $newValues);
         }
         
-        return $newValues;
+        return true;
     }
 
     /**

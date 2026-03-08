@@ -5,11 +5,11 @@
  */
 
 if (!defined('APP_NAME')) {
-    require_once __DIR__ . '/../../../config/config.php';
+    require_once __DIR__ . '/../../../../config/config.php';
 }
 // Load MailHelper for credential emails
 if (!class_exists('App\\Helpers\\MailHelper')) {
-    require_once __DIR__ . '/../../Helpers/MailHelper.php';
+    require_once __DIR__ . '/../../../Helpers/MailHelper.php';
 }
 use App\Helpers\MailHelper;
 
@@ -30,7 +30,6 @@ if (!$tenantId) {
 }
 
 $method = $_SERVER['REQUEST_METHOD'];
-
 try {
     $db = getDBConnection();
 
@@ -124,26 +123,25 @@ try {
 
         $db->commit();
 
-        // Fire-and-forget: email login credentials to the new staff member
+        // Fire-and-forget: queue login credentials email to the new staff member
         try {
             $roleLabel = $role === 'teacher' ? 'Teacher' : 'Front Desk Staff';
-            MailHelper::send(
-                $db,
-                (int)$tenantId,
-                $email,
-                $name,
-                "Your {$roleLabel} Account at " . ($_SESSION['userData']['institute_name'] ?? 'the Institute'),
-                MailHelper::buildStaffWelcomeHtml(
+            \App\Helpers\AdminEmailHelper::sendAnnouncement($db, (int)$tenantId, [
+                'email' => $email,
+                'name' => $name,
+                'subject' => "Your {$roleLabel} Account at " . ($_SESSION['userData']['institute_name'] ?? 'the Institute'),
+                'body' => MailHelper::buildStaffWelcomeHtml(
                     $name,
                     $roleLabel,
                     $email,
                     $password,
                     (defined('APP_URL') ? APP_URL : 'http://localhost/erp') . '/login'
                 )
-            );
+            ]);
         } catch (\Throwable $mailErr) {
             error_log("[MailHelper] Staff credential email failed for {$email}: " . $mailErr->getMessage());
         }
+
 
         echo json_encode(['success' => true, 'message' => ucfirst($role) . ' added successfully', 'userId' => $userId, 'email' => $email, 'name' => $name]);
 

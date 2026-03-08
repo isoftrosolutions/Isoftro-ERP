@@ -16,10 +16,12 @@ if (file_exists(__DIR__ . '/../../../../vendor/autoload.php')) {
 }
 
 // Fallback for MailHelper if no autoloader
-if (!class_exists('App\Helpers\MailHelper') && file_exists(__DIR__ . '/../../Helpers/MailHelper.php')) {
-    require_once __DIR__ . '/../../Helpers/MailHelper.php';
+if (!class_exists('App\Helpers\MailHelper') && file_exists(__DIR__ . '/../../../Helpers/MailHelper.php')) {
+    require_once __DIR__ . '/../../../Helpers/MailHelper.php';
 }
 use App\Helpers\MailHelper;
+require_once __DIR__ . '/../../../Services/QueueService.php';
+use App\Services\QueueService;
 
 
 // Ensure user is logged in
@@ -409,22 +411,24 @@ try {
             $success = false;
 
             if ($sendCredentials) {
-                // Generate a temporary new password if needed? Actually, let's just send the credentials email
-                // Note: Realistically, we'd need the password. If we don't have it, we might need to reset it.
-                // For now, let's assume we are re-sending the 'Student@123' or similar if they haven't changed it, 
-                // but MailHelper::sendStudentCredentials expects the plain password.
-                // If the user wants to send credentials, we'll send a generic "reset your password" or similar if we don't have the plain one.
-                // IMPROVEMENT: If send_credentials is true, let's use a default if not provided, or error.
+                // Use default password if not provided
                 $password = $input['password'] ?? 'Student@123'; 
-                $success = MailHelper::sendStudentCredentials($db, $tenantId, [
+                $success = \App\Helpers\StudentEmailHelper::sendWelcomeEmail($db, $tenantId, [
                     'full_name' => $student['full_name'],
                     'email' => $student['email'],
                     'plain_password' => $password
                 ]);
             } else {
                 if (empty($subject) || empty($message)) throw new Exception("Subject and message are required");
-                $success = MailHelper::send($db, $tenantId, $student['email'], $student['full_name'], $subject, $message);
+                // For custom admin emails, we can use AdminEmailHelper to dispatch a general announcement or custom message
+                $success = \App\Helpers\AdminEmailHelper::sendAnnouncement($db, $tenantId, [
+                    'email' => $student['email'],
+                    'name' => $student['full_name'],
+                    'subject' => $subject,
+                    'body' => $message // sendAnnouncement will use 'general_announcement' template
+                ]);
             }
+
 
             if ($success) {
                 echo json_encode(['success' => true, 'message' => 'Email sent successfully']);
@@ -456,14 +460,16 @@ try {
             $failedEmails = [];
 
             foreach ($students as $student) {
-                $success = MailHelper::send($db, $tenantId, $student['email'], $student['full_name'], $subject, $message);
-                if ($success) {
-                    $sentCount++;
-                } else {
-                    $failedCount++;
-                    $failedEmails[] = $student['email'];
-                }
+                $success = \App\Helpers\AdminEmailHelper::sendAnnouncement($db, $tenantId, [
+                    'email' => $student['email'],
+                    'name' => $student['full_name'],
+                    'subject' => $subject,
+                    'body' => $message
+                ]);
+                if ($success) $sentCount++;
+                else $failedCount++;
             }
+
 
             echo json_encode([
                 'success' => true, 
@@ -579,7 +585,15 @@ try {
                     'rno' => $receiptNo
                 ]);
 
-                // 5. Send Email Confirmation
+                // 5. Queue Receipt Tasks (PDF & Email)
+                $queue = new QueueService($db);
+                $queue->dispatch('payment_receipt', [
+                    'tenant_id' => $tenantId,
+                    'student_id' => $studentId,
+                    'receipt_no' => $receiptNo,
+                    'transaction_ids' => [0] // Use 0 for Direct Payment
+                ]);
+
                 $emailStatus = 'no_email';
                 try {
                     $stmtGetEmail = $db->prepare("
@@ -592,35 +606,17 @@ try {
                     $stdEmailInfo = $stmtGetEmail->fetch(PDO::FETCH_ASSOC);
 
                     if ($stdEmailInfo && !empty($stdEmailInfo['email'])) {
-                        // Fetch HTML Receipt Template
-                        $emailUrl = APP_URL . '/api/admin/fees?action=generate_receipt_html&is_email=1&receipt_no=' . $receiptNo;
-                        
-                        $ch = curl_init($emailUrl);
-                        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-                        curl_setopt($ch, CURLOPT_TIMEOUT, 10);
-                        $message = curl_exec($ch);
-                        curl_close($ch);
-
-                        if (empty($message) || strpos($message, 'Error') !== false) {
-                            $message = "<div style='font-family: Arial, sans-serif; line-height: 1.6;'>
-                                <h2>Hello " . htmlspecialchars($stdEmailInfo['full_name']) . ",</h2>
-                                <p>Thank you for your general payment. Your transaction has been recorded successfully.</p>
-                                <ul>
-                                    <li><strong>Receipt No:</strong> " . $receiptNo . "</li>
-                                    <li><strong>Amount Paid:</strong> " . number_format($amount, 2) . "</li>
-                                </ul>
-                                <p>You can view your updated fee summary from your dashboard.</p>
-                            </div>";
-                        }
-
-                        $subject = "Payment Receipt Confirmation - " . $receiptNo;
-                        $success = \App\Helpers\MailHelper::send($db, $tenantId, $stdEmailInfo['email'], $stdEmailInfo['full_name'], $subject, $message);
-                        $emailStatus = $success ? 'sent_no_pdf' : 'failed';
+                        $queue->dispatch('send_email_receipt', [
+                            'tenant_id' => $tenantId,
+                            'student_id' => $studentId,
+                            'recipient_email' => $stdEmailInfo['email'],
+                            'recipient_name' => $stdEmailInfo['full_name'],
+                            'receipt_no' => $receiptNo
+                        ]);
+                        $emailStatus = 'queued';
                     }
                 } catch (Exception $em) {
-                    error_log("Failed to send direct payment email: " . $em->getMessage());
-                    $emailStatus = 'failed';
+                    error_log("Failed to queue direct payment email: " . $em->getMessage());
                 }
 
                 $db->commit();
@@ -632,7 +628,8 @@ try {
                         'amount_paid' => $amount,
                         'email_status' => $emailStatus,
                         'student_id' => $studentId,
-                        'student_name' => $stdEmailInfo['full_name'] ?? 'Student'
+                        'student_name' => $stdEmailInfo['full_name'] ?? 'Student',
+                        'redirect_url' => '?page=fee-details&receipt_no=' . $receiptNo
                     ]
                 ]);
             } catch (Exception $e) {
@@ -835,27 +832,23 @@ try {
                         if (!is_dir(dirname($tempPath))) mkdir(dirname($tempPath), 0777, true);
                         file_put_contents($tempPath, $pngData);
 
-                        // Send Email with Attachment
-                        $subject = "Profile Completed & Digital ID Card – " . $sData['institute_name'];
-                        $htmlBody = "
-                            <h2>Congratulations " . htmlspecialchars($sData['full_name']) . "!</h2>
-                            <p>Your profile registration is now complete. Attached is your official digital ID card.</p>
-                            <p>You now have full access to all student features.</p>
-                            <br>
-                            <p>Best Regards,<br><b>" . htmlspecialchars($sData['institute_name']) . "</b></p>
-                        ";
+                        // Send Email with Attachment via Queue
+                        $emailData = [
+                            'email' => $sData['email'],
+                            'student_name' => $sData['full_name'],
+                            'subject' => "Profile Completed & Digital ID Card – " . $sData['institute_name'],
+                            'pdf_path' => $tempPath, // Attachment path
+                            'template_key' => 'student_profile_updated' // Or a specific ID card template
+                        ];
                         
-                        // We need a revised MailHelper generic send or a specific one with attachments
-                        // For now, let's assume we can use PHPMailer directly within students.php or update MailHelper
-                        // Let's use MailHelper::send if it supports attachments (let's check MailHelper.php again)
-                        // Actually, I'll update MailHelper::send to support optional attachments.
-                        MailHelper::send($db, $tenantId, $sData['email'], $sData['full_name'], $subject, $htmlBody, '', $tempPath);
+                        \App\Helpers\StudentEmailHelper::notifyProfileUpdated($db, $tenantId, $emailData);
                     }
                 }
             } catch (\Exception $e) {
                 error_log("[IDCard] Failed to generate/email: " . $e->getMessage());
             }
         }
+
 
         echo json_encode(['success' => true, 'message' => 'Student updated successfully']);
     }

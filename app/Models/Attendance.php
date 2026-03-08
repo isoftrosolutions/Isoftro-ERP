@@ -6,7 +6,7 @@ class Attendance {
     private $db;
     
     public function __construct() {
-        $this->db = \DB::connection();
+        $this->db = \DB::connection()->getPdo();
     }
     
     public function create($data) {
@@ -127,6 +127,22 @@ class Attendance {
         ");
         $stmt->execute(['student_id' => $studentId, 'batch_id' => $batchId, 'tenant_id' => $tenantId]);
         return $stmt->fetch();
+    }
+
+    public function getBatchStudentsStats($batchId, $tenantId) {
+        $stmt = $this->db->prepare("
+            SELECT 
+                student_id,
+                COUNT(*) as total_days,
+                SUM(CASE WHEN status = 'present' THEN 1 ELSE 0 END) as present_days,
+                SUM(CASE WHEN status = 'late' THEN 1 ELSE 0 END) as late_days,
+                SUM(CASE WHEN status = 'leave' THEN 1 ELSE 0 END) as leave_days
+            FROM {$this->table} 
+            WHERE batch_id = :batch_id AND tenant_id = :tenant_id
+            GROUP BY student_id
+        ");
+        $stmt->execute(['batch_id' => $batchId, 'tenant_id' => $tenantId]);
+        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
     
     public function getBatchStats($batchId, $dateRange, $tenantId) {

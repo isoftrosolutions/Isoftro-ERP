@@ -129,9 +129,12 @@ if (!isset($_GET['partial'])) {
                                         <div style="font-size: 12px; color: #64748b;">Total Amount Due</div>
                                         <div style="font-size: 24px; font-weight: 800; color: #1a1a2e;" id="totalDueLabel">NPR 0.00</div>
                                     </div>
-                                    <button type="submit" class="btn" style="background: linear-gradient(135deg, #F59E0B, #D97706); color: #fff; padding: 14px 30px; font-size: 16px;" id="payBtn">
-                                        <i class="fa-solid fa-receipt"></i> Process Payment
-                                    </button>
+                                    <div style="margin-top:24px;">
+                            <?= csrfField() ?>
+                            <button type="submit" id="processPaymentBtn" class="btn" style="width:100%; background:#1a1a2e; color:#fff; padding:16px; border-radius:12px; font-size:16px; justify-content:center;">
+                                <i class="fa-solid fa-receipt"></i> Process Payment
+                            </button>
+                        </div>
                                 </div>
                             </form>
                         </div>
@@ -140,21 +143,6 @@ if (!isset($_GET['partial'])) {
             </div>
         </div>
     </div>
-<!-- Success Modal / Receipt Overlay -->
-<div id="receiptOverlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:9000; display:none; align-items:center; justify-content:center; padding:20px;">
-    <div class="card" style="width:100%; max-width:500px; padding:30px; border-radius:20px; text-align:center;">
-        <div style="width:70px; height:70px; background:#DCFCE7; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 20px;">
-            <i class="fa-solid fa-check" style="font-size:35px; color:#166534;"></i>
-        </div>
-        <h2 style="color:#166534;">Payment Recorded!</h2>
-        <p style="margin:10px 0 24px; color:#64748b;">Receipt successfully generated and emailed to student.</p>
-        
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-            <button class="btn bt" onclick="window.location.reload()"><i class="fa-solid fa-plus"></i> New Payment</button>
-            <button class="btn" style="background:#1a1a2e; color:#fff;" id="printReceiptBtn"><i class="fa-solid fa-print"></i> Print Receipt</button>
-        </div>
-    </div>
-</div>
 
 <style>
 .fl { display: block; font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px; }
@@ -275,47 +263,32 @@ async function loadOutstandingFees(studentId) {
         e.preventDefault();
         if (!currentStudent) return;
         
-        const btn = document.getElementById('payBtn');
+        const btn = document.getElementById('processPaymentBtn');
         const form = e.target;
         btn.disabled = true;
         btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Processing...';
         
         const formData = new FormData(form);
-        const data = Object.fromEntries(formData.entries());
-        data.action = 'record_payment';
-        data.student_id = currentStudent.id;
+        const payload = Object.fromEntries(formData.entries()); // Renamed data to payload
+        payload.action = 'record_payment';
+        payload.student_id = currentStudent.id;
         
         try {
             const res = await fetch('<?= APP_URL ?>/api/frontdesk/fees', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': window.CSRF_TOKEN },
+                body: JSON.stringify(payload)
             });
             
             const result = await res.json();
             if (result.success) {
-                const overlay = document.getElementById('receiptOverlay');
-                const statusP = overlay.querySelector('p');
-                const emailStatus = result.data.email_status;
-                const receiptNo = result.data.receipt_no;
-                const transactionId = result.data.transaction_id;
-                
-                if (emailStatus === 'sent') {
-                    statusP.innerHTML = `Receipt <strong>#${receiptNo}</strong> successfully generated and emailed to student.`;
-                    statusP.style.color = '#166534';
-                } else if (emailStatus === 'no_email') {
-                    statusP.innerHTML = `Receipt <strong>#${receiptNo}</strong> generated. Email not sent (Student has no email address).`;
-                    statusP.style.color = '#92400E';
+                // Redirect to details page as per the new flowchart
+                if (result.data && result.data.redirect_url) {
+                    window.location.href = result.data.redirect_url;
                 } else {
-                    statusP.innerHTML = `Receipt <strong>#${receiptNo}</strong> generated. <span style="color:#ef4444;">Email delivery failed.</span>`;
+                    window.location.href = '?page=fee-details&receipt_no=' + result.data.receipt_no;
                 }
-                
-                overlay.style.display = 'flex';
-                document.getElementById('printReceiptBtn').onclick = () => {
-                    window.open(`<?= APP_URL ?>/api/frontdesk/fees?action=generate_receipt_html&receipt_no=${receiptNo}`, '_blank');
-                };
-            }
- else {
+            } else {
                 alert('Error: ' + result.message);
             }
         } catch (e) {

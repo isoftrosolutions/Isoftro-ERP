@@ -215,6 +215,7 @@ function _iaRenderPage() {
     }
     if (nav==='fee' && sub==='setup') { window.renderFeeSetup?.(); return; }
     if (nav==='fee' && sub==='record') { window.renderFeeRecord?.(); return; }
+    if (nav==='fee' && sub==='details') { window.renderFeeDetails?.(urlParams.get('receipt_no')); return; }
     if (nav==='fee' && sub==='outstanding') { window.renderFeeOutstanding?.(); return; }
     if (nav==='fee' && sub==='fin-reports') { window.renderFeeReports?.(); return; }
     if (nav==='fee' && sub==='ledger') { window.renderStudentLedger?.(urlParams.get('id')); return; }
@@ -245,11 +246,17 @@ function _iaRenderPage() {
     if (nav==='lms') {
         if (sub==='overview' || !sub) { window.renderLMSDashboard?.(); return; }
         if (sub==='materials' || sub==='videos' || sub==='assignments') { window.renderStudyMaterials?.(sub); return; }
+        if (sub==='upload') { window.renderStudyMaterialUploadPage?.(); return; }
         if (sub==='categories') { window.renderLMSCategories?.(); return; }
+        if (sub==='analytics') { window.renderLMSAnalytics?.(); return; }
     }
     if (nav==='staff-salary') {
         if (sub==='add' || sub==='edit') window.renderStaffSalaryForm?.(urlParams.get('id'));
         else window.renderStaffSalary?.();
+        return;
+    }
+    if (nav==='auditlogs') {
+        window.renderAuditLogs?.();
         return;
     }
     mc.innerHTML = `<div class="pg fu"><div class="card" style="text-align:center;padding:100px 40px;"><i class="fa-solid fa-cubes-stacked" style="font-size:3rem;color:var(--tl);margin-bottom:20px;"></i><h2>${(sub||nav).toUpperCase()} Module</h2><p style="color:var(--tb);margin-top:10px;">Coming soon in V3.1.</p></div></div>`;

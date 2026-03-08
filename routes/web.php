@@ -427,6 +427,11 @@ Route::any('/api/admin/leave-requests', function() {
     require_once app_path('Http/Controllers/Admin/leave_requests.php');
 });
 
+// Audit Logs API Routes
+Route::any('/api/admin/audit-logs', function() {
+    require_once app_path('Http/Controllers/Admin/audit_logs.php');
+});
+
 // Front Desk API Routes - Reuse Admin controllers with frontdesk role access
 Route::any('/api/frontdesk/attendance', function() {
     require_once app_path('Http/Controllers/Admin/attendance.php');

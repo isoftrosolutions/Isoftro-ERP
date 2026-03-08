@@ -10,7 +10,7 @@ class AttendanceService {
     private $settings;
 
     public function __construct() {
-        $this->db = \DB::connection();
+        $this->db = \DB::connection()->getPdo();
         $this->attendance = new \App\Models\Attendance();
         $this->leaveRequest = new \App\Models\LeaveRequest();
         $this->auditLog = new \App\Models\AttendanceAuditLog();
@@ -28,12 +28,29 @@ class AttendanceService {
 
         // Data format: ['batch_id' => X, 'course_id' => Y, 'attendance_date' => Z, 'attendance' => [['student_id' => 1, 'status' => 'present'], ...]]
         
+        if (empty($data['attendance']) || !is_array($data['attendance'])) {
+            throw new \Exception("No attendance data provided.");
+        }
+
+        // Resolve course_id from batch if not provided
+        $courseId = $data['course_id'] ?? null;
+        if (empty($courseId) && !empty($data['batch_id'])) {
+            $stmt = $this->db->prepare("SELECT course_id FROM batches WHERE id = ?");
+            $stmt->execute([$data['batch_id']]);
+            $batch = $stmt->fetch();
+            $courseId = $batch['course_id'] ?? null;
+        }
+
+        if (empty($courseId)) {
+            throw new \Exception("Could not determine course. Please select a course.");
+        }
+        
         $records = [];
         foreach ($data['attendance'] as $item) {
             $records[] = [
                 'student_id' => $item['student_id'],
                 'batch_id' => $data['batch_id'],
-                'course_id' => $data['course_id'] ?? null,
+                'course_id' => $courseId,
                 'attendance_date' => $data['attendance_date'],
                 'status' => $item['status'],
                 'marked_by' => $userId

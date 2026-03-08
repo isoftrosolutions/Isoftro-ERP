@@ -12,14 +12,14 @@
  */
 
 if (!defined('APP_NAME')) {
-    require_once __DIR__ . '/../../../config/config.php';
+    require_once __DIR__ . '/../../../../config/config.php';
 }
 
 header('Content-Type: application/json');
 
 // Load Composer autoload (PHPMailer etc.)
-if (file_exists(__DIR__ . '/../../../vendor/autoload.php')) {
-    require_once __DIR__ . '/../../../vendor/autoload.php';
+if (file_exists(__DIR__ . '/../../../../vendor/autoload.php')) {
+    require_once __DIR__ . '/../../../../vendor/autoload.php';
 }
 use App\Helpers\MailHelper;
 

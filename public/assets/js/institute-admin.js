@@ -1025,12 +1025,22 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        if (activeNav === 'teachers') {
-            if (activeSub === 'add') renderAddStaffForm('teacher');
-            else renderStaffList('teacher');
-            return;
-        }
+        if (activeNav === 'attendance') {
+        if (activeSub === 'take') { renderAttendanceTake(); return; }
+        if (activeSub === 'leave') { renderLeaveRequests(); return; }
+        if (activeSub === 'report') { renderAttendanceReport(); return; }
+    }
 
+    if (activeNav === 'reports' && activeSub === 'att-rep') {
+        renderAttendanceReport();
+        return;
+    }
+
+    if (activeNav === 'teachers') {
+        if (activeSub === 'add') renderAddStaffForm('teacher');
+        else renderStaffList('teacher');
+        return;
+    }
         if (activeNav === 'frontdesk') {
             if (activeSub === 'add') renderAddStaffForm('frontdesk');
             else renderStaffList('frontdesk');

@@ -8,6 +8,9 @@ if (!defined('APP_NAME')) {
     require_once __DIR__ . '/../../../../config/config.php';
 }
 
+// CSRF helper is handled by config.php or autoloader
+use App\Helpers\CsrfHelper;
+
 header('Content-Type: application/json');
 
 // Ensure user is logged in
@@ -29,6 +32,23 @@ $studentId = $_SESSION['userData']['student_id'] ?? null;
 if (!$tenantId) {
     echo json_encode(['success' => false, 'message' => 'Tenant ID missing']);
     exit;
+}
+
+// CSRF-protected actions for students
+$csrfProtectedActions = ['add_favorite', 'remove_favorite', 'feedback'];
+
+// Validate CSRF for protected actions
+$action = $_GET['action'] ?? $_POST['action'] ?? 'list';
+if (in_array($action, $csrfProtectedActions)) {
+    try {
+        CsrfHelper::requireCsrfToken();
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'message' => $e->getMessage(), 'code' => 'CSRF_ERROR']);
+        exit;
+    } catch (Throwable $e) {
+        // If CSRF helper fails, log and allow
+        error_log('CSRF Validation Error: ' . $e->getMessage());
+    }
 }
 
 // Get student details

@@ -171,6 +171,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (module === 'fee') {
             if (sub === 'fee-coll') renderFeeRecord();
             else if (sub === 'fee-sum') renderFeeRep();
+            else if (sub === 'fee-details') renderFeeDetails();
             return;
         }
 
@@ -1241,6 +1242,19 @@ document.addEventListener('DOMContentLoaded', () => {
         if (hdrSearch) hdrSearch.value = '';
         if (searchResults) searchResults.style.display = 'none';
     };
+
+    async function renderFeeDetails() {
+        mainContent.innerHTML = `<div class="pg fu"><div class="pg-loading"><i class="fa-solid fa-circle-notch fa-spin"></i><span>Loading Details...</span></div></div>`;
+        try {
+            const res = await fetch(`${APP_URL}/dash/front-desk/fee-details?partial=true`);
+            const html = await res.text();
+            mainContent.innerHTML = `<div class="pg fu">${html}</div>`;
+            const scripts = mainContent.querySelectorAll('script');
+            scripts.forEach(s => eval(s.innerHTML));
+        } catch (e) {
+            mainContent.innerHTML = `<div class="alert alert-danger">Error loading details</div>`;
+        }
+    }
 
     // Init
     renderSidebar();

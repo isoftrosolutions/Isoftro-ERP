@@ -90,3 +90,38 @@
     color: var(--text-light);
     margin-top: 6px;
 }
+
+/* ── PRINT UTILS ── */
+@media print {
+    .no-print {
+        display: none !important;
+    }
+    body {
+        background: #fff !important;
+        margin: 0;
+        padding: 0;
+    }
+    .main, .content, .pg, .app-layout {
+        padding: 0 !important;
+        margin: 0 !important;
+        box-shadow: none !important;
+        background: transparent !important;
+    }
+    .fee-details-card {
+        margin: 0 auto !important;
+        box-shadow: none !important;
+        border: none !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+    .fd-header {
+        background: #fff !important;
+        border-bottom: 2px solid #000 !important;
+    }
+    .fd-actions, .fd-footer, .bc {
+        display: none !important;
+    }
+    .fd-main-info {
+        border-bottom: 1px dashed #000 !important;
+    }
+}

@@ -176,8 +176,8 @@ function getIASidebarConfig() {
                     'permission' => 'dashboard.view',
                     'badge_key' => 'total_materials',
                     'sub' => [
-                        ['id' => 'dashboard',   'l' => 'Materials Dashboard',   'icon' => 'fa-chart-pie'],
-                        ['id' => 'all',         'l' => 'All Materials',         'icon' => 'fa-layer-group'],
+                        ['id' => 'overview',    'l' => 'Materials Dashboard',   'icon' => 'fa-chart-pie'],
+                        ['id' => 'materials',   'l' => 'All Materials',         'icon' => 'fa-layer-group'],
                         ['id' => 'upload',      'l' => 'Upload Material',       'icon' => 'fa-cloud-arrow-up'],
                         ['id' => 'categories',  'l' => 'Categories',            'icon' => 'fa-folder-tree'],
                         ['id' => 'videos',      'l' => 'Video Lectures',        'icon' => 'fa-video'],

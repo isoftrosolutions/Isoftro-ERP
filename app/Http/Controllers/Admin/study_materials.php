@@ -8,6 +8,12 @@ if (!defined('APP_NAME')) {
     require_once __DIR__ . '/../../../../config/config.php';
 }
 
+// CSRF helper is handled by config.php or autoloader
+use App\Helpers\CsrfHelper;
+
+// Include cache service
+use App\Services\StudyMaterialCacheService;
+
 header('Content-Type: application/json');
 
 // Ensure user is logged in
@@ -33,10 +39,45 @@ if (!$tenantId) {
 $method = $_SERVER['REQUEST_METHOD'];
 $action = $_GET['action'] ?? $_POST['action'] ?? 'list';
 
+// CSRF-protected actions (state-changing operations)
+$csrfProtectedActions = ['create', 'update', 'delete', 'bulk_delete', 'bulk_status', 
+    'toggle_featured', 'create_category', 'update_category', 'delete_category',
+    'add_permission', 'remove_permission', 'bulk_assign'];
+
+// Validate CSRF for protected actions
+if (in_array($action, $csrfProtectedActions)) {
+    try {
+        CsrfHelper::requireCsrfToken();
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'message' => $e->getMessage(), 'code' => 'CSRF_ERROR']);
+        exit;
+    } catch (Throwable $e) {
+        // If CSRF helper fails, log and allow (fail-open for availability)
+        // In production, you might want to fail-closed
+        error_log('CSRF Validation Error: ' . $e->getMessage());
+    }
+}
+
 try {
     $db = getDBConnection();
 
     switch ($action) {
+        // ========== GET CSRF TOKEN ==========
+        
+        case 'get_token':
+        case 'csrf_token':
+            // Return CSRF token for frontend (read-only, no validation needed)
+            $token = CsrfHelper::getCsrfToken();
+            echo json_encode([
+                'success' => true,
+                'data' => [
+                    'token' => $token,
+                    'token_name' => 'csrf_token',
+                    'expires_in' => 1800 // 30 minutes
+                ]
+            ]);
+            break;
+            
         // ========== STUDY MATERIALS CRUD ==========
         
         case 'list':
@@ -95,7 +136,7 @@ try {
                     c.color as category_color,
                     s.name as subject_name,
                     b.name as batch_name,
-                    cr.title as course_name,
+                    cr.name as course_name,
                     u.name as created_by_name
                 FROM study_materials sm
                 LEFT JOIN study_material_categories c ON sm.category_id = c.id
@@ -117,25 +158,40 @@ try {
             $stmt->execute();
             $materials = $stmt->fetchAll();
             
-            // Get permissions for each material
-            foreach ($materials as &$material) {
-                if ($material['access_type'] !== 'public') {
-                    $permStmt = $db->prepare("
-                        SELECT 
-                            smp.*,
-                            CASE 
-                                WHEN smp.entity_type = 'batch' THEN b.name
-                                WHEN smp.entity_type = 'student' THEN s.name
-                            END as entity_name
-                        FROM study_material_permissions smp
-                        LEFT JOIN batches b ON smp.entity_type = 'batch' AND smp.entity_id = b.id
-                        LEFT JOIN students s ON smp.entity_type = 'student' AND smp.entity_id = s.id
-                        WHERE smp.material_id = :mid
-                    ");
-                    $permStmt->execute(['mid' => $material['id']]);
-                    $material['permissions'] = $permStmt->fetchAll();
+            // Optimize: Fetch all permissions in a single query instead of N+1
+            if (!empty($materials)) {
+                $materialIds = array_column($materials, 'id');
+                
+                // Get all permissions for fetched materials in one query
+                $permQuery = "
+                    SELECT 
+                        smp.*,
+                        CASE 
+                            WHEN smp.entity_type = 'batch' THEN b.name
+                            WHEN smp.entity_type = 'student' THEN CONCAT(st.first_name, ' ', st.last_name)
+                        END as entity_name
+                    FROM study_material_permissions smp
+                    LEFT JOIN batches b ON smp.entity_type = 'batch' AND smp.entity_id = b.id
+                    LEFT JOIN students st ON smp.entity_type = 'student' AND smp.entity_id = st.id
+                    WHERE smp.material_id IN (" . implode(',', array_fill(0, count($materialIds), '?')) . ")
+                ";
+                
+                $permStmt = $db->prepare($permQuery);
+                $permStmt->execute($materialIds);
+                $allPermissions = $permStmt->fetchAll();
+                
+                // Group permissions by material_id
+                $permissionsByMaterial = [];
+                foreach ($allPermissions as $perm) {
+                    $permissionsByMaterial[$perm['material_id']][] = $perm;
                 }
-                $material['tags'] = json_decode($material['tags'] ?? '[]', true);
+                
+                // Assign permissions to materials
+                foreach ($materials as &$material) {
+                    $materialId = $material['id'];
+                    $material['permissions'] = $permissionsByMaterial[$materialId] ?? [];
+                    $material['tags'] = json_decode($material['tags'] ?? '[]', true);
+                }
             }
             
             echo json_encode([
@@ -297,6 +353,14 @@ try {
                 insertPermissions($db, $tenantId, $materialId, $input['permissions']);
             }
             
+            // Invalidate cache after creation
+            try {
+                $cacheService = new StudyMaterialCacheService();
+                $cacheService->invalidate($tenantId);
+            } catch (Exception $e) {
+                // Cache failure shouldn't break functionality
+            }
+            
             echo json_encode([
                 'success' => true,
                 'message' => 'Study material created successfully',
@@ -377,6 +441,14 @@ try {
                 }
             }
             
+            // Invalidate cache after update
+            try {
+                $cacheService = new StudyMaterialCacheService();
+                $cacheService->invalidate($tenantId);
+            } catch (Exception $e) {
+                // Cache failure shouldn't break functionality
+            }
+            
             echo json_encode(['success' => true, 'message' => 'Study material updated successfully']);
             break;
             
@@ -394,6 +466,12 @@ try {
                 WHERE id = :id AND tenant_id = :tid
             ");
             $stmt->execute(['id' => $id, 'tid' => $tenantId, 'uid' => $userId]);
+            
+            // Invalidate cache after delete
+            try {
+                $cacheService = new StudyMaterialCacheService();
+                $cacheService->invalidate($tenantId);
+            } catch (Exception $e) {}
             
             echo json_encode(['success' => true, 'message' => 'Study material deleted successfully']);
             break;
@@ -609,29 +687,85 @@ try {
 // Helper Functions
 
 function handleFileUpload($file, $tenantId) {
-    $allowedTypes = ['jpg', 'jpeg', 'png', 'gif', 'pdf', 'doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx', 'mp4', 'mp3', 'zip', 'rar'];
+    // Secure file upload with MIME type validation and filename sanitization
+    $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'pdf', 'doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx', 'mp4', 'mp3', 'zip', 'rar'];
+    $allowedMimes = [
+        'jpg' => 'image/jpeg',
+        'jpeg' => 'image/jpeg',
+        'png' => 'image/png',
+        'gif' => 'image/gif',
+        'pdf' => 'application/pdf',
+        'doc' => 'application/msword',
+        'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'ppt' => 'application/vnd.ms-powerpoint',
+        'pptx' => 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+        'xls' => 'application/vnd.ms-excel',
+        'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'mp4' => 'video/mp4',
+        'mp3' => 'audio/mpeg',
+        'zip' => 'application/zip',
+        'rar' => 'application/x-rar-compressed'
+    ];
     $maxSize = 50 * 1024 * 1024; // 50MB
     
     if ($file['error'] !== UPLOAD_ERR_OK) {
         return ['success' => false, 'message' => 'File upload failed: ' . $file['error']];
     }
     
+    // Get safe filename (sanitize original name for display)
+    $originalName = basename($file['name']);
+    $safeOriginalName = preg_replace('/[^a-zA-Z0-9_\-\.\s]/', '', $originalName);
+    $safeOriginalName = preg_replace('/\s+/', '_', $safeOriginalName);
+    
+    // Validate extension
     $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-    if (!in_array($ext, $allowedTypes)) {
-        return ['success' => false, 'message' => 'File type not allowed. Allowed: ' . implode(', ', $allowedTypes)];
+    if (!in_array($ext, $allowedExtensions)) {
+        return ['success' => false, 'message' => 'File extension not allowed. Allowed: ' . implode(', ', $allowedExtensions)];
     }
     
+    // Validate MIME type using finfo (server-side verification)
+    if (function_exists('finfo_open')) {
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        $realMime = finfo_file($finfo, $file['tmp_name']);
+        finfo_close($finfo);
+        
+        // Check if real MIME matches expected MIME for extension
+        $expectedMime = $allowedMimes[$ext] ?? '';
+        if ($realMime !== $expectedMime && !in_array($realMime, ['application/octet-stream', 'application/x-empty'])) {
+            // Additional check for certain types that might have different valid mimes
+            $altMimes = [
+                'pdf' => ['application/pdf', 'application/x-pdf'],
+                'zip' => ['application/zip', 'application/x-zip-compressed'],
+                'doc' => ['application/msword', 'application/octet-stream'],
+                'docx' => ['application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/zip']
+            ];
+            $validMimes = $altMimes[$ext] ?? [$expectedMime];
+            if (!in_array($realMime, $validMimes)) {
+                return ['success' => false, 'message' => 'Invalid file content. File type does not match extension.'];
+            }
+        }
+    }
+    
+    // Size validation
     if ($file['size'] > $maxSize) {
         return ['success' => false, 'message' => 'File too large. Max size: 50MB'];
     }
     
+    // Create secure upload directory outside web root if possible
     $uploadDir = "app/public/uploads/study_materials/{$tenantId}/";
     if (!is_dir($uploadDir)) {
         mkdir($uploadDir, 0755, true);
     }
     
-    $fileName = time() . '_' . uniqid() . '.' . $ext;
-    $filePath = $uploadDir . $fileName;
+    // Generate secure random filename (prevents path traversal and guessing)
+    $secureFileName = bin2hex(random_bytes(16)) . '.' . $ext;
+    $filePath = $uploadDir . $secureFileName;
+    
+    // Verify path is within upload directory (prevent path traversal)
+    $realPath = realpath(dirname($filePath));
+    if (strpos(realpath($filePath), $realPath) !== 0) {
+        return ['success' => false, 'message' => 'Invalid file path'];
+    }
     
     if (!move_uploaded_file($file['tmp_name'], $filePath)) {
         return ['success' => false, 'message' => 'Failed to save file'];
@@ -639,9 +773,9 @@ function handleFileUpload($file, $tenantId) {
     
     return [
         'success' => true,
-        'file_name' => $file['name'],
+        'file_name' => $safeOriginalName,  // Sanitized original name for display
         'file_path' => $filePath,
-        'file_type' => $file['type'],
+        'file_type' => $realMime ?? $file['type'],
         'file_size' => $file['size'],
         'file_extension' => $ext
     ];

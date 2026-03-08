@@ -174,18 +174,20 @@ if (!function_exists('sanitizeInput')) {
     }
 }
 
+// Security & CSRF
+if (!class_exists('App\Helpers\CsrfHelper')) {
+    require_once APP_ROOT . '/app/Helpers/CsrfHelper.php';
+}
+
 if (!function_exists('generateCSRFToken')) {
     function generateCSRFToken() {
-        if (empty($_SESSION['csrf_token'])) {
-            $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-        }
-        return $_SESSION['csrf_token'];
+        return \App\Helpers\CsrfHelper::getCsrfToken();
     }
 }
 
 if (!function_exists('verifyCSRFToken')) {
     function verifyCSRFToken($token) {
-        return isset($_SESSION['csrf_token']) && hash_equals($_SESSION['csrf_token'], $token);
+        return \App\Helpers\CsrfHelper::validateCsrfToken($token);
     }
 }
 

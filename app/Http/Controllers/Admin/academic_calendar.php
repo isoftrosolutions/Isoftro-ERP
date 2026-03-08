@@ -5,7 +5,7 @@
  */
 
 if (!defined('APP_NAME')) {
-    require_once __DIR__ . '/../../../config/config.php';
+    require_once __DIR__ . '/../../../../config/config.php';
 }
 
 // Always return JSON — prevent HTML error pages breaking the JS client

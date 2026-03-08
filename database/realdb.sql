@@ -257,8 +257,10 @@ CREATE TABLE `audit_logs` (
   PRIMARY KEY (`id`),
   KEY `idx_audit_tenant_user` (`tenant_id`,`user_id`),
   KEY `idx_audit_table_record` (`table_name`,`record_id`),
+  KEY `idx_audit_logs_date` (`tenant_id`,`created_at` DESC),
+  KEY `idx_audit_logs_action` (`action`,`tenant_id`,`created_at` DESC),
   CONSTRAINT `fk_audit_tenant` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=114 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=126 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 /*Data for the table `audit_logs` */
 
@@ -373,7 +375,19 @@ insert  into `audit_logs`(`id`,`tenant_id`,`user_id`,`ip_address`,`action`,`tabl
 (109,5,38,'::1','TRANSACTION_CREATED','payment_transactions',41,'{\"old\":null,\"new\":\"{\\\"id\\\":41,\\\"tenant_id\\\":5,\\\"student_id\\\":54,\\\"fee_record_id\\\":21,\\\"invoice_id\\\":null,\\\"amount\\\":\\\"610.00\\\",\\\"payment_method\\\":\\\"cash\\\",\\\"transaction_id\\\":null,\\\"receipt_number\\\":\\\"RCP-000044\\\",\\\"payment_date\\\":\\\"2026-03-04\\\",\\\"receipt_path\\\":null,\\\"recorded_by\\\":38,\\\"notes\\\":\\\" (Bulk Payment Part)\\\",\\\"status\\\":\\\"completed\\\",\\\"created_at\\\":\\\"2026-03-04 08:45:37\\\",\\\"updated_at\\\":\\\"2026-03-04 08:45:37\\\"}\"}','Audited TRANSACTION_CREATED on payment_transactions','2026-03-04 08:45:37'),
 (110,5,38,'::1','PAYMENT_RECORDED','fee_records',21,'{\"old\":\"{\\\"id\\\":21,\\\"tenant_id\\\":5,\\\"student_id\\\":54,\\\"batch_id\\\":4,\\\"fee_item_id\\\":2,\\\"installment_no\\\":1,\\\"amount_due\\\":\\\"7000.00\\\",\\\"amount_paid\\\":\\\"5000.00\\\",\\\"discount_amount\\\":\\\"0.00\\\",\\\"due_date\\\":\\\"2026-03-01\\\",\\\"paid_date\\\":\\\"2026-03-04\\\",\\\"receipt_no\\\":\\\"RCP-000044\\\",\\\"receipt_path\\\":null,\\\"payment_mode\\\":\\\"cash\\\",\\\"cashier_user_id\\\":38,\\\"fine_applied\\\":\\\"0.00\\\",\\\"fine_waived\\\":\\\"0.00\\\",\\\"notes\\\":null,\\\"academic_year\\\":\\\"2026-2027\\\",\\\"status\\\":\\\"partial\\\",\\\"invoice_id\\\":null,\\\"created_at\\\":\\\"2026-03-01 11:01:18\\\",\\\"updated_at\\\":\\\"2026-03-04 08:45:37\\\"}\",\"new\":\"{\\\"id\\\":21,\\\"tenant_id\\\":5,\\\"student_id\\\":54,\\\"batch_id\\\":4,\\\"fee_item_id\\\":2,\\\"installment_no\\\":1,\\\"amount_due\\\":\\\"7000.00\\\",\\\"amount_paid\\\":\\\"5610.00\\\",\\\"discount_amount\\\":\\\"0.00\\\",\\\"due_date\\\":\\\"2026-03-01\\\",\\\"paid_date\\\":\\\"2026-03-04\\\",\\\"receipt_no\\\":\\\"RCP-000045\\\",\\\"receipt_path\\\":null,\\\"payment_mode\\\":\\\"cash\\\",\\\"cashier_user_id\\\":38,\\\"fine_applied\\\":\\\"0.00\\\",\\\"fine_waived\\\":\\\"0.00\\\",\\\"notes\\\":null,\\\"academic_year\\\":\\\"2026-2027\\\",\\\"status\\\":\\\"partial\\\",\\\"invoice_id\\\":null,\\\"created_at\\\":\\\"2026-03-01 11:01:18\\\",\\\"updated_at\\\":\\\"2026-03-04 08:46:27\\\"}\"}','Audited PAYMENT_RECORDED on fee_records','2026-03-04 08:46:27'),
 (111,5,38,'::1','TRANSACTION_CREATED','payment_transactions',42,'{\"old\":null,\"new\":\"{\\\"id\\\":42,\\\"tenant_id\\\":5,\\\"student_id\\\":54,\\\"fee_record_id\\\":21,\\\"invoice_id\\\":null,\\\"amount\\\":\\\"610.00\\\",\\\"payment_method\\\":\\\"cash\\\",\\\"transaction_id\\\":null,\\\"receipt_number\\\":\\\"RCP-000045\\\",\\\"payment_date\\\":\\\"2026-03-04\\\",\\\"receipt_path\\\":null,\\\"recorded_by\\\":38,\\\"notes\\\":\\\" (Bulk Payment Part)\\\",\\\"status\\\":\\\"completed\\\",\\\"created_at\\\":\\\"2026-03-04 08:46:27\\\",\\\"updated_at\\\":\\\"2026-03-04 08:46:27\\\"}\"}','Audited TRANSACTION_CREATED on payment_transactions','2026-03-04 08:46:27'),
-(113,5,38,'::1','CREATE','students',65,'{\"old\":null,\"new\":\"{\\\"id\\\":65,\\\"tenant_id\\\":5,\\\"user_id\\\":91,\\\"batch_id\\\":34,\\\"roll_no\\\":\\\"STD-0063\\\",\\\"full_name\\\":\\\"Nepal Cyber Firm\\\",\\\"dob_ad\\\":\\\"2010-11-17\\\",\\\"dob_bs\\\":\\\"2063-09-05\\\",\\\"gender\\\":\\\"male\\\",\\\"blood_group\\\":\\\"\\\",\\\"phone\\\":null,\\\"email\\\":null,\\\"citizenship_no\\\":\\\"nepalcyberfirm@gmail.com\\\",\\\"national_id\\\":null,\\\"father_name\\\":\\\"Nepal Cyber Firm\\\",\\\"mother_name\\\":null,\\\"husband_name\\\":null,\\\"guardian_name\\\":null,\\\"guardian_relation\\\":null,\\\"permanent_address\\\":\\\"{\\\\\\\"address\\\\\\\":\\\\\\\"Hamro Labs ,No. 13, Radhemai, Birgunj Metropolitan City Parsa District, Madhesh Province, Nepal Postal Code: 44300\\\\\\\"}\\\",\\\"temporary_address\\\":\\\"{}\\\",\\\"academic_qualifications\\\":\\\"[]\\\",\\\"admission_date\\\":\\\"2026-03-04\\\",\\\"photo_url\\\":null,\\\"identity_doc_url\\\":null,\\\"status\\\":\\\"active\\\",\\\"registration_mode\\\":\\\"full\\\",\\\"registration_status\\\":\\\"fully_registered\\\",\\\"id_card_status\\\":\\\"none\\\",\\\"id_card_issued_at\\\":null,\\\"created_at\\\":\\\"2026-03-04 09:20:48\\\",\\\"updated_at\\\":\\\"2026-03-04 09:20:48\\\",\\\"deleted_at\\\":null}\"}','Audited CREATE on students','2026-03-04 09:20:48');
+(113,5,38,'::1','CREATE','students',65,'{\"old\":null,\"new\":\"{\\\"id\\\":65,\\\"tenant_id\\\":5,\\\"user_id\\\":91,\\\"batch_id\\\":34,\\\"roll_no\\\":\\\"STD-0063\\\",\\\"full_name\\\":\\\"Nepal Cyber Firm\\\",\\\"dob_ad\\\":\\\"2010-11-17\\\",\\\"dob_bs\\\":\\\"2063-09-05\\\",\\\"gender\\\":\\\"male\\\",\\\"blood_group\\\":\\\"\\\",\\\"phone\\\":null,\\\"email\\\":null,\\\"citizenship_no\\\":\\\"nepalcyberfirm@gmail.com\\\",\\\"national_id\\\":null,\\\"father_name\\\":\\\"Nepal Cyber Firm\\\",\\\"mother_name\\\":null,\\\"husband_name\\\":null,\\\"guardian_name\\\":null,\\\"guardian_relation\\\":null,\\\"permanent_address\\\":\\\"{\\\\\\\"address\\\\\\\":\\\\\\\"Hamro Labs ,No. 13, Radhemai, Birgunj Metropolitan City Parsa District, Madhesh Province, Nepal Postal Code: 44300\\\\\\\"}\\\",\\\"temporary_address\\\":\\\"{}\\\",\\\"academic_qualifications\\\":\\\"[]\\\",\\\"admission_date\\\":\\\"2026-03-04\\\",\\\"photo_url\\\":null,\\\"identity_doc_url\\\":null,\\\"status\\\":\\\"active\\\",\\\"registration_mode\\\":\\\"full\\\",\\\"registration_status\\\":\\\"fully_registered\\\",\\\"id_card_status\\\":\\\"none\\\",\\\"id_card_issued_at\\\":null,\\\"created_at\\\":\\\"2026-03-04 09:20:48\\\",\\\"updated_at\\\":\\\"2026-03-04 09:20:48\\\",\\\"deleted_at\\\":null}\"}','Audited CREATE on students','2026-03-04 09:20:48'),
+(114,5,38,'::1','CREATE','students',72,'{\"old\":null,\"new\":\"{\\\"id\\\":72,\\\"tenant_id\\\":5,\\\"user_id\\\":105,\\\"batch_id\\\":34,\\\"roll_no\\\":\\\"STD-2026-0072\\\",\\\"full_name\\\":\\\"Badri Patel\\\",\\\"dob_ad\\\":\\\"2008-01-30\\\",\\\"dob_bs\\\":\\\"2063-09-05\\\",\\\"gender\\\":\\\"male\\\",\\\"blood_group\\\":\\\"AB+\\\",\\\"phone\\\":\\\"9825205184\\\",\\\"email\\\":\\\"nepalcodingschool@gmail.com\\\",\\\"citizenship_no\\\":null,\\\"national_id\\\":null,\\\"father_name\\\":\\\"Nepal Cyber Firm\\\",\\\"mother_name\\\":null,\\\"husband_name\\\":null,\\\"guardian_name\\\":null,\\\"guardian_relation\\\":null,\\\"permanent_address\\\":\\\"{\\\\\\\"address\\\\\\\":\\\\\\\"Hamro Labs ,No. 13, Radhemai, Birgunj Metropolitan City Parsa District, Madhesh Province, Nepal Postal Code: 44300\\\\\\\"}\\\",\\\"temporary_address\\\":\\\"{}\\\",\\\"academic_qualifications\\\":\\\"[]\\\",\\\"admission_date\\\":\\\"2026-03-05\\\",\\\"photo_url\\\":null,\\\"identity_doc_url\\\":null,\\\"status\\\":\\\"active\\\",\\\"registration_mode\\\":\\\"full\\\",\\\"registration_status\\\":\\\"fully_registered\\\",\\\"id_card_status\\\":\\\"none\\\",\\\"id_card_issued_at\\\":null,\\\"created_at\\\":\\\"2026-03-05 17:24:40\\\",\\\"updated_at\\\":\\\"2026-03-05 17:24:40\\\",\\\"deleted_at\\\":null}\"}','Audited CREATE on students','2026-03-05 17:24:40'),
+(115,5,85,'::1','CREATE','students',77,'{\"old\":null,\"new\":\"{\\\"id\\\":77,\\\"tenant_id\\\":5,\\\"user_id\\\":110,\\\"batch_id\\\":4,\\\"roll_no\\\":\\\"STD-2026-0077\\\",\\\"full_name\\\":\\\"Devbarat Prasad Patel\\\",\\\"dob_ad\\\":\\\"2014-12-29\\\",\\\"dob_bs\\\":\\\"2071-09-14\\\",\\\"gender\\\":\\\"male\\\",\\\"blood_group\\\":\\\"\\\",\\\"phone\\\":\\\"9811144402\\\",\\\"email\\\":\\\"sanojpatel845484@gmail.com\\\",\\\"citizenship_no\\\":\\\"mind59024@gmail.com\\\",\\\"national_id\\\":null,\\\"father_name\\\":\\\"Devbarat Prasad Patel\\\",\\\"mother_name\\\":null,\\\"husband_name\\\":null,\\\"guardian_name\\\":null,\\\"guardian_relation\\\":null,\\\"permanent_address\\\":\\\"{\\\\\\\"address\\\\\\\":\\\\\\\"Bahudramai-07, Phulkaul, Parsa\\\\\\\"}\\\",\\\"temporary_address\\\":\\\"{\\\\\\\"address\\\\\\\":\\\\\\\"Birgunj-13, Radhemai , Parsa\\\\\\\"}\\\",\\\"academic_qualifications\\\":\\\"[]\\\",\\\"admission_date\\\":\\\"2026-03-05\\\",\\\"photo_url\\\":null,\\\"identity_doc_url\\\":null,\\\"status\\\":\\\"active\\\",\\\"registration_mode\\\":\\\"full\\\",\\\"registration_status\\\":\\\"fully_registered\\\",\\\"id_card_status\\\":\\\"none\\\",\\\"id_card_issued_at\\\":null,\\\"created_at\\\":\\\"2026-03-05 17:38:20\\\",\\\"updated_at\\\":\\\"2026-03-05 17:38:20\\\",\\\"deleted_at\\\":null}\"}','Audited CREATE on students','2026-03-05 17:38:20'),
+(116,5,38,'::1','PAYMENT_RECORDED','fee_records',28,'{\"old\":\"{\\\"id\\\":28,\\\"tenant_id\\\":5,\\\"student_id\\\":72,\\\"batch_id\\\":34,\\\"fee_item_id\\\":12,\\\"installment_no\\\":1,\\\"amount_due\\\":\\\"8000.00\\\",\\\"amount_paid\\\":\\\"0.00\\\",\\\"discount_amount\\\":\\\"0.00\\\",\\\"due_date\\\":\\\"2026-03-05\\\",\\\"paid_date\\\":null,\\\"receipt_no\\\":null,\\\"receipt_path\\\":null,\\\"payment_mode\\\":null,\\\"cashier_user_id\\\":null,\\\"fine_applied\\\":\\\"0.00\\\",\\\"fine_waived\\\":\\\"0.00\\\",\\\"notes\\\":null,\\\"academic_year\\\":\\\"2026-2027\\\",\\\"status\\\":\\\"pending\\\",\\\"invoice_id\\\":null,\\\"created_at\\\":\\\"2026-03-05 17:24:40\\\",\\\"updated_at\\\":\\\"2026-03-05 17:24:40\\\"}\",\"new\":\"{\\\"id\\\":28,\\\"tenant_id\\\":5,\\\"student_id\\\":72,\\\"batch_id\\\":34,\\\"fee_item_id\\\":12,\\\"installment_no\\\":1,\\\"amount_due\\\":\\\"8000.00\\\",\\\"amount_paid\\\":\\\"5390.00\\\",\\\"discount_amount\\\":\\\"0.00\\\",\\\"due_date\\\":\\\"2026-03-05\\\",\\\"paid_date\\\":\\\"2026-03-05\\\",\\\"receipt_no\\\":\\\"RCP-000046\\\",\\\"receipt_path\\\":null,\\\"payment_mode\\\":\\\"cash\\\",\\\"cashier_user_id\\\":38,\\\"fine_applied\\\":\\\"0.00\\\",\\\"fine_waived\\\":\\\"0.00\\\",\\\"notes\\\":null,\\\"academic_year\\\":\\\"2026-2027\\\",\\\"status\\\":\\\"partial\\\",\\\"invoice_id\\\":null,\\\"created_at\\\":\\\"2026-03-05 17:24:40\\\",\\\"updated_at\\\":\\\"2026-03-05 18:08:36\\\"}\"}','Audited PAYMENT_RECORDED on fee_records','2026-03-05 18:08:36'),
+(117,5,38,'::1','TRANSACTION_CREATED','payment_transactions',43,'{\"old\":null,\"new\":\"{\\\"id\\\":43,\\\"tenant_id\\\":5,\\\"student_id\\\":72,\\\"fee_record_id\\\":28,\\\"invoice_id\\\":null,\\\"amount\\\":\\\"5390.00\\\",\\\"payment_method\\\":\\\"cash\\\",\\\"transaction_id\\\":null,\\\"receipt_number\\\":\\\"RCP-000046\\\",\\\"payment_date\\\":\\\"2026-03-05\\\",\\\"receipt_path\\\":null,\\\"recorded_by\\\":38,\\\"notes\\\":\\\" (Bulk Payment Part)\\\",\\\"status\\\":\\\"completed\\\",\\\"created_at\\\":\\\"2026-03-05 18:08:36\\\",\\\"updated_at\\\":\\\"2026-03-05 18:08:36\\\"}\"}','Audited TRANSACTION_CREATED on payment_transactions','2026-03-05 18:08:36'),
+(118,5,38,'::1','PAYMENT_RECORDED','fee_records',21,'{\"old\":\"{\\\"id\\\":21,\\\"tenant_id\\\":5,\\\"student_id\\\":54,\\\"batch_id\\\":4,\\\"fee_item_id\\\":2,\\\"installment_no\\\":1,\\\"amount_due\\\":\\\"7000.00\\\",\\\"amount_paid\\\":\\\"5610.00\\\",\\\"discount_amount\\\":\\\"0.00\\\",\\\"due_date\\\":\\\"2026-03-01\\\",\\\"paid_date\\\":\\\"2026-03-04\\\",\\\"receipt_no\\\":\\\"RCP-000045\\\",\\\"receipt_path\\\":null,\\\"payment_mode\\\":\\\"cash\\\",\\\"cashier_user_id\\\":38,\\\"fine_applied\\\":\\\"0.00\\\",\\\"fine_waived\\\":\\\"0.00\\\",\\\"notes\\\":null,\\\"academic_year\\\":\\\"2026-2027\\\",\\\"status\\\":\\\"partial\\\",\\\"invoice_id\\\":null,\\\"created_at\\\":\\\"2026-03-01 11:01:18\\\",\\\"updated_at\\\":\\\"2026-03-04 08:46:27\\\"}\",\"new\":\"{\\\"id\\\":21,\\\"tenant_id\\\":5,\\\"student_id\\\":54,\\\"batch_id\\\":4,\\\"fee_item_id\\\":2,\\\"installment_no\\\":1,\\\"amount_due\\\":\\\"7000.00\\\",\\\"amount_paid\\\":\\\"6000.00\\\",\\\"discount_amount\\\":\\\"0.00\\\",\\\"due_date\\\":\\\"2026-03-01\\\",\\\"paid_date\\\":\\\"2026-03-05\\\",\\\"receipt_no\\\":\\\"RCP-000047\\\",\\\"receipt_path\\\":null,\\\"payment_mode\\\":\\\"cash\\\",\\\"cashier_user_id\\\":38,\\\"fine_applied\\\":\\\"0.00\\\",\\\"fine_waived\\\":\\\"0.00\\\",\\\"notes\\\":null,\\\"academic_year\\\":\\\"2026-2027\\\",\\\"status\\\":\\\"partial\\\",\\\"invoice_id\\\":null,\\\"created_at\\\":\\\"2026-03-01 11:01:18\\\",\\\"updated_at\\\":\\\"2026-03-05 18:12:15\\\"}\"}','Audited PAYMENT_RECORDED on fee_records','2026-03-05 18:12:15'),
+(119,5,38,'::1','TRANSACTION_CREATED','payment_transactions',44,'{\"old\":null,\"new\":\"{\\\"id\\\":44,\\\"tenant_id\\\":5,\\\"student_id\\\":54,\\\"fee_record_id\\\":21,\\\"invoice_id\\\":null,\\\"amount\\\":\\\"390.00\\\",\\\"payment_method\\\":\\\"cash\\\",\\\"transaction_id\\\":null,\\\"receipt_number\\\":\\\"RCP-000047\\\",\\\"payment_date\\\":\\\"2026-03-05\\\",\\\"receipt_path\\\":null,\\\"recorded_by\\\":38,\\\"notes\\\":\\\" (Bulk Payment Part)\\\",\\\"status\\\":\\\"completed\\\",\\\"created_at\\\":\\\"2026-03-05 18:12:15\\\",\\\"updated_at\\\":\\\"2026-03-05 18:12:15\\\"}\"}','Audited TRANSACTION_CREATED on payment_transactions','2026-03-05 18:12:15'),
+(120,5,38,'::1','PAYMENT_RECORDED','fee_records',21,'{\"old\":\"{\\\"id\\\":21,\\\"tenant_id\\\":5,\\\"student_id\\\":54,\\\"batch_id\\\":4,\\\"fee_item_id\\\":2,\\\"installment_no\\\":1,\\\"amount_due\\\":\\\"7000.00\\\",\\\"amount_paid\\\":\\\"6000.00\\\",\\\"discount_amount\\\":\\\"0.00\\\",\\\"due_date\\\":\\\"2026-03-01\\\",\\\"paid_date\\\":\\\"2026-03-05\\\",\\\"receipt_no\\\":\\\"RCP-000047\\\",\\\"receipt_path\\\":null,\\\"payment_mode\\\":\\\"cash\\\",\\\"cashier_user_id\\\":38,\\\"fine_applied\\\":\\\"0.00\\\",\\\"fine_waived\\\":\\\"0.00\\\",\\\"notes\\\":null,\\\"academic_year\\\":\\\"2026-2027\\\",\\\"status\\\":\\\"partial\\\",\\\"invoice_id\\\":null,\\\"created_at\\\":\\\"2026-03-01 11:01:18\\\",\\\"updated_at\\\":\\\"2026-03-05 18:12:15\\\"}\",\"new\":\"{\\\"id\\\":21,\\\"tenant_id\\\":5,\\\"student_id\\\":54,\\\"batch_id\\\":4,\\\"fee_item_id\\\":2,\\\"installment_no\\\":1,\\\"amount_due\\\":\\\"7000.00\\\",\\\"amount_paid\\\":\\\"6390.00\\\",\\\"discount_amount\\\":\\\"0.00\\\",\\\"due_date\\\":\\\"2026-03-01\\\",\\\"paid_date\\\":\\\"2026-03-05\\\",\\\"receipt_no\\\":\\\"RCP-000048\\\",\\\"receipt_path\\\":null,\\\"payment_mode\\\":\\\"cash\\\",\\\"cashier_user_id\\\":38,\\\"fine_applied\\\":\\\"0.00\\\",\\\"fine_waived\\\":\\\"0.00\\\",\\\"notes\\\":null,\\\"academic_year\\\":\\\"2026-2027\\\",\\\"status\\\":\\\"partial\\\",\\\"invoice_id\\\":null,\\\"created_at\\\":\\\"2026-03-01 11:01:18\\\",\\\"updated_at\\\":\\\"2026-03-05 18:12:55\\\"}\"}','Audited PAYMENT_RECORDED on fee_records','2026-03-05 18:12:55'),
+(121,5,38,'::1','TRANSACTION_CREATED','payment_transactions',45,'{\"old\":null,\"new\":\"{\\\"id\\\":45,\\\"tenant_id\\\":5,\\\"student_id\\\":54,\\\"fee_record_id\\\":21,\\\"invoice_id\\\":null,\\\"amount\\\":\\\"390.00\\\",\\\"payment_method\\\":\\\"cash\\\",\\\"transaction_id\\\":null,\\\"receipt_number\\\":\\\"RCP-000048\\\",\\\"payment_date\\\":\\\"2026-03-05\\\",\\\"receipt_path\\\":null,\\\"recorded_by\\\":38,\\\"notes\\\":\\\" (Bulk Payment Part)\\\",\\\"status\\\":\\\"completed\\\",\\\"created_at\\\":\\\"2026-03-05 18:12:55\\\",\\\"updated_at\\\":\\\"2026-03-05 18:12:55\\\"}\"}','Audited TRANSACTION_CREATED on payment_transactions','2026-03-05 18:12:55'),
+(122,5,38,'::1','PAYMENT_RECORDED','fee_records',20,'{\"old\":\"{\\\"id\\\":20,\\\"tenant_id\\\":5,\\\"student_id\\\":53,\\\"batch_id\\\":4,\\\"fee_item_id\\\":2,\\\"installment_no\\\":1,\\\"amount_due\\\":\\\"7000.00\\\",\\\"amount_paid\\\":\\\"3000.00\\\",\\\"discount_amount\\\":\\\"0.00\\\",\\\"due_date\\\":\\\"2026-03-01\\\",\\\"paid_date\\\":\\\"2026-03-01\\\",\\\"receipt_no\\\":\\\"RCP-000027\\\",\\\"receipt_path\\\":null,\\\"payment_mode\\\":\\\"cash\\\",\\\"cashier_user_id\\\":38,\\\"fine_applied\\\":\\\"0.00\\\",\\\"fine_waived\\\":\\\"0.00\\\",\\\"notes\\\":null,\\\"academic_year\\\":\\\"2026-2027\\\",\\\"status\\\":\\\"partial\\\",\\\"invoice_id\\\":null,\\\"created_at\\\":\\\"2026-03-01 09:25:19\\\",\\\"updated_at\\\":\\\"2026-03-01 10:09:56\\\"}\",\"new\":\"{\\\"id\\\":20,\\\"tenant_id\\\":5,\\\"student_id\\\":53,\\\"batch_id\\\":4,\\\"fee_item_id\\\":2,\\\"installment_no\\\":1,\\\"amount_due\\\":\\\"7000.00\\\",\\\"amount_paid\\\":4000,\\\"discount_amount\\\":\\\"0.00\\\",\\\"due_date\\\":\\\"2026-03-01\\\",\\\"paid_date\\\":\\\"2026-03-01\\\",\\\"receipt_no\\\":\\\"RCP-000027\\\",\\\"receipt_path\\\":null,\\\"payment_mode\\\":\\\"cash\\\",\\\"cashier_user_id\\\":38,\\\"fine_applied\\\":\\\"0.00\\\",\\\"fine_waived\\\":\\\"0.00\\\",\\\"notes\\\":null,\\\"academic_year\\\":\\\"2026-2027\\\",\\\"status\\\":\\\"partial\\\",\\\"invoice_id\\\":null,\\\"created_at\\\":\\\"2026-03-01 09:25:19\\\",\\\"updated_at\\\":\\\"2026-03-01 10:09:56\\\"}\"}','Audited PAYMENT_RECORDED on fee_records','2026-03-06 14:14:11'),
+(123,5,38,'::1','TRANSACTION_CREATED','payment_transactions',46,'{\"old\":null,\"new\":\"{\\\"tenant_id\\\":5,\\\"student_id\\\":53,\\\"fee_record_id\\\":20,\\\"amount\\\":1000,\\\"payment_method\\\":\\\"cash\\\",\\\"receipt_number\\\":\\\"RCP-000049\\\",\\\"payment_date\\\":\\\"2026-03-06\\\",\\\"recorded_by\\\":38,\\\"notes\\\":\\\" (Bulk Payment Part)\\\",\\\"status\\\":\\\"completed\\\"}\"}','Audited TRANSACTION_CREATED on payment_transactions','2026-03-06 14:14:11'),
+(124,5,38,'::1','PAYMENT_RECORDED','fee_records',21,'{\"old\":\"{\\\"id\\\":21,\\\"tenant_id\\\":5,\\\"student_id\\\":54,\\\"batch_id\\\":4,\\\"fee_item_id\\\":2,\\\"installment_no\\\":1,\\\"amount_due\\\":\\\"7000.00\\\",\\\"amount_paid\\\":\\\"6390.00\\\",\\\"discount_amount\\\":\\\"0.00\\\",\\\"due_date\\\":\\\"2026-03-01\\\",\\\"paid_date\\\":\\\"2026-03-05\\\",\\\"receipt_no\\\":\\\"RCP-000048\\\",\\\"receipt_path\\\":null,\\\"payment_mode\\\":\\\"cash\\\",\\\"cashier_user_id\\\":38,\\\"fine_applied\\\":\\\"0.00\\\",\\\"fine_waived\\\":\\\"0.00\\\",\\\"notes\\\":null,\\\"academic_year\\\":\\\"2026-2027\\\",\\\"status\\\":\\\"partial\\\",\\\"invoice_id\\\":null,\\\"created_at\\\":\\\"2026-03-01 11:01:18\\\",\\\"updated_at\\\":\\\"2026-03-05 18:12:55\\\"}\",\"new\":\"{\\\"id\\\":21,\\\"tenant_id\\\":5,\\\"student_id\\\":54,\\\"batch_id\\\":4,\\\"fee_item_id\\\":2,\\\"installment_no\\\":1,\\\"amount_due\\\":\\\"7000.00\\\",\\\"amount_paid\\\":6490,\\\"discount_amount\\\":\\\"0.00\\\",\\\"due_date\\\":\\\"2026-03-01\\\",\\\"paid_date\\\":\\\"2026-03-05\\\",\\\"receipt_no\\\":\\\"RCP-000048\\\",\\\"receipt_path\\\":null,\\\"payment_mode\\\":\\\"cash\\\",\\\"cashier_user_id\\\":38,\\\"fine_applied\\\":\\\"0.00\\\",\\\"fine_waived\\\":\\\"0.00\\\",\\\"notes\\\":null,\\\"academic_year\\\":\\\"2026-2027\\\",\\\"status\\\":\\\"partial\\\",\\\"invoice_id\\\":null,\\\"created_at\\\":\\\"2026-03-01 11:01:18\\\",\\\"updated_at\\\":\\\"2026-03-05 18:12:55\\\"}\"}','Audited PAYMENT_RECORDED on fee_records','2026-03-06 16:10:07'),
+(125,5,38,'::1','TRANSACTION_CREATED','payment_transactions',47,'{\"old\":null,\"new\":\"{\\\"tenant_id\\\":5,\\\"student_id\\\":54,\\\"fee_record_id\\\":21,\\\"amount\\\":100,\\\"payment_method\\\":\\\"cash\\\",\\\"receipt_number\\\":\\\"RCP-000050\\\",\\\"payment_date\\\":\\\"2026-03-06\\\",\\\"recorded_by\\\":38,\\\"notes\\\":\\\" (Bulk Payment Part)\\\",\\\"status\\\":\\\"completed\\\"}\"}','Audited TRANSACTION_CREATED on payment_transactions','2026-03-06 16:10:07');
 
 /*Table structure for table `batch_subject_allocations` */
 
@@ -526,7 +540,7 @@ CREATE TABLE `email_logs` (
   KEY `fk_email_logs_student` (`student_id`),
   CONSTRAINT `fk_email_logs_student` FOREIGN KEY (`student_id`) REFERENCES `students` (`id`) ON DELETE SET NULL,
   CONSTRAINT `fk_email_logs_tenant` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=28 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 /*Data for the table `email_logs` */
 
@@ -554,7 +568,10 @@ insert  into `email_logs`(`id`,`tenant_id`,`student_id`,`email`,`subject`,`statu
 (21,5,53,'addamssmith937@gmail.com','Welcome Credentials','sent',NULL,'2026-03-01 09:25:24'),
 (22,5,54,'dhirendraparshad65@gmail.com','Welcome Credentials','sent',NULL,'2026-03-01 11:01:24'),
 (23,5,55,'amirisah1@gmail.com','Welcome Credentials','sent',NULL,'2026-03-01 11:40:30'),
-(24,5,65,'nepalcyberfirm@gmail.com','Welcome Credentials','sent',NULL,'2026-03-04 09:20:53');
+(24,5,65,'nepalcyberfirm@gmail.com','Welcome Credentials','sent',NULL,'2026-03-04 09:20:53'),
+(25,5,72,'nepalcodingschool@gmail.com','Welcome Credentials','sent',NULL,'2026-03-05 17:24:56'),
+(26,5,76,'test_student_1772711133@example.com','Welcome Credentials','failed','Failed to send welcome email','2026-03-05 17:30:33'),
+(27,5,77,'sanojpatel845484@gmail.com','Welcome Credentials','sent',NULL,'2026-03-05 17:38:30');
 
 /*Table structure for table `email_settings` */
 
@@ -631,7 +648,7 @@ CREATE TABLE `enrollments` (
   CONSTRAINT `fk_enr_batch_ref` FOREIGN KEY (`batch_id`) REFERENCES `batches` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_enr_student_ref` FOREIGN KEY (`student_id`) REFERENCES `students` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_enr_tenant_ref` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=34 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=43 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 /*Data for the table `enrollments` */
 
@@ -639,7 +656,10 @@ insert  into `enrollments`(`id`,`tenant_id`,`student_id`,`batch_id`,`enrollment_
 (30,5,53,4,NULL,'2026-03-01','active','2026-03-01 09:25:19','2026-03-01 09:25:19',NULL),
 (31,5,54,4,NULL,'2026-03-01','active','2026-03-01 11:01:18','2026-03-01 11:01:18',NULL),
 (32,5,55,4,NULL,'2026-03-01','active','2026-03-01 11:40:25','2026-03-01 11:40:25',NULL),
-(33,5,65,34,'ENR-5-2026-00065','2026-03-04','active','2026-03-04 09:20:48','2026-03-04 09:20:48',NULL);
+(33,5,65,34,'ENR-5-2026-00065','2026-03-04','active','2026-03-04 09:20:48','2026-03-04 09:20:48',NULL),
+(37,5,72,34,'ENR-5-2026-00072','2026-03-05','active','2026-03-05 17:24:40','2026-03-05 17:24:40',NULL),
+(41,5,76,4,'ENR-5-2026-00076','2026-03-05','active','2026-03-05 17:30:33','2026-03-05 17:30:33',NULL),
+(42,5,77,4,'ENR-5-2026-00077','2026-03-05','active','2026-03-05 17:38:20','2026-03-05 17:38:20',NULL);
 
 /*Table structure for table `exam_attempts` */
 
@@ -827,20 +847,27 @@ CREATE TABLE `fee_records` (
   KEY `idx_tenant_due_date` (`tenant_id`,`due_date`),
   KEY `idx_fee_records_status_simple` (`status`),
   KEY `idx_fee_records_created_at` (`created_at`),
+  KEY `idx_fee_records_status_tenant` (`status`,`tenant_id`),
+  KEY `idx_fee_records_batch_tenant` (`batch_id`,`tenant_id`,`status`),
   CONSTRAINT `fk_fee_records_cashier` FOREIGN KEY (`cashier_user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL,
   CONSTRAINT `fk_fee_records_fee_item` FOREIGN KEY (`fee_item_id`) REFERENCES `fee_items` (`id`),
   CONSTRAINT `fk_fee_records_student` FOREIGN KEY (`student_id`) REFERENCES `students` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_fee_records_tenant` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=28 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=33 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 /*Data for the table `fee_records` */
 
 insert  into `fee_records`(`id`,`tenant_id`,`student_id`,`batch_id`,`fee_item_id`,`installment_no`,`amount_due`,`amount_paid`,`discount_amount`,`due_date`,`paid_date`,`receipt_no`,`receipt_path`,`payment_mode`,`cashier_user_id`,`fine_applied`,`fine_waived`,`notes`,`academic_year`,`status`,`invoice_id`,`created_at`,`updated_at`) values 
-(20,5,53,4,2,1,7000.00,3000.00,0.00,'2026-03-01','2026-03-01','RCP-000027',NULL,'cash',38,0.00,0.00,NULL,'2026-2027','partial',NULL,'2026-03-01 09:25:19','2026-03-01 10:09:56'),
-(21,5,54,4,2,1,7000.00,5610.00,0.00,'2026-03-01','2026-03-04','RCP-000045',NULL,'cash',38,0.00,0.00,NULL,'2026-2027','partial',NULL,'2026-03-01 11:01:18','2026-03-04 08:46:27'),
+(20,5,53,4,2,1,7000.00,4000.00,0.00,'2026-03-01','2026-03-06','RCP-000049',NULL,'cash',38,0.00,0.00,NULL,'2026-2027','partial',NULL,'2026-03-01 09:25:19','2026-03-06 14:14:11'),
+(21,5,54,4,2,1,7000.00,6490.00,0.00,'2026-03-01','2026-03-06','RCP-000050',NULL,'cash',38,0.00,0.00,NULL,'2026-2027','partial',NULL,'2026-03-01 11:01:18','2026-03-06 16:10:07'),
 (22,5,55,4,2,1,7000.00,7000.00,0.00,'2026-03-01','2026-03-01','RCP-000033',NULL,'cash',38,0.00,0.00,NULL,'2026-2027','paid',NULL,'2026-03-01 11:40:25','2026-03-01 12:15:59'),
 (26,5,62,4,11,1,5000.00,5000.00,0.00,'2026-03-02','2026-03-02','RCP-000043',NULL,'cash',1,0.00,0.00,NULL,'2026-2027','paid',NULL,'2026-03-02 19:03:51','2026-03-04 08:49:04'),
-(27,5,65,34,12,1,8000.00,0.00,0.00,'2026-03-04',NULL,NULL,NULL,NULL,NULL,0.00,0.00,NULL,'2026-2027','pending',NULL,'2026-03-04 09:20:48','2026-03-04 09:20:48');
+(27,5,65,34,12,1,8000.00,0.00,0.00,'2026-03-04',NULL,NULL,NULL,NULL,NULL,0.00,0.00,NULL,'2026-2027','pending',NULL,'2026-03-04 09:20:48','2026-03-04 09:20:48'),
+(28,5,72,34,12,1,8000.00,5390.00,0.00,'2026-03-05','2026-03-05','RCP-000046',NULL,'cash',38,0.00,0.00,NULL,'2026-2027','partial',NULL,'2026-03-05 17:24:40','2026-03-05 18:08:36'),
+(29,5,76,4,2,1,7000.00,0.00,0.00,'2026-03-05',NULL,NULL,NULL,NULL,NULL,0.00,0.00,NULL,'2026-2027','pending',NULL,'2026-03-05 17:30:33','2026-03-05 17:30:33'),
+(30,5,76,4,11,1,5000.00,0.00,0.00,'2026-03-05',NULL,NULL,NULL,NULL,NULL,0.00,0.00,NULL,'2026-2027','pending',NULL,'2026-03-05 17:30:33','2026-03-05 17:30:33'),
+(31,5,77,4,2,1,7000.00,0.00,0.00,'2026-03-05',NULL,NULL,NULL,NULL,NULL,0.00,0.00,NULL,'2026-2027','pending',NULL,'2026-03-05 17:38:20','2026-03-05 17:38:20'),
+(32,5,77,4,11,1,5000.00,0.00,0.00,'2026-03-05',NULL,NULL,NULL,NULL,NULL,0.00,0.00,NULL,'2026-2027','pending',NULL,'2026-03-05 17:38:20','2026-03-05 17:38:20');
 
 /*Table structure for table `fee_settings` */
 
@@ -868,7 +895,7 @@ CREATE TABLE `fee_settings` (
 /*Data for the table `fee_settings` */
 
 insert  into `fee_settings`(`id`,`tenant_id`,`invoice_prefix`,`receipt_prefix`,`next_invoice_number`,`next_receipt_number`,`auto_generate_invoice`,`send_invoice_email`,`apply_late_fine`,`late_fine_grace_days`,`currency`,`created_at`,`updated_at`) values 
-(2,5,'INV','RCP',1,46,1,1,1,5,'NPR',NULL,NULL);
+(2,5,'INV','RCP',1,51,1,1,1,5,'NPR',NULL,NULL);
 
 /*Table structure for table `guardians` */
 
@@ -1025,6 +1052,30 @@ CREATE TABLE `invoices` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 /*Data for the table `invoices` */
+
+/*Table structure for table `job_queue` */
+
+DROP TABLE IF EXISTS `job_queue`;
+
+CREATE TABLE `job_queue` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `tenant_id` int(11) DEFAULT NULL,
+  `job_type` varchar(50) NOT NULL,
+  `payload` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`payload`)),
+  `status` enum('pending','processing','completed','failed') DEFAULT 'pending',
+  `attempts` int(11) DEFAULT 0,
+  `error_message` text DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `idx_status_tenant` (`status`,`tenant_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+/*Data for the table `job_queue` */
+
+insert  into `job_queue`(`id`,`tenant_id`,`job_type`,`payload`,`status`,`attempts`,`error_message`,`created_at`,`updated_at`) values 
+(1,5,'payment_receipt','{\"transaction_ids\":[\"46\"],\"receipt_no\":\"RCP-000049\",\"student_id\":53}','pending',0,NULL,'2026-03-06 14:14:11','2026-03-06 14:14:11'),
+(2,5,'payment_receipt','{\"transaction_ids\":[\"47\"],\"receipt_no\":\"RCP-000050\",\"student_id\":54}','pending',0,NULL,'2026-03-06 16:10:07','2026-03-06 16:10:07');
 
 /*Table structure for table `leave_requests` */
 
@@ -1355,6 +1406,21 @@ insert  into `password_resets`(`id`,`tenant_id`,`user_id`,`role`,`email`,`token`
 (9,5,38,'instituteadmin','nepalcyberfirm@gmail.com','815275','2026-03-01 08:35:00','2026-03-01 09:05:00'),
 (10,5,38,'instituteadmin','nepalcyberfirm@gmail.com','76a8ff67c96d67c099ad8ff6cbb8d53701b94ae6bff9d96ddbb2b84739e356e0','2026-03-01 08:36:36','2026-03-01 08:57:21');
 
+/*Table structure for table `payment_receipts` */
+
+DROP TABLE IF EXISTS `payment_receipts`;
+
+CREATE TABLE `payment_receipts` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `payment_id` int(11) NOT NULL,
+  `pdf_path` varchar(255) NOT NULL,
+  `generated_at` timestamp NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `idx_payment_id` (`payment_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+/*Data for the table `payment_receipts` */
+
 /*Table structure for table `payment_transactions` */
 
 DROP TABLE IF EXISTS `payment_transactions`;
@@ -1384,11 +1450,12 @@ CREATE TABLE `payment_transactions` (
   KEY `idx_pt_status` (`status`),
   KEY `payment_transactions_fee_record_id_foreign` (`fee_record_id`),
   KEY `payment_transactions_recorded_by_foreign` (`recorded_by`),
+  KEY `idx_pt_date_method_tenant` (`tenant_id`,`payment_date` DESC,`payment_method`),
   CONSTRAINT `payment_transactions_fee_record_id_foreign` FOREIGN KEY (`fee_record_id`) REFERENCES `fee_records` (`id`) ON DELETE CASCADE,
   CONSTRAINT `payment_transactions_recorded_by_foreign` FOREIGN KEY (`recorded_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
   CONSTRAINT `payment_transactions_student_id_foreign` FOREIGN KEY (`student_id`) REFERENCES `students` (`id`) ON DELETE CASCADE,
   CONSTRAINT `payment_transactions_tenant_id_foreign` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=43 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=48 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 /*Data for the table `payment_transactions` */
 
@@ -1410,7 +1477,12 @@ insert  into `payment_transactions`(`id`,`tenant_id`,`student_id`,`fee_record_id
 (39,5,54,21,NULL,100.00,'cash',NULL,'RCP-000039','2026-03-01',NULL,38,' (Bulk Payment Part)','completed','2026-03-02 18:09:10','2026-03-02 18:09:10'),
 (40,5,62,26,NULL,5000.00,'cash',NULL,'RCP-000043','2026-03-02',NULL,1,'Test Payment (Bulk Payment Part)','completed','2026-03-02 19:03:51','2026-03-02 19:03:51'),
 (41,5,54,21,NULL,610.00,'cash',NULL,'RCP-000044','2026-03-04',NULL,38,' (Bulk Payment Part)','completed','2026-03-04 08:45:37','2026-03-04 08:45:37'),
-(42,5,54,21,NULL,610.00,'cash',NULL,'RCP-000045','2026-03-04',NULL,38,' (Bulk Payment Part)','completed','2026-03-04 08:46:27','2026-03-04 08:46:27');
+(42,5,54,21,NULL,610.00,'cash',NULL,'RCP-000045','2026-03-04',NULL,38,' (Bulk Payment Part)','completed','2026-03-04 08:46:27','2026-03-04 08:46:27'),
+(43,5,72,28,NULL,5390.00,'cash',NULL,'RCP-000046','2026-03-05',NULL,38,' (Bulk Payment Part)','completed','2026-03-05 18:08:36','2026-03-05 18:08:36'),
+(44,5,54,21,NULL,390.00,'cash',NULL,'RCP-000047','2026-03-05',NULL,38,' (Bulk Payment Part)','completed','2026-03-05 18:12:15','2026-03-05 18:12:15'),
+(45,5,54,21,NULL,390.00,'cash',NULL,'RCP-000048','2026-03-05',NULL,38,' (Bulk Payment Part)','completed','2026-03-05 18:12:55','2026-03-05 18:12:55'),
+(46,5,53,20,NULL,1000.00,'cash',NULL,'RCP-000049','2026-03-06',NULL,38,' (Bulk Payment Part)','completed','2026-03-06 14:14:11','2026-03-06 14:14:11'),
+(47,5,54,21,NULL,100.00,'cash',NULL,'RCP-000050','2026-03-06',NULL,38,' (Bulk Payment Part)','completed','2026-03-06 16:10:07','2026-03-06 16:10:07');
 
 /*Table structure for table `payments` */
 
@@ -1575,7 +1647,7 @@ CREATE TABLE `remember_tokens` (
   PRIMARY KEY (`id`),
   KEY `idx_remember_user` (`user_id`),
   KEY `idx_remember_token` (`token`)
-) ENGINE=InnoDB AUTO_INCREMENT=20 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=21 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 /*Data for the table `remember_tokens` */
 
@@ -1598,7 +1670,8 @@ insert  into `remember_tokens`(`id`,`user_id`,`token`,`expires_at`,`created_at`)
 (16,38,'51e15ec4dc83bb9914cdcd0a9c21df42701d70187bcc8986b5d25b48fc499a24','2026-03-29 17:19:20','2026-02-27 17:19:20'),
 (17,38,'943141ae4001dfb4528667cc4f5c8995825ab988b34ed697ef383405c07de33f','2026-03-31 11:35:46','2026-03-01 11:35:46'),
 (18,85,'5127af2a9b0178677d151bcae3e0fad05284e57b3ceba963d5a124d3924e70a6','2026-04-01 17:55:50','2026-03-02 17:55:50'),
-(19,85,'21ccbd11d08d05f89f9313a3f79e1f6b578f89d5a5115c319d3698a8af18de82','2026-04-02 06:10:11','2026-03-03 06:10:11');
+(19,85,'21ccbd11d08d05f89f9313a3f79e1f6b578f89d5a5115c319d3698a8af18de82','2026-04-02 06:10:11','2026-03-03 06:10:11'),
+(20,85,'587e7ca1f5e8fbcdd088430abb3127b32043f634c4b2b15850a5f6a2578688e1','2026-04-04 17:33:27','2026-03-05 17:33:27');
 
 /*Table structure for table `sms_logs` */
 
@@ -1717,25 +1790,29 @@ CREATE TABLE `student_fee_summary` (
   `total_fee` decimal(10,2) NOT NULL DEFAULT 0.00,
   `paid_amount` decimal(10,2) NOT NULL DEFAULT 0.00,
   `due_amount` decimal(10,2) NOT NULL DEFAULT 0.00,
-  `fee_status` enum('paid','unpaid','partial','no_fees') NOT NULL DEFAULT 'unpaid',
+  `fee_status` enum('paid','unpaid','partial','overdue','no_fees') NOT NULL DEFAULT 'unpaid',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   PRIMARY KEY (`id`),
   KEY `fk_fee_summary_tenant` (`tenant_id`),
   KEY `fk_fee_summary_student` (`student_id`),
   KEY `fk_fee_summary_enrollment` (`enrollment_id`),
+  KEY `idx_student_fee_summary_lookup` (`student_id`,`tenant_id`,`fee_status`),
   CONSTRAINT `fk_fee_summary_enrollment` FOREIGN KEY (`enrollment_id`) REFERENCES `enrollments` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_fee_summary_student` FOREIGN KEY (`student_id`) REFERENCES `students` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_fee_summary_tenant` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=30 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=33 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 /*Data for the table `student_fee_summary` */
 
 insert  into `student_fee_summary`(`id`,`tenant_id`,`student_id`,`enrollment_id`,`total_fee`,`paid_amount`,`due_amount`,`fee_status`,`created_at`,`updated_at`) values 
-(26,5,53,30,7000.00,3000.00,4000.00,'partial','2026-03-01 09:25:19','2026-03-01 10:09:56'),
-(27,5,54,31,7000.00,5610.00,1390.00,'partial','2026-03-01 11:01:18','2026-03-04 08:46:27'),
+(26,5,53,30,7000.00,4000.00,3000.00,'partial','2026-03-01 09:25:19','2026-03-06 14:14:11'),
+(27,5,54,31,7000.00,6490.00,510.00,'partial','2026-03-01 11:01:18','2026-03-06 16:10:07'),
 (28,5,55,32,7000.00,7000.00,0.00,'paid','2026-03-01 11:40:25','2026-03-01 12:15:59'),
-(29,5,65,33,8000.00,0.00,8000.00,'unpaid','2026-03-04 09:20:48','2026-03-04 09:20:48');
+(29,5,65,33,8000.00,0.00,8000.00,'unpaid','2026-03-04 09:20:48','2026-03-04 09:20:48'),
+(30,5,72,37,8000.00,5390.00,2610.00,'paid','2026-03-05 17:24:40','2026-03-05 18:08:36'),
+(31,5,76,41,7000.00,0.00,7000.00,'unpaid','2026-03-05 17:30:33','2026-03-05 17:30:33'),
+(32,5,77,42,7000.00,0.00,7000.00,'unpaid','2026-03-05 17:38:20','2026-03-05 17:38:20');
 
 /*Table structure for table `student_invoices` */
 
@@ -1841,16 +1918,16 @@ CREATE TABLE `students` (
   `deleted_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `idx_students_roll_no` (`roll_no`,`tenant_id`),
-  KEY `fk_students_user` (`user_id`),
   KEY `fk_students_batch` (`batch_id`),
   KEY `idx_students_status` (`status`),
   KEY `idx_students_deleted_at` (`deleted_at`),
   KEY `idx_students_id_card` (`tenant_id`,`id_card_status`),
   KEY `idx_students_tenant_status` (`tenant_id`,`status`,`deleted_at`),
+  KEY `idx_students_user_id_lookup` (`user_id`,`tenant_id`),
   CONSTRAINT `fk_students_batch` FOREIGN KEY (`batch_id`) REFERENCES `batches` (`id`),
   CONSTRAINT `fk_students_tenant` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_students_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=67 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=78 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 /*Data for the table `students` */
 
@@ -1859,8 +1936,17 @@ insert  into `students`(`id`,`tenant_id`,`user_id`,`batch_id`,`roll_no`,`full_na
 (54,5,87,4,'STD-0054','Devbarat Patel','2026-03-01','2082-11-17','male','','9510408252','dhirendraparshad65@gmail.com','','','','','','','','[]','[]','[]','2026-03-01',NULL,NULL,'active','full','fully_registered','none',NULL,'2026-03-01 11:01:18','2026-03-01 11:04:07',NULL),
 (55,5,88,4,'STD-0055','Amiri Sah ','1996-01-01','2052-09-17','male','AB+','98250350412','amirisah1@gmail.com','','','Nagendra Prasad Patel','Sanju Devi','','','','{\"province\":\"Madhesh Province\",\"district\":\"Parsa\",\"municipality\":\"Bahudramai\",\"ward\":\"\"}','{\"province\":\"Madhesh Province\",\"district\":\"Parsa\",\"municipality\":\"Bahudramai \",\"ward\":\"\"}','[{\"level\":\"+2\",\"school\":\"A Plus academy\",\"year\":\"2079\",\"percentage\":\"B+\"}]','2026-03-01','http://localhost/erp/public/uploads/students/std_1772344524_69a3d4cc64b05.jpg',NULL,'active','full','fully_registered','none',NULL,'2026-03-01 11:40:25','2026-03-01 12:02:26',NULL),
 (62,5,NULL,4,'ROLL-TEST-001','Test Fee Student',NULL,NULL,NULL,NULL,NULL,'testfee@example.com',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'active','full','fully_registered','none',NULL,'2026-03-02 19:03:51','2026-03-02 19:03:51',NULL),
-(65,5,91,34,'STD-0063','Nepal Cyber Firm','2010-11-17','2063-09-05','male','',NULL,NULL,'c1hiEwpZgMLF1S6LfTT2WWJVaTJ4MEQ4ZU9HZFhVbVhrZ3Z0bDVSQjJPZHA3cjdkS0xBUk1LK2hhOG89',NULL,'Nepal Cyber Firm',NULL,NULL,NULL,NULL,'{\"address\":\"Hamro Labs ,No. 13, Radhemai, Birgunj Metropolitan City Parsa District, Madhesh Province, Nepal Postal Code: 44300\"}','{}','[]','2026-03-04',NULL,NULL,'active','full','fully_registered','none',NULL,'2026-03-04 09:20:48','2026-03-04 09:20:48',NULL),
-(66,5,92,4,'STU-2026-0006','Niki Yadav','2009-09-19','','female','','9811144402','nepalcodingschool@gmail.com','1025151',NULL,'Master Mind Facts',NULL,NULL,NULL,NULL,'{\"address\":\"Birgunj-14,Parsa\"}','{\"address\":\"Birgunj-13, Radhemai , Parsa\"}','','2026-03-04',NULL,NULL,'active','full','fully_registered','none',NULL,'2026-03-04 09:24:20','2026-03-05 07:13:38','2026-03-05 07:13:38');
+(65,5,91,34,'STD-0063','Nepal Cyber Firm','2010-11-17','2063-09-05','male','',NULL,NULL,'c1hiEwpZgMLF1S6LfTT2WWJVaTJ4MEQ4ZU9HZFhVbVhrZ3Z0bDVSQjJPZHA3cjdkS0xBUk1LK2hhOG89',NULL,'Nepal Cyber Firm',NULL,NULL,NULL,NULL,'{\"address\":\"Hamro Labs ,No. 13, Radhemai, Birgunj Metropolitan City Parsa District, Madhesh Province, Nepal Postal Code: 44300\"}','{}','[]','2026-03-04',NULL,NULL,'active','full','fully_registered','none',NULL,'2026-03-04 09:20:48','2026-03-06 14:13:27','2026-03-06 14:13:27'),
+(66,5,92,4,'STU-2026-0006','Niki Yadav','2009-09-19','','female','','9811144402','nepalcodingschool@gmail.com','1025151',NULL,'Master Mind Facts',NULL,NULL,NULL,NULL,'{\"address\":\"Birgunj-14,Parsa\"}','{\"address\":\"Birgunj-13, Radhemai , Parsa\"}','','2026-03-04',NULL,NULL,'active','full','fully_registered','none',NULL,'2026-03-04 09:24:20','2026-03-05 07:13:38','2026-03-05 07:13:38'),
+(67,5,100,4,'STD-2026-0067','Test Student Flow','2005-01-01',NULL,'male',NULL,NULL,NULL,NULL,NULL,'Test Father',NULL,NULL,NULL,NULL,'{\"address\":\"Test Address\"}','{}','[]','2026-03-05',NULL,NULL,'active','full','fully_registered','none',NULL,'2026-03-05 17:14:24','2026-03-06 14:13:27','2026-03-06 14:13:27'),
+(68,5,101,4,'STD-2026-0068','Test Student Flow','2005-01-01',NULL,'male',NULL,NULL,NULL,NULL,NULL,'Test Father',NULL,NULL,NULL,NULL,'{\"address\":\"Test Address\"}','{}','[]','2026-03-05',NULL,NULL,'active','full','fully_registered','none',NULL,'2026-03-05 17:15:05','2026-03-06 14:13:27','2026-03-06 14:13:27'),
+(69,5,102,4,'STD-2026-0069','Test Student Flow','2005-01-01',NULL,'male',NULL,NULL,NULL,NULL,NULL,'Test Father',NULL,NULL,NULL,NULL,'{\"address\":\"Test Address\"}','{}','[]','2026-03-05',NULL,NULL,'active','full','fully_registered','none',NULL,'2026-03-05 17:16:15','2026-03-06 14:13:27','2026-03-06 14:13:27'),
+(70,5,103,4,'STD-2026-0070','Test Student Flow','2005-01-01',NULL,'male',NULL,'9800000000','test_student_1772710681@example.com',NULL,NULL,'Test Father','Test Mother',NULL,'Test Guardian','Uncle','{\"address\":\"Test Address\"}','{}','[]','2026-03-05',NULL,NULL,'active','full','fully_registered','none',NULL,'2026-03-05 17:23:01','2026-03-06 14:13:27','2026-03-06 14:13:27'),
+(71,5,104,4,'STD-2026-0071','Test Student Flow','2005-01-01',NULL,'male',NULL,'9800000000','test_student_1772710748@example.com',NULL,NULL,'Test Father','Test Mother',NULL,'Test Guardian','Uncle','{\"address\":\"Test Address\"}','{}','[]','2026-03-05',NULL,NULL,'active','full','fully_registered','none',NULL,'2026-03-05 17:24:08','2026-03-06 14:13:08','2026-03-06 14:13:08'),
+(72,5,105,34,'STD-2026-0072','Badri Patel','2008-01-30','2063-09-05','male','AB+','9825205184','nepalcodingschool@gmail.com',NULL,NULL,'Nepal Cyber Firm',NULL,NULL,NULL,NULL,'{\"address\":\"Hamro Labs ,No. 13, Radhemai, Birgunj Metropolitan City Parsa District, Madhesh Province, Nepal Postal Code: 44300\"}','{}','[]','2026-03-05',NULL,NULL,'active','full','fully_registered','none',NULL,'2026-03-05 17:24:40','2026-03-06 14:13:27','2026-03-06 14:13:27'),
+(73,5,106,4,'STD-2026-0073','Test Student Flow','2005-01-01',NULL,'male',NULL,'9800000000','test_student_1772710872@example.com',NULL,NULL,'Test Father','Test Mother',NULL,'Test Guardian','Uncle','{\"address\":\"Test Address\"}','{}','[]','2026-03-05',NULL,NULL,'active','full','fully_registered','none',NULL,'2026-03-05 17:26:12','2026-03-06 14:13:27','2026-03-06 14:13:27'),
+(76,5,109,4,'STD-2026-0074','Test Student Flow','2005-01-01',NULL,'male',NULL,'9800000000','test_student_1772711133@example.com',NULL,NULL,'Test Father','Test Mother',NULL,'Test Guardian','Uncle','{\"address\":\"Test Address\"}','{}','[]','2026-03-05',NULL,NULL,'active','full','fully_registered','none',NULL,'2026-03-05 17:30:33','2026-03-06 14:13:27','2026-03-06 14:13:27'),
+(77,5,110,4,'STD-2026-0077','Devbarat Prasad Patel','2014-12-29','2071-09-14','male','','9811144402','sanojpatel845484@gmail.com','FFc+KFEroROJE2o1pU4ywWFGc2crblAzeGM0TUhwTzA3ZzJLd2MvUEkwMU1hajc0d3p0QitiNzBsTkU9',NULL,'Devbarat Prasad Patel',NULL,NULL,NULL,NULL,'{\"address\":\"Bahudramai-07, Phulkaul, Parsa\"}','{\"address\":\"Birgunj-13, Radhemai , Parsa\"}','[]','2026-03-05',NULL,NULL,'active','full','fully_registered','none',NULL,'2026-03-05 17:38:20','2026-03-05 17:38:20',NULL);
 
 /*Table structure for table `study_material_categories` */
 
@@ -2173,21 +2259,32 @@ CREATE TABLE `users` (
   PRIMARY KEY (`id`),
   KEY `fk_users_tenant` (`tenant_id`),
   CONSTRAINT `fk_users_tenant` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=93 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=111 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 /*Data for the table `users` */
 
 insert  into `users`(`id`,`tenant_id`,`role`,`email`,`password_hash`,`phone`,`status`,`monthly_salary`,`last_login_at`,`two_fa_enabled`,`created_at`,`updated_at`,`deleted_at`,`locked_until`,`avatar`,`name`,`two_factor_enabled`,`two_factor_secret`) values 
 (1,NULL,'superadmin','pdewbrath@gmail.com','$2y$12$04j0nPzxsEZUNJscHMmGrOuq89J0fPAkfXZifa4xJY4xSYuwN3I0C',NULL,'active',0.00,'2026-03-01 10:06:13',0,'2026-02-21 14:02:24','2026-03-01 10:06:13',NULL,NULL,NULL,NULL,0,NULL),
 (2,NULL,'superadmin','super2@hamrolabs.com','$2y$12$R.v07Zun1pS.k.v7F.v/Oun8n9Z6E6Z6E6Z6E6Z6E6Z6E6Z6E6Z6',NULL,'active',0.00,NULL,0,'2026-02-21 14:02:24','2026-02-23 14:01:23',NULL,NULL,NULL,NULL,0,NULL),
-(38,5,'instituteadmin','nepalcyberfirm@gmail.com','$2y$12$07je2KcDgDw5a51L62PN5.fMg6Zwr/Plg5B6WQbwEGAsNy.S1Geq.','9811144402','active',0.00,'2026-03-05 07:26:54',0,'2026-02-23 14:53:01','2026-03-05 07:26:54','2026-02-26 14:43:43',NULL,NULL,'Priyanka Kumari Sah',0,NULL),
-(85,5,'frontdesk','mind59024@gmail.com','$2y$12$H2zvqWBSSrhWlwM0fgYbK.FG.STMvleJ/hIvsOlslEU.eclOnwk6W','9811144402','active',0.00,'2026-03-04 09:14:52',0,'2026-03-01 09:17:00','2026-03-04 09:14:52',NULL,NULL,NULL,'Nepal Cyber Firm',0,NULL),
+(38,5,'instituteadmin','nepalcyberfirm@gmail.com','$2y$12$07je2KcDgDw5a51L62PN5.fMg6Zwr/Plg5B6WQbwEGAsNy.S1Geq.','9811144402','active',0.00,'2026-03-06 16:07:31',0,'2026-02-23 14:53:01','2026-03-06 16:07:31','2026-02-26 14:43:43',NULL,NULL,'Priyanka Kumari Sah',0,NULL),
+(85,5,'frontdesk','mind59024@gmail.com','$2y$12$H2zvqWBSSrhWlwM0fgYbK.FG.STMvleJ/hIvsOlslEU.eclOnwk6W','9811144402','active',0.00,'2026-03-05 17:33:27',0,'2026-03-01 09:17:00','2026-03-05 17:33:27',NULL,NULL,NULL,'Nepal Cyber Firm',0,NULL),
 (86,5,'student','addamssmith937@gmail.com','$2y$12$orK6zuY./9/e6fncFnnLS.yoNZlb1/RgnRHEQ.Pu1JZEIwS0FI16S','9811144402','active',0.00,'2026-03-01 09:27:18',0,'2026-03-01 09:25:19','2026-03-01 09:27:18',NULL,NULL,NULL,'Devbarat Prasad Patel',0,NULL),
 (87,5,'student','dhirendraparshad65@gmail.com','$2y$12$NTM7pJnoWv0xl1i3phEAyOLjw06gMv/dZsI6nbSWjVtnamIOR.nbi','9510408252','active',0.00,'2026-03-01 18:11:54',0,'2026-03-01 11:01:18','2026-03-01 18:11:54',NULL,NULL,NULL,'Devbarat Patel',0,NULL),
 (88,5,'student','amirisah1@gmail.com','$2y$12$rDWdDv4ZQKMLrnEgj/NxuuEpWGx6XOIWoY5nxCz.ItM9NyVX3AD7a','98250350412','active',0.00,NULL,0,'2026-03-01 11:40:25','2026-03-01 12:02:26',NULL,NULL,NULL,'Amiri Sah ',0,NULL),
 (89,5,'teacher','loginteacher@gmail.com','$2y$12$8OiEhOjucIVBvv8hn0E.lezmeUHu5ElAHeHMQK9T.zGdxtrfT6dzm','9811144402','active',0.00,NULL,0,'2026-03-03 19:28:18','2026-03-03 19:28:18',NULL,NULL,NULL,'Shyam Sir ',0,NULL),
-(91,5,'student','nepalcyberfirm@gmail.com','$2y$12$9/IF/g1MdlW0zf/U4H/3lOa0QT5RtOxMD0PfI3mhKz2Ng3eNAtQ6i','9845012350','active',0.00,NULL,0,'2026-03-04 09:20:48','2026-03-04 09:20:48',NULL,NULL,NULL,'Nepal Cyber Firm',0,NULL),
-(92,5,'student','nepalcodingschool@gmail.com','$2y$12$k2wfNkXANIj9yQ16MzakletVuBF5Rv.EN4fNTsVQC3t2sirZMkLHW','9811144402','active',0.00,NULL,0,'2026-03-04 09:24:20','2026-03-05 07:13:38','2026-03-05 07:13:38',NULL,NULL,'Niki Yadav',0,NULL);
+(91,5,'student','nepalcyberfirm@gmail.com','$2y$12$9/IF/g1MdlW0zf/U4H/3lOa0QT5RtOxMD0PfI3mhKz2Ng3eNAtQ6i','9845012350','active',0.00,NULL,0,'2026-03-04 09:20:48','2026-03-06 14:13:27','2026-03-06 14:13:27',NULL,NULL,'Nepal Cyber Firm',0,NULL),
+(92,5,'student','nepalcodingschool@gmail.com','$2y$12$k2wfNkXANIj9yQ16MzakletVuBF5Rv.EN4fNTsVQC3t2sirZMkLHW','9811144402','active',0.00,NULL,0,'2026-03-04 09:24:20','2026-03-05 07:13:38','2026-03-05 07:13:38',NULL,NULL,'Niki Yadav',0,NULL),
+(98,5,'student','test_student_1772710088@example.com','$2y$12$KEpY0KR3ydevPbSa37RdBOWs4up/6jDHV7XdytsSf8M7kIfREUQsy',NULL,'active',0.00,NULL,0,'2026-03-05 17:13:08','2026-03-05 17:13:08',NULL,NULL,NULL,'Test Student Flow',0,NULL),
+(99,5,'student','test_student_1772710116@example.com','$2y$12$2sYElOaGLUHLA.HSJWTgPeXkD3C3HN7B6aVQ31DjiklFSGMC24Ytu',NULL,'active',0.00,NULL,0,'2026-03-05 17:13:36','2026-03-05 17:13:36',NULL,NULL,NULL,'Test Student Flow',0,NULL),
+(100,5,'student','test_student_1772710164@example.com','$2y$12$vTfeoFtzNUh9nMiCAnvOHeUtpXVfM7cwVREtSWUk7aQAWLixtJXAe',NULL,'active',0.00,NULL,0,'2026-03-05 17:14:24','2026-03-06 14:13:27','2026-03-06 14:13:27',NULL,NULL,'Test Student Flow',0,NULL),
+(101,5,'student','test_student_1772710205@example.com','$2y$12$rMPLWVnO2G71AVmEVYiSyeh0T9eDtlq3nD.JVM/BP.X52CQMHq5dC',NULL,'active',0.00,NULL,0,'2026-03-05 17:15:05','2026-03-06 14:13:27','2026-03-06 14:13:27',NULL,NULL,'Test Student Flow',0,NULL),
+(102,5,'student','test_student_1772710275@example.com','$2y$12$6ynAgQ1MaE7dXOrn8acXVufT8S118EqRaH3hqsZqR5xgM4GFBYWcu',NULL,'active',0.00,NULL,0,'2026-03-05 17:16:15','2026-03-06 14:13:27','2026-03-06 14:13:27',NULL,NULL,'Test Student Flow',0,NULL),
+(103,5,'student','test_student_1772710681@example.com','$2y$12$r9MStrgTume/QDjUMAxmk.pg8HKHGjmkDtrhtec6UYTo2JAX3GkSy','9800000000','active',0.00,NULL,0,'2026-03-05 17:23:01','2026-03-06 14:13:27','2026-03-06 14:13:27',NULL,NULL,'Test Student Flow',0,NULL),
+(104,5,'student','test_student_1772710748@example.com','$2y$12$lLaNGleU8XK3M61pn2Yayejeeg95cYQaI/O6id15YHseBNosoyy2y','9800000000','active',0.00,NULL,0,'2026-03-05 17:24:08','2026-03-06 14:13:08','2026-03-06 14:13:08',NULL,NULL,'Test Student Flow',0,NULL),
+(105,5,'student','nepalcodingschool@gmail.com','$2y$12$TEgYjYQ./5aRv8tinvTl8eMOU/Rbsg1aYt2Y/OeAvjk5h4HjXVtb2','9825205184','active',0.00,NULL,0,'2026-03-05 17:24:40','2026-03-06 14:13:27','2026-03-06 14:13:27',NULL,NULL,'Badri Patel',0,NULL),
+(106,5,'student','test_student_1772710872@example.com','$2y$12$IS6T4h7pUmuY8S3qDZhmaucYYxzenLpvtY/MLQejxYWcqMlpv9bQC','9800000000','active',0.00,NULL,0,'2026-03-05 17:26:12','2026-03-06 14:13:27','2026-03-06 14:13:27',NULL,NULL,'Test Student Flow',0,NULL),
+(109,5,'student','test_student_1772711133@example.com','$2y$12$6piIszXRMZ/fRa7l8vpPwueLUZpMsu4DYa7oG2ls8rhr9HdKtSMWC','9800000000','active',0.00,NULL,0,'2026-03-05 17:30:33','2026-03-06 14:13:27','2026-03-06 14:13:27',NULL,NULL,'Test Student Flow',0,NULL),
+(110,5,'student','sanojpatel845484@gmail.com','$2y$12$tHbuHBXmAg6viPjVgGsz0.mcdCr0hJeJ7Jd.CLBqfsvlYe9YTVZDC','9811144402','active',0.00,NULL,0,'2026-03-05 17:38:20','2026-03-05 17:38:20',NULL,NULL,NULL,'Devbarat Prasad Patel',0,NULL);
 
 /*Table structure for table `workflow_checklists` */
 

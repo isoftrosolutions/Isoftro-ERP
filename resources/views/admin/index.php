@@ -27,10 +27,10 @@ include __DIR__ . '/layouts/sidebar.php';   // Side Navigation
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <!-- Domain modules (loaded before core so render functions are available) -->
+<script src="<?php echo APP_URL; ?>/public/assets/js/ia-date-helper.js?v=<?php echo $v; ?>"></script>
 <script src="<?php echo APP_URL; ?>/public/assets/js/nexus-data-loader.js?v=<?php echo $v; ?>"></script>
 <script src="<?php echo APP_URL; ?>/public/assets/js/ia-students.js?v=<?php echo $v; ?>"></script>
 <script src="<?php echo APP_URL; ?>/public/assets/js/ia-students-v2.js?v=<?php echo $v; ?>"></script>
-<script src="<?php echo APP_URL; ?>/public/assets/js/test-nexus-admission.js?v=<?php echo $v; ?>"></script>
 <script src="<?php echo APP_URL; ?>/public/assets/js/ia-academic.js?v=<?php echo $v; ?>"></script>
 <script src="<?php echo APP_URL; ?>/public/assets/js/ia-academics.js?v=<?php echo $v; ?>"></script>
 <script src="<?php echo APP_URL; ?>/public/assets/js/ia-inquiries.js?v=<?php echo $v; ?>"></script>
@@ -45,6 +45,7 @@ include __DIR__ . '/layouts/sidebar.php';   // Side Navigation
 <script src="<?php echo APP_URL; ?>/public/assets/js/ia-lms.js?v=<?php echo $v; ?>"></script>
 <script src="<?php echo APP_URL; ?>/public/assets/js/ia-study-materials.js?v=<?php echo $v; ?>"></script>
 <script src="<?php echo APP_URL; ?>/public/assets/js/ia-email-templates.js?v=<?php echo $v; ?>"></script>
+<script src="<?php echo APP_URL; ?>/public/assets/js/ia-audit-logs.js?v=<?php echo $v; ?>"></script>
 <!-- Core: routing, sidebar, dashboard — must be LAST -->
 <script src="<?php echo APP_URL; ?>/public/assets/js/breadcrumb.js?v=<?php echo $v; ?>"></script>
 <script src="<?php echo APP_URL; ?>/public/assets/js/ia-core.js?v=<?php echo $v; ?>"></script>

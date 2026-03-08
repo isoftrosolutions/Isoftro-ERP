@@ -23,7 +23,7 @@ class StudyMaterial {
                    c.icon as category_icon,
                    s.name as subject_name,
                    b.name as batch_name,
-                   cr.title as course_name,
+                   cr.name as course_name,
                    u.name as created_by_name
             FROM study_materials sm
             LEFT JOIN study_material_categories c ON sm.category_id = c.id

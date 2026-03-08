@@ -308,45 +308,19 @@ class StudentService {
     }
 
     private function sendWelcomeEmail($tenantId, $studentId, $fullName, $email, $password, $courseData) {
-        $emailSent = false;
-        if (class_exists('MailHelper')) {
-            $emailSent = MailHelper::sendStudentCredentials($this->db, $tenantId, [
-                'full_name'      => $fullName,
-                'email'          => $email,
-                'plain_password' => $password,
-                'course_name'    => $courseData['course_name'] ?? 'N/A',
-                'batch_name'     => $courseData['batch_name'] ?? 'N/A'
-            ]);
-        } elseif (class_exists('\App\Helpers\MailHelper')) {
-            $emailSent = \App\Helpers\MailHelper::sendStudentCredentials($this->db, $tenantId, [
-                'full_name'      => $fullName,
-                'email'          => $email,
-                'plain_password' => $password,
-                'course_name'    => $courseData['course_name'] ?? 'N/A',
-                'batch_name'     => $courseData['batch_name'] ?? 'N/A'
-            ]);
-        }
+        $payload = [
+            'student_id'      => $studentId,
+            'full_name'       => $fullName,
+            'email'           => $email,
+            'plain_password'  => $password,
+            'course_name'     => $courseData['course_name'] ?? 'N/A',
+            'batch_name'      => $courseData['batch_name'] ?? 'N/A',
+            'roll_no'         => 'N/A', // Potentially fetch if needed
+            'admission_date'  => date('Y-m-d'),
+            'login_url'       => (defined('APP_URL') ? APP_URL : 'http://localhost/erp') . '/login'
+        ];
 
-        // Log email attempt
-        if ($this->db instanceof \PDO) {
-            $stmt = $this->db->prepare("
-                INSERT INTO email_logs (tenant_id, student_id, email, subject, status, error_message)
-                VALUES (?, ?, ?, ?, ?, ?)
-            ");
-            $stmt->execute([
-                $tenantId, $studentId, $email, 'Welcome Credentials',
-                $emailSent ? 'sent' : 'failed',
-                $emailSent ? null : 'Failed to send welcome email'
-            ]);
-        } elseif (class_exists('Illuminate\Support\Facades\DB')) {
-            \Illuminate\Support\Facades\DB::table('email_logs')->insert([
-                'tenant_id' => $tenantId,
-                'student_id' => $studentId,
-                'email' => $email,
-                'subject' => 'Welcome Credentials',
-                'status' => $emailSent ? 'sent' : 'failed',
-                'error_message' => $emailSent ? null : 'Failed to send welcome email'
-            ]);
-        }
+        return \App\Helpers\StudentEmailHelper::sendWelcomeEmail($this->db, $tenantId, $payload);
     }
 }
+

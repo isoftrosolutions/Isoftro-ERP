@@ -23,6 +23,8 @@
             renderFeeRecord();
         } else if (path.includes('fees/outstanding')) {
             renderFeeOutstanding();
+        } else if (path.includes('fees/details')) {
+            renderFeeDetails();
         } else {
             renderFeeSetup();
         }

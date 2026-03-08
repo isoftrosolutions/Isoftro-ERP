@@ -5,7 +5,7 @@
  */
 
 if (!defined('APP_NAME')) {
-    require_once __DIR__ . '/../../../config/config.php';
+    require_once __DIR__ . '/../../../../config/config.php';
 }
 
 header('Content-Type: application/json');
@@ -42,11 +42,111 @@ try {
         $action = $_GET['action'] ?? null;
         
         if ($action === 'report') {
-            // Placeholder: Student-wise report
-            echo json_encode(['success' => true, 'data' => []]);
+            $db = getDBConnection();
+            $batchId = $_GET['batch_id'] ?? null;
+            $startDate = $_GET['start_date'] ?? date('Y-m-01');
+            $endDate = $_GET['end_date'] ?? date('Y-m-d');
+
+            // 1) Overall summary stats
+            $summSql = "SELECT 
+                    COUNT(*) as total_records,
+                    SUM(CASE WHEN status='present' THEN 1 ELSE 0 END) as present,
+                    SUM(CASE WHEN status='absent' THEN 1 ELSE 0 END) as absent,
+                    SUM(CASE WHEN status='late' THEN 1 ELSE 0 END) as late,
+                    SUM(CASE WHEN status='leave' THEN 1 ELSE 0 END) as on_leave
+                FROM attendance WHERE tenant_id = :tid AND attendance_date BETWEEN :sd AND :ed";
+            $summParams = ['tid' => $tenantId, 'sd' => $startDate, 'ed' => $endDate];
+            if ($batchId) { $summSql .= " AND batch_id = :bid"; $summParams['bid'] = $batchId; }
+            $stmt = $db->prepare($summSql);
+            $stmt->execute($summParams);
+            $summary = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            // 2) Daily trend data
+            $trendSql = "SELECT attendance_date,
+                    COUNT(*) as total,
+                    SUM(CASE WHEN status='present' THEN 1 ELSE 0 END) as present,
+                    SUM(CASE WHEN status='absent' THEN 1 ELSE 0 END) as absent,
+                    SUM(CASE WHEN status='late' THEN 1 ELSE 0 END) as late
+                FROM attendance WHERE tenant_id = :tid AND attendance_date BETWEEN :sd AND :ed";
+            $trendParams = ['tid' => $tenantId, 'sd' => $startDate, 'ed' => $endDate];
+            if ($batchId) { $trendSql .= " AND batch_id = :bid"; $trendParams['bid'] = $batchId; }
+            $trendSql .= " GROUP BY attendance_date ORDER BY attendance_date ASC";
+            $stmt = $db->prepare($trendSql);
+            $stmt->execute($trendParams);
+            $trend = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // 3) Top absentees — students with most absences
+            $absSql = "SELECT a.student_id, s.full_name, s.roll_no, s.photo_url, b.name as batch_name,
+                    SUM(CASE WHEN a.status='absent' THEN 1 ELSE 0 END) as absent_days,
+                    COUNT(*) as total_days
+                FROM attendance a
+                JOIN students s ON s.id = a.student_id
+                LEFT JOIN batches b ON b.id = a.batch_id
+                WHERE a.tenant_id = :tid AND a.attendance_date BETWEEN :sd AND :ed";
+            $absParams = ['tid' => $tenantId, 'sd' => $startDate, 'ed' => $endDate];
+            if ($batchId) { $absSql .= " AND a.batch_id = :bid"; $absParams['bid'] = $batchId; }
+            $absSql .= " GROUP BY a.student_id, s.full_name, s.roll_no, s.photo_url, b.name
+                         HAVING absent_days > 0
+                         ORDER BY absent_days DESC LIMIT 10";
+            $stmt = $db->prepare($absSql);
+            $stmt->execute($absParams);
+            $topAbsentees = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // 4) Batch-wise breakdown
+            $batchSql = "SELECT a.batch_id, b.name as batch_name,
+                    COUNT(*) as total,
+                    SUM(CASE WHEN a.status='present' THEN 1 ELSE 0 END) as present,
+                    SUM(CASE WHEN a.status='absent' THEN 1 ELSE 0 END) as absent,
+                    SUM(CASE WHEN a.status='late' THEN 1 ELSE 0 END) as late
+                FROM attendance a
+                LEFT JOIN batches b ON b.id = a.batch_id
+                WHERE a.tenant_id = :tid AND a.attendance_date BETWEEN :sd AND :ed";
+            $batchParams = ['tid' => $tenantId, 'sd' => $startDate, 'ed' => $endDate];
+            if ($batchId) { $batchSql .= " AND a.batch_id = :bid"; $batchParams['bid'] = $batchId; }
+            $batchSql .= " GROUP BY a.batch_id, b.name ORDER BY b.name";
+            $stmt = $db->prepare($batchSql);
+            $stmt->execute($batchParams);
+            $batchStats = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // 5) Today's absent count
+            $todaySql = "SELECT SUM(CASE WHEN status='absent' THEN 1 ELSE 0 END) as absent_today
+                FROM attendance WHERE tenant_id = :tid AND attendance_date = CURDATE()";
+            $todayParams = ['tid' => $tenantId];
+            if ($batchId) { $todaySql .= " AND batch_id = :bid"; $todayParams['bid'] = $batchId; }
+            $stmt = $db->prepare($todaySql);
+            $stmt->execute($todayParams);
+            $todayRow = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            echo json_encode([
+                'success' => true,
+                'data' => [
+                    'summary' => $summary,
+                    'trend' => $trend,
+                    'top_absentees' => $topAbsentees,
+                    'batch_stats' => $batchStats,
+                    'absent_today' => (int)($todayRow['absent_today'] ?? 0)
+                ]
+            ]);
         } elseif ($action === 'export') {
-            // Placeholder: Export data
-            echo json_encode(['success' => true, 'data' => []]);
+            // CSV export
+            $db = getDBConnection();
+            $batchId = $_GET['batch_id'] ?? null;
+            $startDate = $_GET['start_date'] ?? date('Y-m-01');
+            $endDate = $_GET['end_date'] ?? date('Y-m-d');
+
+            $sql = "SELECT a.attendance_date, s.full_name, s.roll_no, b.name as batch_name, a.status
+                FROM attendance a
+                JOIN students s ON s.id = a.student_id
+                LEFT JOIN batches b ON b.id = a.batch_id
+                WHERE a.tenant_id = :tid AND a.attendance_date BETWEEN :sd AND :ed";
+            $params = ['tid' => $tenantId, 'sd' => $startDate, 'ed' => $endDate];
+            if ($batchId) { $sql .= " AND a.batch_id = :bid"; $params['bid'] = $batchId; }
+            $sql .= " ORDER BY a.attendance_date DESC, s.full_name ASC";
+            $stmt = $db->prepare($sql);
+            $stmt->execute($params);
+            $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            echo json_encode(['success' => true, 'data' => $rows]);
         } elseif ($action === 'stats') {
             $attendanceModel = new \App\Models\Attendance();
             $stats = $attendanceModel->getTodayStats($tenantId);
@@ -61,16 +161,38 @@ try {
             $studentModel = new \App\Models\Student();
             $students = $studentModel->getByBatch($batchId, $tenantId);
             
+            // Fetch all-time stats for percentages
+            $allStats = $attendanceModel->getBatchStudentsStats($batchId, $tenantId);
+            
+            // Fetch approved leaves for this date
+            $leaveModel = new \App\Models\LeaveRequest();
+            $leaves = $leaveModel->getApprovedForDate($date, $tenantId);
+            
             $result = [];
             foreach ($students as $student) {
                 $statusRow = array_filter($records, fn($r) => $r['student_id'] == $student['id']);
                 $statusRec = reset($statusRow);
                 
+                $statsRow = array_filter($allStats, fn($s) => $s['student_id'] == $student['id']);
+                $stats = reset($statsRow);
+                
+                $onLeave = !empty(array_filter($leaves, fn($l) => $l['student_id'] == $student['id']));
+                
+                $perc = 0;
+                if ($stats && $stats['total_days'] > 0) {
+                    $total = $stats['total_days'];
+                    // Logic similar to service: treat late as present
+                    $present = $stats['present_days'] + $stats['late_days'];
+                    $perc = round(($present / $total) * 100, 1);
+                }
+
                 $result[] = [
                     'student_id' => $student['id'],
                     'roll_no' => $student['roll_no'],
                     'full_name' => $student['full_name'],
                     'photo_url' => $student['photo_url'],
+                    'percentage' => $perc,
+                    'on_leave' => $onLeave,
                     'attendance' => $statusRec ? [
                         'id' => $statusRec['id'],
                         'status' => $statusRec['status'],

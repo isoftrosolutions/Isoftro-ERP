@@ -6,7 +6,7 @@ class AttendanceAuditLog {
     private $db;
     
     public function __construct() {
-        $this->db = \DB::connection();
+        $this->db = \DB::connection()->getPdo();
     }
     
     public function log($data) {

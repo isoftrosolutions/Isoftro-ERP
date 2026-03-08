@@ -5,6 +5,8 @@
 
 namespace App\Models;
 
+use App\Helpers\AuditLogger;
+
 class PaymentTransaction {
     protected $table = 'payment_transactions';
     protected $db;
@@ -54,12 +56,12 @@ class PaymentTransaction {
         $stmt->execute([
             $data['tenant_id'],
             $data['student_id'],
-            $data['fee_record_id'],
+            $data['fee_record_id'] ?? null,
             $data['invoice_id'] ?? null,
             $data['amount'],
             $data['payment_method'],
             $data['transaction_id'] ?? null,
-            $data['receipt_number'],
+            $data['receipt_number'] ?? null,
             $data['receipt_path'] ?? null,
             $data['payment_date'] ?? date('Y-m-d'),
             $data['recorded_by'] ?? null,
@@ -68,13 +70,12 @@ class PaymentTransaction {
         ]);
         
         $transactionId = $this->db->lastInsertId();
-        $transaction = $this->find($transactionId);
-
-        // Log the new transaction
+        
+        // Log asynchronously or with in-memory data
         if (class_exists('\App\Helpers\AuditLogger')) {
-            \App\Helpers\AuditLogger::log('TRANSACTION_CREATED', $this->table, $transactionId, null, $transaction);
+            \App\Helpers\AuditLogger::log('TRANSACTION_CREATED', $this->table, $transactionId, null, $data);
         }
 
-        return $transaction;
+        return $transactionId;
     }
 }

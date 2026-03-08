@@ -5,7 +5,7 @@
  */
 
 if (!defined('APP_NAME')) {
-    require_once __DIR__ . '/../../../config/config.php';
+    require_once __DIR__ . '/../../../../config/config.php';
 }
 
 // Try to load DateUtils if available

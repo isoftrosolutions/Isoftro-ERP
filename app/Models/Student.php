@@ -166,6 +166,17 @@ class Student {
         $result['created_at'] = date('Y-m-d H:i:s');
         $result['updated_at'] = date('Y-m-d H:i:s');
         
+        if (class_exists('\App\Services\StudentCacheService')) {
+            try {
+                (new \App\Services\StudentCacheService())->invalidate((int)$studentId, $data['tenant_id']);
+                if (class_exists('\App\Services\DashboardCacheService')) {
+                    (new \App\Services\DashboardCacheService(new \App\Services\CacheManager()))->invalidate($data['tenant_id']);
+                }
+            } catch (\Exception $e) {
+                // Ignore cache failures
+            }
+        }
+        
         return $result;
     }
     
@@ -219,6 +230,19 @@ class Student {
             \App\Helpers\AuditLogger::log('UPDATE', $this->table, $id, $oldStudent, $newStudent);
         }
         
+        if (class_exists('\App\Services\StudentCacheService') && $newStudent) {
+            try {
+                (new \App\Services\StudentCacheService())->invalidate($id, $newStudent['tenant_id']);
+                if (isset($data['batch_id']) || isset($data['status'])) {
+                    if (class_exists('\App\Services\DashboardCacheService')) {
+                        (new \App\Services\DashboardCacheService(new \App\Services\CacheManager()))->invalidate($newStudent['tenant_id']);
+                    }
+                }
+            } catch (\Exception $e) {
+                // Ignore cache failures
+            }
+        }
+        
         return $newStudent;
     }
     
@@ -234,6 +258,17 @@ class Student {
         // Log deletion
         if ($result && class_exists('\App\Helpers\AuditLogger')) {
             \App\Helpers\AuditLogger::log('DELETE', $this->table, $id, $oldStudent, null);
+        }
+        
+        if ($result && $oldStudent && class_exists('\App\Services\StudentCacheService')) {
+            try {
+                (new \App\Services\StudentCacheService())->invalidate($id, $oldStudent['tenant_id']);
+                if (class_exists('\App\Services\DashboardCacheService')) {
+                    (new \App\Services\DashboardCacheService(new \App\Services\CacheManager()))->invalidate($oldStudent['tenant_id']);
+                }
+            } catch (\Exception $e) {
+                // Ignore cache failures
+            }
         }
         
         return $result;

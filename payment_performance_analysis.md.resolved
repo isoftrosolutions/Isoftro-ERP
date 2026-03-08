@@ -1,0 +1,20 @@
+# Payment Performance Analysis
+
+## Why is it still time-consuming?
+
+You successfully broke the payment processing into two portions (database recording and background receipt/email generation) and implemented it nicely using `QueueService` and the `payment_worker.php`.
+
+However, the problem is that you **only applied this change to `FrontDesk/fees.php`**.
+
+The frontend application (specifically `public/assets/js/ia-fees.js`) actually sends its AJAX requests to the **Admin controller** at `api/admin/fees`, not the FrontDesk controller!
+
+If you look at `app/Http/Controllers/Admin/fees.php` (around lines 564 and 606), the `record_payment` and `record_bulk_payment` endpoints are **still executing synchronously**. They are generating the PDF on the fly and holding up the server to send the email via `MailHelper::sendPaymentReceiptEmail()` before returning the JSON response to the browser.
+
+## The Fix
+To solve this, we need to apply the exact same pattern you built for the FrontDesk controller to the Admin controller.
+
+1. Remove the synchronous `ReceiptHelper::generatePdf` and `MailHelper::sendPaymentReceiptEmail` from `app/Http/Controllers/Admin/fees.php`.
+2. Dispatch the `payment_receipt` background job using `QueueService::dispatch()`.
+3. Let the `payment_worker.php` handle the heavy lifting.
+
+I have created an Implementation Plan to apply these fixes. Let me know if you would like me to proceed!

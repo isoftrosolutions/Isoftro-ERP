@@ -1,7 +1,148 @@
 /**
  * Hamro ERP — ia-fees.js
  * Fee Setup: List, Add, Edit, Delete fee items
+ * Production-Ready Mobile-First Responsive UI
  */
+
+/* ═══════════════════════════════════════════════════════════════════
+   TOAST NOTIFICATION SYSTEM
+   ═══════════════════════════════════════════════════════════════════ */
+window._showToast = function(message, type = 'success') {
+    let container = document.getElementById('fsToastContainer');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'fsToastContainer';
+        container.className = 'fs-toast-container';
+        document.body.appendChild(container);
+    }
+    
+    const icons = {
+        success: '<svg class="fs-toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>',
+        error: '<svg class="fs-toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
+        warning: '<svg class="fs-toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+        info: '<svg class="fs-toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>'
+    };
+    
+    const toast = document.createElement('div');
+    toast.className = `fs-toast ${type} scale-in`;
+    toast.innerHTML = `
+        ${icons[type]}
+        <div class="fs-toast-content">
+            <div class="fs-toast-message">${message}</div>
+        </div>
+        <button class="fs-toast-close" aria-label="Close notification">&times;</button>
+    `;
+    
+    container.appendChild(toast);
+    
+    // Trigger animation
+    setTimeout(() => toast.classList.add('show'), 10);
+    
+    // Auto dismiss
+    const dismissTimer = setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+    }, 5000);
+    
+    // Manual dismiss
+    toast.querySelector('.fs-toast-close').addEventListener('click', () => {
+        clearTimeout(dismissTimer);
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+    });
+};
+
+/* ═══════════════════════════════════════════════════════════════════
+   CONFIRMATION DIALOG
+   ═══════════════════════════════════════════════════════════════════ */
+window._showConfirmDialog = function(options) {
+    const { title, message, confirmText = 'Confirm', cancelText = 'Cancel', type = 'warning', onConfirm } = options;
+    
+    const icons = {
+        danger: '<i class="fa-solid fa-triangle-exclamation" style="font-size: 2rem;"></i>',
+        warning: '<i class="fa-solid fa-circle-question" style="font-size: 2rem;"></i>'
+    };
+    
+    const modalId = 'fsConfirmModal';
+    const existing = document.getElementById(modalId);
+    if (existing) existing.remove();
+    
+    const backdrop = document.createElement('div');
+    backdrop.id = 'fsConfirmBackdrop';
+    backdrop.className = 'fs-modal-backdrop active';
+    
+    const modal = document.createElement('div');
+    modal.id = modalId;
+    modal.className = 'fs-modal fs-modal-confirm active';
+    modal.innerHTML = `
+        <div class="fs-modal-body">
+            <div class="fs-confirm-icon ${type}">${icons[type]}</div>
+            <h3 class="fs-confirm-title">${title}</h3>
+            <p class="fs-confirm-message">${message}</p>
+        </div>
+        <div class="fs-modal-footer">
+            <button class="fs-btn fs-btn-secondary" id="fsConfirmCancel">${cancelText}</button>
+            <button class="fs-btn fs-btn-danger" id="fsConfirmOk">${confirmText}</button>
+        </div>
+    `;
+    
+    document.body.appendChild(backdrop);
+    document.body.appendChild(modal);
+    
+    const closeDialog = () => {
+        backdrop.classList.remove('active');
+        modal.classList.remove('active');
+        setTimeout(() => {
+            backdrop.remove();
+            modal.remove();
+        }, 300);
+    };
+    
+    document.getElementById('fsConfirmCancel').addEventListener('click', closeDialog);
+    backdrop.addEventListener('click', closeDialog);
+    
+    document.getElementById('fsConfirmOk').addEventListener('click', () => {
+        if (onConfirm) onConfirm();
+        closeDialog();
+    });
+    
+    // Focus trap for accessibility
+    modal.querySelector('.fs-btn-primary, .fs-btn-danger').focus();
+};
+
+/* ═══════════════════════════════════════════════════════════════════
+   FORM VALIDATION UTILITIES
+   ═══════════════════════════════════════════════════════════════════ */
+function _validateFormInput(input) {
+    const formGroup = input.closest('.fs-form-group') || input.parentElement;
+    if (!formGroup) return true;
+    
+    const isValid = input.checkValidity();
+    
+    if (isValid) {
+        formGroup.classList.remove('has-error');
+        input.classList.remove('is-invalid');
+        input.classList.add('is-valid');
+    } else {
+        formGroup.classList.add('has-error');
+        input.classList.remove('is-valid');
+        input.classList.add('is-invalid');
+    }
+    
+    return isValid;
+}
+
+function _setupInlineValidation(form) {
+    const inputs = form.querySelectorAll('.fs-form-input, .form-control');
+    inputs.forEach(input => {
+        input.addEventListener('blur', () => _validateFormInput(input));
+        input.addEventListener('input', () => {
+            if (input.classList.contains('is-invalid')) {
+                _validateFormInput(input);
+            }
+        });
+    });
+}
 
 /* ══════════════ HELPER FUNCTIONS ═══════════════════════════════ */
 function formatMoney(amount) {
@@ -14,32 +155,94 @@ function formatDate(dateStr) {
     return date.toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' });
 }
 
-/* ══════════════ FEE SETUP LIST ═══════════════════════════════ */
+async function _safeFetch(url, options = {}) {
+    const res = await fetch(url, options);
+    const contentType = res.headers.get("content-type");
+    
+    // First, try to get the response text
+    const text = await res.text();
+    
+    // Check if content-type indicates JSON, or if the text starts with JSON-like characters
+    const isJsonContent = contentType && contentType.indexOf("application/json") !== -1;
+    const looksLikeJson = text.trim().startsWith('{') || text.trim().startsWith('[');
+    
+    if (isJsonContent || looksLikeJson) {
+        try {
+            return JSON.parse(text);
+        } catch (e) {
+            // If it looks like JSON but parse fails, treat as non-JSON
+            console.error('[ia-fees] Failed to parse JSON response:', text.substring(0, 200));
+            throw new Error("Server returned invalid JSON. Check browser console for details.");
+        }
+    } else {
+        console.error('[ia-fees] Server returned non-JSON response:', text.substring(0, 200));
+        throw new Error("Server returned non-JSON response. Check browser console for details.");
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   FEE SETUP LIST - MOBILE FIRST UI
+   ═══════════════════════════════════════════════════════════════════ */
 window.renderFeeSetup = async function() {
     const mc = document.getElementById('mainContent');
-    mc.innerHTML = `<div class="pg fu">
-        <div class="bc"><a href="#" onclick="goNav('overview')">Dashboard</a> <span class="bc-sep">&rsaquo;</span> <span class="bc-cur">Fee Items Setup</span></div>
-        <div class="pg-head">
-            <div class="pg-left"><div class="pg-ico"><i class="fa-solid fa-sliders"></i></div><div><div class="pg-title">Fee Items Setup</div><div class="pg-sub">Configure fee structure for courses</div></div></div>
-            <div class="pg-acts"><button class="btn bt" onclick="openAddFeeModal()"><i class="fa-solid fa-plus"></i> Add Fee Item</button></div>
+    mc.innerHTML = `
+        <div class="fee-setup-module">
+            <!-- Page Header -->
+            <div class="fs-page-header">
+                <div class="fs-page-header-content">
+                    <h1 class="fs-page-title">
+                        <span class="fs-page-title-icon">
+                            <i class="fa-solid fa-sliders"></i>
+                        </span>
+                        Fee Items Setup
+                    </h1>
+                    <p class="fs-page-subtitle">Configure and manage fee structure for your courses</p>
+                </div>
+            </div>
+            
+            <!-- Action Bar -->
+            <div class="fs-action-bar">
+                <div class="fs-search-container">
+                    <i class="fa-solid fa-search fs-search-icon"></i>
+                    <input 
+                        type="text" 
+                        id="feeSearchInput" 
+                        class="fs-form-input fs-search-input" 
+                        placeholder="Search fee items..."
+                        aria-label="Search fee items"
+                        oninput="_filterFeeItems()"
+                    >
+                </div>
+                <div class="fs-filter-group">
+                    <select id="feeTypeFilter" class="fs-select" onchange="_filterFeeItems()" aria-label="Filter by fee type">
+                        <option value="">All Types</option>
+                        <option value="admission">Admission</option>
+                        <option value="monthly">Monthly</option>
+                        <option value="exam">Exam</option>
+                        <option value="material">Material</option>
+                        <option value="fine">Fine</option>
+                        <option value="other">Other</option>
+                    </select>
+                    <select id="feeCourseFilter" class="fs-select" onchange="_filterFeeItems()" aria-label="Filter by course">
+                        <option value="">All Courses</option>
+                    </select>
+                </div>
+                <button class="fs-btn fs-btn-primary" onclick="openAddFeeModal()">
+                    <i class="fa-solid fa-plus"></i>
+                    <span class="fs-hide-mobile">Add Fee Item</span>
+                    <span class="fs-hide-desktop">Add</span>
+                </button>
+            </div>
+            
+            <!-- Fee List Container -->
+            <div class="fs-card" id="feeListContainer">
+                <div class="fs-loading">
+                    <div class="fs-loading-spinner"></div>
+                    <span class="fs-loading-text">Loading fee items...</span>
+                </div>
+            </div>
         </div>
-        <div class="filter-bar mb">
-            <input type="text" id="feeSearchInput" class="form-control" style="max-width:300px" placeholder="Search fee items..." oninput="_filterFeeItems()">
-            <select id="feeTypeFilter" class="form-control" style="max-width:180px" onchange="_filterFeeItems()">
-                <option value="">All Types</option>
-                <option value="admission">Admission</option>
-                <option value="monthly">Monthly</option>
-                <option value="exam">Exam</option>
-                <option value="material">Material</option>
-                <option value="fine">Fine</option>
-                <option value="other">Other</option>
-            </select>
-            <select id="feeCourseFilter" class="form-control" style="max-width:200px" onchange="_filterFeeItems()">
-                <option value="">All Courses</option>
-            </select>
-        </div>
-        <div class="card" id="feeListContainer"><div class="pg-loading"><i class="fa-solid fa-circle-notch fa-spin"></i><span>Loading fee items...</span></div></div>
-    </div>`;
+    `;
     await _loadFeeItems();
 };
 
@@ -50,8 +253,7 @@ async function _loadFeeItems() {
     const c = document.getElementById('feeListContainer'); if (!c) return;
     const courseFilter = document.getElementById('feeCourseFilter');
     try {
-        const res = await fetch(APP_URL + '/api/admin/fees');
-        const result = await res.json(); 
+        const result = await _safeFetch(APP_URL + '/api/admin/fees');
         if (!result.success) throw new Error(result.message);
         
         feeItemsData = result.data || [];
@@ -80,8 +282,7 @@ window.renderQuickPayment = async (studentId) => {
     mc.innerHTML = `<div class="pg fu"><div class="pg-loading"><i class="fa-solid fa-circle-notch fa-spin"></i><span>Preparing bill overview...</span></div></div>`;
 
     try {
-        const res = await fetch(`${window.APP_URL}/api/admin/fees?action=get_payment_init_data&student_id=${studentId}`);
-        const result = await res.json();
+        const result = await _safeFetch(`${window.APP_URL}/api/admin/fees?action=get_payment_init_data&student_id=${studentId}`);
         if (!result.success) throw new Error(result.message);
 
         const { student, institute, summary, records } = result.data;
@@ -265,7 +466,7 @@ window.renderQuickPayment = async (studentId) => {
                 // WE NEED A BULK PAYMENT ACTION IN BACKEND.
                 
                 // Let's call a new bulk action
-                const res = await fetch(`${window.APP_URL}/api/admin/fees`, {
+                const result = await _safeFetch(`${window.APP_URL}/api/admin/fees`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -278,10 +479,10 @@ window.renderQuickPayment = async (studentId) => {
                     })
                 });
                 
-                const result = await res.json();
                 if (result.success) {
                     const d = result.data;
-                    window._showEmailSendingScreen(d.receipt_no, d.student_name, d.student_id, d.email_status);
+                    // Redirect to the new details page
+                    goNav('fee', 'details', { receipt_no: d.receipt_no });
                 }
                 else {
                     Swal.fire('Error', result.message, 'error');
@@ -306,80 +507,8 @@ window.renderQuickPayment = async (studentId) => {
 
 /* ── POST-PAYMENT SUCCESS SCREEN ────────────────────────────────── */
 window._showEmailSendingScreen = (receiptNo, studentName, studentId, emailStatus = null) => {
-    const mc = document.getElementById('mainContent');
-    if (!mc) return;
-
-    let emailStatusHtml = '';
-    if (emailStatus !== null) {
-        let statusMsg = 'Email status unknown';
-        let statusColor = '#475569';
-        let bgColor = '#f1f5f9';
-        let borderColor = '#e2e8f0';
-        let icon = 'fa-circle-info';
-
-        if (emailStatus === 'sent' || emailStatus === 'sent_no_pdf') {
-            statusMsg = 'Receipt sent to student email';
-            statusColor = '#166534';
-            bgColor = '#f0fdf4';
-            borderColor = '#bbf7d0';
-            icon = 'fa-paper-plane';
-        } else if (emailStatus === 'no_email') {
-            statusMsg = 'Student has no email address on file';
-            statusColor = '#92400e';
-            bgColor = '#fffbeb';
-            borderColor = '#fde68a';
-            icon = 'fa-envelope-circle-check';
-        } else if (emailStatus === 'failed') {
-            statusMsg = 'Email failed to send (SMTP/Server Error)';
-            statusColor = '#991b1b';
-            bgColor = '#fef2f2';
-            borderColor = '#fecaca';
-            icon = 'fa-circle-exclamation';
-        }
-
-        emailStatusHtml = `
-            <div style="background:${bgColor}; border:1px dashed ${borderColor}; padding:12px; border-radius:12px; margin-bottom:25px; display:inline-block; width:100%;">
-                <div style="display:flex; align-items:center; justify-content:center; gap:8px; color:${statusColor}; font-size:0.85rem; font-weight:600;">
-                    <i class="fa-solid ${icon}"></i>
-                    ${statusMsg}
-                </div>
-            </div>
-        `;
-    }
-
-    mc.innerHTML = `
-        <div class="pg fu" style="display:flex; align-items:center; justify-content:center; min-height:80vh;">
-            <div class="card" style="max-width:500px; width:100%; text-align:center; padding:50px 40px; border-radius:24px; box-shadow:0 20px 50px rgba(0,0,0,0.1);">
-                <div style="width:100px; height:100px; background:#f0fdf4; color:#22c55e; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 25px; font-size:3rem; animation: bounceIn 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55);">
-                    <i class="fa-solid fa-check"></i>
-                </div>
-                
-                <h2 style="font-size:1.8rem; font-weight:800; color:#1e293b; margin-bottom:10px;">Payment Successful!</h2>
-                <p style="color:#64748b; margin-bottom:30px;">Payment for <strong>${studentName}</strong> has been recorded successfully.</p>
-                
-                <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:15px; border-radius:12px; margin-bottom:20px; display:inline-block; width:100%;">
-                    <div style="font-size:0.75rem; color:#64748b; text-transform:uppercase; font-weight:700; letter-spacing:1px; margin-bottom:5px;">Receipt Number</div>
-                    <div style="font-size:1.4rem; font-weight:800; color:#0f172a;">${receiptNo}</div>
-                </div>
-
-                ${emailStatusHtml}
-
-                <div style="display:grid; grid-template-columns:1fr; gap:12px;">
-                    <button class="btn bt" onclick="window.openReceipt('${receiptNo}')" style="background:#009e7e; padding:12px;">
-                        <i class="fa-solid fa-file-pdf"></i> View & Print Receipt
-                    </button>
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:10px;">
-                        <button class="btn bs" onclick="goNav('fee','outstanding')" style="padding:10px;">
-                            <i class="fa-solid fa-list"></i> All Dues
-                        </button>
-                        <button class="btn bs" onclick="goNav('students','profile',{id:${studentId}})" style="padding:10px; border-color:#009e7e; color:#009e7e;">
-                            <i class="fa-solid fa-user"></i> Student Profile
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
+    // Redirection is now handled in the success handlers
+    goNav('fee', 'details', { receipt_no: receiptNo });
 };
 
 window.openReceipt = (receiptNo, transactionId = null) => {
@@ -396,56 +525,109 @@ function _renderFeeItems(items) {
     const c = document.getElementById('feeListContainer'); if (!c) return;
     
     if (!items.length) {
-        c.innerHTML = `<div style="padding:60px;text-align:center;color:#94a3b8;">
-            <i class="fa-solid fa-hand-holding-dollar" style="font-size:3rem;margin-bottom:15px;"></i>
-            <p>No fee items configured yet.<br>Click "Add Fee Item" to create your first fee structure.</p>
-        </div>`;
+        c.innerHTML = `
+            <div class="fs-empty">
+                <div class="fs-empty-icon">
+                    <i class="fa-solid fa-hand-holding-dollar"></i>
+                </div>
+                <h3 class="fs-empty-title">No Fee Items Found</h3>
+                <p class="fs-empty-description">
+                    Click "Add Fee Item" to create your first fee structure for courses.
+                </p>
+                <button class="fs-btn fs-btn-primary" onclick="openAddFeeModal()">
+                    <i class="fa-solid fa-plus"></i> Add First Fee Item
+                </button>
+            </div>
+        `;
         return;
     }
     
-    let html = `<div class="table-responsive">
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>Fee Name</th>
-                    <th>Course</th>
-                    <th>Type</th>
-                    <th>Amount (NPR)</th>
-                    <th>Installments</th>
-                    <th>Late Fine/Day</th>
-                    <th>Status</th>
-                    <th style="text-align:right">Actions</th>
-                </tr>
-            </thead>
-            <tbody>`;
+    // Mobile-first responsive table
+    let html = `
+        <div class="fs-table-container">
+            <table class="fs-table">
+                <thead>
+                    <tr>
+                        <th>Fee Name</th>
+                        <th>Course</th>
+                        <th>Type</th>
+                        <th>Amount</th>
+                        <th>Installments</th>
+                        <th>Late Fine</th>
+                        <th>Status</th>
+                        <th aria-label="Actions"></th>
+                    </tr>
+                </thead>
+                <tbody class="fs-stagger">
+    `;
+    
+    const typeLabels = {
+        'admission': 'Admission',
+        'monthly': 'Monthly',
+        'exam': 'Exam',
+        'material': 'Material',
+        'fine': 'Fine',
+        'other': 'Other'
+    };
     
     items.forEach(fi => {
-        const typeColors = {
-            'admission': 'bg-g',
-            'monthly': 'bg-b',
-            'exam': 'bg-y',
-            'material': 'bg-p',
-            'fine': 'bg-r',
-            'other': 'bg-s'
-        };
-        
-        html += `<tr>
-            <td><div style="font-weight:600">${fi.name}</div></td>
-            <td>${fi.course_name || '-'}</td>
-            <td><span class="tag ${typeColors[fi.type] || 'bg-s'}">${fi.type.toUpperCase()}</span></td>
-            <td>${parseFloat(fi.amount).toLocaleString()}</td>
-            <td>${fi.installments}</td>
-            <td>${parseFloat(fi.late_fine_per_day).toLocaleString()}</td>
-            <td>${fi.is_active ? '<span class="tag bg-t">Active</span>' : '<span class="tag bg-r">Inactive</span>'}</td>
-            <td style="text-align:right;white-space:nowrap">
-                <button class="btn-icon" title="Edit" onclick="openEditFeeModal(${fi.id})"><i class="fa-solid fa-pen"></i></button>
-                <button class="btn-icon" title="${fi.is_active ? 'Deactivate' : 'Activate'}" onclick="toggleFeeItem(${fi.id})"><i class="fa-solid fa-toggle-${fi.is_active ? 'on' : 'off'}"></i></button>
-                <button class="btn-icon text-danger" title="Delete" onclick="deleteFeeItem(${fi.id},'${fi.name.replace(/'/g,"\\'")}')"><i class="fa-solid fa-trash"></i></button>
-            </td>
-        </tr>`;
+        html += `
+            <tr>
+                <td data-label="Fee Name">
+                    <div style="font-weight: 600; color: var(--fs-text);">${fi.name}</div>
+                </td>
+                <td data-label="Course">${fi.course_name || '<span class="fs-text-muted">-</span>'}</td>
+                <td data-label="Type">
+                    <span class="fs-badge fs-badge-${fi.type}">${typeLabels[fi.type] || fi.type}</span>
+                </td>
+                <td data-label="Amount" style="font-weight: 600;">
+                    NPR ${parseFloat(fi.amount).toLocaleString()}
+                </td>
+                <td data-label="Installments">${fi.installments || 1}</td>
+                <td data-label="Late Fine">${parseFloat(fi.late_fine_per_day || 0).toLocaleString()}</td>
+                <td data-label="Status">
+                    ${fi.is_active 
+                        ? '<span class="fs-badge fs-badge-success"><i class="fa-solid fa-check"></i> Active</span>' 
+                        : '<span class="fs-badge fs-badge-neutral"><i class="fa-solid fa-pause"></i> Inactive</span>'}
+                </td>
+                <td data-label="Actions">
+                    <div class="fs-table-actions">
+                        <button class="fs-btn fs-btn-icon fs-btn-ghost" 
+                                title="Edit" 
+                                aria-label="Edit ${fi.name}"
+                                onclick="openEditFeeModal(${fi.id})">
+                            <i class="fa-solid fa-pen"></i>
+                        </button>
+                        <button class="fs-btn fs-btn-icon fs-btn-ghost" 
+                                title="${fi.is_active ? 'Deactivate' : 'Activate'}"
+                                aria-label="${fi.is_active ? 'Deactivate' : 'Activate'} ${fi.name}"
+                                onclick="toggleFeeItem(${fi.id}, '${fi.name.replace(/'/g, "\\'")}', ${fi.is_active})">
+                            <i class="fa-solid fa-toggle-${fi.is_active ? 'on' : 'off'}"></i>
+                        </button>
+                        <button class="fs-btn fs-btn-icon fs-btn-ghost" 
+                                title="Delete"
+                                aria-label="Delete ${fi.name}"
+                                style="color: var(--fs-error);"
+                                onclick="deleteFeeItem(${fi.id}, '${fi.name.replace(/'/g, "\\'")}')">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
     });
     
     html += `</tbody></table></div>`;
+    
+    // Add summary footer
+    html += `
+        <div style="padding: var(--fs-space-4); background: var(--fs-background); border-top: 1px solid var(--fs-border); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--fs-space-3);">
+            <span style="color: var(--fs-text-secondary); font-size: var(--fs-font-size-sm);">
+                Showing <strong>${items.length}</strong> fee item${items.length !== 1 ? 's' : ''}
+            </span>
+        </div>
+    `;
+    
     c.innerHTML = html;
 }
 
@@ -464,74 +646,151 @@ function _filterFeeItems() {
     _renderFeeItems(filtered);
 }
 
-/* ══════════════ ADD/EDIT MODAL ═══════════════════════════════ */
+/* ═══════════════════════════════════════════════════════════════════
+   ADD/EDIT MODAL - NEW DESIGN SYSTEM
+   ═══════════════════════════════════════════════════════════════════ */
 function openAddFeeModal() {
     const coursesOptions = coursesData.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
     
     const modalHtml = `
-    <div class="modal-overlay" onclick="if(event.target===this)closeModal('feeModal')">
-        <div class="modal" style="max-width:550px">
-            <div class="modal-header">
-                <h3><i class="fa-solid fa-plus"></i> Add Fee Item</h3>
-                <button class="modal-close" onclick="closeModal('feeModal')">&times;</button>
+        <div class="fs-modal-backdrop active" onclick="if(event.target===this)closeModal('feeModal')"></div>
+        <div class="fs-modal active fs-modal-lg" role="dialog" aria-modal="true" aria-labelledby="feeModalTitle">
+            <div class="fs-modal-header">
+                <h2 class="fs-modal-title" id="feeModalTitle">
+                    <i class="fa-solid fa-plus-circle" style="color: var(--fs-primary);"></i>
+                    Add New Fee Item
+                </h2>
+                <button class="fs-modal-close" onclick="closeModal('feeModal')" aria-label="Close modal">&times;</button>
             </div>
-            <form id="feeItemForm">
-                <div class="modal-body">
-                    <div class="form-group">
-                        <label class="form-label">Fee Item Name *</label>
-                        <input type="text" name="name" class="form-control" required placeholder="e.g. Monthly Tuition Fee">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Course *</label>
-                        <select name="course_id" class="form-control" required>
-                            <option value="">Select Course</option>
-                            ${coursesOptions}
-                        </select>
-                    </div>
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;">
-                        <div class="form-group">
-                            <label class="form-label">Fee Type *</label>
-                            <select name="type" class="form-control" required>
-                                <option value="monthly">Monthly</option>
-                                <option value="admission">Admission</option>
-                                <option value="exam">Exam</option>
-                                <option value="material">Material</option>
-                                <option value="fine">Fine</option>
-                                <option value="other">Other</option>
-                            </select>
+            <form id="feeItemForm" novalidate>
+                <div class="fs-modal-body">
+                    <!-- Basic Information Section -->
+                    <div class="fs-collapse expanded">
+                        <div class="fs-collapse-header" onclick="this.parentElement.classList.toggle('expanded')">
+                            <span class="fs-collapse-title">
+                                <i class="fa-solid fa-info-circle"></i>
+                                Basic Information
+                            </span>
+                            <i class="fa-solid fa-chevron-down fs-collapse-icon"></i>
                         </div>
-                        <div class="form-group">
-                            <label class="form-label">Amount (NPR) *</label>
-                            <input type="number" name="amount" class="form-control" required min="1" step="0.01" placeholder="0.00">
+                        <div class="fs-collapse-body">
+                            <div class="fs-collapse-content">
+                                <div class="fs-form-group">
+                                    <label class="fs-form-label fs-form-label-required" for="feeName">Fee Item Name</label>
+                                    <input type="text" id="feeName" name="name" class="fs-form-input" 
+                                           required placeholder="e.g. Monthly Tuition Fee" 
+                                           minlength="2" maxlength="100">
+                                    <span class="fs-form-error">Please enter a valid fee item name</span>
+                                </div>
+                                
+                                <div class="fs-form-row fs-form-row-2">
+                                    <div class="fs-form-group">
+                                        <label class="fs-form-label fs-form-label-required" for="feeCourse">Course</label>
+                                        <select id="feeCourse" name="course_id" class="fs-select" required>
+                                            <option value="">Select Course</option>
+                                            ${coursesOptions}
+                                        </select>
+                                        <span class="fs-form-error">Please select a course</span>
+                                    </div>
+                                    
+                                    <div class="fs-form-group">
+                                        <label class="fs-form-label fs-form-label-required" for="feeType">Fee Type</label>
+                                        <select id="feeType" name="type" class="fs-select" required>
+                                            <option value="monthly">Monthly</option>
+                                            <option value="admission">Admission</option>
+                                            <option value="exam">Exam</option>
+                                            <option value="material">Material</option>
+                                            <option value="fine">Fine</option>
+                                            <option value="other">Other</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;">
-                        <div class="form-group">
-                            <label class="form-label">Installments</label>
-                            <input type="number" name="installments" class="form-control" value="1" min="1" max="12">
+                    
+                    <!-- Amount & Payments Section -->
+                    <div class="fs-collapse expanded">
+                        <div class="fs-collapse-header" onclick="this.parentElement.classList.toggle('expanded')">
+                            <span class="fs-collapse-title">
+                                <i class="fa-solid fa-money-bill-wave"></i>
+                                Amount & Payments
+                            </span>
+                            <i class="fa-solid fa-chevron-down fs-collapse-icon"></i>
                         </div>
-                        <div class="form-group">
-                            <label class="form-label">Late Fine per Day (NPR)</label>
-                            <input type="number" name="late_fine_per_day" class="form-control" value="0" min="0" step="0.01">
+                        <div class="fs-collapse-body">
+                            <div class="fs-collapse-content">
+                                <div class="fs-form-row fs-form-row-2">
+                                    <div class="fs-form-group">
+                                        <label class="fs-form-label fs-form-label-required" for="feeAmount">Amount (NPR)</label>
+                                        <input type="number" id="feeAmount" name="amount" class="fs-form-input" 
+                                               required min="1" step="0.01" placeholder="0.00">
+                                        <span class="fs-form-error">Please enter a valid amount</span>
+                                    </div>
+                                    
+                                    <div class="fs-form-group">
+                                        <label class="fs-form-label" for="feeInstallments">Number of Installments</label>
+                                        <input type="number" id="feeInstallments" name="installments" class="fs-form-input" 
+                                               value="1" min="1" max="12" placeholder="1">
+                                        <span class="fs-form-help">Maximum 12 installments allowed</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="fs-form-group">
+                                    <label class="fs-form-label" for="feeLateFine">Late Fine per Day (NPR)</label>
+                                    <input type="number" id="feeLateFine" name="late_fine_per_day" class="fs-form-input" 
+                                           value="0" min="0" step="0.01" placeholder="0.00">
+                                    <span class="fs-form-help">Enter 0 to disable late fines</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="form-group">
-                        <label class="form-check">
-                            <input type="checkbox" name="is_active" checked>
-                            <span class="form-check-label">Active</span>
-                        </label>
+                    
+                    <!-- Status Section -->
+                    <div class="fs-collapse">
+                        <div class="fs-collapse-header" onclick="this.parentElement.classList.toggle('expanded')">
+                            <span class="fs-collapse-title">
+                                <i class="fa-solid fa-toggle-on"></i>
+                                Status Settings
+                            </span>
+                            <i class="fa-solid fa-chevron-down fs-collapse-icon"></i>
+                        </div>
+                        <div class="fs-collapse-body">
+                            <div class="fs-collapse-content">
+                                <div class="fs-form-group">
+                                    <label class="fs-toggle">
+                                        <input type="checkbox" name="is_active" checked>
+                                        <span class="fs-toggle-switch"></span>
+                                        <span class="fs-toggle-label">Active</span>
+                                    </label>
+                                    <span class="fs-form-help">Inactive fee items won't appear for students</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn bs" onclick="closeModal('feeModal')">Cancel</button>
-                    <button type="submit" class="btn bt">Save Fee Item</button>
+                <div class="fs-modal-footer">
+                    <button type="button" class="fs-btn fs-btn-secondary" onclick="closeModal('feeModal')">
+                        Cancel
+                    </button>
+                    <button type="submit" class="fs-btn fs-btn-primary">
+                        <i class="fa-solid fa-plus"></i>
+                        Save Fee Item
+                    </button>
                 </div>
             </form>
         </div>
-    </div>`;
+    `;
     
     _showModal('feeModal', modalHtml);
-    document.getElementById('feeItemForm').onsubmit = e => _submitFeeForm(e, 'create');
+    
+    // Setup form validation
+    const form = document.getElementById('feeItemForm');
+    _setupInlineValidation(form);
+    form.addEventListener('submit', e => _submitFeeForm(e, 'create'));
+    
+    // Focus first input
+    setTimeout(() => document.getElementById('feeName')?.focus(), 100);
 }
 
 function openEditFeeModal(id) {
@@ -543,107 +802,212 @@ function openEditFeeModal(id) {
     ).join('');
     
     const modalHtml = `
-    <div class="modal-overlay" onclick="if(event.target===this)closeModal('feeModal')">
-        <div class="modal" style="max-width:550px">
-            <div class="modal-header">
-                <h3><i class="fa-solid fa-pen"></i> Edit Fee Item</h3>
-                <button class="modal-close" onclick="closeModal('feeModal')">&times;</button>
+        <div class="fs-modal-backdrop active" onclick="if(event.target===this)closeModal('feeModal')"></div>
+        <div class="fs-modal active fs-modal-lg" role="dialog" aria-modal="true" aria-labelledby="feeModalTitle">
+            <div class="fs-modal-header">
+                <h2 class="fs-modal-title" id="feeModalTitle">
+                    <i class="fa-solid fa-pen" style="color: var(--fs-info);"></i>
+                    Edit Fee Item
+                </h2>
+                <button class="fs-modal-close" onclick="closeModal('feeModal')" aria-label="Close modal">&times;</button>
             </div>
-            <form id="feeItemForm">
-                <input type="hidden" name="id" value="${id}">
-                <div class="modal-body">
-                    <div class="form-group">
-                        <label class="form-label">Fee Item Name *</label>
-                        <input type="text" name="name" class="form-control" required value="${feeItem.name}">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Course *</label>
-                        <select name="course_id" class="form-control" required>
-                            <option value="">Select Course</option>
-                            ${coursesOptions}
-                        </select>
-                    </div>
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;">
-                        <div class="form-group">
-                            <label class="form-label">Fee Type *</label>
-                            <select name="type" class="form-control" required>
-                                <option value="monthly" ${feeItem.type === 'monthly' ? 'selected' : ''}>Monthly</option>
-                                <option value="admission" ${feeItem.type === 'admission' ? 'selected' : ''}>Admission</option>
-                                <option value="exam" ${feeItem.type === 'exam' ? 'selected' : ''}>Exam</option>
-                                <option value="material" ${feeItem.type === 'material' ? 'selected' : ''}>Material</option>
-                                <option value="fine" ${feeItem.type === 'fine' ? 'selected' : ''}>Fine</option>
-                                <option value="other" ${feeItem.type === 'other' ? 'selected' : ''}>Other</option>
-                            </select>
+            <form id="feeItemForm" novalidate>
+                <div class="fs-modal-body">
+                    <input type="hidden" name="id" value="${id}">
+                    
+                    <!-- Basic Information Section -->
+                    <div class="fs-collapse expanded">
+                        <div class="fs-collapse-header" onclick="this.parentElement.classList.toggle('expanded')">
+                            <span class="fs-collapse-title">
+                                <i class="fa-solid fa-info-circle"></i>
+                                Basic Information
+                            </span>
+                            <i class="fa-solid fa-chevron-down fs-collapse-icon"></i>
                         </div>
-                        <div class="form-group">
-                            <label class="form-label">Amount (NPR) *</label>
-                            <input type="number" name="amount" class="form-control" required min="1" step="0.01" value="${feeItem.amount}">
+                        <div class="fs-collapse-body">
+                            <div class="fs-collapse-content">
+                                <div class="fs-form-group">
+                                    <label class="fs-form-label fs-form-label-required" for="feeName">Fee Item Name</label>
+                                    <input type="text" id="feeName" name="name" class="fs-form-input" 
+                                           required placeholder="e.g. Monthly Tuition Fee" 
+                                           value="${feeItem.name}"
+                                           minlength="2" maxlength="100">
+                                    <span class="fs-form-error">Please enter a valid fee item name</span>
+                                </div>
+                                
+                                <div class="fs-form-row fs-form-row-2">
+                                    <div class="fs-form-group">
+                                        <label class="fs-form-label fs-form-label-required" for="feeCourse">Course</label>
+                                        <select id="feeCourse" name="course_id" class="fs-select" required>
+                                            <option value="">Select Course</option>
+                                            ${coursesOptions}
+                                        </select>
+                                        <span class="fs-form-error">Please select a course</span>
+                                    </div>
+                                    
+                                    <div class="fs-form-group">
+                                        <label class="fs-form-label fs-form-label-required" for="feeType">Fee Type</label>
+                                        <select id="feeType" name="type" class="fs-select" required>
+                                            <option value="monthly" ${feeItem.type === 'monthly' ? 'selected' : ''}>Monthly</option>
+                                            <option value="admission" ${feeItem.type === 'admission' ? 'selected' : ''}>Admission</option>
+                                            <option value="exam" ${feeItem.type === 'exam' ? 'selected' : ''}>Exam</option>
+                                            <option value="material" ${feeItem.type === 'material' ? 'selected' : ''}>Material</option>
+                                            <option value="fine" ${feeItem.type === 'fine' ? 'selected' : ''}>Fine</option>
+                                            <option value="other" ${feeItem.type === 'other' ? 'selected' : ''}>Other</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;">
-                        <div class="form-group">
-                            <label class="form-label">Installments</label>
-                            <input type="number" name="installments" class="form-control" value="${feeItem.installments}" min="1" max="12">
+                    
+                    <!-- Amount & Payments Section -->
+                    <div class="fs-collapse expanded">
+                        <div class="fs-collapse-header" onclick="this.parentElement.classList.toggle('expanded')">
+                            <span class="fs-collapse-title">
+                                <i class="fa-solid fa-money-bill-wave"></i>
+                                Amount & Payments
+                            </span>
+                            <i class="fa-solid fa-chevron-down fs-collapse-icon"></i>
                         </div>
-                        <div class="form-group">
-                            <label class="form-label">Late Fine per Day (NPR)</label>
-                            <input type="number" name="late_fine_per_day" class="form-control" value="${feeItem.late_fine_per_day}" min="0" step="0.01">
+                        <div class="fs-collapse-body">
+                            <div class="fs-collapse-content">
+                                <div class="fs-form-row fs-form-row-2">
+                                    <div class="fs-form-group">
+                                        <label class="fs-form-label fs-form-label-required" for="feeAmount">Amount (NPR)</label>
+                                        <input type="number" id="feeAmount" name="amount" class="fs-form-input" 
+                                               required min="1" step="0.01" placeholder="0.00"
+                                               value="${feeItem.amount}">
+                                        <span class="fs-form-error">Please enter a valid amount</span>
+                                    </div>
+                                    
+                                    <div class="fs-form-group">
+                                        <label class="fs-form-label" for="feeInstallments">Number of Installments</label>
+                                        <input type="number" id="feeInstallments" name="installments" class="fs-form-input" 
+                                               value="${feeItem.installments || 1}" min="1" max="12" placeholder="1">
+                                        <span class="fs-form-help">Maximum 12 installments allowed</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="fs-form-group">
+                                    <label class="fs-form-label" for="feeLateFine">Late Fine per Day (NPR)</label>
+                                    <input type="number" id="feeLateFine" name="late_fine_per_day" class="fs-form-input" 
+                                           value="${feeItem.late_fine_per_day || 0}" min="0" step="0.01" placeholder="0.00">
+                                    <span class="fs-form-help">Enter 0 to disable late fines</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="form-group">
-                        <label class="form-check">
-                            <input type="checkbox" name="is_active" ${feeItem.is_active ? 'checked' : ''}>
-                            <span class="form-check-label">Active</span>
-                        </label>
+                    
+                    <!-- Status Section -->
+                    <div class="fs-collapse">
+                        <div class="fs-collapse-header" onclick="this.parentElement.classList.toggle('expanded')">
+                            <span class="fs-collapse-title">
+                                <i class="fa-solid fa-toggle-on"></i>
+                                Status Settings
+                            </span>
+                            <i class="fa-solid fa-chevron-down fs-collapse-icon"></i>
+                        </div>
+                        <div class="fs-collapse-body">
+                            <div class="fs-collapse-content">
+                                <div class="fs-form-group">
+                                    <label class="fs-toggle">
+                                        <input type="checkbox" name="is_active" ${feeItem.is_active ? 'checked' : ''}>
+                                        <span class="fs-toggle-switch"></span>
+                                        <span class="fs-toggle-label">Active</span>
+                                    </label>
+                                    <span class="fs-form-help">Inactive fee items won't appear for students</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn bs" onclick="closeModal('feeModal')">Cancel</button>
-                    <button type="submit" class="btn bt">Update Fee Item</button>
+                <div class="fs-modal-footer">
+                    <button type="button" class="fs-btn fs-btn-secondary" onclick="closeModal('feeModal')">
+                        Cancel
+                    </button>
+                    <button type="submit" class="fs-btn fs-btn-primary">
+                        <i class="fa-solid fa-save"></i>
+                        Update Fee Item
+                    </button>
                 </div>
             </form>
         </div>
-    </div>`;
+    `;
     
     _showModal('feeModal', modalHtml);
-    document.getElementById('feeItemForm').onsubmit = e => _submitFeeForm(e, 'update');
+    
+    // Setup form validation
+    const form = document.getElementById('feeItemForm');
+    _setupInlineValidation(form);
+    form.addEventListener('submit', e => _submitFeeForm(e, 'update'));
 }
 
 function _showModal(id, html) {
     // Remove existing modal if any
     const existing = document.getElementById(id);
-    if (existing) existing.remove();
+    if (existing) {
+        existing.remove();
+        const backdrop = document.querySelector('.fs-modal-backdrop.active');
+        if (backdrop) backdrop.remove();
+    }
     
     const div = document.createElement('div');
     div.id = id;
     div.innerHTML = html;
     document.body.appendChild(div);
     
-    // Add modal styles if not exists
-    if (!document.getElementById('modal-styles')) {
-        const style = document.createElement('style');
-        style.id = 'modal-styles';
-        style.textContent = `
-            .modal-overlay { position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:9999; }
-            .modal { background:#fff;border-radius:12px;width:90%;max-width:500px;box-shadow:0 20px 60px rgba(0,0,0,0.3); }
-            .modal-header { padding:20px 25px;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center; }
-            .modal-header h3 { margin:0;font-size:1.2rem;display:flex;align-items:center;gap:10px; }
-            .modal-close { background:none;border:none;font-size:1.5rem;cursor:pointer;color:#64748b; }
-            .modal-body { padding:25px; }
-            .modal-footer { padding:15px 25px;border-top:1px solid #e2e8f0;display:flex;justify-content:flex-end;gap:10px; }
-        `;
-        document.head.appendChild(style);
-    }
+    // Prevent body scroll
+    document.body.style.overflow = 'hidden';
+    
+    // Handle escape key
+    const escapeHandler = (e) => {
+        if (e.key === 'Escape') {
+            closeModal(id);
+            document.removeEventListener('keydown', escapeHandler);
+        }
+    };
+    setTimeout(() => document.addEventListener('keydown', escapeHandler), 100);
 }
 
 window.closeModal = function(id) {
     const modal = document.getElementById(id);
-    if (modal) modal.remove();
+    const backdrop = document.querySelector('.fs-modal-backdrop.active');
+    
+    if (modal) {
+        modal.classList.remove('active');
+    }
+    if (backdrop) {
+        backdrop.classList.remove('active');
+    }
+    
+    // Restore body scroll
+    document.body.style.overflow = '';
+    
+    setTimeout(() => {
+        if (modal) modal.remove();
+        if (backdrop) backdrop.remove();
+    }, 300);
 };
 
 async function _submitFeeForm(e, action) {
     e.preventDefault();
     const form = e.target;
+    
+    // Validate form
+    const inputs = form.querySelectorAll('.fs-form-input[required]');
+    let isValid = true;
+    inputs.forEach(input => {
+        if (!_validateFormInput(input)) {
+            isValid = false;
+        }
+    });
+    
+    if (!isValid) {
+        _showToast('Please fill in all required fields correctly', 'error');
+        return;
+    }
+    
     const formData = new FormData(form);
     const data = {
         action: action,
@@ -660,64 +1024,86 @@ async function _submitFeeForm(e, action) {
         data.id = formData.get('id');
     }
     
+    // Show loading state
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const originalBtnContent = submitBtn.innerHTML;
+    submitBtn.disabled = true;
+    submitBtn.classList.add('fs-btn-loading');
+    submitBtn.innerHTML = '';
+    
     try {
-        const res = await fetch(APP_URL + '/api/admin/fees', {
+        const result = await _safeFetch(APP_URL + '/api/admin/fees', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
         });
         
-        const result = await res.json();
         if (!result.success) throw new Error(result.message);
         
         closeModal('feeModal');
         await _loadFeeItems();
         
         // Show success toast
-        _showToast(result.message || 'Fee item saved successfully');
+        _showToast(result.message || (action === 'create' ? 'Fee item created successfully' : 'Fee item updated successfully'), 'success');
     } catch(err) {
-        alert(err.message);
+        _showToast(err.message || 'An error occurred while saving', 'error');
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.classList.remove('fs-btn-loading');
+        submitBtn.innerHTML = originalBtnContent;
     }
 }
 
-async function toggleFeeItem(id) {
-    if (!confirm('Are you sure you want to toggle this fee item status?')) return;
+async function toggleFeeItem(id, name, currentStatus) {
+    const action = currentStatus ? 'deactivate' : 'activate';
     
-    try {
-        const res = await fetch(APP_URL + '/api/admin/fees', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'toggle', id: id })
-        });
-        
-        const result = await res.json();
-        if (!result.success) throw new Error(result.message);
-        
-        await _loadFeeItems();
-        _showToast(result.message || 'Status updated');
-    } catch(err) {
-        alert(err.message);
-    }
+    _showConfirmDialog({
+        title: `${currentStatus ? 'Deactivate' : 'Activate'} Fee Item`,
+        message: `Are you sure you want to ${action} "${name}"? ${currentStatus ? 'This will prevent students from seeing this fee item.' : 'This will allow students to see and pay this fee item.'}`,
+        confirmText: currentStatus ? 'Deactivate' : 'Activate',
+        type: 'warning',
+        onConfirm: async () => {
+            try {
+                const result = await _safeFetch(APP_URL + '/api/admin/fees', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'toggle', id: id })
+                });
+                
+                if (!result.success) throw new Error(result.message);
+                
+                await _loadFeeItems();
+                _showToast(result.message || `Fee item ${action}d successfully`, 'success');
+            } catch(err) {
+                _showToast(err.message || 'An error occurred', 'error');
+            }
+        }
+    });
 }
 
 async function deleteFeeItem(id, name) {
-    if (!confirm(`Are you sure you want to delete "${name}"? This action may not be reversible if there are existing fee records.`)) return;
-    
-    try {
-        const res = await fetch(APP_URL + '/api/admin/fees', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'delete', id: id })
-        });
-        
-        const result = await res.json();
-        if (!result.success) throw new Error(result.message);
-        
-        await _loadFeeItems();
-        _showToast(result.message || 'Fee item deleted');
-    } catch(err) {
-        alert(err.message);
-    }
+    _showConfirmDialog({
+        title: 'Delete Fee Item',
+        message: `Are you sure you want to delete "${name}"? This action cannot be undone and may affect existing fee records.`,
+        confirmText: 'Delete',
+        type: 'danger',
+        onConfirm: async () => {
+            try {
+                const result = await _safeFetch(APP_URL + '/api/admin/fees', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'delete', id: id })
+                });
+                
+                if (!result.success) throw new Error(result.message);
+                
+                await _loadFeeItems();
+                _showToast(result.message || 'Fee item deleted successfully', 'success');
+            } catch(err) {
+                _showToast(err.message || 'An error occurred while deleting', 'error');
+            }
+        }
+    });
 }
 
 function _showToast(message) {
@@ -748,247 +1134,60 @@ function _showToast(message) {
 window.renderFeeRecord = async function() {
     const mc = document.getElementById('mainContent');
     mc.innerHTML = `<div class="pg fu">
-        <div class="bc"><a href="#" onclick="goNav('overview')">Dashboard</a> <span class="bc-sep">&rsaquo;</span> <span class="bc-cur">Record Payment</span></div>
+        <div class="bc"><a href="#" onclick="goNav('overview')">Dashboard</a> <span class="bc-sep">&rsaquo;</span> <span class="bc-cur">Payment History</span></div>
         <div class="pg-head">
-            <div class="pg-left"><div class="pg-ico"><i class="fa-solid fa-money-bill-wave"></i></div><div><div class="pg-title">Record Fee Payment</div><div class="pg-sub">Record student fee payments</div></div></div>
-            <div class="pg-acts"><button class="btn bs" onclick="renderFeeOutstanding()"><i class="fa-solid fa-list"></i> View All Dues</button></div>
-        </div>
-        
-        <!-- Inject Premium Styles -->
-        <link rel="stylesheet" href="${APP_URL}/public/assets/css/ia-payment-premium.css">
-        
-        <!-- Student Search Section -->
-        <div class="card mb" style="padding:25px;">
-            <h4 style="margin:0 0 15px 0;"><i class="fa-solid fa-magnifying-glass"></i> Find Student</h4>
-            <div style="display:flex;gap:15px;flex-wrap:wrap;">
-                <input type="text" id="studentSearchInput" class="form-control" style="flex:1;min-width:250px" placeholder="Search by name, student ID, or phone..." onkeyup="_searchStudents(this.value)">
-                <select id="studentCourseFilter" class="form-control" style="width:200px" onchange="_filterStudentsByCourse()">
-                    <option value="">All Courses</option>
-                </select>
+            <div class="pg-left"><div class="pg-ico"><i class="fa-solid fa-history"></i></div><div><div class="pg-title">Payment History</div><div class="pg-sub">List of all fee payments and receipts</div></div></div>
+            <div class="pg-acts">
+                <button class="btn bt" onclick="renderFeeOutstanding()"><i class="fa-solid fa-plus-circle"></i> Record New Payment</button>
             </div>
-            <div id="studentSearchResults" style="margin-top:15px;max-height:300px;overflow-y:auto;"></div>
         </div>
         
-        <!-- Selected Student & Outstanding Fees -->
-        <div id="selectedStudentSection">            <!-- Selected Student Header -->
-            <div class="card mb" id="selectedStudentSectionCard" style="display:none; padding:25px; border-left: 5px solid var(--green);">
-                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:20px;">
-                    <div>
-                        <h3 id="selectedStudentName" style="margin:0; font-size:1.5rem; color:var(--text-dark);"></h3>
-                        <p id="selectedStudentInfo" style="margin:5px 0 0 0; color:var(--text-light); font-size:0.95rem;"></p>
-                    </div>
-                    <button class="btn bs" onclick="_clearSelectedStudent()"><i class="fa-solid fa-xmark"></i> Clear Selection</button>
+        <!-- Filter Bar -->
+        <div class="card mb" style="padding:20px;">
+            <div style="display:flex; gap:15px; flex-wrap:wrap; align-items:flex-end;">
+                <div style="flex:1; min-width:250px;">
+                    <label style="display:block; font-size:0.8rem; font-weight:700; color:#64748b; margin-bottom:5px;">Search</label>
+                    <input type="text" id="historySearchInput" class="form-control" placeholder="Search by student name or receipt #..." onkeyup="_debounce(_loadPaymentHistory, 300)()">
                 </div>
-                
-                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:20px;" id="studentFinancialSummary">
-                    <div class="card glass-card" style="padding:20px; display:flex; align-items:center; gap:15px;">
-                        <div class="progress-circle" id="circlePaid" style="--p-color:#10b981; --p-val:0deg;"><span>0%</span></div>
-                        <div>
-                            <span style="font-size:0.75rem; color:#64748b; text-transform:uppercase; font-weight:700;">Yearly Paid</span>
-                            <div style="font-size:1.2rem; font-weight:800; color:#10b981;" id="sumTotalPaid">NPR 0</div>
-                        </div>
-                    </div>
-                    <div class="card glass-card" style="padding:20px;">
-                        <span style="font-size:0.75rem; color:#ef4444; text-transform:uppercase; font-weight:700;">Total Outstanding</span>
-                        <div style="font-size:1.2rem; font-weight:800; color:#ef4444;" id="sumTotalBalance">NPR 0</div>
-                        <div style="font-size:0.75rem; color:#94a3b8; margin-top:4px;" id="sumTotalAssigned">Assigned: NPR 0</div>
-                    </div>
-                    <div class="card glass-card" style="padding:20px;">
-                        <span style="font-size:0.75rem; color:#f59e0b; text-transform:uppercase; font-weight:700;">Next Due</span>
-                        <div style="font-size:1.2rem; font-weight:800; color:#f59e0b;" id="nextDueAmount">NPR 0</div>
-                        <div style="font-size:0.75rem; color:#94a3b8; margin-top:4px;" id="nextDueDate">Date: -</div>
-                    </div>
+                <div style="width:160px;">
+                    <label style="display:block; font-size:0.8rem; font-weight:700; color:#64748b; margin-bottom:5px;">From Date</label>
+                    <input type="date" id="historyDateFrom" class="form-control" onchange="_loadPaymentHistory()">
                 </div>
-            </div>
-            
-            <!-- Outstanding Fees Table -->
-            <div class="card mb" style="padding:25px;">
-                <h4 style="margin:0 0 15px 0;"><i class="fa-solid fa-clock"></i> Outstanding Fees for this Student</h4>
-                <div id="outstandingFeesList"><div class="pg-loading"><i class="fa-solid fa-circle-notch fa-spin"></i><span>Loading...</span></div></div>
-            </div>
-            
-            <!-- Payment Form -->
-            <div class="card mb" style="padding:25px;" id="paymentFormSection">
-                <h4 style="margin:0 0 15px 0;"><i class="fa-solid fa-credit-card"></i> Record Payment</h4>
-                <form id="feePaymentForm">
-                    <input type="hidden" id="paymentStudentId" name="student_id">
-                    <input type="hidden" id="paymentFeeRecordId" name="fee_record_id">
-                    
-                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:15px;">
-                        <div class="form-group">
-                            <label class="form-label">Fee Type *</label>
-                            <select name="fee_item_id" id="paymentFeeItem" class="form-control" required>
-                                <option value="">Select Fee</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Installment *</label>
-                            <select name="installment_no" id="paymentInstallment" class="form-control" required>
-                                <option value="">Select Installment</option>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:15px;">
-                        <div class="form-group">
-                            <label class="form-label">Amount Due (NPR)</label>
-                            <input type="text" id="amountDue" class="form-control" readonly style="background:#f1f5f9;">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Amount Paying *</label>
-                            <input type="number" name="amount_paid" id="amountPaid" class="form-control" required min="0" step="0.01" placeholder="0.00">
-                            <div id="liveFineDisplay"></div>
-                        </div>
-                    </div>
-                    
-                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:15px;">
-                        <div class="form-group">
-                            <label class="form-label">Payment Date *</label>
-                            <input type="date" name="paid_date" id="paidDate" class="form-control" required>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Payment Mode *</label>
-                            <select name="payment_mode" class="form-control" required>
-                                <option value="cash">Cash</option>
-                                <option value="bank_transfer">Bank Transfer</option>
-                                <option value="khalti">FonePay / QR</option>
-                                <option value="esewa">eSewa</option>
-                                <option value="cheque">Cheque</option>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:15px;">
-                        <div class="form-group">
-                            <label class="form-label">Receipt No. (Optional)</label>
-                            <input type="text" name="receipt_no" class="form-control" placeholder="Auto-generated if left blank">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Upload Bill/Receipt Image (Optional)</label>
-                            <input type="file" name="receipt_image" accept="image/*,.pdf" class="form-control">
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">Notes (Optional)</label>
-                        <textarea name="notes" class="form-control" rows="2" placeholder="Any additional notes..."></textarea>
-                    </div>
-                    
-                    <button type="submit" class="btn bt"><i class="fa-solid fa-check"></i> Record Payment</button>
-                </form>
+                <div style="width:160px;">
+                    <label style="display:block; font-size:0.8rem; font-weight:700; color:#64748b; margin-bottom:5px;">To Date</label>
+                    <input type="date" id="historyDateTo" class="form-control" onchange="_loadPaymentHistory()">
+                </div>
+                <button class="btn bs" onclick="_resetHistoryFilters()"><i class="fa-solid fa-rotate-right"></i> Reset</button>
             </div>
         </div>
         
-        <!-- Recent Payments -->
+        <!-- History List -->
         <div class="card" style="padding:25px;">
-            <h4 style="margin:0 0 15px 0;"><i class="fa-solid fa-history"></i> Recent Payments</h4>
-            <div id="recentPaymentsList"><div class="pg-loading"><i class="fa-solid fa-circle-notch fa-spin"></i><span>Loading...</span></div></div>
+            <div id="paymentHistoryList"><div class="pg-loading"><i class="fa-solid fa-circle-notch fa-spin"></i><span>Loading payment records...</span></div></div>
         </div>
     </div>`;
     
-    // Set default payment date to today
-    document.getElementById('paidDate').value = new Date().toISOString().split('T')[0];
-
-    // Handle Fee Item Change -> Populate Installments
-    document.getElementById('paymentFeeItem').addEventListener('change', function() {
-        const feeId = this.value;
-        const instSelect = document.getElementById('paymentInstallment');
-        instSelect.innerHTML = '<option value="">Select Installment</option>';
-        
-        if (!feeId) return;
-
-        const filtered = outstandingFeesData.filter(of => of.fee_item_id == feeId);
-        filtered.forEach(of => {
-            const isOverdue = new Date(of.due_date) < new Date();
-            const label = `Inst. ${of.installment_no} (Due: ${of.due_date})${isOverdue ? ' - OVERDUE' : ''}`;
-            instSelect.innerHTML += `<option value="${of.installment_no}">${label}</option>`;
-        });
-    });
-
-    // Handle Installment Change -> Set Amount and Record ID
-    document.getElementById('paymentInstallment').addEventListener('change', function() {
-        const instNo = this.value;
-        const feeId = document.getElementById('paymentFeeItem').value;
-        
-        if (!instNo || !feeId) return;
-
-        const fr = outstandingFeesData.find(of => of.fee_item_id == feeId && of.installment_no == instNo);
-        if (fr) {
-            const balance = parseFloat(fr.amount_due) - parseFloat(fr.amount_paid);
-            document.getElementById('amountDue').value = balance;
-            document.getElementById('amountPaid').value = balance;
-            document.getElementById('paymentFeeRecordId').value = fr.id;
-            
-            // Trigger Live Fine Update
-            _updateLiveFineFeedback(fr.id);
-        }
-    });
-
-    // Live Fine Support on Date Change
-    document.getElementById('paidDate').addEventListener('change', () => {
-        const rid = document.getElementById('paymentFeeRecordId').value;
-        if (rid) _updateLiveFineFeedback(rid);
-    });
-    
-    // Bind feePaymentForm submit
-    document.getElementById('feePaymentForm').addEventListener('submit', async function(e) {
-        e.preventDefault();
-        const btn = this.querySelector('button[type="submit"]');
-        const origText = btn.innerHTML;
-        btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Processing...';
-        btn.disabled = true;
-
-        const formData = new FormData(this);
-        formData.append('action', 'record_payment');
-
-        try {
-            // Send to fees.php
-            const res = await fetch(APP_URL + '/api/admin/fees', {
-                method: 'POST',
-                body: formData
-            });
-
-            const result = await res.json();
-            if (result.success) {
-                this.reset();
-                document.getElementById('paidDate').value = new Date().toISOString().split('T')[0];
-                
-                // Show Email Sending Screen
-                const d = result.data;
-                window._showEmailSendingScreen(d.receipt_no, d.student_name, d.student_id, d.email_status);
-                
-                // Refresh data in background
-                const studentId = document.getElementById('paymentStudentId').value;
-                if (studentId) {
-                    await _loadOutstandingFees(studentId);
-                    await renderStudentLedger(studentId);
-                    await _loadRecentPayments();
-                }
-            } else {
-                alert(result.message || 'Payment failed');
-            }
-        } catch(err) {
-            console.error(err);
-            alert('An error occurred while recording payment.');
-        } finally {
-            btn.innerHTML = origText;
-            btn.disabled = false;
-        }
-    });
-
-    // Load courses for filter
-    await _loadCoursesForFilter();
-    
-    // Load recent payments
-    await _loadRecentPayments();
-
-    // CHECK FOR STUDENT_ID IN URL (Auto-select student)
-    const urlParams = new URLSearchParams(window.location.search);
-    const sid = urlParams.get('student_id');
-    if (sid) {
-        _autoSelectStudent(sid);
-    }
+    await _loadPaymentHistory();
 };
+
+function _resetHistoryFilters() {
+    document.getElementById('historySearchInput').value = '';
+    document.getElementById('historyDateFrom').value = '';
+    document.getElementById('historyDateTo').value = '';
+    _loadPaymentHistory();
+}
+
+function _debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
 
 async function _autoSelectStudent(id) {
     try {
@@ -1118,8 +1317,7 @@ async function _loadOutstandingFees(studentId) {
     container.innerHTML = '<div class="pg-loading"><i class="fa-solid fa-circle-notch fa-spin"></i><span>Loading...</span></div>';
     
     try {
-        const res = await fetch(APP_URL + '/api/admin/fees?action=get_outstanding&student_id=' + studentId);
-        const result = await res.json();
+        const result = await _safeFetch(APP_URL + '/api/admin/fees?action=get_outstanding&student_id=' + studentId);
         
         if (!result.success) {
             container.innerHTML = '<div style="padding:20px;text-align:center;color:#ef4444;">' + result.message + '</div>';
@@ -1159,12 +1357,16 @@ async function _loadOutstandingFees(studentId) {
             const balance = assigned - paid;
             
             const isPaid = balance <= 0;
-            const isOverdue = !isPaid && new Date(of.due_date) < new Date();
-            
+            const bsDueDate = window.getBSDate ? window.getBSDate(of.due_date) : null;
+            const bsStr = bsDueDate ? `${bsDueDate.y}-${String(bsDueDate.m+1).padStart(2,'0')}-${String(bsDueDate.d).padStart(2,'0')}` : '';
+
             html += `<tr>
                 <td>${of.fee_item_name}</td>
                 <td>${of.installment_no}</td>
-                <td><span class="${isOverdue ? 'text-danger fw-bold' : ''}">${of.due_date}</span></td>
+                <td>
+                    <span class="${isOverdue ? 'text-danger fw-bold' : ''}">${of.due_date}</span>
+                    ${bsStr ? `<br><small style="color:#64748b;">${bsStr}</small>` : ''}
+                </td>
                 <td>${assigned.toLocaleString()}</td>
                 <td style="color:#10b981;">${paid.toLocaleString()}</td>
                 <td id="fine_cell_${of.id}">-</td>
@@ -1257,33 +1459,55 @@ function _quickSelectFee(recordId) {
     }, 100);
 }
 
-async function _loadRecentPayments() {
-    const container = document.getElementById('recentPaymentsList');
-    if (!container) return; // Optional element in dom
+async function _loadPaymentHistory() {
+    const container = document.getElementById('paymentHistoryList');
+    if (!container) return;
+
+    const search = document.getElementById('historySearchInput')?.value || '';
+    const dateFrom = document.getElementById('historyDateFrom')?.value || '';
+    const dateTo = document.getElementById('historyDateTo')?.value || '';
 
     try {
-        const res = await fetch(APP_URL + '/api/admin/fees?action=get_recent_payments');
-        const result = await res.json();
+        const url = `${APP_URL}/api/admin/fees?action=get_payment_history&search=${encodeURIComponent(search)}&date_from=${dateFrom}&date_to=${dateTo}`;
+        const result = await _safeFetch(url);
 
         if (!result.success || !result.data || result.data.length === 0) {
-            container.innerHTML = '<div style="padding:20px;text-align:center;color:#94a3b8;">No recent payments</div>';
+            container.innerHTML = '<div style="padding:60px; text-align:center; color:#94a3b8;"><i class="fa-solid fa-receipt" style="font-size:3rem; margin-bottom:15px; opacity:0.3;"></i><p>No payment records found matching your filters.</p></div>';
             return;
         }
 
-        let html = '<table class="table"><thead><tr><th>Date</th><th>Student</th><th>Receipt</th><th>Amount</th><th>Method</th><th>Actions</th></tr></thead><tbody>';
+        let html = `<table class="table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Student Details</th>
+                    <th>Fee Item</th>
+                    <th>Receipt No.</th>
+                    <th>Amount Paid</th>
+                    <th>Mode</th>
+                    <th style="text-align:right;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>`;
         
         result.data.forEach(t => {
             html += `<tr>
-                <td>${t.paid_date}</td>
-                <td>${t.student_name}</td>
-                <td><strong>${t.receipt_no}</strong></td>
-                <td><strong>${parseFloat(t.amount_paid).toLocaleString()}</strong></td>
-                <td><span class="tag bg-s">${t.payment_mode.toUpperCase()}</span></td>
+                <td><div style="font-weight:600;">${t.payment_date}</div><div style="font-size:0.75rem; color:#64748b;">${t.paid_date}</div></td>
                 <td>
-                    <button class="btn bs" style="padding:4px 8px;font-size:12px;" onclick="window.open('/payment_flow/generate_pdf.php?receipt_no=${t.receipt_no}', '_blank')" title="Download PDF"><i class="fa-solid fa-file-pdf"></i></button>
-                    <button class="btn bs" style="padding:4px 8px;font-size:12px;" onclick="viewPayment(${t.id})" title="View"><i class="fa-solid fa-eye"></i></button>
-                    <button class="btn bs" style="padding:4px 8px;font-size:12px;" onclick="editPayment(${t.id})" title="Edit"><i class="fa-solid fa-pen"></i></button>
-                    <button class="btn bs" style="padding:4px 8px;font-size:12px;color:var(--red);" onclick="deletePayment(${t.id})" title="Delete"><i class="fa-solid fa-trash"></i></button>
+                    <div style="font-weight:700; color:var(--primary);">${t.student_name}</div>
+                    <div style="font-size:0.8rem; color:#64748b;">${t.receipt_no}</div>
+                </td>
+                <td><span class="tag bg-l">${t.fee_item_name}</span></td>
+                <td><strong style="color:var(--text-dark);">${t.receipt_no}</strong></td>
+                <td><strong style="color:var(--green); font-size:1.1rem;">NPR ${parseFloat(t.amount_paid).toLocaleString()}</strong></td>
+                <td><span class="tag bg-s">${(t.payment_mode || 'CASH').toUpperCase()}</span></td>
+                <td style="text-align:right;">
+                    <div style="display:flex; gap:8px; justify-content:flex-end;">
+                        <button class="btn bs" style="padding:6px 10px;" onclick="window.open('${APP_URL}/api/admin/fees?action=generate_receipt_html&transaction_id=${t.id}&receipt_no=${t.receipt_no}&is_pdf=1', '_blank')" title="Download PDF Receipt"><i class="fa-solid fa-file-pdf"></i></button>
+                        <button class="btn bs" style="padding:6px 10px;" onclick="viewPayment(${t.id})" title="Details"><i class="fa-solid fa-eye"></i></button>
+                        <button class="btn bs" style="padding:6px 10px;" onclick="editPayment(${t.id})" title="Edit"><i class="fa-solid fa-pen"></i></button>
+                        <button class="btn bs" style="padding:6px 10px; color:#ef4444;" onclick="deletePayment(${t.id})" title="Delete"><i class="fa-solid fa-trash"></i></button>
+                    </div>
                 </td>
             </tr>`;
         });
@@ -1292,7 +1516,8 @@ async function _loadRecentPayments() {
         container.innerHTML = html;
         
     } catch(e) {
-        container.innerHTML = '<div style="padding:20px;text-align:center;color:#ef4444;">Error loading recent payments</div>';
+        console.error(e);
+        container.innerHTML = '<div style="padding:40px; text-align:center; color:#ef4444;"><i class="fa-solid fa-triangle-exclamation"></i> Error loading payment history</div>';
     }
 }
 
@@ -1316,8 +1541,7 @@ window.renderStudentLedger = async function(studentId) {
     </div>`;
     
     try {
-        const res = await fetch(`${APP_URL}/api/admin/fees?action=get_student_ledger&student_id=${studentId}`);
-        const result = await res.json();
+        const result = await _safeFetch(`${APP_URL}/api/admin/fees?action=get_student_ledger&student_id=${studentId}`);
         if (!result.success) throw new Error(result.message);
         
         _renderLedgerUI(result.data);
@@ -1356,17 +1580,23 @@ function _renderLedgerUI(data) {
                             <tr><th>Date</th><th>Fee Item</th><th>Inst.</th><th>Due</th><th>Paid</th><th>Fine</th><th>Status</th></tr>
                         </thead>
                         <tbody>
-                            ${ledger.map(l => `
-                                <tr>
-                                    <td>${l.due_date}</td>
-                                    <td>${l.fee_item_name}</td>
-                                    <td>${l.installment_no}</td>
-                                    <td>${parseFloat(l.amount_due).toLocaleString()}</td>
-                                    <td>${parseFloat(l.amount_paid).toLocaleString()}</td>
-                                    <td style="color:red">${l.fine_applied > 0 ? l.fine_applied : '-'}</td>
-                                    <td><span class="tag bg-${l.status === 'paid' ? 't' : (l.status === 'overdue' ? 'r' : 'y')}">${l.status.toUpperCase()}</span></td>
-                                </tr>
-                            `).join('')}
+                             ${ledger.map(l => {
+                                 const bs = window.getBSDate ? window.getBSDate(l.due_date) : null;
+                                 const bsStr = bs ? `${bs.y}-${String(bs.m+1).padStart(2,'0')}-${String(bs.d).padStart(2,'0')}` : '';
+                                 return `
+                                 <tr>
+                                     <td>
+                                         ${l.due_date}
+                                         ${bsStr ? `<br><small style="color:#64748b;">${bsStr}</small>` : ''}
+                                     </td>
+                                     <td>${l.fee_item_name}</td>
+                                     <td>${l.installment_no}</td>
+                                     <td>${parseFloat(l.amount_due).toLocaleString()}</td>
+                                     <td>${parseFloat(l.amount_paid).toLocaleString()}</td>
+                                     <td style="color:red">${l.fine_applied > 0 ? l.fine_applied : '-'}</td>
+                                     <td><span class="tag bg-${l.status === 'paid' ? 't' : (l.status === 'overdue' ? 'r' : 'y')}">${l.status.toUpperCase()}</span></td>
+                                 </tr>
+                             `; }).join('')}
                         </tbody>
                     </table>
                 </div>
@@ -1380,69 +1610,83 @@ function _renderLedgerUI(data) {
                             <tr><th>Date</th><th>Receipt No.</th><th>Method</th><th>Amount</th><th>Status</th><th>Actions</th></tr>
                         </thead>
                         <tbody>
-                            ${transactions.map(t => `
+                            ${transactions.map(t => {
+                                const bs = window.getBSDate ? window.getBSDate(t.payment_date) : null;
+                                const bsStr = bs ? `${bs.y}-${String(bs.m+1).padStart(2,'0')}-${String(bs.d).padStart(2,'0')}` : '';
+                                return `
                                 <tr>
-                                    <td>${t.payment_date}</td>
+                                    <td>
+                                        ${t.payment_date}
+                                        ${bsStr ? `<br><small style="color:#64748b;">${bsStr}</small>` : ''}
+                                    </td>
                                     <td><strong>${t.receipt_number}</strong></td>
                                     <td><span class="tag bg-s">${t.payment_method.toUpperCase()}</span></td>
                                     <td><strong>${parseFloat(t.amount).toLocaleString()}</strong></td>
                                     <td><span class="tag bg-t">COMPLETED</span></td>
                                     <td>
-                                        <button class="btn bs" style="padding:4px 8px;font-size:12px;" onclick="window.open(APP_URL + '/api/admin/fees?action=get_payment_details&transaction_id=${t.id}', '_blank')" title="Download PDF"><i class="fa-solid fa-file-pdf"></i></button>
+                                        <button class="btn bs" style="padding:4px 8px;font-size:12px;" onclick="window.handleDownloadPdf('${t.receipt_number}')" title="Download PDF"><i class="fa-solid fa-file-pdf"></i></button>
                                         <button class="btn bs" style="padding:4px 8px;font-size:12px;" onclick="viewPayment(${t.id})" title="View"><i class="fa-solid fa-eye"></i></button>
                                         <button class="btn bs" style="padding:4px 8px;font-size:12px;" onclick="editPayment(${t.id})" title="Edit"><i class="fa-solid fa-pen"></i></button>
                                         <button class="btn bs" style="padding:4px 8px;font-size:12px;color:var(--red);" onclick="deletePayment(${t.id})" title="Delete"><i class="fa-solid fa-trash"></i></button>
                                     </td>
                                 </tr>
-                            `).join('')}
+                            `; }).join('')}
                         </tbody>
                     </table>
                 </div>
             </div>
-        </div>
+        </div>`;
 
+        const combinedTimeline = ledger.concat(transactions.map(t => ({...t, is_payment: true})))
+            .sort((a,b) => new Date(b.payment_date || b.due_date) - new Date(a.payment_date || a.due_date));
+
+        const timelineHtml = combinedTimeline.map(item => {
+            if (item.is_payment) {
+                const bs = window.getBSDate ? window.getBSDate(item.payment_date) : null;
+                return `
+                    <div class="timeline-item paid">
+                        <div class="timeline-marker"></div>
+                        <div class="timeline-content">
+                            <div class="timeline-date">${item.payment_date} ${bs ? `• ${bs.y}-${bs.m+1}-${bs.d} BS` : ''}</div>
+                            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                                <div>
+                                    <h4 style="margin:0; color:#16a34a;">Payment Received</h4>
+                                    <p style="margin:4px 0 0 0; font-size:0.9rem; color:#64748b;">Receipt: ${item.receipt_number} • Via ${item.payment_method.toUpperCase()}</p>
+                                </div>
+                                <div style="text-align:right">
+                                    <div style="font-size:1.1rem; font-weight:800; color:#16a34a;">+ NPR ${parseFloat(item.amount).toLocaleString()}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                const bs = window.getBSDate ? window.getBSDate(item.due_date) : null;
+                return `
+                    <div class="timeline-item ${item.status}">
+                        <div class="timeline-marker"></div>
+                        <div class="timeline-content">
+                            <div class="timeline-date">${item.due_date} ${bs ? `• ${bs.y}-${bs.m+1}-${bs.d} BS` : ''}</div>
+                            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                                <div>
+                                    <h4 style="margin:0; color:var(--text-dark);">${item.fee_item_name}</h4>
+                                    <p style="margin:4px 0 0 0; font-size:0.9rem; color:#64748b;">Installment ${item.installment_no}</p>
+                                </div>
+                                <div style="text-align:right">
+                                    <div style="font-size:1.1rem; font-weight:800; color:var(--text-dark);">NPR ${parseFloat(item.amount_due).toLocaleString()}</div>
+                                    <span class="tag bg-${item.status === 'paid' ? 't' : (item.status === 'overdue' ? 'r' : 'y')}" style="margin-top:5px; display:inline-block;">${item.status.toUpperCase()}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        }).join('');
+
+        mc.innerHTML += `
         <div id="ledgerTimelineView" style="display:none">
             <div class="payment-timeline">
-                ${ledger.concat(transactions.map(t => ({...t, is_payment: true}))).sort((a,b) => new Date(b.payment_date || b.due_date) - new Date(a.payment_date || a.due_date)).map(item => {
-                    if (item.is_payment) {
-                        return `
-                            <div class="timeline-item paid">
-                                <div class="timeline-marker"></div>
-                                <div class="timeline-content">
-                                    <div class="timeline-date">${item.payment_date}</div>
-                                    <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                                        <div>
-                                            <h4 style="margin:0; color:#16a34a;">Payment Received</h4>
-                                            <p style="margin:4px 0 0 0; font-size:0.9rem; color:#64748b;">Receipt: ${item.receipt_number} • Via ${item.payment_method.toUpperCase()}</p>
-                                        </div>
-                                        <div style="text-align:right">
-                                            <div style="font-size:1.1rem; font-weight:800; color:#16a34a;">+ NPR ${parseFloat(item.amount).toLocaleString()}</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        `;
-                    } else {
-                        return `
-                            <div class="timeline-item ${item.status}">
-                                <div class="timeline-marker"></div>
-                                <div class="timeline-content">
-                                    <div class="timeline-date">${item.due_date}</div>
-                                    <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                                        <div>
-                                            <h4 style="margin:0; color:var(--text-dark);">${item.fee_item_name}</h4>
-                                            <p style="margin:4px 0 0 0; font-size:0.9rem; color:#64748b;">Installment ${item.installment_no}</p>
-                                        </div>
-                                        <div style="text-align:right">
-                                            <div style="font-size:1.1rem; font-weight:800; color:var(--text-dark);">NPR ${parseFloat(item.amount_due).toLocaleString()}</div>
-                                            <span class="tag bg-${item.status === 'paid' ? 't' : (item.status === 'overdue' ? 'r' : 'y')}" style="margin-top:5px; display:inline-block;">${item.status.toUpperCase()}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        `;
-                    }
-                }).join('')}
+                ${timelineHtml}
             </div>
         </div>
     `;
@@ -1476,8 +1720,7 @@ window._switchLedgerView = function(view) {
 /* ══════════════ VIEW / EDIT / DELETE PAYMENTS ═══════════════════════════════ */
 window.viewPayment = async function(transactionId) {
     try {
-        const res = await fetch(APP_URL + '/api/admin/fees?action=get_payment_details&transaction_id=' + transactionId);
-        const result = await res.json();
+        const result = await _safeFetch(APP_URL + '/api/admin/fees?action=get_payment_details&transaction_id=' + transactionId);
         
         if (!result.success) throw new Error(result.message);
         
@@ -1498,7 +1741,10 @@ window.viewPayment = async function(transactionId) {
                         </div>
                         <div>
                             <p style="margin:0 0 5px 0;color:#64748b;">Payment Date</p>
-                            <h4 style="margin:0;">${txn.payment_date}</h4>
+                            <h4 style="margin:0;">
+                                ${txn.payment_date} 
+                                ${window.getBSDate ? `<br><small style="color:var(--primary); font-size:0.85em;">${window.formatNepaliDate(txn.payment_date)}</small>` : ''}
+                            </h4>
                         </div>
                     </div>
                     
@@ -1548,8 +1794,7 @@ window.viewPayment = async function(transactionId) {
 
 window.editPayment = async function(transactionId) {
     try {
-        const res = await fetch(APP_URL + '/api/admin/fees?action=get_payment_details&transaction_id=' + transactionId);
-        const result = await res.json();
+        const result = await _safeFetch(APP_URL + '/api/admin/fees?action=get_payment_details&transaction_id=' + transactionId);
         
         if (!result.success) throw new Error(result.message);
         const txn = result.data.transaction;
@@ -1630,8 +1875,7 @@ window.editPayment = async function(transactionId) {
             formData.append('action', 'edit_payment');
 
             try {
-                const saveRes = await fetch(APP_URL + '/api/admin/fees', { method: 'POST', body: formData });
-                const saveResult = await saveRes.json();
+                const saveResult = await _safeFetch(APP_URL + '/api/admin/fees', { method: 'POST', body: formData });
                 
                 if (saveResult.success) {
                     _showToast(saveResult.message);
@@ -1665,12 +1909,11 @@ window.deletePayment = async function(transactionId) {
         formData.append('action', 'delete_payment');
         formData.append('transaction_id', transactionId);
 
-        const res = await fetch(APP_URL + '/api/admin/fees', {
+        const result = await _safeFetch(APP_URL + '/api/admin/fees', {
             method: 'POST',
             body: formData
         });
         
-        const result = await res.json();
         if(result.success) {
             _showToast(result.message);
             if(document.getElementById('paymentStudentId') && document.getElementById('paymentStudentId').value) {
@@ -1788,8 +2031,7 @@ async function _loadOutstandingData() {
     const courseFilter = document.getElementById('outstandingCourseFilter');
     
     try {
-        const res = await fetch(APP_URL + '/api/admin/fees?action=get_outstanding');
-        const result = await res.json();
+        const result = await _safeFetch(APP_URL + '/api/admin/fees?action=get_outstanding');
         
         if (!result.success) {
             c.innerHTML = '<div style="padding:40px;text-align:center;color:#ef4444;">' + result.message + '</div>';
@@ -1914,6 +2156,7 @@ function _renderOutstanding(data) {
                     <i class="fa-solid ${isOverdue ? 'fa-triangle-exclamation' : 'fa-calendar-day'}"></i>
                     ${d.next_due_date || 'N/A'}
                 </div>
+                ${d.next_due_date && window.getBSDate ? `<div style="font-size:0.7rem; color:#64748b; margin-top:2px;">${window.formatNepaliDate(d.next_due_date)}</div>` : ''}
             </td>
             <td style="text-align:right;">
                 <button class="btn bt" style="border-radius:10px; padding:10px 18px;" onclick="goNav('fee','record',{student_id:${d.student_id}})">
@@ -1965,4 +2208,255 @@ window.renderFeeReports = async function() {
     } catch(err) {
         mc.innerHTML = '<div style="padding:40px;text-align:center;color:#ef4444;"><i class="fa-solid fa-triangle-exclamation"></i> Error loading Fee Reports module.</div>';
     }
+};
+
+/* ── PRODUCTION-GRADE PAYMENT DETAILS VIEW ────────────────── */
+window.renderFeeDetails = async function(receiptNo) {
+    const mc = document.getElementById('mainContent');
+    if (!receiptNo) {
+        mc.innerHTML = `<div class="pg fu"><div class="card" style="padding:40px;text-align:center;"><h3>Missing Receipt Number</h3></div></div>`;
+        return;
+    }
+
+    const dateStr = window.formatNepaliDate ? window.formatNepaliDate(new Date()) : '';
+
+    mc.innerHTML = `
+        <div class="pg fu">
+            <div class="bc no-print">
+                <a href="#" onclick="goNav('overview')">Dashboard</a> 
+                <span class="bc-sep">&rsaquo;</span> 
+                <a href="#" onclick="goNav('fee','record')">Fee Records</a>
+                <span class="bc-sep">&rsaquo;</span> 
+                <span class="bc-cur">Payment Details</span>
+            </div>
+            <div id="paymentDetailsContent">
+                <div class="pg-loading"><i class="fa-solid fa-circle-notch fa-spin"></i><span>Loading payment summary...</span></div>
+            </div>
+        </div>
+    `;
+
+    try {
+        const res = await fetch(`${APP_URL}/api/admin/fees?action=get_payment_details&receipt_no=${receiptNo}`);
+        const result = await res.json();
+        if (!result.success) throw new Error(result.message);
+        
+        const txn = result.data.transaction;
+        const c = document.getElementById('paymentDetailsContent');
+        
+        const nepaliDate = window.formatNepaliDate ? window.formatNepaliDate(txn.payment_date) : '';
+        const adDate = new Date(txn.payment_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+        c.innerHTML = `
+            <div class="fee-details-card" id="receipt-print-zone" style="max-width: 600px; margin: 40px auto; background: #fff; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); overflow: hidden; animation: slideUp 0.4s ease; border: 1px solid #edf2f7;">
+                <div class="fd-header" style="padding: 20px 30px; background: #f8fafc; border-bottom: 1px solid #edf2f7; display: flex; justify-content: space-between; align-items: center;">
+                    <div class="fd-title" style="display: flex; align-items: center; gap: 12px; font-weight: 700; color: #1a202c; font-size: 1.1rem;">
+                        <i class="fa-solid fa-receipt" style="color: var(--primary);"></i>
+                        <span>Payment Receipt Summary</span>
+                    </div>
+                    <div class="fd-status-badge" style="background: #c6f6d5; color: #22543d; padding: 4px 12px; border-radius: 999px; font-size: 0.75rem; font-weight: 800;">SUCCESS</div>
+                </div>
+
+                <div class="fd-body" style="padding: 30px;">
+                    <div class="fd-main-info" style="display: flex; justify-content: space-between; margin-bottom: 30px; padding-bottom: 25px; border-bottom: 1px dashed #e2e8f0;">
+                        <div class="fd-amount-box">
+                            <span class="label" style="display: block; font-size: 0.8rem; color: #718096; margin-bottom: 5px; text-transform: uppercase;">Amount Paid</span>
+                            <span class="value" style="font-size: 2.2rem; font-weight: 800; color: #2d3748;">${getCurrencySymbol()}${parseFloat(txn.amount).toLocaleString()}</span>
+                        </div>
+                        <div class="fd-receipt-box" style="text-align: right;">
+                            <span class="label" style="display: block; font-size: 0.8rem; color: #718096; margin-bottom: 5px; text-transform: uppercase;">Receipt No.</span>
+                            <span class="value" style="font-size: 1.2rem; font-weight: 700; color: #4a5568;">${txn.receipt_number}</span>
+                        </div>
+                    </div>
+
+                    <div class="fd-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+                        <div class="fd-item">
+                            <span class="label" style="display: block; font-size: 0.75rem; color: #a0aec0; margin-bottom: 3px; font-weight: 600; text-transform: uppercase;">Student Name</span>
+                            <span class="value" style="font-weight: 700; color: #1a202c; font-size: 1rem;">${txn.student_name}</span>
+                        </div>
+                        <div class="fd-item">
+                            <span class="label" style="display: block; font-size: 0.75rem; color: #a0aec0; margin-bottom: 3px; font-weight: 600; text-transform: uppercase;">Course / Batch</span>
+                            <span class="value" style="font-weight: 600; color: #2d3748;">${txn.course_name} • ${txn.batch_name}</span>
+                        </div>
+                        <div class="fd-item">
+                            <span class="label" style="display: block; font-size: 0.75rem; color: #a0aec0; margin-bottom: 3px; font-weight: 600; text-transform: uppercase;">Payment Date</span>
+                            <span class="value" style="font-weight: 600; color: #2d3748;">
+                                ${adDate}<br>
+                                <small style="color:#718096; font-size: 0.85em;">${nepaliDate}</small>
+                            </span>
+                        </div>
+                        <div class="fd-item">
+                            <span class="label" style="display: block; font-size: 0.75rem; color: #a0aec0; margin-bottom: 3px; font-weight: 600; text-transform: uppercase;">Method</span>
+                            <span class="value" style="font-weight: 600; color: #2d3748; text-transform:capitalize;">
+                                <i class="fa-solid fa-credit-card" style="font-size: 0.8rem; margin-right: 4px; opacity: 0.7;"></i>
+                                ${txn.payment_method.replace('_', ' ')}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="fd-actions no-print" style="padding: 25px 30px; background: #f8fafc; display: flex; gap: 12px;">
+                    <button class="btn bt" style="flex: 1; justify-content:center;" onclick="window.printReceipt()">
+                        <i class="fa-solid fa-print"></i> Print
+                    </button>
+                    <button class="btn bs" style="flex: 1; justify-content:center;" onclick="window.handleDownloadPdf('${txn.receipt_number}')">
+                        <i class="fa-solid fa-download"></i> PDF
+                    </button>
+                    <button class="btn bs" id="btnResendEmail" style="flex: 1; justify-content:center;" onclick="window.handleResendEmail('${txn.receipt_number}')">
+                        <i class="fa-solid fa-paper-plane"></i> Email
+                    </button>
+                </div>
+                
+                <div class="fd-footer no-print" style="padding: 15px 30px; text-align: center; border-top: 1px solid #edf2f7;">
+                    <button class="btn-text" style="background: none; border: none; color: var(--primary); font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; margin: 0 auto;" onclick="goNav('fee','record')">
+                        <i class="fa-solid fa-arrow-left"></i> Record Another Payment
+                    </button>
+                </div>
+            </div>
+        `;
+    } catch(e) {
+        document.getElementById('paymentDetailsContent').innerHTML = `
+            <div class="card" style="padding:40px; text-align:center; color:var(--red);">
+                <i class="fa-solid fa-triangle-exclamation" style="font-size:3rem; margin-bottom:15px;"></i>
+                <h3>Failed to Load Payment Details</h3>
+                <p>${e.message}</p>
+                <button class="btn bt" onclick="renderFeeDetails('${receiptNo}')" style="margin-top:20px;">Retry</button>
+            </div>
+        `;
+    }
+};
+
+window.printReceipt = function() {
+    window.print();
+};
+
+window.handleDownloadPdf = function(receiptNo) {
+    window.location.href = `${APP_URL}/api/admin/fees?action=generate_receipt_html&is_pdf=1&receipt_no=${receiptNo}`;
+};
+
+window.handleResendEmail = async function(receiptNo) {
+    const btn = document.getElementById('btnResendEmail');
+    const origHtml = btn ? btn.innerHTML : '';
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Queuing...`;
+    }
+
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+    
+    Swal.fire({
+        title: '<div style="margin-bottom:15px;"><i class="fa-solid fa-envelope-circle-check" style="color:var(--primary, #3b82f6); font-size:3.5rem; filter: drop-shadow(0 4px 10px rgba(59, 130, 246, 0.3));"></i></div><span style="color:var(--primary); font-family:\'Inter\',sans-serif; letter-spacing:-0.5px;">Dispatching Email Receipt</span>',
+        html: `
+            <div id="emailProgressText" style="margin-top: 5px; color: #475569; font-size: 1.1rem; font-weight: 600; min-height: 1.5em; transition: all 0.3s ease;">Initializing...</div>
+            
+            <div style="width: 100%; max-width: 380px; height: 14px; background: #f1f5f9; border-radius: 20px; margin: 30px auto 15px; overflow: hidden; position: relative; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05); border: 1px solid #e2e8f0;">
+                <div id="emailProgressBar" style="width: 0%; height: 100%; background: linear-gradient(90deg, var(--primary, #3b82f6), #60a5fa, var(--primary, #3b82f6)); background-size: 200% 100%; border-radius: 20px; transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1); position: relative; display: flex; align-items: center; justify-content: center; animation: progressGradient 2s infinite linear;">
+                    <div style="position: absolute; top: 0; left: 0; bottom: 0; right: 0; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent); animation: progressShine 1.5s infinite linear;"></div>
+                </div>
+            </div>
+            
+            <div style="font-size: 2.5rem; font-weight: 900; color: var(--primary, #1e293b); font-variant-numeric: tabular-nums; letter-spacing: -1.5px; font-family:\'Outfit\',\'Inter\',sans-serif;" id="emailProgressPercent">0%</div>
+
+            <style>
+                @keyframes progressShine { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+                @keyframes progressGradient { 0% { background-position: 100% 0; } 100% { background-position: -100% 0; } }
+                .swal2-popup { border-radius: 28px !important; padding: 3rem 1.5rem !important; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important; }
+                #emailProgressText { font-family: 'Inter', sans-serif; }
+            </style>
+        `,
+        showConfirmButton: false,
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        didOpen: () => {
+            const bar = document.getElementById('emailProgressBar');
+            const percent = document.getElementById('emailProgressPercent');
+            const text = document.getElementById('emailProgressText');
+            const freshCsrfToken = document.querySelector('meta[name="csrf-token"]')?.content || csrfToken;
+
+            let progress = 0;
+            const progressInterval = setInterval(() => {
+                // Determine current stage and target increment
+                // 1–20% → Preparing email request
+                // 20–50% → Generating PDF receipt
+                // 50–80% → Attaching PDF to email
+                // 80–100% → Sending email via API
+                
+                if (progress < 98) {
+                    let increment = 0;
+                    if (progress < 20) {
+                        increment = 2;
+                        text.innerText = "Preparing email request...";
+                    } else if (progress < 50) {
+                        increment = 1.5;
+                        text.innerText = "Generating PDF receipt...";
+                    } else if (progress < 80) {
+                        increment = 1;
+                        text.innerText = "Attaching PDF to email...";
+                    } else {
+                        increment = 0.5;
+                        text.innerText = "Sending email...";
+                    }
+                    
+                    progress = Math.min(98, progress + increment);
+                    bar.style.width = `${progress}%`;
+                    percent.innerText = `${Math.floor(progress)}%`;
+                }
+            }, 100);
+
+            _safeFetch(`${APP_URL}/api/admin/fees`, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': freshCsrfToken 
+                },
+                body: JSON.stringify({ 
+                    action: 'send_email_receipt', 
+                    receipt_no: receiptNo,
+                    csrf_token: freshCsrfToken
+                })
+            })
+            .then(result => {
+                clearInterval(progressInterval);
+                if (btn) { btn.disabled = false; btn.innerHTML = origHtml; }
+                
+                if (result.success) {
+                    bar.style.width = '100%';
+                    bar.style.background = 'linear-gradient(90deg, #10b981, #059669)';
+                    bar.style.animation = 'none';
+                    percent.innerText = '100%';
+                    percent.style.color = '#10b981';
+                    text.innerText = 'Email sent to ' + (result.email || 'student') + '!';
+                    text.style.color = '#10b981';
+                    
+                    setTimeout(() => {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Sent Successfully!',
+                            text: 'Receipt has been sent to ' + (result.email || 'the student.') + '.',
+                            confirmButtonColor: '#3b82f6',
+                            timer: 4000,
+                            timerProgressBar: true
+                        });
+                    }, 500);
+                } else {
+                    throw new Error(result.message);
+                }
+            })
+            .catch(e => {
+                clearInterval(progressInterval);
+                if (btn) { btn.disabled = false; btn.innerHTML = origHtml; }
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Sending Failed',
+                    html: `<div style="color:#ef4444; font-weight:600; margin-bottom:10px;">${e.message || 'Error occurred while sending email.'}</div>
+                           <div style="font-size:0.85rem; color:#64748b;">The server might be experiencing temporary issues. Please try again.</div>`,
+                    confirmButtonText: '<i class="fa-solid fa-rotate-right"></i> Try Again',
+                    confirmButtonColor: '#3b82f6',
+                    showCancelButton: true,
+                    cancelButtonText: 'Dismiss'
+                }).then((r) => {
+                    if (r.isConfirmed) handleResendEmail(receiptNo);
+                });
+            });
+        }
+    });
 };

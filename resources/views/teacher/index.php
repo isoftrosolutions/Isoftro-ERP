@@ -82,6 +82,8 @@ include VIEWS_PATH . '/layouts/header.php';
 
         <!-- Custom Scripts -->
     <script src="<?php echo APP_URL; ?>/public/assets/js/pwa-handler.js"></script>
+    <script src="<?php echo APP_URL; ?>/public/assets/js/ia-study-materials.js"></script>
+    <script src="<?php echo APP_URL; ?>/public/assets/js/ia-lms.js"></script>
     <script src="<?php echo APP_URL; ?>/public/assets/js/teacher-updated.js"></script>
     <script src="<?php echo APP_URL; ?>/public/assets/js/breadcrumb.js"></script>
     <script>

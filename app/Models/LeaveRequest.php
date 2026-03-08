@@ -6,7 +6,7 @@ class LeaveRequest {
     private $db;
     
     public function __construct() {
-        $this->db = \DB::connection();
+        $this->db = \DB::connection()->getPdo();
     }
     
     public function create($data) {
@@ -55,17 +55,25 @@ class LeaveRequest {
     }
     
     public function getPending($tenantId) {
-        $stmt = $this->db->prepare("SELECT * FROM {$this->table} WHERE tenant_id = :tenant_id AND status = 'pending' ORDER BY created_at ASC");
+        $stmt = $this->db->prepare("
+            SELECT l.*, s.full_name, s.roll_no, s.photo_url 
+            FROM {$this->table} l
+            JOIN students s ON s.id = l.student_id
+            WHERE l.tenant_id = :tenant_id AND l.status = 'pending' 
+            ORDER BY l.created_at ASC
+        ");
         $stmt->execute(['tenant_id' => $tenantId]);
         return $stmt->fetchAll();
     }
     
     public function getApprovedForDate($date, $tenantId) {
         $stmt = $this->db->prepare("
-            SELECT * FROM {$this->table} 
-            WHERE tenant_id = :tenant_id 
-              AND status = 'approved' 
-              AND :date BETWEEN from_date AND to_date
+            SELECT l.*, s.full_name, s.roll_no, s.photo_url 
+            FROM {$this->table} l
+            JOIN students s ON s.id = l.student_id
+            WHERE l.tenant_id = :tenant_id 
+              AND l.status = 'approved' 
+              AND :date BETWEEN l.from_date AND l.to_date
         ");
         $stmt->execute(['tenant_id' => $tenantId, 'date' => $date]);
         return $stmt->fetchAll();
