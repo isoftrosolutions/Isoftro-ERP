@@ -47,7 +47,10 @@ $method = $_SERVER['REQUEST_METHOD'];
 
 // Method spoofing for multipart/form-data PUT/PATCH
 if ($method === 'POST' && isset($_POST['_method'])) {
-    $method = strtoupper($_POST['_method']);
+    $spoofedMethod = strtoupper($_POST['_method']);
+    if (in_array($spoofedMethod, ['PUT', 'PATCH', 'DELETE'])) {
+        $method = $spoofedMethod;
+    }
 }
 
 try {

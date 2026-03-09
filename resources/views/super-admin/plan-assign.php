@@ -9,8 +9,21 @@ require_once VIEWS_PATH . '/layouts/header_1.php';
 
 $pdo = getDBConnection();
 
-// Fetch summary counts for plans
-$planCounts = $pdo->query("SELECT plan, COUNT(*) as count FROM tenants GROUP BY plan")->fetchAll(PDO::FETCH_KEY_PAIR);
+// Fetch dynamic plans from subscription_plans
+$dbPlans = $pdo->query("SELECT * FROM subscription_plans WHERE status = 'active' ORDER BY sort_order ASC")->fetchAll();
+$plansByKey = [];
+foreach($dbPlans as $p) {
+    $plansByKey[$p['slug']] = $p;
+}
+
+// Fetch summary counts for plans from tenants
+$planCountsRaw = $pdo->query("SELECT plan, COUNT(*) as count FROM tenants GROUP BY plan")->fetchAll(PDO::FETCH_KEY_PAIR);
+$planCounts = [
+    'starter' => $planCountsRaw['starter'] ?? 0,
+    'growth' => $planCountsRaw['growth'] ?? 0,
+    'professional' => ($planCountsRaw['professional'] ?? 0) + ($planCountsRaw['pro'] ?? 0),
+    'enterprise' => $planCountsRaw['enterprise'] ?? 0
+];
 
 // Fetch all institutes for the table
 $tenants = $pdo->query("SELECT * FROM tenants ORDER BY name ASC")->fetchAll();
@@ -33,45 +46,27 @@ $activePage = 'plan-assign.php';
                 </div>
             </div>
             <div class="pg-acts">
-                <button class="btn bs" onclick="SuperAdmin.showNotification('Exporting project data...', 'info')"><i class="fa-solid fa-download"></i> Export</button>
+                <button class="btn bs" onclick="location.reload()"><i class="fa-solid fa-refresh"></i> Refresh</button>
                 <button class="btn bt" onclick="openBulkModal()"><i class="fa-solid fa-bolt"></i> Bulk Assign</button>
             </div>
         </div>
 
-        <!-- Stats Row -->
+        <!-- Stats Row (Dynamic) -->
         <div class="sg" style="margin-bottom:24px;">
+            <?php foreach($dbPlans as $p): 
+                $color = $p['css_class'] === 'starter' ? '#16a34a' : ($p['css_class'] === 'growth' ? '#3b82f6' : '#8b5cf6');
+                $bg = $p['css_class'] === 'starter' ? '#f0fdf4' : ($p['css_class'] === 'growth' ? '#eff6ff' : 'var(--soft-purple)');
+                $count = $planCounts[$p['slug']] ?? 0;
+            ?>
             <div class="sc">
                 <div class="sc-top">
-                    <div class="sc-ico" style="background:#f0fdf4; color:#16a34a;"><i class="fa-solid fa-seedling"></i></div>
-                    <span class="tag bg-t">Starter</span>
+                    <div class="sc-ico" style="background:<?php echo $bg; ?>; color:<?php echo $color; ?>;"><?php echo $p['icon_emoji'] ?: '📦'; ?></div>
+                    <span class="tag" style="background:<?php echo $bg; ?>; color:<?php echo $color; ?>; font-weight:700;"><?php echo htmlspecialchars($p['name']); ?></span>
                 </div>
-                <div class="sc-val"><?php echo $planCounts['starter'] ?? 0; ?></div>
+                <div class="sc-val"><?php echo $count; ?></div>
                 <div class="sc-lbl">Active Institutes</div>
             </div>
-            <div class="sc">
-                <div class="sc-top">
-                    <div class="sc-ico" style="background:#eff6ff; color:#3b82f6;"><i class="fa-solid fa-rocket"></i></div>
-                    <span class="tag bg-b">Growth</span>
-                </div>
-                <div class="sc-val"><?php echo $planCounts['growth'] ?? 0; ?></div>
-                <div class="sc-lbl">Active Institutes</div>
-            </div>
-            <div class="sc">
-                <div class="sc-top">
-                    <div class="sc-ico" style="background:var(--soft-purple); color:var(--purple);"><i class="fa-solid fa-star"></i></div>
-                    <span class="tag bg-p">Pro</span>
-                </div>
-                <div class="sc-val"><?php echo ($planCounts['professional'] ?? 0) + ($planCounts['pro'] ?? 0); ?></div>
-                <div class="sc-lbl">Active Institutes</div>
-            </div>
-            <div class="sc">
-                <div class="sc-top">
-                    <div class="sc-ico" style="background:#fef3c7; color:#d97706;"><i class="fa-solid fa-crown"></i></div>
-                    <span class="tag bg-y">Enterprise</span>
-                </div>
-                <div class="sc-val"><?php echo $planCounts['enterprise'] ?? 0; ?></div>
-                <div class="sc-lbl">Active Institutes</div>
-            </div>
+            <?php endforeach; ?>
         </div>
 
         <!-- Table -->
@@ -82,10 +77,9 @@ $activePage = 'plan-assign.php';
                     <input type="text" class="form-inp" placeholder="Search institute..." style="width:220px;" oninput="filterTable(this.value)">
                     <select class="form-inp" style="width:160px; appearance:auto;" onchange="filterPlan(this.value)">
                         <option value="">All Plans</option>
-                        <option value="starter">Starter</option>
-                        <option value="growth">Growth</option>
-                        <option value="professional">Professional</option>
-                        <option value="enterprise">Enterprise</option>
+                        <?php foreach($dbPlans as $p): ?>
+                        <option value="<?php echo $p['slug']; ?>"><?php echo htmlspecialchars($p['name']); ?></option>
+                        <?php endforeach; ?>
                     </select>
                 </div>
             </div>
@@ -139,10 +133,9 @@ $activePage = 'plan-assign.php';
         <div class="form-row" style="margin-bottom:20px;">
             <label class="form-lbl">Apply New Plan</label>
             <select class="form-inp" style="appearance:auto;">
-                <option value="starter">🌱 Starter</option>
-                <option value="growth">🚀 Growth</option>
-                <option value="professional">⭐ Professional</option>
-                <option value="enterprise">👑 Enterprise</option>
+                <?php foreach($dbPlans as $p): ?>
+                <option value="<?php echo $p['slug']; ?>"><?php echo ($p['icon_emoji'] ?: '📦') . ' ' . htmlspecialchars($p['name']); ?></option>
+                <?php endforeach; ?>
             </select>
         </div>
         <div class="form-row" style="margin-bottom:20px;">
@@ -172,22 +165,14 @@ $activePage = 'plan-assign.php';
     <div class="form-row" style="margin-bottom:20px;">
         <label class="form-lbl">Select New Plan</label>
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;" id="planCards">
-            <div class="plan-card" data-plan="starter" onclick="selectPlan(this)">
-                <div style="font-size:18px;">🌱</div>
-                <div style="font-weight:700; color:#16a34a;">Starter</div>
+            <?php foreach($dbPlans as $p): 
+                $color = $p['css_class'] === 'starter' ? '#16a34a' : ($p['css_class'] === 'growth' ? '#3b82f6' : '#8b5cf6');
+            ?>
+            <div class="plan-card" data-plan="<?php echo $p['slug']; ?>" onclick="selectPlan(this)">
+                <div style="font-size:18px;"><?php echo $p['icon_emoji'] ?: '📦'; ?></div>
+                <div style="font-weight:700; color:<?php echo $color; ?>;"><?php echo htmlspecialchars($p['name']); ?></div>
             </div>
-            <div class="plan-card" data-plan="growth" onclick="selectPlan(this)">
-                <div style="font-size:18px;">🚀</div>
-                <div style="font-weight:700; color:#3b82f6;">Growth</div>
-            </div>
-            <div class="plan-card" data-plan="professional" onclick="selectPlan(this)">
-                <div style="font-size:18px;">⭐</div>
-                <div style="font-weight:700; color:var(--purple);">Professional</div>
-            </div>
-            <div class="plan-card" data-plan="enterprise" onclick="selectPlan(this)">
-                <div style="font-size:18px;">👑</div>
-                <div style="font-weight:700; color:#d97706;">Enterprise</div>
-            </div>
+            <?php endforeach; ?>
         </div>
     </div>
     <div style="display:flex; gap:10px;">
@@ -229,10 +214,12 @@ $activePage = 'plan-assign.php';
 const institutes = <?php echo json_encode($tenants); ?>;
 
 const planMeta = {
-    starter: { label: "🌱 Starter", cls: "plan-starter" },
-    growth: { label: "🚀 Growth", cls: "plan-growth" },
-    professional: { label: "⭐ Professional", cls: "plan-professional" },
-    enterprise: { label: "👑 Enterprise", cls: "plan-enterprise" }
+    <?php foreach($dbPlans as $p): 
+        $cls = 'plan-' . ($p['css_class'] ?: 'starter');
+    ?>
+    "<?php echo $p['slug']; ?>": { label: "<?php echo ($p['icon_emoji'] ?: '📦') . ' ' . htmlspecialchars($p['name']); ?>", cls: "<?php echo $cls; ?>" },
+    <?php endforeach; ?>
+    "pro": { label: "⭐ Professional", cls: "plan-professional" } // Legacy mapping
 };
 
 function renderTable(data) {
@@ -247,54 +234,30 @@ function renderTable(data) {
             <td style="padding:14px 16px;">
                 <span class="plan-badge ${planMeta[inst.plan]?.cls || 'plan-starter'}">${planMeta[inst.plan]?.label || inst.plan}</span>
             </td>
-            <td style="padding:14px 16px; font-weight:700; font-size:13px; color:var(--td);">${inst.student_limit.toLocaleString()}</td>
-            <td style="padding:14px 16px; font-size:13px; color:var(--tb);">${inst.created_at.split(' ')[0]}</td>
+            <td style="padding:14px 16px; font-weight:700; font-size:13px; color:var(--td);">${(inst.student_limit || 0).toLocaleString()}</td>
+            <td style="padding:14px 16px; font-size:12px; color:var(--tl);">${inst.next_renewal || 'N/A'}</td>
             <td style="padding:14px 16px;">
-                <span class="tag tag-${inst.status}" style="padding:3px 10px; border-radius:20px; font-size:11px; font-weight:700;">${inst.status.charAt(0).toUpperCase() + inst.status.slice(1)}</span>
+                <span class="tag ${inst.status === 'active' ? 'tag-active' : 'tag-suspended'}">${inst.status || 'inactive'}</span>
             </td>
             <td style="padding:14px 16px;">
-                <select class="form-inp" style="font-size:12px; padding:6px 10px; width:auto; appearance:auto;" onchange="quickAssign(${inst.id}, this.value)">
-                    <option value="">Quick assign...</option>
-                    <option value="starter" ${inst.plan==='starter'?'selected':''}>Starter</option>
-                    <option value="growth" ${inst.plan==='growth'?'selected':''}>Growth</option>
-                    <option value="professional" ${inst.plan==='professional'?'selected':''}>Professional</option>
-                    <option value="enterprise" ${inst.plan==='enterprise'?'selected':''}>Enterprise</option>
-                </select>
+                <div style="display:flex; gap:6px;">
+                    <button class="btn-icon" title="Starter" onclick="quickAssign(${inst.id}, 'starter')"><i class="fa-solid fa-seedling" style="color:#16a34a;"></i></button>
+                    <button class="btn-icon" title="Growth" onclick="quickAssign(${inst.id}, 'growth')"><i class="fa-solid fa-rocket" style="color:#3b82f6;"></i></button>
+                    <button class="btn-icon" title="Pro" onclick="quickAssign(${inst.id}, 'professional')"><i class="fa-solid fa-star" style="color:var(--purple);"></i></button>
+                </div>
             </td>
             <td style="padding:14px 16px; text-align:center;">
-                <button class="btn-icon" onclick="openAssignModal(${inst.id})"><i class="fa fa-pencil"></i></button>
+                <button class="btn bs" style="height:32px; padding:0 12px; font-size:11px;" onclick="openAssignModal(${inst.id})">Update Plan</button>
             </td>
         </tr>
     `).join('');
 }
 
-function quickAssign(id, plan) {
-    if(!plan) return;
-    const formData = new FormData();
-    formData.append('id', id);
-    formData.append('plan', plan);
-
-    SuperAdmin.showNotification('Updating plan...', 'info');
-    fetch('../../api/update_plan.php', {
-        method: 'POST',
-        body: formData
-    })
-    .then(res => res.json())
-    .then(data => {
-        if(data.success) {
-            SuperAdmin.showNotification('Plan updated successfully!', 'success');
-            // Update local state and re-render
-            const inst = institutes.find(i => i.id == id);
-            if(inst) inst.plan = plan;
-            renderTable(institutes);
-        } else {
-            SuperAdmin.showNotification(data.message, 'error');
-        }
-    });
-}
+let currentInstId = null;
+let currentSelectedPlan = null;
 
 function filterTable(val) {
-    const filtered = institutes.filter(i => i.name.toLowerCase().includes(val.toLowerCase()) || i.sub.toLowerCase().includes(val.toLowerCase()));
+    const filtered = institutes.filter(i => i.name.toLowerCase().includes(val.toLowerCase()));
     renderTable(filtered);
 }
 
@@ -303,56 +266,77 @@ function filterPlan(val) {
     renderTable(filtered);
 }
 
-let currentInstId = null;
+function selectAll(cb) {
+    document.querySelectorAll('.row-cb').forEach(c => c.checked = cb.checked);
+}
+
+function openBulkModal() {
+    document.getElementById('bulkOverlay').style.display = 'block';
+    setTimeout(() => { document.getElementById('bulkDrawer').style.right = '0'; }, 10);
+}
+
+function closeBulkModal() {
+    document.getElementById('bulkDrawer').style.right = '-400px';
+    setTimeout(() => { document.getElementById('bulkOverlay').style.display = 'none'; }, 300);
+}
+
 function openAssignModal(id) {
-    const inst = institutes.find(i => i.id === id);
+    const inst = institutes.find(i => i.id == id);
     currentInstId = id;
     document.getElementById('modalInstName').innerHTML = `Updating plan for <strong>${inst.name}</strong>`;
     
     document.querySelectorAll('.plan-card').forEach(c => {
         c.classList.remove('active');
-        if(c.dataset.plan === inst.plan) c.classList.add('active');
+        if(c.dataset.plan === inst.plan) {
+            c.classList.add('active');
+            currentSelectedPlan = inst.plan;
+        }
     });
 
     document.getElementById('assignModal').style.visibility = 'visible';
     document.getElementById('assignModal').style.opacity = '1';
     document.getElementById('assignModal').style.transform = 'translate(-50%,-50%) scale(1)';
-    document.getElementById('bulkOverlay').classList.add('active'); // Reuse overlay
 }
 
 function closeAssignModal() {
     document.getElementById('assignModal').style.visibility = 'hidden';
     document.getElementById('assignModal').style.opacity = '0';
     document.getElementById('assignModal').style.transform = 'translate(-50%,-50%) scale(0.9)';
-    document.getElementById('bulkOverlay').classList.remove('active');
 }
 
 function selectPlan(el) {
     document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('active'));
     el.classList.add('active');
+    currentSelectedPlan = el.dataset.plan;
 }
 
 function saveIndividualPlan() {
-    const activePlan = document.querySelector('.plan-card.active').dataset.plan;
-    quickAssign(currentInstId, activePlan);
+    if(!currentSelectedPlan) return SuperAdmin.showNotification('Please select a plan', 'error');
+    quickAssign(currentInstId, currentSelectedPlan);
     closeAssignModal();
 }
 
-function openBulkModal() {
-    document.getElementById('bulkOverlay').classList.add('active');
-    document.getElementById('bulkDrawer').style.right = '0';
-}
-function closeBulkModal() {
-    document.getElementById('bulkOverlay').classList.remove('active');
-    document.getElementById('bulkDrawer').style.right = '-400px';
-}
-function applyBulk() {
-    SuperAdmin.showNotification('Bulk plan assignment applied!', 'success');
-    closeBulkModal();
+function quickAssign(id, plan) {
+    SuperAdmin.showNotification('Updating plan...', 'info');
+    fetch('../../api/super-admin/tenants/update-plan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `tenant_id=${id}&plan=${plan}&csrf_token=${window.CSRF_TOKEN}`
+    })
+    .then(res => res.json())
+    .then(data => {
+        if(data.success) {
+            SuperAdmin.showNotification('Plan updated successfully!', 'success');
+            setTimeout(() => location.reload(), 800);
+        } else {
+            SuperAdmin.showNotification(data.message || 'Error updating plan', 'error');
+        }
+    });
 }
 
-function selectAll(cb) {
-    document.querySelectorAll('.row-cb').forEach(c => c.checked = cb.checked);
+function applyBulk() {
+    SuperAdmin.showNotification('This feature is still being wired up with the backend.', 'warning');
+    closeBulkModal();
 }
 
 document.addEventListener('DOMContentLoaded', () => {

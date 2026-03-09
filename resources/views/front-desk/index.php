@@ -61,6 +61,7 @@ renderFrontDeskSidebar('index');
 <?php
 // Include necessary CSS/JS from layout
 renderSuperAdminCSS();
+renderExternalScripts();
 ?>
 </body>
 </html>

@@ -217,29 +217,14 @@ $scCardId    = 'scCard_' . $componentId;
         <!-- Section 3: Detailed Information -->
         <div class="sc-adm">
             <h3 class="sc-title"><i class="fas fa-folder-open"></i> Background Details</h3>
-            <div class="grid-box grid-3">
+            <div class="grid-box grid-2">
                 <div class="f-grp">
-                    <label class="f-lbl req">DOB (AD)</label>
-                    <input type="date" name="dob_ad" class="fi"
-                           onchange="handleDobSync_<?= $componentId ?>(this.value)"
-                           style="padding-left: 20px;" required>
-                </div>
-                <div class="f-grp">
-                    <label class="f-lbl">DOB (BS)</label>
-                    <input type="text" name="dob_bs" id="<?= $dobBsId ?>" class="fi" placeholder="YYYY-MM-DD" style="padding-left: 20px;">
-                </div>
-                <div class="f-grp">
-                    <label class="f-lbl">Blood Group</label>
-                    <select name="blood_group" class="fi fi-sel" style="padding-left: 20px;">
-                        <option value="">Maybe Later</option>
-                        <?php foreach (['A+','A-','B+','B-','AB+','AB-','O+','O-'] as $bg): ?>
-                        <option value="<?= $bg ?>"><?= $bg ?></option>
-                        <?php endforeach; ?>
-                    </select>
+                    <label class="f-lbl req">DOB (BS)</label>
+                    <input type="text" name="dob_bs" id="<?= $dobBsId ?>" class="fi" placeholder="YYYY-MM-DD" style="padding-left: 20px;" required>
                 </div>
             </div>
 
-            <div class="grid-box grid-2" style="margin-top: 1.5rem;">
+            <div class="grid-box" style="margin-top: 1.5rem;">
                 <div class="f-grp">
                     <label class="f-lbl req">Guardian/Father Name</label>
                     <div class="ipt-box">
@@ -247,30 +232,16 @@ $scCardId    = 'scCard_' . $componentId;
                         <input type="text" name="father_name" class="fi" placeholder="Full name of guardian" required>
                     </div>
                 </div>
-                <div class="f-grp">
-                    <label class="f-lbl">Citizenship No.</label>
-                    <div class="ipt-box">
-                        <i class="fas fa-passport"></i>
-                        <input type="text" name="citizenship_no" class="fi" placeholder="ID Number (Optional)">
-                    </div>
-                </div>
             </div>
 
-            <div class="grid-box grid-2" style="margin-top: 1.5rem;">
+            <div class="grid-box" style="margin-top: 1.5rem;">
                 <div class="f-grp">
-                    <label class="f-lbl req">Permanent Address</label>
+                    <label class="f-lbl req">Student Address</label>
                     <textarea name="permanent_address" class="fi" style="padding-left: 16px; min-height: 100px;" placeholder="Full Address..." required></textarea>
                 </div>
-                <div class="f-grp">
-                    <label class="f-lbl">Temporary Address</label>
-                    <textarea name="temporary_address" class="fi" style="padding-left: 16px; min-height: 100px;" placeholder="Current Stay..."></textarea>
-                </div>
             </div>
 
-            <div class="f-grp" style="margin-top: 1.5rem;">
-                <label class="f-lbl">Past Academic Qualification</label>
-                <textarea name="academic_qualification" class="fi" style="padding-left: 16px; min-height: 100px;" placeholder="Previous degrees, years, and institutions..."></textarea>
-            </div>
+
         </div>
 
         <!-- Section 4: Security Callout -->
@@ -463,19 +434,12 @@ $scCardId    = 'scCard_' . $componentId;
             password:               form.password?.value        || '',
             course_id:              form.course_id?.value       || null,
             batch_id:               form.batch_id?.value        || null,
-            dob_ad:                 form.dob_ad?.value          || '',
             dob_bs:                 form.dob_bs?.value          || '',
             gender:                 form.gender?.value          || '',
-            blood_group:            form.blood_group?.value     || '',
             father_name:            (form.father_name?.value    || '').trim(),
-            citizenship_no:         (form.citizenship_no?.value || '').trim(),
             permanent_address:      form.permanent_address?.value.trim()
                                     ? JSON.stringify({ address: form.permanent_address.value.trim() })
                                     : null,
-            temporary_address:      form.temporary_address?.value.trim()
-                                    ? JSON.stringify({ address: form.temporary_address.value.trim() })
-                                    : null,
-            academic_qualification: (form.academic_qualification?.value || '').trim(),
             registration_status:    'fully_registered'
         };
 

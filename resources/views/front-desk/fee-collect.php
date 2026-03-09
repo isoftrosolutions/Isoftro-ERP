@@ -244,14 +244,14 @@ async function loadOutstandingFees(studentId) {
                                 <div style="font-size:11px; color:#64748b;">Due Date: ${i.due_date}</div>
                             </div>
                             <div style="text-align:right;">
-                                <div style="font-weight:700; color:#ef4444;">NPR ${balance.toLocaleString()}</div>
-                                <div style="font-size:11px; color:#94a3b8;">Total: ${i.amount_due}</div>
+                                <div style="font-weight:700; color:#ef4444;">${getCurrencySymbol()}${balance.toLocaleString()}</div>
+                                <div style="font-size:11px; color:#94a3b8;">Total: ${getCurrencySymbol()}${i.amount_due}</div>
                             </div>
                         </div>
                     `;
                 }).join('');
                 
-                document.getElementById('totalDueLabel').textContent = 'NPR ' + total.toLocaleString();
+                document.getElementById('totalDueLabel').textContent = getCurrencySymbol() + ' ' + total.toLocaleString();
                 document.getElementById('payAmount').value = total;
             }
         } catch (e) {
@@ -286,7 +286,11 @@ async function loadOutstandingFees(studentId) {
                 if (result.data && result.data.redirect_url) {
                     window.location.href = result.data.redirect_url;
                 } else {
-                    window.location.href = '?page=fee-details&receipt_no=' + result.data.receipt_no;
+                    if (typeof goNav === 'function') {
+                        goNav('fee', 'details', { receipt_no: result.data.receipt_no });
+                    } else {
+                        window.location.href = '?page=fee-details&receipt_no=' + result.data.receipt_no;
+                    }
                 }
             } else {
                 alert('Error: ' + result.message);

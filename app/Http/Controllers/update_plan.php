@@ -38,12 +38,12 @@ try {
 
     // Update plan and also student_limit based on plan
     $limits = [
-        'starter' => 150,
-        'growth' => 500,
-        'professional' => 1500,
-        'enterprise' => 10000 
+        'starter' => 300,
+        'growth' => 800,
+        'professional' => 10000,
+        'enterprise' => 50000 
     ];
-    $limit = $limits[$plan] ?? 100;
+    $limit = $limits[$plan] ?? 300;
 
     $stmt = $pdo->prepare("UPDATE tenants SET plan = ?, student_limit = ?, updated_at = NOW() WHERE id = ?");
     $stmt->execute([$plan, $limit, $id]);

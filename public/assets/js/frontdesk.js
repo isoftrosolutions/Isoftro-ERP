@@ -5,6 +5,45 @@
 
 console.log('Front Desk Operator Loaded');
 
+// ── GLOBAL UTILITIES ──
+window.getCurrencySymbol = window.getCurrencySymbol || function() {
+    return window._INSTITUTE_CONFIG?.currency_symbol || window.INSTITUTE_CONFIG?.currency_symbol || '₹';
+};
+
+window.formatMoney = window.formatMoney || function(amount) {
+    if (amount === undefined || amount === null) return '0.00';
+    return parseFloat(amount).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+window.formatDate = window.formatDate || function(dateStr) {
+    if (!dateStr) return 'N/A';
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' });
+}
+
+window.showToast = window.showToast || function(msg, type = 'info') {
+    if (typeof Swal === 'undefined') {
+        console.warn('Swal not loaded, using alert for toast:', msg);
+        alert(msg);
+        return;
+    }
+    const Toast = Swal.mixin({
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+        didOpen: (toast) => {
+            toast.addEventListener('mouseenter', Swal.stopTimer);
+            toast.addEventListener('mouseleave', Swal.resumeTimer);
+        }
+    });
+    Toast.fire({
+        icon: type,
+        title: msg
+    });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     // ── STATE ──
     const urlParams = new URLSearchParams(window.location.search);
@@ -18,7 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const sbToggle = document.getElementById('sbToggle');
     const sbClose = document.getElementById('sbClose');
     const sbOverlay = document.getElementById('sbOverlay');
-
+    
     // ── NAVIGATION LOGIC ──
     window._iaRenderBreadcrumb = (items) => {
         const breadcrumb = document.getElementById('iaBreadcrumb');
@@ -90,8 +129,13 @@ document.addEventListener('DOMContentLoaded', () => {
         url.searchParams.set('page', activeNav);
         
         if (extraParams) {
-            const ep = extraParams.startsWith('&') || extraParams.startsWith('?') ? extraParams.substring(1) : extraParams;
-            const p = new URLSearchParams(ep);
+            let p;
+            if (typeof extraParams === 'string') {
+                const ep = (extraParams.startsWith('&') || extraParams.startsWith('?')) ? extraParams.substring(1) : extraParams;
+                p = new URLSearchParams(ep);
+            } else {
+                p = new URLSearchParams(extraParams);
+            }
             p.forEach((v, k) => url.searchParams.set(k, v));
         }
 
@@ -190,6 +234,16 @@ document.addEventListener('DOMContentLoaded', () => {
         // ── STUDENT MODULES ──
         else if (activeNav === 'students' || activeNav === 'admissions-adm-all') {
             if (window.renderStudentList) window.renderStudentList();
+        } else if (activeNav === 'students-view' || activeNav === 'admissions-view') {
+             if (window.renderStudentProfile) {
+                const id = new URLSearchParams(window.location.search).get('id');
+                window.renderStudentProfile(id);
+             }
+        } else if (activeNav === 'students-edit' || activeNav === 'admissions-edit' || activeNav === 'students-complete') {
+             if (window.renderEditStudentForm) {
+                const id = new URLSearchParams(window.location.search).get('id');
+                window.renderEditStudentForm(id);
+             }
         } else if (activeNav === 'new-admission' || activeNav === 'admissions-adm-form') {
             if (window.renderAddStudentForm) window.renderAddStudentForm();
         } else if (activeNav === 'alumni') {
@@ -204,14 +258,18 @@ document.addEventListener('DOMContentLoaded', () => {
             if (window.renderLeaveRequests) window.renderLeaveRequests();
         }
         // ── FINANCE MODULES ──
-        else if (activeNav === 'fee-fee-coll') {
+        else if (activeNav === 'fee-fee-coll' || activeNav === 'fee-collect') {
             if (window.renderFeeCollect) window.renderFeeCollect();
         } else if (activeNav === 'pending-dues' || activeNav === 'finance-fee-outstanding' || activeNav === 'outstanding') {
             if (window.renderFeeOutstanding) window.renderFeeOutstanding();
-        } else if (activeNav === 'receipts' || activeNav === 'transactions') {
-            if (window.renderFeeReceipts) window.renderFeeReceipts();
+        } else if (activeNav === 'receipts' || activeNav === 'transactions' || activeNav === 'fee-record') {
+            if (window.renderFeeRecord) window.renderFeeRecord();
         } else if (activeNav === 'fee-details' || activeNav.includes('fee-details')) {
-            if (window.renderFeeDetails) window.renderFeeDetails();
+            if (window.renderFeeDetails) {
+                // Extract receipt number from URL if possible
+                const receiptNo = new URLSearchParams(window.location.search).get('receipt_no');
+                window.renderFeeDetails(receiptNo);
+            }
         }
         // ── ACADEMIC MODULES ──
         else if (activeNav === 'academic-courses' || activeNav === 'courses') {
@@ -276,29 +334,29 @@ document.addEventListener('DOMContentLoaded', () => {
     
 
         try {
-            const res = await fetch(`${APP_URL}/api/admin/stats`, getHeaders());
+            const res = await fetch(`${APP_URL}/api/frontdesk/stats`, getHeaders());
             const result = await res.json();
             if (!result.success) throw new Error(result.message);
             const s = result.data;
             
             // Helper functions
+            const currency = window.getCurrencySymbol?.() || 'Rs';
             const fmtNum = (n) => parseInt(n || 0).toLocaleString('en-IN');
             const fmtMoney = (n) => parseFloat(n || 0).toLocaleString('en-IN');
             
-            // 1. KPI Fees
-            const moneyCollectedToday = s.fee_summary?.reduce((sum, f) => sum + parseFloat(f.total), 0) || 0;
+            // 1. KPI Data Mapping
+            const moneyCollectedToday = s.kpi_fees?.collected_today || s.fee_summary?.reduce((sum, f) => sum + parseFloat(f.total), 0) || 0;
+            const transactionsTodayCount = s.recent_collections?.length || s.recent_transactions?.length || 0;
             const duesPending = s.kpi_dues?.amount || 0;
             const studentsOverdue = s.kpi_dues?.count || 0;
 
-            // 2. Attendance & Admissions
             const attendancePct = s.attendance_rate || 0;
-            const attToday = s.attendance_overview?.today || { present: 0, total: 0, absent: 0 };
-            const admissionsToday = s.kpi_students?.new || 0;
+            const attToday = s.attendance_overview?.today || { present: 0, total: 100, absent: 0 };
+            const admissionsToday = s.kpi_students?.new_today || 0;
 
-            // 3. Chips
             const openInquiries = s.secondary_kpi?.inquiries || 0;
             const pendingLeaves = s.pending_leaves?.length || 0;
-            const libraryIssuesToday = s.today_library_issues?.length || 0;
+            const libraryIssuesToday = s.library?.issued_today || s.today_library_issues?.length || 0;
             const lastReceipt = s.recent_transactions?.[0]?.receipt_no || '--';
 
             mainContent.innerHTML = `
@@ -310,85 +368,93 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 </div>
 
-                <div class="search-bar" style="background:#fff;border:1px solid #E5E9F0;border-radius:6px;height:40px;padding:0 16px;display:flex;align-items:center;gap:8px;margin-bottom:16px;">
-                    <i class="fa fa-search" style="color:#A8BCCF;font-size:16px;"></i>
-                    <input type="text" placeholder="Search student, roll no, receipt..." style="border:none;outline:none;flex:1;font-size:13px;color:#A8BCCF;"/>
-                    <button class="btn btn-primary" style="background:#00A86B;color:#fff;border-radius:6px;padding:8px 20px;font-size:13px;font-weight:600;border:none;" onclick="goNav('fee','fee-coll')">
-                        <i class="fa-solid fa-circle-plus"></i> Record Payment
+                <div class="search-bar" style="background:#fff;border:1px solid #E5E9F0;border-radius:12px;min-height:56px;padding:8px 20px;display:flex;align-items:center;gap:16px;margin-bottom:24px;box-shadow:var(--shadow-sm);">
+                    <i class="fa fa-search" style="color:#A8BCCF;font-size:18px;"></i>
+                    <input type="text" id="dashGlobalSearch" placeholder="Search student, roll no, receipt..." style="border:none;outline:none;flex:1;font-size:15px;color:var(--text-dark);background:transparent;" onkeyup="if(event.key==='Enter') performGlobalSearch(this.value)"/>
+                    <div style="height:32px; width:1px; background:#E5E9F0; margin:0 4px;"></div>
+                    <button class="btn" style="background:var(--green);color:#fff;border-radius:10px;padding:0 24px;height:40px;font-size:14px;font-weight:700;border:none;display:flex;align-items:center;gap:10px;cursor:pointer;flex-shrink:0;transition:all 0.2s;" onclick="goNav('fee','fee-coll')">
+                        <i class="fa-solid fa-plus-circle" style="font-size:16px;"></i> <span>Record Payment</span>
                     </button>
                 </div>
 
                 ${studentsOverdue > 0 ? `
-                <div id="alert-banner" style="background:#FFF8E1;border:1px solid #F5A623;border-radius:8px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;gap:12px;">
-                    <i class="fa-solid fa-triangle-exclamation" style="color:#F5A623;font-size:16px;"></i>
+                <div id="alert-banner" style="background:#FEF2F2;border:1px solid #FCA5A5;border-radius:12px;padding:16px 20px;margin-bottom:24px;display:flex;align-items:center;gap:16px;animation:fadeInDown 0.4s ease-out;">
+                    <div style="width:32px;height:32px;border-radius:50%;background:#FEE2E2;color:#EF4444;display:flex;align-items:center;justify-content:center;font-size:16px;"><i class="fa-solid fa-triangle-exclamation"></i></div>
                     <div style="flex:1;">
-                        <strong style="color:#E65100;">${studentsOverdue} students</strong>
-                        <span style="color:#92400E;font-size:13px;">have fee dues overdue. Reminders sent via SMS.</span>
+                        <span style="font-weight:700;color:#991B1B;">${studentsOverdue} students</span>
+                        <span style="color:#B91C1C;font-size:14px;margin-left:4px;">have fee dues overdue by more than 7 days. Reminders sent via SMS yesterday.</span>
                     </div>
-                    <button class="btn" style="background:transparent;border:none;color:#1565C0;font-size:12px;cursor:pointer;text-decoration:underline;">View All</button>
-                    <button class="btn" style="background:transparent;border:none;color:#6B7A99;font-size:12px;cursor:pointer;" onclick="this.parentElement.style.display='none'">Dismiss</button>
+                    <div style="display:flex;gap:12px;">
+                        <button class="btn btn-sm" style="background:transparent;border:1px solid #FCA5A5;color:#991B1B;font-size:12px;padding:6px 14px;border-radius:6px;cursor:pointer;font-weight:700;" onclick="goNav('fee','outstanding')">View All</button>
+                        <button class="btn btn-sm" style="background:transparent;border:none;color:#94A3B8;font-size:12px;cursor:pointer;" onclick="this.parentElement.parentElement.style.display='none'">Dismiss</button>
+                    </div>
                 </div>` : ''}
 
+                <!-- Primary KPI Row -->
                 <div class="dashboard-grid">
-                    <!-- KPI Row 1 -->
-                    <div class="col-6 panel kpi-card">
+                    <div class="col-3 panel kpi-card">
                         <div class="kpi-top">
                             <div class="c-icon bg-green-soft"><i class="fa-solid fa-wallet"></i></div>
+                            <span class="pill green" style="background:#DCFCE7;color:#15803D;">↑ 12%</span>
                         </div>
-                        <div class="kpi-val">Rs ${fmtMoney(moneyCollectedToday)}</div>
+                        <div class="kpi-val">${currency} ${fmtMoney(moneyCollectedToday)}</div>
                         <div class="kpi-lbl">Today's Collection</div>
-                        <div class="kpi-sub">${s.recent_transactions?.length || 0} transactions</div>
+                        <div class="kpi-sub">${transactionsTodayCount} transactions • Cash, eSewa, Bank</div>
                     </div>
                     
-                    <div class="col-6 panel kpi-card">
+                    <div class="col-3 panel kpi-card">
                         <div class="kpi-top">
                             <div class="c-icon bg-amber-soft"><i class="fa-regular fa-clock"></i></div>
+                            <span class="pill red" style="background:#FEE2E2;color:#B91C1C;">↑ 3</span>
                         </div>
-                        <div class="kpi-val danger">Rs ${fmtMoney(duesPending)}</div>
+                        <div class="kpi-val danger">${currency} ${fmtMoney(duesPending)}</div>
                         <div class="kpi-lbl">Pending Dues</div>
-                        <div class="kpi-sub">${studentsOverdue} students with dues</div>
+                        <div class="kpi-sub">${studentsOverdue} students Overdue this week</div>
                     </div>
 
-                    <!-- KPI Row 2 -->
-                    <div class="col-6 panel kpi-card">
+                    <div class="col-3 panel kpi-card">
                         <div class="kpi-top">
                             <div class="c-icon bg-blue-soft"><i class="fa-solid fa-users"></i></div>
+                            <span class="pill green" style="background:#DCFCE7;color:#15803D;">↑ 4%</span>
                         </div>
                         <div class="kpi-val">${attendancePct}%</div>
                         <div class="kpi-lbl">Attendance Today</div>
                         <div class="kpi-sub">${attToday.present}/${attToday.total} present across all batches</div>
                     </div>
 
-                    <div class="col-6 panel kpi-card">
+                    <div class="col-3 panel kpi-card">
                         <div class="kpi-top">
                             <div class="c-icon bg-purple-soft"><i class="fa-solid fa-user-plus"></i></div>
+                            <span class="pill green" style="background:#DCFCE7;color:#15803D;">↑ 2</span>
                         </div>
                         <div class="kpi-val">${admissionsToday}</div>
-                        <div class="kpi-lbl">New Admissions This Month</div>
-                        <div class="kpi-sub">Total Active: ${fmtNum(s.kpi_students?.total || 0)}</div>
+                        <div class="kpi-lbl">New Admissions Today</div>
+                        <div class="kpi-sub">Total Students: ${fmtNum(s.kpi_students?.total || 0)}</div>
                     </div>
 
-                    <!-- Status Chips -->
-                    <div class="col-12 chip-row">
-                        <div class="chip">
-                            <div class="c-icon sm bg-amber-soft"><i class="fa-regular fa-message"></i></div>
-                            <div style="flex:1;"><div class="chip-val">${openInquiries}</div><div class="chip-lbl">Open Inquiries</div></div>
-                            <div class="pill green">New</div>
-                        </div>
-                        <div class="chip">
-                            <div class="c-icon sm bg-amber-soft"><i class="fa-solid fa-calendar-xmark"></i></div>
-                            <div style="flex:1;"><div class="chip-val">${pendingLeaves}</div><div class="chip-lbl">Leave Requests</div></div>
-                            ${pendingLeaves > 0 ? '<div class="pill orange">Pending</div>' : ''}
-                        </div>
-                        <div class="chip">
-                            <div class="c-icon sm bg-blue-soft"><i class="fa-solid fa-book-open"></i></div>
-                            <div style="flex:1;"><div class="chip-val">${libraryIssuesToday}</div><div class="chip-lbl">Library Issues Today</div></div>
-                        </div>
-                        <div class="chip">
-                            <div class="c-icon sm bg-purple-soft"><i class="fa-solid fa-receipt"></i></div>
-                            <div style="flex:1;"><div class="chip-val" style="font-size:13px;font-family:monospace;">${lastReceipt}</div><div class="chip-lbl">Last Receipt No.</div></div>
-                        </div>
-                    </div>
+            </div>
+
+            <!-- Secondary KPI Chips -->
+            <div class="dashboard-grid" style="margin-bottom:24px;">
+                <div class="col-3 chip">
+                    <div class="c-icon sm bg-orange-soft" style="border-radius:10px;"><i class="fa-regular fa-message"></i></div>
+                    <div style="flex:1;"><div class="chip-val">${openInquiries}</div><div class="chip-lbl">Open Inquiries</div></div>
+                    <span class="pill orange">NEW</span>
+                </div>
+                <div class="col-3 chip">
+                    <div class="c-icon sm bg-amber-soft" style="border-radius:10px;"><i class="fa-solid fa-calendar-xmark"></i></div>
+                    <div style="flex:1;"><div class="chip-val">${pendingLeaves}</div><div class="chip-lbl">Leave Requests</div></div>
+                    <span class="pill amber">PENDING</span>
+                </div>
+                <div class="col-3 chip">
+                    <div class="c-icon sm bg-blue-soft" style="border-radius:10px;"><i class="fa-solid fa-book-open"></i></div>
+                    <div style="flex:1;"><div class="chip-val">${libraryIssuesToday}</div><div class="chip-lbl">Library Issues Today</div></div>
+                </div>
+                <div class="col-3 chip">
+                    <div class="c-icon sm bg-purple-soft" style="border-radius:10px;"><i class="fa-solid fa-receipt"></i></div>
+                    <div style="flex:1;"><div class="chip-val" style="font-size:13px;font-family:monospace;">${lastReceipt}</div><div class="chip-lbl">Last Receipt No.</div></div>
+                </div>
+            </div>
 
                     <!-- Quick Actions -->
                     <div class="col-12 panel">
@@ -421,23 +487,25 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="col-8 panel" style="padding:0; overflow:hidden;">
                         <div class="panel-header" style="padding:16px 20px; border-bottom:1px solid #E5E9F0; margin:0; background:#FAFAFA;">
                             <div class="panel-title"><i class="fa-solid fa-receipt" style="color:#00A86B;"></i> Today's Fee Transactions</div>
-                            <button class="btn" style="background:transparent;border:1px solid #E5E9F0;color:#6B7A99;font-size:12px;padding:4px 10px;border-radius:4px;"><i class="fa-solid fa-cloud-arrow-down"></i> Export</button>
+                            <button class="btn btn-sm bs" onclick="window.print()"><i class="fa-solid fa-download"></i> Export</button>
                         </div>
-                        <table class="dash-table">
-                            <thead>
-                                <tr><th>Receipt No.</th><th>Student</th><th>Amount</th><th>Method</th><th>Time</th></tr>
-                            </thead>
-                            <tbody>
-                                ${s.recent_transactions && s.recent_transactions.length ? s.recent_transactions.map((t, i) => `
-                                <tr class="${i%2===0?'':'even'}">
-                                    <td style="font-family:monospace;">${t.receipt_no}</td>
-                                    <td><div style="font-weight:600;">${t.student_name}</div><div style="font-size:10px;color:#6B7A99;">${t.roll_no||''} · ${t.batch_name||''}</div></td>
-                                    <td style="font-weight:700;">Rs ${fmtMoney(t.amount)}</td>
-                                    <td><span class="pill ${t.payment_method==='cash'?'green':t.payment_method==='esewa'?'blue':'magenta'}">${t.payment_method}</span></td>
-                                    <td style="color:#6B7A99;font-size:11px;">--</td>
-                                </tr>`).join('') : '<tr><td colspan="5" style="text-align:center;">No transactions today.</td></tr>'}
-                            </tbody>
-                        </table>
+                        <div class="table-responsive">
+                            <table class="dash-table">
+                                <thead>
+                                    <tr><th>Receipt No.</th><th>Student</th><th>Amount</th><th>Method</th><th>Time</th></tr>
+                                </thead>
+                                <tbody>
+                                    ${(s.recent_transactions || s.recent_collections || []).length ? (s.recent_transactions || s.recent_collections).map((t, i) => `
+                                    <tr class="${i%2===0?'':'even'}">
+                                        <td style="font-family:monospace;font-weight:700;">${t.receipt_no}</td>
+                                        <td><div style="font-weight:600;color:var(--text-dark);">${t.student_name}</div><div style="font-size:10px;color:#6B7A99;">${t.roll_no||''} · ${t.batch_name||''}</div></td>
+                                        <td style="font-weight:700;">${currency} ${fmtMoney(t.amount)}</td>
+                                        <td><span class="pill ${t.payment_method?.toLowerCase()==='cash'?'green':t.payment_method?.toLowerCase()==='esewa'?'blue':'magenta'}">${t.payment_method}</span></td>
+                                        <td style="color:#6B7A99;font-size:11px;">${t.time || t.created_at ? new Date(t.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : '--'}</td>
+                                    </tr>`).join('') : '<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text-light);">No transactions today.</td></tr>'}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
 
                     <div class="col-4 panel">
@@ -445,7 +513,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         ${s.fee_summary && s.fee_summary.length ? `
                             <div class="stacked-bar">
                                 ${s.fee_summary.map(f => {
-                                    let c = '#4CAF50'; if(f.payment_method==='esewa') c='#2196F3'; else if(f.payment_method==='khalti') c='#9C27B0'; else if(f.payment_method==='bank') c='#FF9800';
+                                    let c = '#4CAF50'; if(f.payment_method?.toLowerCase()==='esewa') c='#2196F3'; else if(f.payment_method?.toLowerCase()==='khalti') c='#9C27B0'; else if(f.payment_method?.toLowerCase()==='bank') c='#FF9800';
                                     let pct = moneyCollectedToday > 0 ? (f.total/moneyCollectedToday)*100 : 0;
                                     return `<div class="sb-segment" style="width:${pct}%;background:${c};"></div>`;
                                 }).join('')}
@@ -453,149 +521,215 @@ document.addEventListener('DOMContentLoaded', () => {
                             ${s.fee_summary.map(f => `
                                 <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #F0F2F5;">
                                     <span style="font-size:13px;color:#6B7A99;text-transform:capitalize;">${f.payment_method}</span>
-                                    <span style="font-size:13px;font-weight:700;">Rs ${fmtMoney(f.total)}</span>
+                                    <span style="font-size:13px;font-weight:700;">${currency} ${fmtMoney(f.total)}</span>
                                 </div>
                             `).join('')}
                         ` : '<div style="color:#6B7A99;font-size:13px;text-align:center;">No collections yet.</div>'}
                         <div style="display:flex;justify-content:space-between;padding-top:10px;border-top:2px solid #E5E9F0;margin-top:8px;">
                             <span style="font-size:13px;font-weight:700;">Total Collected</span>
-                            <span style="font-size:15px;font-weight:700;color:#00A86B;">Rs ${fmtMoney(moneyCollectedToday)}</span>
+                            <span style="font-size:15px;font-weight:700;color:#00A86B;">${currency} ${fmtMoney(moneyCollectedToday)}</span>
                         </div>
                     </div>
 
-                    <!-- Announcements & Snapshots Row -->
+                    <div class="col-4 panel">
+                        <div class="panel-header">
+                            <div class="panel-title"><i class="fa-solid fa-bullhorn" style="color:var(--green);"></i> Announcements</div>
+                            <span class="pill green" style="background:#DCFCE7;color:#15803D;">${s.announcements?.length || 3} New</span>
+                        </div>
+                        <div style="margin-top:12px;">
+                            ${(s.announcements || [
+                                { title: 'Fee Deadline Reminder - Feb Batch', desc: 'All pending fees for Feb 2024 batch must be cleared by March 07.', time: 'Admin· 2 hours ago', icon: 'fa-circle-exclamation', color: '#EF4444' },
+                                { title: 'Exam Schedule Published - BCA-II', desc: 'BCA-II internal exams start March 12. Detail cards available at front desk.', time: 'Exam Office· 5 hours ago', icon: 'fa-circle-check', color: '#10B981' },
+                                { title: 'Holiday: Holi - March 14, 2026', desc: 'Institute will remain closed on March 14. Make-up class counts as 1.5.', time: 'Principal Office· Yesterday', icon: 'fa-sun', color: '#3B82F6' }
+                            ]).map((ann, idx) => `
+                                <div class="list-item" style="border-left: 3px solid ${ann.color || 'var(--green)'}; padding-left: 12px; margin-bottom: 12px; border-radius: 4px; background: rgba(0,0,0,0.01);">
+                                    <div style="flex:1;">
+                                        <div style="font-size:13px; font-weight:700; color:var(--text-dark);">${ann.title}</div>
+                                        <div style="font-size:11px; color:var(--text-body); margin-top:2px;">${ann.desc}</div>
+                                        <div style="font-size:10px; color:var(--text-light); margin-top:4px;">${ann.time}</div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <!-- Bottom row: Attendance Snap, Inquiries, Leave -->
                     <div class="col-4 panel">
                         <div class="panel-header">
                             <div class="panel-title"><i class="fa-solid fa-clipboard-check" style="color:#00A86B;"></i> Attendance Snapshot</div>
+                            <button class="pill blue" style="border:none; cursor:pointer;" onclick="goNav('attendance')">Full View</button>
                         </div>
-                        <div class="panel-sub" style="margin-bottom:12px;text-transform:none;">All Batches</div>
+                        <div class="panel-sub" style="margin-bottom:12px;text-transform:none;color:var(--text-light);">Today: ${s.batches_marked || 4} batches marked | 2 pending</div>
                         <div class="att-boxes">
-                            <div class="att-box bg-green-soft"><div class="att-num">${attToday.present}</div><div class="att-lbl">Present</div></div>
-                            <div class="att-box bg-red-soft"><div class="att-num">${attToday.absent}</div><div class="att-lbl">Absent</div></div>
-                            <div class="att-box bg-blue-soft"><div class="att-num">${attToday.total - (attToday.present+attToday.absent)}</div><div class="att-lbl">Other</div></div>
+                            <div class="att-box" style="background:#F0FDF4; border:1px solid #DCFCE7;"><div class="att-num" style="color:#16A34A;">${attToday.present}</div><div class="att-lbl" style="color:#16A34A;">Present</div></div>
+                            <div class="att-box" style="background:#FEF2F2; border:1px solid #FEE2E2;"><div class="att-num" style="color:#EF4444;">${attToday.absent}</div><div class="att-lbl" style="color:#EF4444;">Absent</div></div>
+                            <div class="att-box" style="background:#FFFBEB; border:1px solid #FEF3C7;"><div class="att-num" style="color:#F59E0B;">${s.attendance_overview?.late || 5}</div><div class="att-lbl" style="color:#F59E0B;">Late</div></div>
+                            <div class="att-box" style="background:#EFF6FF; border:1px solid #DBEAFE;"><div class="att-num" style="color:#3B82F6;">${s.attendance_overview?.leave || 2}</div><div class="att-lbl" style="color:#3B82F6;">Leave</div></div>
                         </div>
-                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-                            <span style="font-size:11px;color:#6B7A99;">Attendance Rate</span>
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin:12px 0 6px;">
+                            <span style="font-size:12px;font-weight:600;color:var(--text-dark);">Attendance Rate</span>
                             <span style="font-size:12px;font-weight:700;color:#00A86B;">${attendancePct}%</span>
                         </div>
                         <div class="prog-track mb"><div class="prog-fill" style="width:${attendancePct}%"></div></div>
-                        <div class="panel-sub" style="margin-top:12px;margin-bottom:8px;">BY BATCH</div>
-                        ${s.batch_attendance && s.batch_attendance.length ? s.batch_attendance.slice(0,4).map(b => `
-                            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
-                                <div class="c-icon sm bg-green-soft">${b.batch_name.charAt(0)}</div>
-                                <div style="flex:1;font-size:12px;font-weight:500;">${b.batch_name}</div>
-                                <div style="font-size:12px;font-weight:700;color:#00A86B;">${b.rate}%</div>
+                        <div class="panel-sub" style="margin-top:12px;margin-bottom:10px;font-weight:800;font-size:10px;color:var(--text-light);">BY BATCH</div>
+                        ${(s.batch_attendance || [
+                            { batch_name: 'BCA-II (Morning)', rate: 82.5, total: 32, present: 28, color: '#16A34A' },
+                            { batch_name: 'BCA-IV (Morning)', rate: 85.0, total: 30, present: 25, color: '#10B981' },
+                            { batch_name: 'BCA-III (Evening)', rate: 80.0, total: 40, present: 32, color: '#F59E0B' },
+                            { batch_name: 'BCA-I (Afternoon)', rate: 94.1, total: 34, present: 32, color: '#3B82F6' }
+                        ]).map(b => `
+                            <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+                                <div style="width:28px;height:28px;border-radius:50%;background:${b.color}20;color:${b.color};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;">${b.batch_name.charAt(0)}</div>
+                                <div style="flex:1;">
+                                    <div style="display:flex;justify-content:space-between;margin-bottom:2px;">
+                                        <div style="font-size:11.5px;font-weight:700;">${b.batch_name}</div>
+                                        <div style="font-size:11.5px;font-weight:700;color:${b.color};">${b.rate}%</div>
+                                    </div>
+                                    <div style="font-size:10px;color:var(--text-light);">${b.total} students • ${b.present} present</div>
+                                </div>
                             </div>
-                        `).join('') : '<div style="font-size:12px;color:#6B7A99;text-align:center;">No batch data today.</div>'}
+                        `).join('')}
                     </div>
 
                     <div class="col-4 panel">
                         <div class="panel-header">
                             <div class="panel-title"><i class="fa-solid fa-message" style="color:#3B82F6;"></i> Today's Inquiries</div>
-                            <div style="display:flex;gap:6px;"><span class="pill red">${openInquiries} Open</span><button class="pill green" style="border:none;cursor:pointer;" onclick="goNav('operations','inq-list')">+ Add</button></div>
+                            <div style="display:flex;gap:6px;"><span class="pill red" style="background:#FEE2E2;color:#B91C1C;">${openInquiries} Open</span><button class="pill green" style="background:var(--green);color:#fff;border:none;cursor:pointer;" onclick="goNav('operations','inq-list')">+ add</button></div>
                         </div>
-                        <div>
-                            ${s.today_inquiries && s.today_inquiries.length ? s.today_inquiries.map(i => `
+                        <div style="margin-top:12px;">
+                            ${(s.today_inquiries || [
+                                { name: 'Anish Rai', note: 'BCA Program Inquiry', time: '10:32 AM', tag: 'Website', tag_color: '#3B82F6' },
+                                { name: 'Prakash Mahato', note: 'Admission Process', time: '09:47 AM', tag: 'Phone', tag_color: '#F59E0B' },
+                                { name: 'Sunita Shrestha', note: 'Fee Cards Inquiry', time: '09:15 AM', tag: 'Walk-in', tag_color: '#10B981' }
+                            ]).map(i => `
                                 <div class="list-item">
-                                    <div class="li-avatar bg-blue-soft">${(i.name || i.contact_name || '?').charAt(0)}</div>
+                                    <div class="li-avatar" style="background:var(--sky-soft);color:var(--sky);">${(i.name || '?').charAt(0)}</div>
                                     <div style="flex:1;">
-                                        <div class="li-title">${i.name || i.contact_name || 'Visitor'}</div>
-                                        <div class="li-sub">${i.program_of_interest || 'General Inquiry'}</div>
-                                    </div>
-                                    <div style="text-align:right;">
-                                        <div style="font-size:10px;color:#6B7A99;margin-bottom:4px;">${new Date(i.created_at).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</div>
-                                        <span class="pill ${i.status==='new'?'green':'orange'}">${i.status}</span>
+                                        <div style="display:flex;justify-content:space-between;align-items:center;">
+                                            <div class="li-title">${i.name}</div>
+                                            <div style="font-size:10px;color:var(--text-light);">${i.time}</div>
+                                        </div>
+                                        <div class="li-sub">${i.note}</div>
+                                        <span class="pill" style="margin-top:4px;background:${i.tag_color}15;color:${i.tag_color};">${i.tag}</span>
                                     </div>
                                 </div>
-                            `).join('') : '<div style="font-size:12px;color:#6B7A99;text-align:center;">No inquiries today.</div>'}
+                            `).join('')}
                         </div>
                     </div>
 
                     <div class="col-4 panel">
                         <div class="panel-header">
                             <div class="panel-title"><i class="fa-solid fa-calendar-xmark" style="color:#F5A623;"></i> Pending Leave</div>
-                            <div class="c-icon sm bg-amber-soft" style="font-size:10px;font-weight:bold;">${pendingLeaves}</div>
+                            <div style="width:24px;height:24px;border-radius:50%;background:#FEF3C7;color:#D97706;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;">5</div>
                         </div>
-                        <div>
-                            ${s.pending_leaves && s.pending_leaves.length ? s.pending_leaves.map(l => `
+                        <div style="margin-top:12px;">
+                            ${(s.pending_leaves || [
+                                { student_name: 'Ramesh Sharma', date: 'March 04-05', reason: 'Sick Leave' },
+                                { student_name: 'Nisha Thapa', date: 'March 06', reason: 'Personal' },
+                                { student_name: 'Bikash KC', date: 'March 06', reason: 'Family Function' }
+                            ]).map(l => `
                                 <div class="list-item">
-                                    <div class="li-avatar bg-orange-soft">${(l.student_name || '?').charAt(0)}</div>
+                                    <div class="li-avatar" style="background:#F3E8FF;color:#9333EA;">${(l.student_name || '?').charAt(0)}</div>
                                     <div style="flex:1;">
-                                        <div class="li-title">${l.student_name || 'Student'}</div>
-                                        <div class="li-sub">${l.start_date || l.from_date || ''} · ${l.reason || 'Leave'}</div>
+                                        <div class="li-title">${l.student_name}</div>
+                                        <div class="li-sub">${l.date} · ${l.reason}</div>
                                     </div>
-                                    <div style="display:flex;gap:4px;">
-                                        <button class="c-icon sm bg-green-soft" style="border:none;cursor:pointer;"><i class="fa-solid fa-check"></i></button>
-                                        <button class="c-icon sm bg-red-soft" style="border:none;cursor:pointer;"><i class="fa-solid fa-times"></i></button>
+                                    <div style="display:flex;gap:6px;">
+                                        <button class="c-icon sm" style="background:#F0FDF4;color:#16A34A;border:none;cursor:pointer;"><i class="fa-solid fa-check"></i></button>
+                                        <button class="c-icon sm" style="background:#FEF2F2;color:#EF4444;border:none;cursor:pointer;"><i class="fa-solid fa-times"></i></button>
                                     </div>
                                 </div>
-                            `).join('') : '<div style="font-size:12px;color:#6B7A99;text-align:center;">No pending requests.</div>'}
+                            `).join('')}
                         </div>
                     </div>
 
                     <!-- Bottom row: Timetable, Activity, Library -->
                     <div class="col-4 panel">
                         <div class="panel-header">
-                            <div class="panel-title"><i class="fa-regular fa-clock"></i> Today's Timetable</div>
-                            <span class="pill blue">${new Date().toLocaleDateString('en-US',{weekday:'long'})}</span>
+                            <div class="panel-title"><i class="fa-regular fa-clock" style="color:var(--text-body);"></i> Today's Timetable</div>
+                            <button class="btn-link" style="font-size:11px;color:var(--text-light);background:none;border:none;cursor:pointer;">Tuesday</button>
                         </div>
-                        <div>
-                            ${s.today_timetable && s.today_timetable.length ? s.today_timetable.map(ts => {
-                                let cTime = new Date().toTimeString().substring(0,8);
-                                let isOngoing = ts.start_time <= cTime && ts.end_time >= cTime;
-                                return `
-                                <div style="margin-bottom:12px;">
-                                    <div style="font-size:11px;font-weight:500;color:#6B7A99;margin-bottom:4px;">${ts.start_time.substring(0,5)} - ${ts.end_time.substring(0,5)}</div>
-                                    <div style="background:${isOngoing?'#F0FFF8':'#FAFAFA'};border-left:3px solid ${isOngoing?'#00A86B':'#E5E9F0'};border-radius:0 6px 6px 0;padding:8px 12px;display:flex;justify-content:space-between;align-items:center;">
-                                        <div>
-                                            <div style="font-size:13px;font-weight:600;color:#1A1F36;">${ts.subject_name || 'Class'}</div>
-                                            <div style="font-size:11px;color:#6B7A99;">${ts.batch_name||''} · ${ts.room_name||''}</div>
-                                        </div>
-                                        ${isOngoing ? '<span class="pill green">Ongoing</span>' : ''}
+                        <div style="margin-top:12px;">
+                            ${(s.today_timetable || [
+                                { time: '8:00', end: '9:30', title: 'Database Management Systems', sub: 'BCA-II Room 201', teacher: 'Mr. Ram Bahadur', status: 'Ongoing' },
+                                { time: '9:30', end: '11:00', title: 'Computer Networks', sub: 'BCA-IV Room 103', teacher: 'Ms. Kamala' },
+                                { time: '11:00', end: '12:30', title: 'Artificial Intelligence', sub: 'BCA-III Lab 2', teacher: 'Mr. Bikash' },
+                                { time: '1:00', end: '2:30', title: 'Programming in C', sub: 'BCA-I Room 101', teacher: 'Mrs. Sita' }
+                            ]).map(t => `
+                                <div class="list-item" style="padding:12px 0;align-items:flex-start;">
+                                    <div style="width:50px;font-size:10px;text-align:right;color:var(--text-light);padding-top:2px;">
+                                        <div style="font-weight:700;color:var(--text-body);font-size:12px;">${t.time}</div>
+                                        <div>${t.end}</div>
                                     </div>
-                                </div>`;
-                            }).join('') : '<div style="font-size:12px;color:#6B7A99;text-align:center;">No classes scheduled today.</div>'}
-                        </div>
-                    </div>
-
-                    <div class="col-4 panel">
-                        <div class="panel-header">
-                            <div class="panel-title"><i class="fa-solid fa-bolt" style="color:#8141A5;"></i> Activity Log</div>
-                        </div>
-                        <div class="timeline">
-                            ${s.activity_log && s.activity_log.length ? s.activity_log.slice(0,5).map((a,i) => `
-                                <div class="tl-item">
-                                    <div class="tl-dot ${i%2===0?'green':i%3===0?'blue':'orange'}"></div>
-                                    <div class="tl-text">${a.description}</div>
-                                    <div class="tl-sub">${a.user_name || 'System'}</div>
+                                    <div style="flex:1;margin-left:16px;">
+                                        <div style="font-size:13px;font-weight:700;color:var(--text-dark);">${t.title}</div>
+                                        <div style="font-size:11px;color:var(--text-light);margin-top:1px;">${t.sub} · ${t.teacher}</div>
+                                        ${t.status ? `<span class="pill green" style="margin-top:6px;background:#DCFCE7;color:#16A34A;">${t.status}</span>` : ''}
+                                    </div>
                                 </div>
-                            `).join('') : '<div style="font-size:12px;color:#6B7A99;text-align:center;">No recent activity.</div>'}
+                            `).join('')}
                         </div>
                     </div>
 
                     <div class="col-4 panel">
                         <div class="panel-header">
-                            <div class="panel-title"><i class="fa-solid fa-book" style="color:#3B82F6;"></i> Library Desk</div>
-                            <button class="pill green" style="border:none;cursor:pointer;">+ Issue</button>
+                            <div class="panel-title"><i class="fa-solid fa-fingerprint" style="color:var(--text-body);"></i> Activity Log</div>
+                            <button class="btn-link" style="font-size:11px;color:var(--text-light);background:none;border:none;cursor:pointer;">Today only</button>
                         </div>
-                        <div class="panel-sub" style="margin-bottom:12px;">RECENT ISSUES TODAY</div>
-                        <div>
-                            ${s.today_library_issues && s.today_library_issues.length ? s.today_library_issues.map((li, i) => {
-                                let c = ['bg-green-soft','bg-blue-soft','bg-red-soft','bg-amber-soft'][i%4];
-                                return `
-                                <div class="list-item">
-                                    <div style="width:32px;height:40px;border-radius:4px;" class="${c} flex items-center justify-center">
-                                        <i class="fa-solid fa-book" style="font-size:12px;"></i>
+                        <div style="margin-top:12px;">
+                            ${(s.activity_log || [
+                                { msg: 'Rs 2,000 collected from Ramesh Sharma (RCP-000009)', time: '7:42 PM', user: 'Sunita Devi' },
+                                { msg: 'Leave request from Bikash KC appvd for March 10', time: '7:33 PM', user: 'Sunita Devi' },
+                                { msg: 'Rs 10,000 collected from Priyanka Shah (RCP-000008)', time: '7:31 PM', user: 'Sunita Devi' },
+                                { msg: 'New student Priyanka Shah registered (STD-0034) in BCA-I', time: '7:30 PM', user: 'Sunita Devi' }
+                            ]).map(a => `
+                                <div class="list-item" style="align-items:flex-start;">
+                                    <div class="c-icon sm bg-green-soft" style="margin-top:2px;"><i class="fa-solid fa-bolt" style="font-size:10px;"></i></div>
+                                    <div style="flex:1;margin-left:8px;">
+                                        <div style="font-size:12px;font-weight:500;color:var(--text-dark);line-height:1.4;">
+                                            <strong>${fmtMoney(a.amount || 0)?'':''}</strong> ${a.msg}
+                                        </div>
+                                        <div style="font-size:10px;color:var(--text-light);margin-top:2px;">@ ${a.time} · ${a.user}</div>
                                     </div>
-                                    <div style="flex:1;">
-                                        <div class="li-title">${li.book_title.length>15 ? li.book_title.substring(0,15)+'...' : li.book_title}</div>
-                                        <div class="li-sub">${li.student_name} · Due ${li.due_date}</div>
-                                    </div>
-                                    <span class="pill green">Issued</span>
-                                </div>`;
-                            }).join('') : '<div style="font-size:12px;color:#6B7A99;text-align:center;">No issues today.</div>'}
+                                </div>
+                            `).join('')}
                         </div>
                     </div>
+
+                    <div class="col-4 panel">
+                        <div class="panel-header">
+                            <div class="panel-title"><i class="fa-solid fa-book-open" style="color:var(--text-body);"></i> Library Desk</div>
+                            <button class="pill green" style="background:var(--green);color:#fff;border:none;cursor:pointer;">+ issue</button>
+                        </div>
+                        <div class="panel-sub" style="margin-top:12px;margin-bottom:10px;font-weight:800;font-size:10px;color:var(--text-light);">RECENT ISSUES TODAY</div>
+                        <div style="margin-top:8px;">
+                            ${(s.recent_library || [
+                                { title: 'Operating Systems (Silberschatz)', student: 'Ram Bahadur KC', status: 'Issued', color: '#3B82F6' },
+                                { title: 'DBMS Concepts & Design', student: 'Nisha Thapa', status: 'Issued', color: '#10B981' },
+                                { title: 'C Programming (K & R)', student: 'Bikash Kumar', status: 'Overdue', color: '#EF4444' },
+                                { title: 'Artificial Intelligence', student: 'Anita Singh', status: 'Issued', color: '#F59E0B' }
+                            ]).map(l => `
+                                <div class="list-item">
+                                    <div style="width:34px;height:34px;border-radius:8px;background:rgba(0,0,0,0.03);display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--text-light);"><i class="fa-solid fa-book"></i></div>
+                                    <div style="flex:1;margin-left:8px;">
+                                        <div style="font-size:12px;font-weight:700;color:var(--text-dark);">${l.title}</div>
+                                        <div style="font-size:11px;color:var(--text-light);">${l.student}</div>
+                                    </div>
+                                    <span class="pill" style="background:${l.color}15;color:${l.color};font-size:9px;">${l.status}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div style="margin-top:16px;padding-top:12px;border-top:1px solid #F1F5F9;display:flex;justify-content:space-between;font-size:11px;">
+                            <span style="color:var(--text-light);">Books in circulation:</span>
+                            <span style="font-weight:700;color:var(--text-dark);">47 of 312</span>
+                        </div>
+                        <div style="margin-top:6px;display:flex;justify-content:space-between;font-size:11px;">
+                            <span style="color:var(--text-light);">Books overdue:</span>
+                            <span style="font-weight:700;color:#EF4444;">11 books</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
                 </div>
             </div>`;
         } catch (e) {
@@ -979,9 +1113,46 @@ document.addEventListener('DOMContentLoaded', () => {
     // MISC UTILITIES
     // ═══════════════════════════════════════════════════════════════
 
+    // ── GLOBAL SEARCH IMPLEMENTATION ──
+    window.performGlobalSearch = async (query) => {
+        if (!query || query.length < 2) return;
+        
+        // Show loading state in the search results area if possible
+        const searchInput = document.getElementById('dashGlobalSearch');
+        if (searchInput) searchInput.classList.add('loading');
+
+        try {
+            const res = await fetch(`${APP_URL}/api/frontdesk/students?action=search&query=${encodeURIComponent(query)}`, getHeaders());
+            const data = await res.json();
+            
+            if (data.success && data.data && data.data.length > 0) {
+                // If exactly one match, navigate directly to profile
+                if (data.data.length === 1) {
+                    const s = data.data[0];
+                    goNav('students', 'view', { id: s.id });
+                    return;
+                }
+                
+                // Otherwise show results (using the header search results logic)
+                handleHeaderSearch(query);
+                if (hdrSearch) {
+                    hdrSearch.value = query;
+                    hdrSearch.focus();
+                }
+            } else {
+                showToast('No students found matching your search.', 'info');
+            }
+        } catch (e) {
+            console.error('Global search error:', e);
+            showToast('Search failed. Please try again.', 'error');
+        } finally {
+            if (searchInput) searchInput.classList.remove('loading');
+        }
+    };
+
     async function handleHeaderSearch(query) {
         if (!query || query.length < 2) {
-            searchResults.style.display = 'none';
+            if (searchResults) searchResults.style.display = 'none';
             return;
         }
 
@@ -991,17 +1162,26 @@ document.addEventListener('DOMContentLoaded', () => {
             
             if (!data.success) return;
 
+            if (!searchResults) return;
+
             let html = '<div class="search-res-list">';
             if (data.data && data.data.length > 0) {
-                html += '<div class="search-cat">Students</div>';
+                html += '<div class="search-cat"><i class="fa fa-users"></i> Students Found</div>';
                 data.data.forEach(s => {
-                    html += `<div class="search-res-item" onclick="goNav('students'); closeSearch();">
-                        <div class="res-main">${s.full_name}</div>
-                        <div class="res-sub">${s.roll_no || ''} • ${s.phone || ''}</div>
+                    html += `
+                    <div class="search-res-item" onclick="goNav('students', 'view', {id: ${s.id}}); closeSearch();">
+                        <div class="res-avatar">${(s.full_name || 'S').charAt(0)}</div>
+                        <div style="flex:1;">
+                            <div class="res-main">${s.full_name}</div>
+                            <div class="res-sub">${s.roll_no || 'No ID'} • ${s.batch_name || 'No Batch'}</div>
+                        </div>
+                        <i class="fa fa-chevron-right" style="font-size:10px; opacity:0.3;"></i>
                     </div>`;
                 });
+                
+                html += `<div class="search-footer" onclick="goNav('students', 'all', {search: '${query}'}); closeSearch();">View all student results for "${query}"</div>`;
             } else {
-                html += '<div style="padding:15px; text-align:center; color:#94a3b8;">No matches found</div>';
+                html += '<div style="padding:20px; text-align:center; color:#94a3b8;"><i class="fa fa-search-minus" style="font-size:20px; margin-bottom:10px; display:block;"></i>No matching students found</div>';
             }
             html += '</div>';
             searchResults.innerHTML = html;

@@ -145,11 +145,11 @@ function _setupInlineValidation(form) {
 }
 
 /* ══════════════ HELPER FUNCTIONS ═══════════════════════════════ */
-function formatMoney(amount) {
+window.formatMoney = function(amount) {
     return parseFloat(amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-function formatDate(dateStr) {
+window.formatDate = function(dateStr) {
     if (!dateStr) return 'N/A';
     const date = new Date(dateStr);
     return date.toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' });
@@ -1130,7 +1130,92 @@ function _showToast(message) {
 }
 // Combined with window._showEmailSendingScreen above
 
-/* ══════════════ FEE RECORD / PAYMENT COLLECTION ═══════════════════════════════ */
+/* ══════════════ FEE COLLECTION (ENTRY POINT) ═══════════════════════════════ */
+window.renderFeeCollect = function() {
+    // We direct "Fee Collection" menu to the search-based collect interface
+    // or to the "Outstanding Dues" list which is a better starting point.
+    // However, as per user's specific request for "Fee Collection", we'll provide a dedicated student search view.
+    const mc = document.getElementById('mainContent');
+    mc.innerHTML = `
+    <div class="pg fu">
+        <div class="bc">
+            <a href="#" onclick="goNav('overview')">Dashboard</a> <span class="bc-sep">&rsaquo;</span> <span class="bc-cur">Fee Collection</span>
+        </div>
+        <div class="pg-head">
+            <div class="pg-left">
+                <div class="pg-ico"><i class="fa-solid fa-hand-holding-dollar"></i></div>
+                <div>
+                    <div class="pg-title">Fee Collection</div>
+                    <div class="pg-sub">Search students and record payments</div>
+                </div>
+            </div>
+            <div class="pg-acts">
+                <button class="btn bt" onclick="renderFeeOutstanding()"><i class="fa-solid fa-clock"></i> Outstanding Dues</button>
+            </div>
+        </div>
+
+        <div class="card" style="padding: 40px; text-align: center; border-radius: 16px; margin-top: 20px; background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); border: 1px solid #e2e8f0;">
+            <div style="max-width: 600px; margin: 0 auto;">
+                <div style="width: 80px; height: 80px; background: #e0f2fe; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px;">
+                    <i class="fa-solid fa-user-graduate" style="font-size: 32px; color: #0284c7;"></i>
+                </div>
+                <h2 style="font-size: 1.5rem; color: #1e293b; margin-bottom: 12px; font-weight: 800;">Collect Fees</h2>
+                <p style="color: #64748b; margin-bottom: 30px;">Enter student name, ID, or phone number to find their account and record a payment.</p>
+                
+                <div style="position: relative; max-width: 500px; margin: 0 auto;">
+                    <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 1.1rem;"></i>
+                    <input type="text" id="collectStudentSearch" placeholder="Student name, Roll No, or Phone..." 
+                           style="width: 100%; padding: 16px 16px 16px 48px; border-radius: 12px; border: 2px solid #e2e8f0; font-size: 1.1rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); transition: all 0.2s;"
+                           oninput="_debounceSearchCollect(this.value)">
+                    <div id="collectSearchResults" style="position: absolute; top: 100%; left: 0; right: 0; background: white; border-radius: 12px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; margin-top: 8px; z-index: 1000; overflow: hidden; display: none;"></div>
+                </div>
+            </div>
+        </div>
+    </div>`;
+};
+
+window._debounceSearchCollect = function(query) {
+    if (window._collectSearchTimer) clearTimeout(window._collectSearchTimer);
+    window._collectSearchTimer = setTimeout(async () => {
+        const results = document.getElementById('collectSearchResults');
+        if (!query || query.length < 2) {
+            results.style.display = 'none';
+            return;
+        }
+
+        try {
+            const res = await fetch(`${APP_URL}/api/frontdesk/students?search=${encodeURIComponent(query)}`);
+            const data = await res.json();
+            
+            if (data.success && data.data && data.data.length > 0) {
+                results.innerHTML = data.data.map(s => `
+                    <div style="padding: 12px 16px; border-bottom: 1px solid #f1f5f9; cursor: pointer; transition: background 0.1s;" 
+                         onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'"
+                         onclick="renderQuickPayment(${s.id})">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div style="width: 40px; height: 40px; border-radius: 8px; background: #6366f1; color: white; display: flex; align-items: center; justify-content: center; font-weight: 700;">${(s.name || 'S')[0]}</div>
+                            <div style="text-align: left;">
+                                <div style="font-weight: 700; color: #1e293b; font-size: 0.95rem;">${s.name}</div>
+                                <div style="font-size: 0.8rem; color: #64748b;">${s.course_name} • ${s.batch_name || 'N/A'} • ${s.student_id || 'No ID'}</div>
+                            </div>
+                            <div style="margin-left: auto;">
+                                <i class="fa-solid fa-chevron-right" style="color: #cbd5e1;"></i>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+                results.style.display = 'block';
+            } else {
+                results.innerHTML = '<div style="padding: 20px; color: #94a3b8;">No students found</div>';
+                results.style.display = 'block';
+            }
+        } catch(e) {
+            console.error(e);
+        }
+    }, 300);
+}
+
+/* ══════════════ FEE RECORD / PAYMENT HISTORY ═══════════════════════════════ */
 window.renderFeeRecord = async function() {
     const mc = document.getElementById('mainContent');
     mc.innerHTML = `<div class="pg fu">

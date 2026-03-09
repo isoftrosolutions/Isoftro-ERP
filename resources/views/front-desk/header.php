@@ -60,71 +60,94 @@ try {
 /* ── HEADER (Aligning with Mockup) ── */
 .header {
   position: fixed; top: 0; left: 0; right: 0; height: var(--hdr-h); z-index: 1000;
-  background: var(--green); display: flex; align-items: center; padding: 0 16px;
-  box-shadow: 0 2px 8px rgba(0,184,148,.30); color: #fff; gap: 12px;
+  background: var(--green-gradient); display: flex; align-items: center; padding: 0 20px;
+  box-shadow: 0 2px 10px rgba(22, 160, 133, 0.3); color: #fff; gap: 15px;
 }
-.hdr-brand { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+.hdr-brand { display: flex; align-items: center; gap: 12px; cursor: pointer; min-width: 220px; }
 .hdr-logo {
-  width: 34px; height: 34px; background: rgba(255,255,255,.2); border-radius: 9px;
-  display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 800;
-  letter-spacing: -1px;
+  width: 38px; height: 38px; background: #fff; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 800;
+  color: var(--green-d); box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
-.hdr-name { font-size: 14px; font-weight: 800; letter-spacing: -.3px; }
-.hdr-sub { font-size: 10px; opacity: .75; font-weight: 500; }
-.hdr-divider { width: 1px; height: 28px; background: rgba(255,255,255,.25); margin: 0 4px; }
-.hdr-portal-tag {
-  background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.3);
-  padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700;
-  letter-spacing: .3px; text-transform: uppercase;
+.hdr-name { font-size: 15px; font-weight: 800; letter-spacing: -.3px; line-height: 1.2; }
+.hdr-sub { font-size: 10px; opacity: .85; font-weight: 500; }
+
+/* ── CENTRAL SEARCH ── */
+.hdr-center { flex: 1; display: flex; justify-content: center; padding: 0 20px; }
+.hdr-search-box {
+  width: 100%; max-width: 450px; position: relative; display: flex; align-items: center;
 }
-.hdr-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
-.hdr-clock { font-size: 12px; font-weight: 600; opacity: .9; text-align: right; }
-.hdr-date { font-size: 11px; opacity: .7; text-align: right; }
+.hdr-search-input {
+  width: 100%; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25);
+  border-radius: 8px; padding: 10px 15px 10px 40px; color: #fff; font-size: 13px;
+  outline: none; transition: 0.2s;
+}
+.hdr-search-input::placeholder { color: rgba(255,255,255,0.7); }
+.hdr-search-input:focus { background: rgba(255,255,255,0.25); border-color: rgba(255,255,255,0.4); }
+.hdr-search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); opacity: 0.7; font-size: 14px; }
+.hdr-pay-btn {
+  margin-left: 10px; background: var(--white); color: var(--green-d); border: none;
+  padding: 8px 16px; border-radius: 8px; font-size: 12px; font-weight: 700;
+  cursor: pointer; display: flex; align-items: center; gap: 6px; white-space: nowrap;
+  transition: 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.hdr-pay-btn:hover { background: #f8fafc; transform: translateY(-1px); }
+
+.hdr-right { display: flex; align-items: center; gap: 10px; }
+.hdr-time-box { text-align: right; margin-right: 10px; }
+.hdr-clock { font-size: 13px; font-weight: 700; }
+.hdr-date { font-size: 10px; opacity: 0.8; }
+
 .hbtn {
-  width: 34px; height: 34px; display: flex; align-items: center; justify-content: center;
-  background: rgba(255,255,255,.15); border-radius: var(--radius-sm);
-  cursor: pointer; font-size: 14px; border: none; color: #fff; position: relative;
+  width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;
+  background: rgba(255,255,255,0.12); border-radius: 10px;
+  cursor: pointer; font-size: 15px; border: none; color: #fff; position: relative;
   transition: .2s;
 }
-.hbtn:hover { background: rgba(255, 255, 255, 0.25); }
+.hbtn:hover { background: rgba(255, 255, 255, 0.22); }
 .nbadge {
-  position: absolute; top: -3px; right: -3px; width: 15px; height: 15px;
-  border-radius: 50%; background: var(--red); color: #fff; font-size: 8px;
+  position: absolute; top: -4px; right: -4px; width: 16px; height: 16px;
+  border-radius: 50%; background: var(--red); color: #fff; font-size: 9px;
   font-weight: 800; display: flex; align-items: center; justify-content: center;
-  border: 2px solid var(--green);
+  border: 2px solid #1abc9c;
 }
 .hdr-avatar {
-  width: 32px; height: 32px; border-radius: 50%; background: var(--green-d);
+  width: 34px; height: 34px; border-radius: 50%; background: #fff; color: var(--green-d);
   display: flex; align-items: center; justify-content: center;
   font-size: 12px; font-weight: 800; cursor: pointer;
 }
-.hdr-uinfo { display: flex; flex-direction: column; align-items: flex-end; }
+.hdr-uinfo-box {
+  display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.1);
+  padding: 4px 12px; border-radius: 25px; cursor: pointer; transition: 0.2s;
+}
+.hdr-uinfo-box:hover { background: rgba(255,255,255,0.2); }
+.hdr-uinfo { display: flex; flex-direction: column; }
 .hdr-uname { font-size: 12px; font-weight: 700; color: #fff; }
-.hdr-urole { font-size: 10px; opacity: .7; color: #fff; }
+.hdr-urole { font-size: 10px; opacity: .8; color: #fff; }
+
 .menu-toggle {
-  width: 34px; height: 34px; display: flex; align-items: center; justify-content: center;
-  background: rgba(255,255,255,.15); border-radius: var(--radius-sm);
-  border: none; color: #fff; cursor: pointer; font-size: 16px;
+  width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;
+  background: rgba(255,255,255,.15); border-radius: 10px;
+  border: none; color: #fff; cursor: pointer; font-size: 18px;
 }
 
-/* Dropdown (Glassmorphism Adjusted for Green) */
+/* Dropdown */
 .fd-dropdown {
-    position: absolute; top: calc(100% + 8px); right: 0;
-    background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(16px);
-    border-radius: 12px; box-shadow: var(--shadow-lg);
+    position: absolute; top: calc(100% + 10px); right: 0;
+    background: #fff; border-radius: 12px; box-shadow: var(--shadow-md);
     min-width: 240px; opacity: 0; visibility: hidden;
-    transform: translateY(-10px); transition: all 0.2s; z-index: 1100;
+    transform: translateY(-10px); transition: 0.2s; z-index: 1100;
 }
 .fd-dropdown.active { opacity: 1; visibility: visible; transform: translateY(0); }
-.fd-dd-header { padding: 16px; border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 10px; }
+.fd-dd-header { padding: 15px; border-bottom: 1px solid #f1f5f9; display: flex; align-items: center; gap: 12px; }
 .fd-dd-menu { list-style: none; padding: 8px; }
 .fd-dd-menu li a {
-    display: flex; align-items: center; gap: 10px; padding: 10px;
+    display: flex; align-items: center; gap: 10px; padding: 10px 12px;
     color: var(--text-dark); text-decoration: none; font-size: 13px;
     border-radius: 8px; transition: 0.2s;
 }
-.fd-dd-menu li a:hover { background: #f0fdf4; color: var(--green); }
-.fd-dd-divider { height: 1px; background: #eee; margin: 4px 0; }
+.fd-dd-menu li a:hover { background: #f1f5f9; color: var(--green-d); }
+.fd-dd-divider { height: 1px; background: #f1f5f9; margin: 5px 0; }
 </style>
 
 <header class="header">
@@ -134,12 +157,20 @@ try {
         <div class="hdr-logo">HL</div>
         <div>
             <div class="hdr-name"><?= htmlspecialchars($tenantName) ?></div>
-            <div class="hdr-sub">ERP Portal</div>
+            <div class="hdr-sub">Nepal CyberFirm · BrightFuture</div>
         </div>
     </div>
     
-    <div class="hdr-divider"></div>
-    <div class="hdr-portal-tag"><i class="fa fa-door-open" style="margin-right:5px"></i>Front Desk</div>
+    <!-- Center Section: Search & Actions -->
+    <div class="hdr-center">
+        <div class="hdr-search-box">
+            <i class="fa fa-search hdr-search-icon"></i>
+            <input type="text" class="hdr-search-input" id="hdrSearch" placeholder="Search student, roll no, receipt...">
+        </div>
+        <button class="hdr-pay-btn" onclick="goNav('fee', 'fee-coll')">
+            <i class="fa fa-plus-circle"></i> Record Payment
+        </button>
+    </div>
 
     <!-- Right Section -->
     <div class="hdr-right">
@@ -155,12 +186,8 @@ try {
             <?php endif; ?>
         </button>
 
-        <button class="hbtn" title="Quick Search" onclick="focusSearch()">
-            <i class="fa fa-search"></i>
-        </button>
-
         <!-- User Profile -->
-        <div style="position:relative; display:flex; align-items:center; gap:8px; background:rgba(255,255,255,.1); padding:4px 10px; border-radius:20px; cursor:pointer;" id="fdProfileToggle">
+        <div class="hdr-uinfo-box" id="fdProfileToggle">
             <div class="hdr-avatar"><?= $initials ?></div>
             <div class="hdr-uinfo">
                 <div class="hdr-uname"><?= htmlspecialchars($user['name'] ?? 'Operator') ?></div>
@@ -170,7 +197,7 @@ try {
             <!-- Profile Dropdown -->
             <div class="fd-dropdown" id="fdProfileDropdown">
                 <div class="fd-dd-header">
-                    <div class="hdr-avatar" style="width:40px; height:40px;"><?= $initials ?></div>
+                    <div class="hdr-avatar" style="width:40px; height:40px; background:var(--green); color:#fff;"><?= $initials ?></div>
                     <div>
                         <div style="font-weight:700; color:var(--text-dark);"><?= htmlspecialchars($user['name'] ?? 'Operator') ?></div>
                         <div style="font-size:11px; color:var(--text-light);">Front Desk Operator</div>
@@ -186,6 +213,29 @@ try {
         </div>
     </div>
 </header>
+
+<!-- Search Results Dropdown -->
+<style>
+.search-results {
+    position: absolute; top: 100%; left: 0; right: 0;
+    background: #fff; border-radius: 0 0 12px 12px;
+    box-shadow: var(--shadow-md); z-index: 1000;
+    max-height: 400px; overflow-y: auto; display: none;
+    margin-top: 5px; border: 1px solid #e2e8f0;
+}
+.search-res-item {
+    display: flex; align-items: center; gap: 12px; padding: 12px 15px;
+    cursor: pointer; transition: 0.2s; border-bottom: 1px solid #f1f5f9;
+}
+.search-res-item:hover { background: #f8fafc; }
+.res-avatar {
+    width: 32px; height: 32px; border-radius: 50%; background: #e2e8f0;
+    display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;
+}
+.res-main { font-size: 13px; font-weight: 600; color: var(--text-dark); }
+.res-sub { font-size: 11px; color: var(--text-light); }
+</style>
+<div id="searchResults" class="search-results"></div>
 
 <!-- Notifications Panel (Slide-in) -->
 <style>

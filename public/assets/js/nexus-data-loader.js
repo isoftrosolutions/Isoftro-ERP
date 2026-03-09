@@ -8,6 +8,11 @@
  *   NexusDataLoader.loadBatches(courseId, selectElement)
  */
 
+// Global helper for currency symbol — defined early for all modules
+window.getCurrencySymbol = window.getCurrencySymbol || function() {
+    return window._INSTITUTE_CONFIG?.currency_symbol || window.INSTITUTE_CONFIG?.currency_symbol || '₹';
+};
+
 window.NexusDataLoader = {
 
     /**

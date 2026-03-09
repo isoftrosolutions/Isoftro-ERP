@@ -649,21 +649,8 @@ window.renderAddStudentForm = async () => {
                                                 <option value="other">Other</option>
                                             </select>
                                         </div>
-                                        <div>
-                                            <label class="form-label">Blood Group</label>
-                                            <select name="blood_group" class="form-control">
-                                                <option value="">Select</option>
-                                                <option value="A+">A+</option><option value="A-">A-</option>
-                                                <option value="B+">B+</option><option value="B-">B-</option>
-                                                <option value="AB+">AB+</option><option value="AB-">AB-</option>
-                                                <option value="O+">O+</option><option value="O-">O-</option>
-                                            </select>
-                                        </div>
                                     </div>
-                                    <div class="form-group">
-                                        <label class="form-label">Date of Birth (AD)</label>
-                                        <input type="date" name="dob_ad" id="add_dob_ad" class="form-control">
-                                    </div>
+
                                     <div class="form-group">
                                         <label class="form-label">Date of Birth (BS)</label>
                                         <input type="text" name="dob_bs" id="add_dob_bs" class="form-control" placeholder="YYYY-MM-DD">
@@ -676,10 +663,7 @@ window.renderAddStudentForm = async () => {
                                         <label class="form-label">Mother's Name</label>
                                         <input type="text" name="mother_name" class="form-control">
                                     </div>
-                                    <div class="form-group">
-                                        <label class="form-label">Citizenship No.</label>
-                                        <input type="text" name="citizenship_no" class="form-control">
-                                    </div>
+
                                     <div class="form-group">
                                         <label class="form-label">Husband's Name</label>
                                         <input type="text" name="husband_name" class="form-control">
@@ -705,10 +689,7 @@ window.renderAddStudentForm = async () => {
                                     <option value="">Select Course First</option>
                                 </select>
                             </div>
-                            <div class="form-group">
-                                <label class="form-label">Admission Date</label>
-                                <input type="date" name="admission_date" class="form-control" value="${new Date().toISOString().split('T')[0]}">
-                            </div>
+
                             <div class="form-group">
                                 <label class="form-label">Password (Login)</label>
                                 <input type="text" name="password" class="form-control" value="Student@123">
@@ -720,29 +701,11 @@ window.renderAddStudentForm = async () => {
                     <!-- Permanent Address Section -->
                     <div class="form-section" style="margin-top:30px;">
                         <h4 style="margin-bottom:20px; color:var(--primary); display:flex; align-items:center;">
-                            <i class="fa-solid fa-home" style="margin-right:10px;"></i> Permanent Address
+                            <i class="fa-solid fa-home" style="margin-right:10px;"></i> Student Address
                         </h4>
-                        <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:20px;">
-                            <div class="form-group">
-                                <label class="form-label">Province</label>
-                                <select name="permanent_province" id="add_p_province" class="form-control" onchange="window._updateDistrictSelect(this.value, 'add_p_district')">
-                                    <option value="">Select Province</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">District</label>
-                                <select name="permanent_district" id="add_p_district" class="form-control">
-                                    <option value="">Select District</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Municipality</label>
-                                <input type="text" name="permanent_municipality" class="form-control">
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Ward No.</label>
-                                <input type="text" name="permanent_ward" class="form-control">
-                            </div>
+                        <div class="form-group">
+                            <label class="form-label req">Full Address</label>
+                            <textarea name="permanent_address" class="form-control" style="min-height:80px;" required placeholder="Enter full address..."></textarea>
                         </div>
                     </div>                   
                      <!-- Actions -->
@@ -758,28 +721,8 @@ window.renderAddStudentForm = async () => {
     // Populate courses
     await _populateCoursesInForm('std_course_select');
     
-    // Initializing Nepal Province Data
-    if (window._populateProvinceSelect) {
-        window._populateProvinceSelect('add_p_province');
-    }
 
-    // Date converter
-    const adInput = document.getElementById('add_dob_ad');
-    const bsInput = document.getElementById('add_dob_bs');
-    if (adInput && bsInput) {
-        const handleConv = async (e, type) => {
-            const date = e.target.value; 
-            if(!date || date.length<10) return;
-            const res = await fetch(`${window.APP_URL}/api/frontdesk/date-convert?date=${date}&type=${type}`);
-            const result = await res.json();
-            if (result.success) {
-                if (type === 'ad') bsInput.value = result.converted;
-                else adInput.value = result.converted;
-            }
-        };
-        adInput.addEventListener('change', (e) => handleConv(e, 'ad'));
-        bsInput.addEventListener('blur', (e) => handleConv(e, 'bs'));
-    }
+
     
     document.getElementById('studentAddForm').onsubmit = (e) => _submitStudentForm(e, 'POST');
 };

@@ -297,24 +297,112 @@ try {
             require_once __DIR__ . '/study_materials.php';
             break;
             
-        // ========== ONLINE CLASSES (STUB for future) ==========
+        // ========== ONLINE CLASSES ==========
         
         case 'online_classes':
-            // STUB: Online classes functionality - to be implemented with live streaming integration
+            $batchId = $_GET['batch_id'] ?? null;
+            $status = $_GET['status'] ?? 'scheduled';
+            
+            $where = ["tenant_id = :tid"];
+            $params = ['tid' => $tenantId];
+            
+            if ($batchId) {
+                $where[] = "batch_id = :bid";
+                $params['bid'] = $batchId;
+            }
+            if ($status) {
+                $where[] = "status = :status";
+                $params['status'] = $status;
+            }
+            
+            $whereClause = implode(' AND ', $where);
+            $stmt = $db->prepare("
+                SELECT oc.*, b.name as batch_name, s.name as subject_name, t.full_name as teacher_name
+                FROM online_classes oc
+                JOIN batches b ON oc.batch_id = b.id
+                JOIN subjects s ON oc.subject_id = s.id
+                JOIN teachers t ON oc.teacher_id = t.id
+                WHERE oc.$whereClause
+                ORDER BY oc.start_time ASC
+            ");
+            $stmt->execute($params);
+            $classes = $stmt->fetchAll();
+            
             echo json_encode([
                 'success' => true,
-                'message' => 'Online classes module coming in V3.2',
-                'data' => [],
-                'meta' => ['total' => 0]
+                'data' => $classes,
+                'meta' => ['total' => count($classes)]
             ]);
             break;
             
         case 'schedule_class':
-            // STUB: Schedule online class
+            if ($method !== 'POST') throw new Exception("Method not allowed");
+            
+            $input = json_decode(file_get_contents('php://input'), true) ?: $_POST;
+            
+            $title = $input['title'] ?? '';
+            $batch_id = $input['batch_id'] ?? null;
+            $subject_id = $input['subject_id'] ?? null;
+            $teacher_id = $input['teacher_id'] ?? $userId;
+            $start_time = $input['start_time'] ?? '';
+            $duration = (int)($input['duration_minutes'] ?? 40);
+            $provider = $input['meeting_provider'] ?? 'zoom';
+            
+            if (empty($title) || empty($batch_id) || empty($subject_id) || empty($start_time)) {
+                throw new Exception("Title, Batch, Subject and Start Time are required");
+            }
+            
+            // Integrate with provider
+            require_once __DIR__ . '/../../Services/OnlineClassService.php';
+            $onlineService = new \App\Services\OnlineClassService();
+            
+            $meetingData = [];
+            if ($provider === 'zoom') {
+                $meetingData = $onlineService->scheduleZoomMeeting($input);
+            } elseif ($provider === 'google_meet') {
+                $meetingData = $onlineService->scheduleGoogleMeet($input);
+            } else {
+                throw new Exception("Invalid meeting provider: $provider");
+            }
+            
+            if (!$meetingData['success']) {
+                throw new Exception("Failed to schedule meeting via $provider");
+            }
+            
+            $stmt = $db->prepare("
+                INSERT INTO online_classes 
+                (tenant_id, batch_id, subject_id, teacher_id, title, description, start_time, duration_minutes, 
+                 meeting_provider, meeting_id, meeting_password, join_url, start_url, status)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'scheduled')
+            ");
+            
+            $stmt->execute([
+                $tenantId, $batch_id, $subject_id, $teacher_id, $title, $input['description'] ?? '', 
+                $start_time, $duration, $provider, $meetingData['meeting_id'], 
+                $meetingData['password'] ?? '', $meetingData['join_url'], $meetingData['start_url']
+            ]);
+            $newClassId = $db->lastInsertId();
+            
+            \App\Helpers\AuditLogger::log('CREATE', 'online_classes', $newClassId, null, $input);
+            
             echo json_encode([
                 'success' => true,
-                'message' => 'Online class scheduling coming in V3.2'
+                'message' => 'Online class scheduled successfully',
+                'id' => $newClassId,
+                'meeting_id' => $meetingData['meeting_id'],
+                'join_url' => $meetingData['join_url']
             ]);
+            break;
+            
+        case 'class_attendance':
+            $classId = $_GET['class_id'] ?? null;
+            if (!$classId) throw new Exception("Class ID required");
+            
+            require_once __DIR__ . '/../../Services/OnlineClassService.php';
+            $onlineService = new \App\Services\OnlineClassService();
+            $data = $onlineService->getClassAttendance($db, $tenantId, $classId);
+            
+            echo json_encode(['success' => true, 'data' => $data]);
             break;
             
         // ========== ANALYTICS ==========

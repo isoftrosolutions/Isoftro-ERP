@@ -605,6 +605,14 @@ Route::middleware(['auth.superadmin'])->group(function () {
     Route::post('/api/super-admin/tenants/update-plan', function() {
         require_once app_path('Http/Controllers/update_plan.php');
     });
+
+    // Plan and Pricing Management
+    Route::get('/api/get_plan_features.php', function() {
+        require_once app_path('Http/Controllers/SuperAdmin/get_plan_features.php');
+    });
+    Route::post('/api/update_plan_features.php', function() {
+        require_once app_path('Http/Controllers/SuperAdmin/update_plan_features.php');
+    });
 });
 
 

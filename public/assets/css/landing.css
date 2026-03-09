@@ -1243,6 +1243,43 @@ ol {
     width: 100%;
 }
 
+.pricing-card--starter {
+    border-top: 5px solid #2EA04E;
+}
+
+.pricing-card--growth {
+    border-top: 5px solid #3B82F6;
+}
+
+.pricing-card--pro {
+    border-top: 5px solid #8B5CF6;
+}
+
+.pricing-card__features-title {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: var(--text-heading);
+    margin-bottom: 0.75rem;
+}
+
+.pricing-card--starter .pricing-feature i {
+    color: #2EA04E;
+}
+
+.pricing-card--growth .pricing-feature i {
+    color: #3B82F6;
+}
+
+.pricing-card--pro .pricing-feature i {
+    color: #8B5CF6;
+}
+
+.pricing-card--growth.pricing-card--featured {
+    border: 1px solid #3B82F6;
+    border-top-width: 5px;
+}
+
+
 /* ============================================
    TESTIMONIALS - Mobile First
    ============================================ */

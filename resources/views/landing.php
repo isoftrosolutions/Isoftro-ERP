@@ -499,56 +499,122 @@
 <section class="l-pricing" id="pricing">
   <div class="landing-container">
     <div class="l-pricing__header reveal">
-      <span class="section-badge section-badge--green"><i class="fa-solid fa-tags"></i> Pricing</span>
-      <h2 class="section-title">Simple, Transparent Pricing</h2>
-      <p class="section-subtitle mx-auto">No hidden fees. Choose the plan that fits your institute.</p>
+      <span class="section-badge section-badge--green"><i class="fa-solid fa-tags"></i> Pricing Strategy</span>
+      <h2 class="section-title">Hamro Labs Academic ERP — Pricing Strategy</h2>
+      <p class="section-subtitle mx-auto">Choose the perfect plan for your institution's growth.</p>
     </div>
+    
+    <?php
+    $db = getDBConnection();
+    try {
+        $plans = $db->query("SELECT * FROM subscription_plans WHERE status = 'active' ORDER BY sort_order ASC")->fetchAll();
+        $hasDynamicPlans = count($plans) > 0;
+    } catch (Exception $e) {
+        $hasDynamicPlans = false;
+        $plans = [];
+    }
+    ?>
+
     <div class="l-pricing__grid">
-      <div class="pricing-card reveal reveal-delay-1">
-        <h3 class="pricing-card__name">Starter</h3>
-        <p class="pricing-card__desc">Perfect for small coaching centers.</p>
-        <div class="pricing-card__price"><span class="pricing-card__currency">NPR</span><span class="pricing-card__amount">2,999</span><span class="pricing-card__period">/month</span></div>
-        <div class="pricing-card__divider"></div>
-        <div class="pricing-card__features">
-          <div class="pricing-feature"><i class="fa-solid fa-check"></i> Up to 200 Students</div>
-          <div class="pricing-feature"><i class="fa-solid fa-check"></i> 5 Staff Accounts</div>
-          <div class="pricing-feature"><i class="fa-solid fa-check"></i> Fee & Attendance</div>
-          <div class="pricing-feature"><i class="fa-solid fa-check"></i> Basic Reports</div>
-          <div class="pricing-feature"><i class="fa-solid fa-check"></i> Email Support</div>
+      <?php if ($hasDynamicPlans): ?>
+        <?php foreach ($plans as $index => $plan): 
+            $plan_id = $plan['id'];
+            $features = $db->prepare("SELECT * FROM plan_features WHERE plan_id = :plan_id ORDER BY sort_order ASC");
+            $features->execute(['plan_id' => $plan_id]);
+            $features = $features->fetchAll();
+            $delayClass = "reveal-delay-" . ($index + 1);
+            $featuredClass = $plan['is_featured'] ? 'pricing-card--featured' : '';
+            $cssClass = !empty($plan['css_class']) ? "pricing-card--" . $plan['css_class'] : '';
+            $btnClass = $plan['is_featured'] ? 'btn--primary' : 'btn--outline';
+        ?>
+          <div class="pricing-card <?php echo $cssClass; ?> <?php echo $featuredClass; ?> reveal <?php echo $delayClass; ?>">
+            <?php if (!empty($plan['badge_text'])): ?>
+              <div class="pricing-card__badge"><?php echo htmlspecialchars($plan['badge_text']); ?></div>
+            <?php endif; ?>
+            <h3 class="pricing-card__name"><?php echo htmlspecialchars($plan['name']); ?></h3>
+            <p class="pricing-card__desc"><?php echo htmlspecialchars($plan['description']); ?></p>
+            <div class="pricing-card__price">
+              <span class="pricing-card__currency">Rs</span>
+              <span class="pricing-card__amount"><?php echo number_format($plan['price_monthly'], 0); ?></span>
+              <span class="pricing-card__period">/month</span>
+            </div>
+            <div class="pricing-card__divider"></div>
+            <div class="pricing-card__features-title">Includes:</div>
+            <div class="pricing-card__features">
+              <?php foreach ($features as $feature): ?>
+                <div class="pricing-feature">
+                  <i class="fa-solid <?php echo $feature['is_included'] ? 'fa-check' : 'fa-xmark text-muted'; ?>"></i> 
+                  <?php echo htmlspecialchars($feature['feature_text']); ?>
+                </div>
+              <?php endforeach; ?>
+            </div>
+            <a href="#contact" class="btn <?php echo $btnClass; ?>">
+              <?php echo $plan['slug'] === 'professional' ? 'Contact Sales' : 'Get Started'; ?>
+            </a>
+          </div>
+        <?php endforeach; ?>
+      <?php else: ?>
+        <!-- Fallback to static if table not found -->
+        <!-- Starter Plan -->
+        <div class="pricing-card pricing-card--starter reveal reveal-delay-1">
+          <h3 class="pricing-card__name">Starter Plan</h3>
+          <p class="pricing-card__desc">Good for institutes that want digital fee & student management.</p>
+          <div class="pricing-card__price"><span class="pricing-card__currency">Rs</span><span class="pricing-card__amount">5000</span><span class="pricing-card__period">/month</span></div>
+          <div class="pricing-card__divider"></div>
+          <div class="pricing-card__features-title">Includes:</div>
+          <div class="pricing-card__features">
+            <div class="pricing-feature"><i class="fa-solid fa-check"></i> Up to 300 students</div>
+            <div class="pricing-feature"><i class="fa-solid fa-check"></i> Student admission management</div>
+            <div class="pricing-feature"><i class="fa-solid fa-check"></i> Batch management</div>
+            <div class="pricing-feature"><i class="fa-solid fa-check"></i> Fees collection system</div>
+            <div class="pricing-feature"><i class="fa-solid fa-check"></i> Payment receipts</div>
+            <div class="pricing-feature"><i class="fa-solid fa-check"></i> Basic attendance tracking</div>
+            <div class="pricing-feature"><i class="fa-solid fa-check"></i> Notice & announcements</div>
+            <div class="pricing-feature"><i class="fa-solid fa-check"></i> Basic reporting dashboard</div>
+            <div class="pricing-feature"><i class="fa-solid fa-check"></i> Email support</div>
+          </div>
+          <a href="#contact" class="btn btn--outline">Get Started</a>
         </div>
-        <a href="#contact" class="btn btn--outline">Get Started</a>
-      </div>
-      <div class="pricing-card pricing-card--featured reveal reveal-delay-2">
-        <div class="pricing-card__badge">Best Value</div>
-        <h3 class="pricing-card__name">Growth</h3>
-        <p class="pricing-card__desc">Ideal for Loksewa prep & mid-size schools.</p>
-        <div class="pricing-card__price"><span class="pricing-card__currency">NPR</span><span class="pricing-card__amount">5,999</span><span class="pricing-card__period">/month</span></div>
-        <div class="pricing-card__divider"></div>
-        <div class="pricing-card__features">
-          <div class="pricing-feature"><i class="fa-solid fa-check"></i> Up to 1,000 Students</div>
-          <div class="pricing-feature"><i class="fa-solid fa-check"></i> 20 Staff Accounts</div>
-          <div class="pricing-feature"><i class="fa-solid fa-check"></i> All Core Modules</div>
-          <div class="pricing-feature"><i class="fa-solid fa-check"></i> Parent Portal</div>
-          <div class="pricing-feature"><i class="fa-solid fa-check"></i> SMS Notifications</div>
-          <div class="pricing-feature"><i class="fa-solid fa-check"></i> Priority Support</div>
+
+        <!-- Growth Plan -->
+        <div class="pricing-card pricing-card--growth pricing-card--featured reveal reveal-delay-2">
+          <div class="pricing-card__badge">Most Popular</div>
+          <h3 class="pricing-card__name">Growth Plan</h3>
+          <p class="pricing-card__desc">👈 Complete institute management system</p>
+          <div class="pricing-card__price"><span class="pricing-card__currency">Rs</span><span class="pricing-card__amount">8000</span><span class="pricing-card__period">/month</span></div>
+          <div class="pricing-card__divider"></div>
+          <div class="pricing-card__features-title">Everything in Starter +</div>
+          <div class="pricing-card__features">
+            <div class="pricing-feature"><i class="fa-solid fa-check"></i> Up to 800 students</div>
+            <div class="pricing-feature"><i class="fa-solid fa-check"></i> Study materials module</div>
+            <div class="pricing-feature"><i class="fa-solid fa-check"></i> Homework / assignment system</div>
+            <div class="pricing-feature"><i class="fa-solid fa-check"></i> Advanced attendance reports</div>
+            <div class="pricing-feature"><i class="fa-solid fa-check"></i> Payment history analytics</div>
+            <div class="pricing-feature"><i class="fa-solid fa-check"></i> Role based access (Admin / Front Desk / Teacher)</div>
+            <div class="pricing-feature"><i class="fa-solid fa-check"></i> Priority support</div>
+          </div>
+          <a href="#contact" class="btn btn--primary">Get Started</a>
         </div>
-        <a href="#contact" class="btn btn--primary">Get Started</a>
-      </div>
-      <div class="pricing-card reveal reveal-delay-3">
-        <h3 class="pricing-card__name">Professional</h3>
-        <p class="pricing-card__desc">For large colleges & multi-branch institutions.</p>
-        <div class="pricing-card__price"><span class="pricing-card__currency">NPR</span><span class="pricing-card__amount">12,999</span><span class="pricing-card__period">/month</span></div>
-        <div class="pricing-card__divider"></div>
-        <div class="pricing-card__features">
-          <div class="pricing-feature"><i class="fa-solid fa-check"></i> Unlimited Students</div>
-          <div class="pricing-feature"><i class="fa-solid fa-check"></i> Unlimited Staff</div>
-          <div class="pricing-feature"><i class="fa-solid fa-check"></i> All Modules + Custom</div>
-          <div class="pricing-feature"><i class="fa-solid fa-check"></i> Multi-Branch Control</div>
-          <div class="pricing-feature"><i class="fa-solid fa-check"></i> API Access</div>
-          <div class="pricing-feature"><i class="fa-solid fa-check"></i> Dedicated Manager</div>
+
+        <!-- Professional Plan -->
+        <div class="pricing-card pricing-card--pro reveal reveal-delay-3">
+          <h3 class="pricing-card__name">Professional Plan</h3>
+          <p class="pricing-card__desc">👈 Enterprise level institute ERP</p>
+          <div class="pricing-card__price"><span class="pricing-card__currency">Rs</span><span class="pricing-card__amount">12000</span><span class="pricing-card__period">/month</span></div>
+          <div class="pricing-card__divider"></div>
+          <div class="pricing-card__features-title">Everything in Growth +</div>
+          <div class="pricing-card__features">
+            <div class="pricing-feature"><i class="fa-solid fa-check"></i> Unlimited students</div>
+            <div class="pricing-feature"><i class="fa-solid fa-check"></i> Multi-branch support</div>
+            <div class="pricing-feature"><i class="fa-solid fa-check"></i> SMS integration</div>
+            <div class="pricing-feature"><i class="fa-solid fa-check"></i> Advanced analytics dashboard</div>
+            <div class="pricing-feature"><i class="fa-solid fa-check"></i> API integrations</div>
+            <div class="pricing-feature"><i class="fa-solid fa-check"></i> Custom branding (Logo, Theme)</div>
+            <div class="pricing-feature"><i class="fa-solid fa-check"></i> Dedicated priority support</div>
+          </div>
+          <a href="#contact" class="btn btn--outline">Contact Sales</a>
         </div>
-        <a href="#contact" class="btn btn--outline">Contact Sales</a>
-      </div>
+      <?php endif; ?>
     </div>
   </div>
 </section>
