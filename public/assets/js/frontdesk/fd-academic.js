@@ -28,7 +28,7 @@ async function _loadCourses() {
             html += `<tr>
                 <td><span style="font-weight:700">${c2.code}</span></td>
                 <td><div style="font-weight:600">${c2.name}</div></td>
-                <td><span class="tag bg-b">${c2.category.toUpperCase()}</span></td>
+                <td><span class="tag bg-b">${(c2.category || 'GENERAL').toUpperCase()}</span></td>
                 <td><span style="font-weight:600;color:var(--primary)">RS ${parseFloat(c2.fee||0).toLocaleString()}</span></td>
                 <td>${c2.total_batches||0}</td><td>${c2.total_students||0}</td>
                 <td style="text-align:right;white-space:nowrap">
@@ -167,10 +167,10 @@ async function _loadBatches() {
             html += `<tr>
                 <td><div style="font-weight:600">${b.name}</div></td>
                 <td>${b.course_name}</td>
-                <td><span class="tag bg-y">${b.shift.toUpperCase()}</span></td>
+                <td><span class="tag bg-y">${(b.shift || 'DAY').toUpperCase()}</span></td>
                 <td>${b.total_students}/${b.max_strength}</td>
                 <td>${b.start_date}</td>
-                <td><span class="tag ${sc}">${b.status.toUpperCase()}</span></td>
+                <td><span class="tag ${sc}">${(b.status || 'ACTIVE').toUpperCase()}</span></td>
                 <td style="text-align:right;white-space:nowrap">
                     <button class="btn-icon" title="Edit" onclick="goNav('academic','batches',{id:${b.id}})"><i class="fa-solid fa-pen"></i></button>
                     <button class="btn-icon text-danger" title="Delete" onclick="deleteBatch(${b.id},'${b.name.replace(/'/g,"\\''")}')"><i class="fa-solid fa-trash"></i></button>

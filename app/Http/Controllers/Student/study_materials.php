@@ -57,11 +57,9 @@ $studentData = null;
 
 if ($role === 'student' && $studentId) {
     $stmt = $db->prepare("
-        SELECT s.*, b.id as batch_id, c.id as course_id
+        SELECT s.*, b.id as batch_id, b.course_id
         FROM students s
-        LEFT JOIN student_batch_enrollments sbe ON s.id = sbe.student_id AND sbe.status = 'active'
-        LEFT JOIN batches b ON sbe.batch_id = b.id
-        LEFT JOIN courses c ON sbe.course_id = c.id
+        LEFT JOIN batches b ON s.batch_id = b.id
         WHERE s.id = :sid AND s.tenant_id = :tid
         LIMIT 1
     ");

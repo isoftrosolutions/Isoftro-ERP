@@ -134,6 +134,11 @@ try {
 
         if (empty($startDate)) $startDate = date('Y-m-d');
 
+        // Handle end_date - allow null if not provided (optional field)
+        if (empty($endDate)) {
+            $endDate = null;
+        }
+
         if (!$courseId || !$name) {
             throw new Exception("Course and Batch Name are required");
         }
@@ -177,6 +182,11 @@ try {
         foreach ($allowed as $f) {
             if (isset($input[$f])) {
                 $val = $input[$f];
+                
+                // Convert empty strings to null for date fields
+                if (in_array($f, ['start_date', 'end_date']) && $val === '') {
+                    $val = null;
+                }
                 
                 // Special handling for BS date updates
                 if ($f === 'start_date' && empty($val) && !empty($input['start_date_bs'])) {

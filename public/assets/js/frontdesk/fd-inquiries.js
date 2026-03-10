@@ -10,7 +10,7 @@ window.renderInquiryList = async function() {
         <div class="bc"><a href="#" onclick="goNav('overview')">Dashboard</a> <span class="bc-sep">&rsaquo;</span> <span class="bc-cur">Inquiry List</span></div>
         <div class="pg-head">
             <div class="pg-left"><div class="pg-ico"><i class="fa-solid fa-clipboard-list"></i></div><div><div class="pg-title">Inquiry Management</div><div class="pg-sub">Track and manage admission inquiries</div></div></div>
-            <div class="pg-acts"><button class="btn bt" onclick="goNav('inq','add-inq')"><i class="fa-solid fa-plus"></i> New Inquiry</button></div>
+            <div class="pg-acts"><button class="btn bt" onclick="goNav('inq-add')"><i class="fa-solid fa-plus"></i> New Inquiry</button></div>
         </div>
         <div class="card" id="inquiryListContainer"><div class="pg-loading"><i class="fa-solid fa-circle-notch fa-spin"></i><span>Loading inquiries...</span></div></div>
     </div>`;
@@ -20,7 +20,7 @@ window.renderInquiryList = async function() {
 async function _loadInquiries() {
     const c = document.getElementById('inquiryListContainer'); if (!c) return;
     try {
-        const res = await fetch(APP_URL + '/api/frontdesk/inquiries');
+        const res = await fetch(APP_URL + '/api/frontdesk/inquiries', getHeaders());
         const result = await res.json(); if (!result.success) throw new Error(result.message);
         const inqs = result.data;
         if (!inqs.length) { c.innerHTML=`<div style="padding:60px;text-align:center;color:#94a3b8;"><i class="fa-solid fa-clipboard-list" style="font-size:3rem;margin-bottom:15px;"></i><p>No inquiries found.</p></div>`; return; }
@@ -31,8 +31,8 @@ async function _loadInquiries() {
                 <td><div style="font-weight:600">${i.full_name}</div></td>
                 <td>${i.phone}</td>
                 <td>${i.course_name||'N/A'}</td>
-                <td><span class="tag ${sc}">${i.status.toUpperCase()}</span></td>
-                <td><span class="tag bg-b">${i.source.toUpperCase()}</span></td>
+                <td><span class="tag ${sc}">${(i.status || 'PENDING').toUpperCase()}</span></td>
+                <td><span class="tag bg-b">${(i.source || 'WALK_IN').toUpperCase()}</span></td>
                 <td>${new Date(i.created_at).toLocaleDateString()}</td>
                 <td style="text-align:right;white-space:nowrap">
                     <button class="btn-icon" title="Follow up"><i class="fa-solid fa-phone"></i></button>
@@ -49,7 +49,7 @@ async function _loadInquiries() {
 window.renderAddInquiryForm = async function() {
     const mc = document.getElementById('mainContent');
     mc.innerHTML = `<div class="pg fu">
-        <div class="bc"><a href="#" onclick="goNav('overview')">Dashboard</a> <span class="bc-sep">&rsaquo;</span> <a href="#" onclick="goNav('inq','list')">Inquiries</a> <span class="bc-sep">&rsaquo;</span> <span class="bc-cur">New Inquiry</span></div>
+        <div class="bc"><a href="#" onclick="goNav('overview')">Dashboard</a> <span class="bc-sep">&rsaquo;</span> <a href="#" onclick="goNav('inquiries')">Inquiries</a> <span class="bc-sep">&rsaquo;</span> <span class="bc-cur">New Inquiry</span></div>
         <div class="pg-head"><div class="pg-left"><div class="pg-ico"><i class="fa-solid fa-user-plus"></i></div><div><div class="pg-title">Add New Inquiry</div><div class="pg-sub">Capture a new admission inquiry or lead</div></div></div></div>
         <div class="card" style="max-width:800px;">
             <form id="addInquiryForm" onsubmit="submitInquiry(event)">
@@ -66,7 +66,7 @@ window.renderAddInquiryForm = async function() {
                 <div class="form-group"><label class="form-label">Address</label><textarea name="address" class="form-control" rows="2" placeholder="Full address (optional)"></textarea></div>
                 <div class="form-group"><label class="form-label">Notes</label><textarea name="notes" class="form-control" rows="3" placeholder="Additional notes about the inquiry..."></textarea></div>
                 <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px;">
-                    <button type="button" class="btn bs" onclick="goNav('inq','list')">Cancel</button>
+                    <button type="button" class="btn bs" onclick="goNav('inquiries')">Cancel</button>
                     <button type="submit" class="btn bt" id="inqSubmitBtn"><i class="fa-solid fa-save"></i> Save Inquiry</button>
                 </div>
             </form>
@@ -78,7 +78,7 @@ window.renderAddInquiryForm = async function() {
 async function _loadInqCourses() {
     const sel = document.getElementById('inqCourseSelect'); if (!sel) return;
     try {
-        const res = await fetch(APP_URL + '/api/frontdesk/courses');
+        const res = await fetch(APP_URL + '/api/frontdesk/courses', getHeaders());
         const result = await res.json();
         if (result.success) result.data.forEach(c => { const o=document.createElement('option'); o.value=c.id; o.textContent=c.name; sel.appendChild(o); });
     } catch(e) { console.error('Failed to load courses for inquiry',e); }
@@ -90,9 +90,9 @@ window.submitInquiry = async function(e) {
     const btn  = document.getElementById('inqSubmitBtn');
     btn.disabled=true; btn.innerHTML='<i class="fa-solid fa-circle-notch fa-spin"></i> Saving...';
     try {
-        const res = await fetch(APP_URL+'/api/frontdesk/inquiries',{method:'POST',body:new FormData(form)});
+        const res = await fetch(APP_URL+'/api/frontdesk/inquiries',getHeaders({method:'POST',body:new FormData(form)}));
         const result = await res.json();
-        if (result.success) { Swal.fire('Saved!','Inquiry recorded successfully.','success').then(()=>goNav('inq','list')); }
+        if (result.success) { Swal.fire('Saved!','Inquiry recorded successfully.','success').then(()=>goNav('inquiries')); }
         else throw new Error(result.message);
     } catch(err) { Swal.fire('Error',err.message,'error'); }
     finally { btn.disabled=false; btn.innerHTML='<i class="fa-solid fa-save"></i> Save Inquiry'; }
@@ -102,7 +102,7 @@ window.submitInquiry = async function(e) {
 window.renderInquiryAnalytics = async function() {
     const mc = document.getElementById('mainContent');
     mc.innerHTML = `<div class="pg fu">
-        <div class="bc"><a href="#" onclick="goNav('overview')">Dashboard</a> <span class="bc-sep">&rsaquo;</span> <a href="#" onclick="goNav('inq','list')">Inquiries</a> <span class="bc-sep">&rsaquo;</span> <span class="bc-cur">Conversion Analytics</span></div>
+        <div class="bc"><a href="#" onclick="goNav('overview')">Dashboard</a> <span class="bc-sep">&rsaquo;</span> <a href="#" onclick="goNav('inquiries')">Inquiries</a> <span class="bc-sep">&rsaquo;</span> <span class="bc-cur">Conversion Analytics</span></div>
         <div class="pg-head"><div class="pg-left"><div class="pg-ico"><i class="fa-solid fa-chart-pie"></i></div><div><div class="pg-title">Inquiry Analytics</div><div class="pg-sub">Track conversion rates and inquiry performance</div></div></div></div>
         <div class="sg mb">
             <div class="sc card"><div class="sc-top"><div class="sc-ico ic-t"><i class="fa-solid fa-users"></i></div></div><div class="sc-val" id="totalInquiries">-</div><div class="sc-lbl">Total Inquiries</div></div>
@@ -116,7 +116,7 @@ window.renderInquiryAnalytics = async function() {
         </div>
     </div>`;
     try {
-        const res = await fetch(APP_URL + '/api/frontdesk/inquiries');
+        const res = await fetch(APP_URL + '/api/frontdesk/inquiries', getHeaders());
         const result = await res.json(); if (!result.success) throw new Error(result.message);
         const inqs = result.data;
         const total = inqs.length, converted = inqs.filter(i=>i.status==='converted').length, pending = inqs.filter(i=>i.status==='pending').length;
@@ -135,7 +135,7 @@ window.renderInquiryAnalytics = async function() {
 window.renderAdmissionForm = async function() {
     const mc = document.getElementById('mainContent');
     mc.innerHTML = `<div class="pg fu">
-        <div class="bc"><a href="#" onclick="goNav('overview')">Dashboard</a> <span class="bc-sep">&rsaquo;</span> <a href="#" onclick="goNav('inq','list')">Inquiries</a> <span class="bc-sep">&rsaquo;</span> <span class="bc-cur">Admission Form</span></div>
+        <div class="bc"><a href="#" onclick="goNav('overview')">Dashboard</a> <span class="bc-sep">&rsaquo;</span> <a href="#" onclick="goNav('inquiries')">Inquiries</a> <span class="bc-sep">&rsaquo;</span> <span class="bc-cur">Admission Form</span></div>
         <div class="pg-head"><div class="pg-left"><div class="pg-ico"><i class="fa-solid fa-id-card"></i></div><div><div class="pg-title">Admission Form</div><div class="pg-sub">Generate admission forms from inquiry records</div></div></div></div>
         <div class="card mb">
             <div class="ct"><i class="fa-solid fa-filter"></i> Filter Inquiries for Admission</div>
@@ -157,7 +157,7 @@ async function _loadInquiriesForAdmission(search='', status='') {
         const p = new URLSearchParams();
         if (search) p.append('search',search); if (status) p.append('status',status);
         if (p.toString()) url+='?'+p.toString();
-        const res = await fetch(url);
+        const res = await fetch(url, getHeaders());
         const result = await res.json(); if (!result.success) throw new Error(result.message);
         const inqs = result.data;
         if (!inqs.length) { c.innerHTML=`<div style="padding:60px;text-align:center;color:#94a3b8;"><i class="fa-solid fa-user-plus" style="font-size:3rem;margin-bottom:15px;"></i><p>No inquiries found.</p></div>`; return; }

@@ -35,26 +35,26 @@ try {
     ];
 
     // Students
-    $stmt = $db->prepare("SELECT id, roll_no, full_name as name, email, phone FROM students WHERE tenant_id = :tid AND (full_name LIKE :q OR roll_no LIKE :q OR phone LIKE :q OR email LIKE :q) AND deleted_at IS NULL LIMIT 5");
-    $stmt->execute(['tid' => $tenantId, 'q' => $term]);
+    $stmt = $db->prepare("SELECT id, roll_no, full_name as name, email, phone, photo_url FROM students WHERE tenant_id = :tid AND (full_name LIKE :q1 OR roll_no LIKE :q2 OR phone LIKE :q3 OR email LIKE :q4) AND deleted_at IS NULL LIMIT 5");
+    $stmt->execute(['tid' => $tenantId, 'q1' => $term, 'q2' => $term, 'q3' => $term, 'q4' => $term]);
     $results['students'] = $stmt->fetchAll();
 
     // Teachers
-    $stmt = $db->prepare("SELECT id, full_name as name, phone, email FROM teachers WHERE tenant_id = :tid AND (full_name LIKE :q OR phone LIKE :q OR email LIKE :q) AND deleted_at IS NULL LIMIT 5");
-    $stmt->execute(['tid' => $tenantId, 'q' => $term]);
+    $stmt = $db->prepare("SELECT id, full_name as name, phone, email FROM teachers WHERE tenant_id = :tid AND (full_name LIKE :q1 OR phone LIKE :q2 OR email LIKE :q3) AND deleted_at IS NULL LIMIT 5");
+    $stmt->execute(['tid' => $tenantId, 'q1' => $term, 'q2' => $term, 'q3' => $term]);
     $results['teachers'] = $stmt->fetchAll();
 
     // Batches
-    $stmt = $db->prepare("SELECT b.id, b.name, c.name as course_name FROM batches b LEFT JOIN courses c ON b.course_id = c.id WHERE b.tenant_id = :tid AND b.name LIKE :q AND b.deleted_at IS NULL LIMIT 5");
-    $stmt->execute(['tid' => $tenantId, 'q' => $term]);
+    $stmt = $db->prepare("SELECT b.id, b.name, c.name as course_name FROM batches b LEFT JOIN courses c ON b.course_id = c.id WHERE b.tenant_id = :tid AND b.name LIKE :q1 AND b.deleted_at IS NULL LIMIT 5");
+    $stmt->execute(['tid' => $tenantId, 'q1' => $term]);
     $results['batches'] = $stmt->fetchAll();
 
     // Courses
-    $stmt = $db->prepare("SELECT id, name FROM courses WHERE tenant_id = :tid AND (name LIKE :q OR code LIKE :q) AND deleted_at IS NULL LIMIT 5");
-    $stmt->execute(['tid' => $tenantId, 'q' => $term]);
+    $stmt = $db->prepare("SELECT id, name FROM courses WHERE tenant_id = :tid AND (name LIKE :q1 OR code LIKE :q2) AND deleted_at IS NULL LIMIT 5");
+    $stmt->execute(['tid' => $tenantId, 'q1' => $term, 'q2' => $term]);
     $results['courses'] = $stmt->fetchAll();
 
-    $results['total'] = count($results['students']) + count($results['teachers']) + count($results['batches']) + count($results['courses']);
+    $results['total'] = count($results['students'] ?? []) + count($results['teachers'] ?? []) + count($results['batches'] ?? []) + count($results['courses'] ?? []);
     $results['success'] = true;
 
     echo json_encode($results);

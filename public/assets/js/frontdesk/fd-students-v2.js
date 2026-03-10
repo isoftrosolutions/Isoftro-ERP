@@ -152,8 +152,8 @@ window.renderAddStudentFormV2 = async () => {
   `;
 
   try {
-    // Fetch the shared PHP partial from the admin admission-form view
-    const res = await fetch(`${window.APP_URL}/dash/admin/admission-form?partial=true`, {
+    // Fetch the PHP partial from the front-desk admission-form view
+    const res = await fetch(`${window.APP_URL}/dash/front-desk/admission-form?partial=true`, {
       credentials: 'same-origin'
     });
 

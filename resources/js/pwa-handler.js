@@ -79,10 +79,10 @@ function updateInstallButtonToSuccess() {
 }
 
 // Modal Logic & Dispatcher
-function openPwaModal() {
+function openPwaModal(triggerNative = true) {
     // ── DIRECT ACTION ──
     // If the browser is ready with the native prompt, just trigger it immediately!
-    if (deferredPrompt) {
+    if (deferredPrompt && triggerNative) {
         triggerInstall();
         return;
     }
@@ -182,7 +182,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 6. Proactive Prompt: Show modal after 5 seconds if not installed
     setTimeout(() => {
         if (!isInStandaloneMode() && !localStorage.getItem('pwa_later')) {
-            openPwaModal();
+            openPwaModal(false);
         }
     }, 5000);
 });

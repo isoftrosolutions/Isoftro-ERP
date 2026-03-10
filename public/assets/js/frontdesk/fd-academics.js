@@ -84,7 +84,7 @@ async function _loadSubjects() {
                 <td><div style="font-size: 13px; color: #64748b; line-height: 1.4;">${s.description || 'No detailed description.'}</div></td>
                 <td>
                     <span class="badge" style="background: ${isActive?'#ecfdf5':'#fff1f2'}; color: ${isActive?'#059669':'#e11d48'}; font-weight: 700; font-size: 10px;">
-                        ${s.status.toUpperCase()}
+                        ${(s.status || 'INACTIVE').toUpperCase()}
                     </span>
                 </td>
                 <td style="text-align:right">

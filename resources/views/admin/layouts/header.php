@@ -234,15 +234,39 @@ $currentPage = basename($_SERVER['PHP_SELF'], '.php');
 
         .search-results-item-main {
             display: flex;
-            justify-content: space-between;
             align-items: center;
             font-size: 13px;
             color: #111827;
+            gap: 10px;
         }
 
         .search-results-item-meta {
             font-size: 11px;
             color: #6b7280;
+            padding-left: 38px;
+        }
+
+        .search-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            object-fit: cover;
+            flex-shrink: 0;
+            background: #f3f4f6;
+        }
+
+        .search-avatar-ph {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #e5e7eb;
+            color: #6b7280;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 700;
+            flex-shrink: 0;
         }
 
         .search-box input {
@@ -984,8 +1008,19 @@ $currentPage = basename($_SERVER['PHP_SELF'], '.php');
                         const name = s.name || '';
                         const roll = s.roll_no ? 'Roll: ' + s.roll_no : '';
                         const meta = [roll, s.phone, s.email].filter(Boolean).join(' • ');
+                        
+                        // Avatar logic
+                        const initials = name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+                        const photoUrl = s.photo_url || null;
+                        const avatarHtml = photoUrl 
+                            ? `<img src="${photoUrl}" class="search-avatar" onerror="this.outerHTML='<div class=\\'search-avatar-ph\\'>${initials}</div>'">`
+                            : `<div class="search-avatar-ph">${initials}</div>`;
+
                         html += '<div class="search-results-item" data-type="student" data-id="' + s.id + '">';
-                        html +=   '<div class="search-results-item-main"><span>' + name + '</span></div>';
+                        html +=   '<div class="search-results-item-main">';
+                        html +=     avatarHtml;
+                        html +=     '<span>' + name + '</span>';
+                        html +=   '</div>';
                         if (meta) {
                             html += '<div class="search-results-item-meta">' + meta + '</div>';
                         }
@@ -1039,23 +1074,43 @@ $currentPage = basename($_SERVER['PHP_SELF'], '.php');
             function navigateToResult(type, id) {
                 if (!type || !id) return;
 
-                let url = null;
-                switch (type) {
-                    case 'student':
-                        url = '<?php echo APP_URL; ?>/dash/admin?page=students&student_id=' + encodeURIComponent(id);
-                        break;
-                    case 'teacher':
-                        url = '<?php echo APP_URL; ?>/dash/admin?page=staff&staff_id=' + encodeURIComponent(id);
-                        break;
-                    case 'batch':
-                        url = '<?php echo APP_URL; ?>/dash/admin?page=batches&batch_id=' + encodeURIComponent(id);
-                        break;
-                    case 'course':
-                        url = '<?php echo APP_URL; ?>/dash/admin?page=courses&course_id=' + encodeURIComponent(id);
-                        break;
-                }
-                if (url) {
-                    window.location.href = url;
+                // Try to use goNav for soft navigation if available
+                if (typeof window.goNav === 'function') {
+                    switch (type) {
+                        case 'student':
+                            window.goNav('students', 'view', { id: id });
+                            break;
+                        case 'teacher':
+                            window.goNav('teachers', 'list', { id: id }); // Fallback to list for now
+                            break;
+                        case 'batch':
+                            window.goNav('academic', 'batches', { id: id });
+                            break;
+                        case 'course':
+                            window.goNav('academic', 'courses', { id: id });
+                            break;
+                    }
+                    hideSearchResults();
+                } else {
+                    // Fallback to full reload if goNav not yet loaded
+                    let url = null;
+                    switch (type) {
+                        case 'student':
+                            url = '<?php echo APP_URL; ?>/dash/admin?page=students-view&id=' + encodeURIComponent(id);
+                            break;
+                        case 'teacher':
+                            url = '<?php echo APP_URL; ?>/dash/admin?page=teachers&id=' + encodeURIComponent(id);
+                            break;
+                        case 'batch':
+                            url = '<?php echo APP_URL; ?>/dash/admin?page=academic-batches&id=' + encodeURIComponent(id);
+                            break;
+                        case 'course':
+                            url = '<?php echo APP_URL; ?>/dash/admin?page=academic-courses&id=' + encodeURIComponent(id);
+                            break;
+                    }
+                    if (url) {
+                        window.location.href = url;
+                    }
                 }
             }
 
@@ -1116,10 +1171,11 @@ $currentPage = basename($_SERVER['PHP_SELF'], '.php');
             if (mobileSearchInput) {
                 mobileSearchInput.addEventListener('keypress', function(e) {
                     if (e.key === 'Enter') {
-                        // For mobile, just navigate to the full search page
                         const q = (this.value || '').trim();
-                        if (q.length >= 1) {
-                            window.location.href = '<?php echo APP_URL; ?>/admin/search?q=' + encodeURIComponent(q);
+                        if (q.length >= 2) {
+                            // Redirect to students list filtered by the query for now
+                            // since there is no dedicated search results page
+                            window.location.href = '<?php echo APP_URL; ?>/dash/admin?page=students&search=' + encodeURIComponent(q);
                         }
                         mobileSearch.classList.remove('active');
                     }

@@ -751,8 +751,9 @@ function handleFileUpload($file, $tenantId) {
         return ['success' => false, 'message' => 'File too large. Max size: 50MB'];
     }
     
-    // Create secure upload directory outside web root if possible
-    $uploadDir = "app/public/uploads/study_materials/{$tenantId}/";
+    // Create secure upload directory using absolute path anchored to project root
+    $projectRoot = dirname(__DIR__, 4); // go up from Admin/ -> Controllers/ -> Http/ -> app/ -> project root
+    $uploadDir = $projectRoot . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . 'study_materials' . DIRECTORY_SEPARATOR . $tenantId . DIRECTORY_SEPARATOR;
     if (!is_dir($uploadDir)) {
         mkdir($uploadDir, 0755, true);
     }
@@ -762,8 +763,9 @@ function handleFileUpload($file, $tenantId) {
     $filePath = $uploadDir . $secureFileName;
     
     // Verify path is within upload directory (prevent path traversal)
-    $realPath = realpath(dirname($filePath));
-    if (strpos(realpath($filePath), $realPath) !== 0) {
+    // Use realpath on the upload directory (which exists), not the file (which doesn't yet)
+    $realUploadDir = realpath($uploadDir);
+    if ($realUploadDir === false || strpos($filePath, $realUploadDir) !== 0) {
         return ['success' => false, 'message' => 'Invalid file path'];
     }
     

@@ -28,19 +28,28 @@ $db = getDBConnection();
 
 try {
     if ($method === 'GET') {
+        $id = $_GET['id'] ?? null;
         $userId = $_GET['user_id'] ?? null;
         $role = $_GET['role'] ?? null;
         $month = $_GET['month'] ?? null;
         $year = $_GET['year'] ?? null;
 
         $query = "
-            SELECT ss.*, u.name as staff_name, u.role as staff_role
+            SELECT ss.*, 
+                   COALESCE(NULLIF(u.name, ''), t.full_name) as staff_name, 
+                   u.role as staff_role,
+                   u.monthly_salary as base_salary
             FROM staff_salaries ss
             JOIN users u ON ss.user_id = u.id
+            LEFT JOIN teachers t ON u.id = t.user_id
             WHERE ss.tenant_id = :tid
         ";
         $params = ['tid' => $tenantId];
 
+        if ($id) {
+            $query .= " AND ss.id = :id";
+            $params['id'] = $id;
+        }
         if ($userId) {
             $query .= " AND ss.user_id = :uid";
             $params['uid'] = $userId;
@@ -76,12 +85,25 @@ try {
         $year = $input['year'] ?? null;
         $paymentDate = $input['payment_date'] ?? date('Y-m-d');
         $status = $input['status'] ?? 'paid';
-        $method = $input['payment_method'] ?? 'cash';
+        
+        // Normalize payment method to match DB enum ('cash','bank_transfer','cheque','esewa','khalti')
+        $rawMethod = strtolower($input['payment_method'] ?? 'cash');
+        $method = str_replace(' ', '_', $rawMethod);
+        if (strpos($method, '/') !== false) $method = explode('/', $method)[0]; // e.g. "e-sewa/khalti" -> "e-sewa" -> "esewa" later
+        $method = str_replace('-', '', $method); // "e-sewa" -> "esewa"
+        
         $transactionId = $input['transaction_id'] ?? null;
         $remarks = $input['remarks'] ?? null;
 
         if (!$userId || !$amount || !$month || !$year) {
             throw new Exception("Missing required fields: user_id, amount, month, year");
+        }
+
+        // Check for duplicate payment record
+        $stmt = $db->prepare("SELECT id FROM staff_salaries WHERE user_id = :uid AND month = :m AND year = :y AND tenant_id = :tid");
+        $stmt->execute(['uid' => $userId, 'm' => $month, 'y' => $year, 'tid' => $tenantId]);
+        if ($stmt->fetch()) {
+            throw new Exception("A salary record for this staff member already exists for the selected month and year.");
         }
 
         // Verify user belongs to this tenant

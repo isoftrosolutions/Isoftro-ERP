@@ -112,7 +112,7 @@ function _renderStaffTable(staff, role) {
     staff.forEach(s => {
         const isActive = s.status==='active';
         const n = s.full_name||s.name||'N/A';
-        const initials = n.charAt(0).toUpperCase();
+        const initials = n.charAt ? n.charAt(0).toUpperCase() : 'S';
         
         html += `<tr>
             <td>
@@ -141,7 +141,7 @@ function _renderStaffTable(staff, role) {
             </td>
             <td>
                 <span class="badge" style="background: ${isActive?'#ecfdf5':'#fff1f2'}; color: ${isActive?'#059669':'#e11d48'}; font-weight: 700; font-size: 10px;">
-                    ${s.status.toUpperCase()}
+                    ${(s.status || 'ACTIVE').toUpperCase()}
                 </span>
             </td>
             <td style="text-align:right">

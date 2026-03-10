@@ -19,7 +19,7 @@ $user = getCurrentUser();
 $tenantId = $user['tenant_id'] ?? null;
 $role = $user['role'] ?? '';
 
-require_once app_path('Http/Middleware/FrontDeskMiddleware.php');
+require_once __DIR__ . '/../../Middleware/FrontDeskMiddleware.php';
 $auth = FrontDeskMiddleware::check();
 $tenantId = $auth['tenant_id'];
 $role = $auth['role'];

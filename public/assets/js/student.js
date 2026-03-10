@@ -1603,7 +1603,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function renderFeeStatus() {
         mainContent.innerHTML = '<div class="pg fu">Loading fee status...</div>';
         try {
-            const res = await fetch('/api/student/fees?action=get_ledger');
+            const res = await fetch('api/student/fees?action=get_ledger');
             const result = await res.json();
             if (!result.success) throw new Error(result.message);
             
@@ -1662,7 +1662,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function renderFeePaymentHistory() {
         mainContent.innerHTML = '<div class="pg fu">Loading history...</div>';
         try {
-            const res = await fetch('/api/student/fees?action=get_ledger');
+            const res = await fetch('api/student/fees?action=get_ledger');
             const result = await res.json();
             if (!result.success) throw new Error(result.message);
             
@@ -1702,7 +1702,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function renderFeeReceipts() {
         mainContent.innerHTML = '<div class="pg fu">Loading receipts...</div>';
         try {
-            const res = await fetch('/api/student/fees?action=get_ledger');
+            const res = await fetch('api/student/fees?action=get_ledger');
             const result = await res.json();
             if (!result.success) throw new Error(result.message);
             

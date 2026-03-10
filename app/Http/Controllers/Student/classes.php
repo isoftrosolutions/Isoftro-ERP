@@ -47,25 +47,35 @@ try {
         exit;
     }
     
+    $dayMap = [
+        'Sunday'    => 1,
+        'Monday'    => 2,
+        'Tuesday'   => 3,
+        'Wednesday' => 4,
+        'Thursday'  => 5,
+        'Friday'    => 6,
+        'Saturday'  => 7
+    ];
+
     switch ($action) {
         case 'today':
             // Get today's classes
             $dayOfWeek = date('l');
+            $dayNum = $dayMap[$dayOfWeek];
+            
             $stmt = $db->prepare("
                 SELECT t.*, s.name as subject_name, s.code as subject_code,
-                       st.name as teacher_name, st.phone as teacher_contact,
-                       r.name as room_name
-                FROM timetables t
+                       tr.full_name as teacher_name, tr.phone as teacher_contact,
+                       t.room as room_name
+                FROM timetable_slots t
                 LEFT JOIN subjects s ON t.subject_id = s.id
-                LEFT JOIN staff st ON t.teacher_id = st.id
-                LEFT JOIN rooms r ON t.room_id = r.id
+                LEFT JOIN teachers tr ON t.teacher_id = tr.id
                 WHERE t.batch_id = :bid 
                   AND t.day_of_week = :day
                   AND t.tenant_id = :tid
-                  AND t.deleted_at IS NULL
                 ORDER BY t.start_time ASC
             ");
-            $stmt->execute(['bid' => $batchId, 'day' => $dayOfWeek, 'tid' => $tenantId]);
+            $stmt->execute(['bid' => $batchId, 'day' => $dayNum, 'tid' => $tenantId]);
             $classes = $stmt->fetchAll(PDO::FETCH_ASSOC);
             
             // Add status based on current time
@@ -93,22 +103,21 @@ try {
             $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
             $weeklySchedule = [];
             
-            foreach ($days as $day) {
+            foreach ($days as $dayName) {
+                $dayNum = $dayMap[$dayName];
                 $stmt = $db->prepare("
                     SELECT t.*, s.name as subject_name, s.code as subject_code,
-                           st.name as teacher_name, r.name as room_name
-                    FROM timetables t
+                           tr.full_name as teacher_name, t.room as room_name
+                    FROM timetable_slots t
                     LEFT JOIN subjects s ON t.subject_id = s.id
-                    LEFT JOIN staff st ON t.teacher_id = st.id
-                    LEFT JOIN rooms r ON t.room_id = r.id
+                    LEFT JOIN teachers tr ON t.teacher_id = tr.id
                     WHERE t.batch_id = :bid 
                       AND t.day_of_week = :day
                       AND t.tenant_id = :tid
-                      AND t.deleted_at IS NULL
                     ORDER BY t.start_time ASC
                 ");
-                $stmt->execute(['bid' => $batchId, 'day' => $day, 'tid' => $tenantId]);
-                $weeklySchedule[$day] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                $stmt->execute(['bid' => $batchId, 'day' => $dayNum, 'tid' => $tenantId]);
+                $weeklySchedule[$dayName] = $stmt->fetchAll(PDO::FETCH_ASSOC);
             }
             
             echo json_encode([

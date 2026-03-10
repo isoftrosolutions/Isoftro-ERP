@@ -22,6 +22,7 @@ return Application::configure(basePath: dirname(__DIR__))
             '/api/login',
             '/api/admin/*',
             '/api/frontdesk/*',
+            '/api/student/*',
             '/api/institute_search.php',
             '/api/super-admin/tenants/*',
             '/auth/send_password_reset',

@@ -11,7 +11,7 @@ class DashboardCacheService {
     protected $cache;
     protected $ttl = 300; // 5 minutes
     
-    public function __construct(CacheManager $cache) {
+    public function __construct(\App\Services\CacheManager $cache) {
         $this->cache = $cache;
     }
     
@@ -62,7 +62,7 @@ class DashboardCacheService {
                 SUM(CASE WHEN DATE_FORMAT(payment_date, '%Y-%m') = :prev THEN amount ELSE 0 END) as prev_month,
                 SUM(CASE WHEN DATE(payment_date) = CURDATE() THEN amount ELSE 0 END) as today_collection
             FROM payment_transactions 
-            WHERE tenant_id = :tid 
+            WHERE tenant_id = :tid AND status = 'completed'
             AND payment_date >= DATE_SUB(DATE_FORMAT(NOW() ,'%Y-%m-01'), INTERVAL 1 MONTH)
         ");
         $prevMonthDate = (clone $now)->modify('first day of last month')->format('Y-m');
@@ -160,7 +160,7 @@ class DashboardCacheService {
                 DATE_FORMAT(payment_date, '%b') as month_name,
                 SUM(amount) as collected
             FROM payment_transactions 
-            WHERE tenant_id = :tid 
+            WHERE tenant_id = :tid AND status = 'completed'
             AND payment_date >= DATE_FORMAT(NOW() ,'%Y-01-01')
             GROUP BY MONTH(payment_date)
             ORDER BY month_num ASC
@@ -237,11 +237,12 @@ class DashboardCacheService {
             'absent' => (int)$attToday['absent'],
             'total' => $total
         ];
-
         $stats['batch_attendance'] = array_map(function($b) {
             $t = (int)$b['total'];
             return [
                 'batch_name' => $b['name'],
+                'present' => (int)$b['present'],
+                'total' => $t,
                 'rate' => $t > 0 ? round(((int)$b['present'] / $t) * 100) : 0
             ];
         }, $batchAtt);
@@ -254,10 +255,12 @@ class DashboardCacheService {
         // --- SECTION I: ACTIVITY LOG ---
         try {
             $stmt = $db->prepare("
-                SELECT description, user_name, created_at, related_entity_name 
-                FROM activity_logs 
-                WHERE tenant_id = :tid 
-                ORDER BY created_at DESC LIMIT 10
+                SELECT COALESCE(al.description, CONCAT(al.action, ' on ', al.table_name)) as description, 
+                       COALESCE(u.name, 'System') as user_name, al.created_at, al.table_name as related_entity_name 
+                FROM audit_logs al
+                LEFT JOIN users u ON al.user_id = u.id
+                WHERE al.tenant_id = :tid 
+                ORDER BY al.created_at DESC LIMIT 10
             ");
             $stmt->execute(['tid' => $tenantId]);
             $stats['activity_log'] = $stmt->fetchAll(PDO::FETCH_ASSOC);

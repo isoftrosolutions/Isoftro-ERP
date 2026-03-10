@@ -1,7 +1,7 @@
 <?php
 /**
  * Student Attendance API
- * Handles attendance viewing and leave applications for students
+ * Handles attendance viewing for students
  */
 
 if (!defined('APP_NAME')) {
@@ -60,16 +60,18 @@ try {
             // Get monthly breakdown
             $stmt = $db->prepare("
                 SELECT 
-                    DATE_FORMAT(date, '%Y-%m') as month,
+                    DATE_FORMAT(attendance_date, '%Y-%m') as month,
+                    DATE_FORMAT(attendance_date, '%M %Y') as month_name,
                     COUNT(*) as total,
                     SUM(CASE WHEN status = 'present' THEN 1 ELSE 0 END) as present,
                     SUM(CASE WHEN status = 'absent' THEN 1 ELSE 0 END) as absent,
-                    SUM(CASE WHEN status = 'late' THEN 1 ELSE 0 END) as late
+                    SUM(CASE WHEN status = 'late' THEN 1 ELSE 0 END) as late,
+                    SUM(CASE WHEN status = 'leave' THEN 1 ELSE 0 END) as leave
                 FROM attendance 
                 WHERE student_id = :sid AND tenant_id = :tid
-                GROUP BY DATE_FORMAT(date, '%Y-%m')
+                GROUP BY DATE_FORMAT(attendance_date, '%Y-%m')
                 ORDER BY month DESC
-                LIMIT 6
+                LIMIT 12
             ");
             $stmt->execute(['sid' => $studentId, 'tid' => $tenantId]);
             $monthlyData = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -90,20 +92,21 @@ try {
             ]);
             break;
             
+        case 'daily':
         case 'history':
-            // Get detailed attendance history
+            // Get daily attendance records
             $month = $_GET['month'] ?? date('m');
             $year = $_GET['year'] ?? date('Y');
             
             $stmt = $db->prepare("
-                SELECT a.*, s.name as subject_name
+                SELECT a.*, b.name as batch_name
                 FROM attendance a
-                LEFT JOIN subjects s ON a.subject_id = s.id
+                LEFT JOIN batches b ON a.batch_id = b.id
                 WHERE a.student_id = :sid 
                   AND a.tenant_id = :tid
-                  AND MONTH(a.date) = :month
-                  AND YEAR(a.date) = :year
-                ORDER BY a.date DESC
+                  AND MONTH(a.attendance_date) = :month
+                  AND YEAR(a.attendance_date) = :year
+                ORDER BY a.attendance_date DESC
             ");
             $stmt->execute([
                 'sid' => $studentId, 
@@ -113,106 +116,119 @@ try {
             ]);
             $history = $stmt->fetchAll(PDO::FETCH_ASSOC);
             
+            // Get available months with data
+            $stmt = $db->prepare("
+                SELECT DISTINCT DATE_FORMAT(attendance_date, '%Y-%m') as month
+                FROM attendance 
+                WHERE student_id = :sid AND tenant_id = :tid
+                ORDER BY month DESC
+                LIMIT 12
+            ");
+            $stmt->execute(['sid' => $studentId, 'tid' => $tenantId]);
+            $availableMonths = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
             echo json_encode([
                 'success' => true,
                 'data' => $history,
+                'month' => $month,
+                'year' => $year,
+                'available_months' => $availableMonths
+            ]);
+            break;
+            
+        case 'calendar':
+            // Get attendance for a specific month in calendar format
+            $month = $_GET['month'] ?? date('m');
+            $year = $_GET['year'] ?? date('Y');
+            
+            $stmt = $db->prepare("
+                SELECT 
+                    DAY(attendance_date) as day,
+                    attendance_date as date,
+                    status
+                FROM attendance 
+                WHERE student_id = :sid 
+                  AND tenant_id = :tid
+                  AND MONTH(attendance_date) = :month
+                  AND YEAR(attendance_date) = :year
+                ORDER BY attendance_date
+            ");
+            $stmt->execute([
+                'sid' => $studentId, 
+                'tid' => $tenantId,
+                'month' => $month,
+                'year' => $year
+            ]);
+            $calendarData = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            // Build calendar array
+            $calendar = [];
+            foreach ($calendarData as $day) {
+                $calendar[(int)$day['day']] = [
+                    'status' => $day['status'],
+                    'date' => $day['date']
+                ];
+            }
+            
+            echo json_encode([
+                'success' => true,
+                'data' => $calendar,
                 'month' => $month,
                 'year' => $year
             ]);
             break;
             
-        case 'apply_leave':
-            // Submit leave application
-            if ($method !== 'POST') {
-                echo json_encode(['success' => false, 'message' => 'Method not allowed']);
-                exit;
-            }
-            
-            $input = json_decode(file_get_contents('php://input'), true);
-            if (!$input) $input = $_POST;
-            
-            // Validate required fields
-            if (empty($input['start_date']) || empty($input['end_date']) || empty($input['reason'])) {
-                echo json_encode(['success' => false, 'message' => 'Start date, end date and reason are required']);
-                exit;
-            }
-            
+        case 'stats':
+            // Get detailed statistics
             $stmt = $db->prepare("
-                INSERT INTO leave_requests (
-                    tenant_id, student_id, user_id, 
-                    start_date, end_date, reason, 
-                    status, created_at, updated_at
-                ) VALUES (
-                    :tid, :sid, :uid,
-                    :start_date, :end_date, :reason,
-                    'pending', NOW(), NOW()
-                )
-            ");
-            
-            $stmt->execute([
-                'tid' => $tenantId,
-                'sid' => $studentId,
-                'uid' => $userId,
-                'start_date' => $input['start_date'],
-                'end_date' => $input['end_date'],
-                'reason' => $input['reason']
-            ]);
-            
-            $leaveId = $db->lastInsertId();
-            
-            echo json_encode([
-                'success' => true,
-                'message' => 'Leave application submitted successfully',
-                'leave_id' => $leaveId
-            ]);
-            break;
-            
-        case 'leave_status':
-            // Get leave request status
-            $stmt = $db->prepare("
-                SELECT lr.*, u.name as reviewed_by_name
-                FROM leave_requests lr
-                LEFT JOIN users u ON lr.reviewed_by = u.id
-                WHERE lr.student_id = :sid AND lr.tenant_id = :tid
-                ORDER BY lr.created_at DESC
+                SELECT 
+                    COUNT(*) as total,
+                    SUM(CASE WHEN status = 'present' THEN 1 ELSE 0 END) as present,
+                    SUM(CASE WHEN status = 'absent' THEN 1 ELSE 0 END) as absent,
+                    SUM(CASE WHEN status = 'late' THEN 1 ELSE 0 END) as late,
+                    SUM(CASE WHEN status = 'leave' THEN 1 ELSE 0 END) as leave,
+                    MIN(attendance_date) as first_date,
+                    MAX(attendance_date) as last_date
+                FROM attendance 
+                WHERE student_id = :sid AND tenant_id = :tid
             ");
             $stmt->execute(['sid' => $studentId, 'tid' => $tenantId]);
-            $leaveRequests = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $stats = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            // Calculate streak
+            $stmt = $db->prepare("
+                SELECT attendance_date, status
+                FROM attendance 
+                WHERE student_id = :sid AND tenant_id = :tid
+                ORDER BY attendance_date DESC
+            ");
+            $stmt->execute(['sid' => $studentId, 'tid' => $tenantId]);
+            $records = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            $presentStreak = 0;
+            $absentStreak = 0;
+            
+            foreach ($records as $record) {
+                if ($record['status'] === 'present') {
+                    $presentStreak++;
+                } else {
+                    break;
+                }
+            }
             
             echo json_encode([
                 'success' => true,
-                'data' => $leaveRequests
+                'data' => [
+                    'total' => (int)($stats['total'] ?? 0),
+                    'present' => (int)($stats['present'] ?? 0),
+                    'absent' => (int)($stats['absent'] ?? 0),
+                    'late' => (int)($stats['late'] ?? 0),
+                    'leave' => (int)($stats['leave'] ?? 0),
+                    'first_date' => $stats['first_date'] ?? null,
+                    'last_date' => $stats['last_date'] ?? null,
+                    'present_streak' => $presentStreak
+                ]
             ]);
-            break;
-            
-        case 'cancel_leave':
-            // Cancel pending leave request
-            if ($method !== 'POST') {
-                echo json_encode(['success' => false, 'message' => 'Method not allowed']);
-                exit;
-            }
-            
-            $input = json_decode(file_get_contents('php://input'), true);
-            $leaveId = $input['leave_id'] ?? null;
-            
-            if (!$leaveId) {
-                echo json_encode(['success' => false, 'message' => 'Leave ID required']);
-                exit;
-            }
-            
-            // Only allow canceling pending requests
-            $stmt = $db->prepare("
-                UPDATE leave_requests 
-                SET status = 'cancelled', updated_at = NOW()
-                WHERE id = :lid AND student_id = :sid AND status = 'pending'
-            ");
-            $stmt->execute(['lid' => $leaveId, 'sid' => $studentId]);
-            
-            if ($stmt->rowCount() > 0) {
-                echo json_encode(['success' => true, 'message' => 'Leave request cancelled']);
-            } else {
-                echo json_encode(['success' => false, 'message' => 'Leave request not found or already processed']);
-            }
             break;
             
         default:
@@ -224,13 +240,13 @@ try {
     echo json_encode([
         'success' => false, 
         'message' => 'Database error occurred',
-        'code' => 'DB_ERROR'
+        'debug' => $e->getMessage()
     ]);
 } catch (Exception $e) {
     error_log("Student Attendance Error: " . $e->getMessage());
     echo json_encode([
         'success' => false, 
         'message' => 'An error occurred',
-        'code' => 'GENERAL_ERROR'
+        'debug' => $e->getMessage()
     ]);
 }

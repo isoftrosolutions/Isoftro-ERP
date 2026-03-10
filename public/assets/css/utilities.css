@@ -84,6 +84,18 @@
     color: #3b82f6;
 }
 
+/* Soft Backgrounds */
+.bg-primary-soft { background: #eef2ff !important; color: #4f46e5 !important; }
+.bg-success-soft { background: #f0fdf4 !important; color: #16a34a !important; }
+.bg-danger-soft { background: #fef2f2 !important; color: #dc2626 !important; }
+.bg-warning-soft { background: #fffbeb !important; color: #d97706 !important; }
+.bg-info-soft { background: #f0f9ff !important; color: #0891b2 !important; }
+
+/* Transitions & UI */
+.transition-all { transition: all 0.2s ease-in-out; }
+.hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+.hide-scrollbar::-webkit-scrollbar { display: none; }
+
 /* Misc UI Utils */
 .sms-mini {
     font-size: 11px;

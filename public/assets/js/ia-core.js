@@ -367,11 +367,11 @@ async function _iaRenderDashboard() {
                         vs last month
                     </div>
                     <div class="kpi-v2-progress">
-                        <div class="kpi-v2-progress-fill" style="width: ${Math.min(100, (s.kpi_fees.collected / (s.kpi_fees.target || 1)) * 100)}%; background: #10b981;"></div>
+                        <div class="kpi-v2-progress-fill" style="width: ${s.kpi_fees.target > 0 ? Math.min(100, (s.kpi_fees.collected / s.kpi_fees.target) * 100) : 0}%; background: #10b981;"></div>
                     </div>
                     <div style="font-size:10px; color:var(--text-light); margin-top:8px; display:flex; justify-content:space-between;">
                         <span>Target: ₹${formatMoney(s.kpi_fees.target)}</span>
-                        <span>${Math.round((s.kpi_fees.collected / (s.kpi_fees.target || 1)) * 100)}%</span>
+                        <span>${s.kpi_fees.target > 0 ? Math.round((s.kpi_fees.collected / s.kpi_fees.target) * 100) : 0}%</span>
                     </div>
                 </div>
 

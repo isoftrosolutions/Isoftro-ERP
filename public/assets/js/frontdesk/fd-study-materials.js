@@ -10,7 +10,7 @@ window.renderStudyMaterials = async function(type = 'all') {
         <div class="bc">
             <a href="#" onclick="goNav('overview')">Dashboard</a> <span class="bc-sep">&rsaquo;</span> 
             <a href="#" onclick="goNav('lms','overview')">LMS</a> <span class="bc-sep">&rsaquo;</span>
-            <span class="bc-cur">${type === 'all' ? 'Directory' : type.charAt(0).toUpperCase() + type.slice(1)}</span>
+            <span class="bc-cur">${type === 'all' ? 'Directory' : (type ? type.charAt(0).toUpperCase() + type.slice(1) : 'All')}</span>
         </div>
         <div class="pg-head">
             <div class="pg-left">
@@ -596,8 +596,8 @@ window._loadAnalyticsData = async function() {
                         <tbody>
                             ${d.recent_activity.map(a => `
                                 <tr>
-                                    <td><div style="font-weight:600;">${a.user_name}</div><div style="font-size:10px;color:#94a3b8;text-transform:uppercase;">${a.user_type}</div></td>
-                                    <td><span class="tag ${a.action==='download'?'bg-b':'bg-t'}" style="font-size:10px;">${a.action.toUpperCase()}</span></td>
+                                    <td><div style="font-weight:600;">${a.user_name || 'Unknown'}</div><div style="font-size:10px;color:#94a3b8;text-transform:uppercase;">${a.user_type || 'USER'}</div></td>
+                                    <td><span class="tag ${a.action==='download'?'bg-b':'bg-t'}" style="font-size:10px;">${(a.action || 'VIEW').toUpperCase()}</span></td>
                                     <td><div style="font-size:13px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${a.material_title}">${a.material_title}</div></td>
                                     <td style="font-size:12px;color:#64748b;">${new Date(a.created_at).toLocaleString()}</td>
                                     <td style="font-size:11px;color:#94a3b8;"><code>${a.ip_address || '-'}</code></td>

@@ -64,6 +64,10 @@ function getExternalResources() {
             'url'  => 'https://cdn.jsdelivr.net/npm/sweetalert2@11',
             'type' => 'script'
         ],
+        'bootstrap' => [
+            'url'  => 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css',
+            'type' => 'stylesheet'
+        ],
         'chartjs' => [
             'url'  => 'https://cdn.jsdelivr.net/npm/chart.js',
             'type' => 'script'

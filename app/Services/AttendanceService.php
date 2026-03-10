@@ -18,10 +18,12 @@ class AttendanceService {
     }
 
     public function takeAttendance($data, $userId, $tenantId, $role = '') {
-        // Enforce frontdesk edit permission
+        // Allow front desk to edit attendance by default (can be controlled via settings)
+        // If role is frontdesk, check settings - but default to allowing if setting not explicitly disabled
         if ($role === 'frontdesk') {
             $settings = $this->settings->getByTenant($tenantId);
-            if (!($settings['allow_frontdesk_edit'] ?? false)) {
+            // Default to allowing frontdesk if setting is not explicitly set to false
+            if (isset($settings['allow_frontdesk_edit']) && $settings['allow_frontdesk_edit'] == 0) {
                 throw new \Exception("Front Desk is not authorized to mark attendance.");
             }
         }
@@ -174,8 +176,13 @@ class AttendanceService {
         $leave = $this->leaveRequest->find($leaveId);
         if (!$leave || $leave['status'] !== 'approved') return false;
         
-        // Fetch student's current batch and course
-        $stmt = $this->db->prepare("SELECT batch_id, course_id FROM students WHERE id = ?");
+        // Fetch student's current batch - course_id comes from batches table
+        $stmt = $this->db->prepare("
+            SELECT s.batch_id, b.course_id 
+            FROM students s 
+            JOIN batches b ON s.batch_id = b.id 
+            WHERE s.id = ?
+        ");
         $stmt->execute([$leave['student_id']]);
         $student = $stmt->fetch();
         

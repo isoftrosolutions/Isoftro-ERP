@@ -287,7 +287,7 @@ window.renderQuickPayment = async (studentId) => {
 
         const { student, institute, summary, records } = result.data;
         const photoSrc = student.photo_url ? (student.photo_url.startsWith('http') ? student.photo_url : window.APP_URL + student.photo_url) : null;
-        const initials = student.name ? student.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2) : 'ST';
+        const initials = (student.name || 'S').split(' ').filter(n => n).map(n => n[0] || '').join('').toUpperCase().substring(0, 2) || 'ST';
 
         let recordsHtml = '';
         if (records.length === 0) {
@@ -1679,7 +1679,7 @@ function _renderLedgerUI(data) {
                                      <td>${parseFloat(l.amount_due).toLocaleString()}</td>
                                      <td>${parseFloat(l.amount_paid).toLocaleString()}</td>
                                      <td style="color:red">${l.fine_applied > 0 ? l.fine_applied : '-'}</td>
-                                     <td><span class="tag bg-${l.status === 'paid' ? 't' : (l.status === 'overdue' ? 'r' : 'y')}">${l.status.toUpperCase()}</span></td>
+                                     <td><span class="tag bg-${l.status === 'paid' ? 't' : (l.status === 'overdue' ? 'r' : 'y')}">${(l.status || 'PENDING').toUpperCase()}</span></td>
                                  </tr>
                              `; }).join('')}
                         </tbody>
@@ -1705,7 +1705,7 @@ function _renderLedgerUI(data) {
                                         ${bsStr ? `<br><small style="color:#64748b;">${bsStr}</small>` : ''}
                                     </td>
                                     <td><strong>${t.receipt_number}</strong></td>
-                                    <td><span class="tag bg-s">${t.payment_method.toUpperCase()}</span></td>
+                                    <td><span class="tag bg-s">${(t.payment_method || 'CASH').toUpperCase()}</span></td>
                                     <td><strong>${parseFloat(t.amount).toLocaleString()}</strong></td>
                                     <td><span class="tag bg-t">COMPLETED</span></td>
                                     <td>
@@ -1736,7 +1736,7 @@ function _renderLedgerUI(data) {
                             <div style="display:flex; justify-content:space-between; align-items:flex-start;">
                                 <div>
                                     <h4 style="margin:0; color:#16a34a;">Payment Received</h4>
-                                    <p style="margin:4px 0 0 0; font-size:0.9rem; color:#64748b;">Receipt: ${item.receipt_number} • Via ${item.payment_method.toUpperCase()}</p>
+                                    <p style="margin:4px 0 0 0; font-size:0.9rem; color:#64748b;">Receipt: ${item.receipt_number} • Via ${(item.payment_method || 'CASH').toUpperCase()}</p>
                                 </div>
                                 <div style="text-align:right">
                                     <div style="font-size:1.1rem; font-weight:800; color:#16a34a;">+ NPR ${parseFloat(item.amount).toLocaleString()}</div>
@@ -1759,7 +1759,7 @@ function _renderLedgerUI(data) {
                                 </div>
                                 <div style="text-align:right">
                                     <div style="font-size:1.1rem; font-weight:800; color:var(--text-dark);">NPR ${parseFloat(item.amount_due).toLocaleString()}</div>
-                                    <span class="tag bg-${item.status === 'paid' ? 't' : (item.status === 'overdue' ? 'r' : 'y')}" style="margin-top:5px; display:inline-block;">${item.status.toUpperCase()}</span>
+                                    <span class="tag bg-${item.status === 'paid' ? 't' : (item.status === 'overdue' ? 'r' : 'y')}" style="margin-top:5px; display:inline-block;">${(item.status || 'PENDING').toUpperCase()}</span>
                                 </div>
                             </div>
                         </div>
@@ -1853,7 +1853,7 @@ window.viewPayment = async function(transactionId) {
                             </tr>
                             <tr>
                                 <td><strong>Payment Method</strong></td>
-                                <td><span class="tag bg-s">${txn.payment_method.toUpperCase()}</span></td>
+                                <td><span class="tag bg-s">${(txn.payment_method || 'CASH').toUpperCase()}</span></td>
                             </tr>
                             <tr>
                                 <td><strong>Notes</strong></td>
@@ -2190,7 +2190,11 @@ function _renderOutstanding(data) {
         return;
     }
     
-    const getInitials = (n) => (n || 'S').split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+    const getInitials = (n) => {
+        if (!n) return 'S';
+        const parts = n.split(' ').slice(0,2).filter(w => w).map(w => w[0] || '').join('');
+        return parts ? parts.toUpperCase() : 'S';
+    };
     const getAvatarColor = (id) => ['av-teal','av-blue','av-purple','av-amber','av-red'][(id || 0) % 5];
 
     let html = `<table class="premium-due-table" style="width:100%; border-collapse:collapse;">
@@ -2407,6 +2411,94 @@ window.renderFeeDetails = async function(receiptNo) {
                 <button class="btn bt" onclick="renderFeeDetails('${receiptNo}')" style="margin-top:20px;">Retry</button>
             </div>
         `;
+    }
+};
+
+/* ══════════════ FEE SUMMARY REPORT ═══════════════════════════════ */
+window.renderFeeSummary = async function() {
+    const mc = document.getElementById('mainContent');
+    mc.innerHTML = `<div class="pg fu">
+        <div class="bc"><a href="#" onclick="goNav('overview')">Dashboard</a> <span class="bc-sep">&rsaquo;</span> <span class="bc-cur">Fee Summary</span></div>
+        <div class="pg-head"><div class="pg-left"><div class="pg-ico"><i class="fa-solid fa-chart-pie"></i></div><div><div class="pg-title">Fee Summary Report</div><div class="pg-sub">Overview of fee collections and outstanding dues</div></div></div></div>
+        <div class="sg mb">
+            <div class="sc card"><div class="sc-top"><div class="sc-ico ic-g"><i class="fa-solid fa-calendar-day"></i></div></div><div class="sc-val" id="todayCollection">-</div><div class="sc-lbl">Today's Collection</div></div>
+            <div class="sc card"><div class="sc-top"><div class="sc-ico ic-b"><i class="fa-solid fa-calendar-check"></i></div></div><div class="sc-val" id="monthCollection">-</div><div class="sc-lbl">This Month</div></div>
+            <div class="sc card"><div class="sc-top"><div class="sc-ico ic-r"><i class="fa-solid fa-exclamation-triangle"></i></div></div><div class="sc-val" id="totalOutstanding">-</div><div class="sc-lbl">Total Outstanding</div></div>
+            <div class="sc card"><div class="sc-top"><div class="sc-ico ic-y"><i class="fa-solid fa-users"></i></div></div><div class="sc-val" id="defaulterCount">-</div><div class="sc-lbl">Defaulters</div></div>
+        </div>
+        <div class="card">
+            <div class="ct"><i class="fa-solid fa-filter"></i> Filter by Date Range</div>
+            <div style="display:flex;gap:15px;flex-wrap:wrap;margin-top:15px;">
+                <div><label class="form-label">From</label><input type="date" id="summaryStartDate" class="form-control" value="${new Date().toISOString().split('T')[0]}"></div>
+                <div><label class="form-label">To</label><input type="date" id="summaryEndDate" class="form-control" value="${new Date().toISOString().split('T')[0]}"></div>
+                <div style="display:flex;align-items:flex-end;"><button class="btn bt" onclick="loadCollectionSummary()">Load Summary</button></div>
+            </div>
+            <div id="collectionSummaryTable" style="margin-top:20px;"><div class="pg-loading"><i class="fa-solid fa-circle-notch fa-spin"></i></div></div>
+        </div>
+    </div>`;
+    
+    // Load summary stats
+    await _loadFeeSummaryStats();
+    // Load initial collection summary
+    await loadCollectionSummary();
+};
+
+async function _loadFeeSummaryStats() {
+    try {
+        const res = await fetch(APP_URL + '/api/frontdesk/fee-reports?action=summary', getHeaders());
+        const result = await res.json();
+        if (result.success) {
+            const s = result.data;
+            const currency = window.getCurrencySymbol?.() || 'Rs';
+            document.getElementById('todayCollection').textContent = currency + ' ' + parseFloat(s.today_collection || 0).toLocaleString();
+            document.getElementById('monthCollection').textContent = currency + ' ' + parseFloat(s.month_collection || 0).toLocaleString();
+            document.getElementById('totalOutstanding').textContent = currency + ' ' + parseFloat(s.total_outstanding || 0).toLocaleString();
+            document.getElementById('defaulterCount').textContent = s.defaulter_count || 0;
+        }
+    } catch(e) {
+        console.error('Failed to load fee summary stats', e);
+    }
+}
+
+window.loadCollectionSummary = async function() {
+    const c = document.getElementById('collectionSummaryTable');
+    if (!c) return;
+    
+    const start = document.getElementById('summaryStartDate')?.value || new Date().toISOString().split('T')[0];
+    const end = document.getElementById('summaryEndDate')?.value || new Date().toISOString().split('T')[0];
+    
+    c.innerHTML = '<div class="pg-loading"><i class="fa-solid fa-circle-notch fa-spin"></i></div>';
+    
+    try {
+        const res = await fetch(APP_URL + '/api/frontdesk/fee-reports?action=collection_summary&start=' + start + '&end=' + end, getHeaders());
+        const result = await res.json();
+        if (result.success) {
+            const data = result.data;
+            const currency = window.getCurrencySymbol?.() || 'Rs';
+            const total = data.reduce((sum, item) => sum + parseFloat(item.total || 0), 0);
+            
+            if (!data.length) {
+                c.innerHTML = '<div style="padding:40px;text-align:center;color:#94a3b8;"><i class="fa-solid fa-inbox" style="font-size:2rem;"></i><p>No collections in this period</p></div>';
+                return;
+            }
+            
+            let html = `<table class="table"><thead><tr><th>Payment Method</th><th>Total Amount</th><th>Transactions</th></tr></thead><tbody>`;
+            data.forEach(item => {
+                const method = (item.payment_method || 'unknown').replace(/_/g, ' ').toUpperCase();
+                html += `<tr>
+                    <td><span class="tag bg-b">${method}</span></td>
+                    <td style="font-weight:600;">${currency} ${parseFloat(item.total || 0).toLocaleString()}</td>
+                    <td>${item.count || 0}</td>
+                </tr>`;
+            });
+            html += `<tr style="background:#f8fafc;font-weight:700;"><td>TOTAL</td><td>${currency} ${total.toLocaleString()}</td><td>${data.reduce((s,i) => s + (i.count||0), 0)}</td></tr>`;
+            html += '</tbody></table>';
+            c.innerHTML = html;
+        } else {
+            throw new Error(result.message);
+        }
+    } catch(e) {
+        c.innerHTML = '<div style="padding:20px;color:var(--red);">' + e.message + '</div>';
     }
 };
 

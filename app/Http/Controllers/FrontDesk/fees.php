@@ -186,10 +186,9 @@ try {
                 echo json_encode($response);
             } else {
                 // Get summary for all students with outstanding
-                // Optimized: Join with pre-calculated counts from fee_records to avoid correlated subqueries
                 $query = "SELECT s.id as student_id, s.full_name as student_name, c.id as course_id, c.name as course_name,
                                  sfs.total_fee as total_due, sfs.paid_amount as total_paid, sfs.due_amount as current_balance,
-                                 fr_stats.next_due_date, fr_stats.outstanding_count
+                                 fr_stats.next_due_date as due_date, fr_stats.outstanding_count
                           FROM student_fee_summary sfs
                           JOIN students s ON sfs.student_id = s.id
                           LEFT JOIN batches b ON s.batch_id = b.id
@@ -200,7 +199,8 @@ try {
                               WHERE amount_due > amount_paid AND tenant_id = :tid2
                               GROUP BY student_id
                           ) fr_stats ON s.id = fr_stats.student_id
-                          WHERE sfs.due_amount > 0 AND sfs.tenant_id = :tid
+                          WHERE sfs.due_amount > 0 AND sfs.tenant_id = :tid 
+                          AND s.deleted_at IS NULL AND s.status = 'active'
                           ORDER BY sfs.due_amount DESC 
                           LIMIT 1000";
                 $stmt = $db->prepare($query);

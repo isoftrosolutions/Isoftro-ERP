@@ -8,6 +8,24 @@ if (!defined('APP_NAME')) {
     require_once __DIR__ . '/../../../config/config.php';
 }
 
+// ── Auth: Front Desk, Institute Admin, or Super Admin ──
+if (!isLoggedIn()) {
+    echo json_encode(['error' => 'Unauthorized']);
+    exit;
+}
+$user = getCurrentUser();
+if (!in_array($user['role'] ?? '', ['instituteadmin', 'superadmin', 'frontdesk'])) {
+    http_response_code(403);
+    echo '<p>Access Denied</p>';
+    exit;
+}
+
+$tenantId = $_SESSION['userData']['tenant_id'] ?? null;
+if (!$tenantId) {
+    echo '<p>Tenant not found</p>';
+    exit;
+}
+
 if (!isset($_GET['partial'])) {
     $pageTitle = 'Student Admission';
     require_once VIEWS_PATH . '/layouts/header_1.php';

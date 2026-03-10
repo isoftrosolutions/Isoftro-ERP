@@ -11,7 +11,7 @@ if (!defined('APP_NAME')) {
 header('Content-Type: application/json');
 header('Cache-Control: no-cache, must-revalidate');
 
-require_once app_path('Http/Middleware/FrontDeskMiddleware.php');
+require_once __DIR__ . '/../../Middleware/FrontDeskMiddleware.php';
 $auth = FrontDeskMiddleware::check();
 $tenantId = $auth['tenant_id'];
 $today = date('Y-m-d');
@@ -21,136 +21,254 @@ try {
     $data = [];
 
     // ── 1. KPI STATS (Collection, Dues, Attendance, Admissions) ──
-    // Collection
-    $stmt = $db->prepare("SELECT COALESCE(SUM(amount_paid), 0) FROM fee_records WHERE tenant_id = :tid AND paid_date = :today");
-    $stmt->execute(['tid' => $tenantId, 'today' => $today]);
+    // Collection - Show this month's collection from payment_transactions (Admin Source)
+    $stmt = $db->prepare("
+        SELECT 
+            COALESCE(SUM(amount), 0) as this_month,
+            (SELECT COALESCE(SUM(amount), 0) FROM payment_transactions WHERE tenant_id = :tid1 AND status = 'completed' AND DATE(payment_date) = CURDATE()) as today
+        FROM payment_transactions 
+        WHERE tenant_id = :tid2 AND status = 'completed' 
+        AND payment_date >= DATE_FORMAT(NOW(), '%Y-%m-01')
+    ");
+    $stmt->execute(['tid1' => $tenantId, 'tid2' => $tenantId]);
+    $collData = $stmt->fetch(PDO::FETCH_ASSOC);
+    
     $data['kpi_collection'] = [
-        'value' => (float) $stmt->fetchColumn(),
+        'value' => (float) $collData['this_month'],
+        'today' => (float) $collData['today'],
         'trend' => '+12%',
-        'label' => "Today's Collection"
+        'label' => "This Month's Collection"
     ];
 
-    // Dues (Using balance column or amount_due - amount_paid)
-    $stmt = $db->prepare("SELECT COALESCE(SUM(amount_due - amount_paid), 0) FROM fee_records WHERE tenant_id = :tid AND amount_due > amount_paid");
+    // Dues - Using student_fee_summary joined with students to filter out deleted/inactive (Admin Source)
+    $stmt = $db->prepare("
+        SELECT 
+            COALESCE(SUM(sfs.due_amount), 0) as total_dues, 
+            COUNT(DISTINCT sfs.student_id) as overdue_count 
+        FROM student_fee_summary sfs
+        JOIN students s ON sfs.student_id = s.id
+        WHERE sfs.tenant_id = :tid AND sfs.due_amount > 0 
+        AND s.deleted_at IS NULL AND s.status = 'active'
+    ");
     $stmt->execute(['tid' => $tenantId]);
+    $duesData = $stmt->fetch(PDO::FETCH_ASSOC);
     $data['kpi_dues'] = [
-        'value' => (float) $stmt->fetchColumn(),
+        'value' => (float) ($duesData['total_dues'] ?? 0),
+        'overdue_count' => (int) ($duesData['overdue_count'] ?? 0),
         'trend' => '-5%',
-        'label' => "Pending Dues"
+        'label' => "Total Pending Dues"
     ];
 
-    // Attendance (Using attendance_date)
-    $stmt = $db->prepare("SELECT COUNT(*) FROM attendance WHERE tenant_id = :tid AND attendance_date = :today AND status = 'present'");
+    // Attendance (Today's stats) - Admin Logic: (Present / Total Marked)
+    $stmt = $db->prepare("
+        SELECT 
+            COUNT(CASE WHEN status='present' THEN 1 END) as present,
+            COUNT(*) as total
+        FROM attendance 
+        WHERE tenant_id = :tid AND attendance_date = :today
+    ");
     $stmt->execute(['tid' => $tenantId, 'today' => $today]);
-    $present = (int) $stmt->fetchColumn();
-    $stmt = $db->prepare("SELECT COUNT(*) FROM students WHERE tenant_id = :tid AND status = 'active' AND deleted_at IS NULL");
-    $stmt->execute(['tid' => $tenantId]);
-    $totalStudents = (int) $stmt->fetchColumn();
+    $attStats = $stmt->fetch(PDO::FETCH_ASSOC);
+    $presentToday = (int)$attStats['present'];
+    $totalMarked = (int)$attStats['total'];
+
     $data['kpi_attendance'] = [
-        'value' => ($totalStudents > 0) ? round(($present / $totalStudents) * 100, 1) . '%' : '0%',
+        'value' => ($totalMarked > 0) ? round(($presentToday / $totalMarked) * 100, 1) : 0,
+        'present' => $presentToday,
+        'total_marked' => $totalMarked,
         'trend' => '+2%',
-        'label' => "Today's Attendance"
+        'label' => "Attendance Rate (Today)"
     ];
 
-    // Admissions
-    $stmt = $db->prepare("SELECT COUNT(*) FROM students WHERE tenant_id = :tid AND DATE(created_at) = :today AND deleted_at IS NULL");
-    $stmt->execute(['tid' => $tenantId, 'today' => $today]);
+    // Admissions - Month's count
+    $stmt = $db->prepare("SELECT COUNT(*) FROM students WHERE tenant_id = :tid AND deleted_at IS NULL AND created_at >= DATE_FORMAT(NOW(), '%Y-%m-01')");
+    $stmt->execute(['tid' => $tenantId]);
     $data['kpi_admissions'] = [
         'value' => (int) $stmt->fetchColumn(),
         'trend' => '+3',
-        'label' => "New Admissions"
+        'label' => "New Admissions (This Month)"
     ];
 
     // ── 2. MINI STATUS CARDS ──
     $data['mini_stats'] = [
-        'inquiries' => (int) $db->query("SELECT COUNT(*) FROM inquiries WHERE tenant_id = $tenantId AND status = 'open'")->fetchColumn(),
+        'inquiries' => (int) $db->query("SELECT COUNT(*) FROM inquiries WHERE tenant_id = $tenantId AND status = 'open' AND deleted_at IS NULL")->fetchColumn(),
         'leaves' => (int) $db->query("SELECT COUNT(*) FROM leave_requests WHERE tenant_id = $tenantId AND status = 'pending'")->fetchColumn(),
         'library' => (int) $db->query("SELECT COUNT(*) FROM library_issues WHERE tenant_id = $tenantId AND return_date IS NULL")->fetchColumn(),
         'alerts' => 3 
     ];
 
-    // ── 3. TODAY'S TRANSACTIONS ──
+    // Today's Transactions - Pulled from payment_transactions to match revenue
     $stmt = $db->prepare("
-        SELECT fr.receipt_no, s.full_name as student_name, fr.amount_paid, fr.payment_mode, fr.paid_date
-        FROM fee_records fr
-        JOIN students s ON fr.student_id = s.id
-        WHERE fr.tenant_id = :tid AND fr.paid_date = :today
-        ORDER BY fr.created_at DESC LIMIT 6
+        SELECT pt.transaction_id as receipt_no, s.full_name as student_name, pt.amount, pt.payment_method, pt.payment_date, pt.created_at
+        FROM payment_transactions pt
+        JOIN students s ON pt.student_id = s.id
+        WHERE pt.tenant_id = :tid AND pt.status = 'completed'
+        ORDER BY pt.created_at DESC LIMIT 6
     ");
-    $stmt->execute(['tid' => $tenantId, 'today' => $today]);
-    $data['recent_transactions'] = $stmt->fetchAll();
+    $stmt->execute(['tid' => $tenantId]);
+    $data['recent_transactions'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // ── 4. FEE SUMMARY (Method Wise) ──
+    // ── 4. FEE SUMMARY (Method Wise) - This month, matching Admin
     $stmt = $db->prepare("
-        SELECT payment_mode as method, COALESCE(SUM(amount_paid), 0) as total
-        FROM fee_records
-        WHERE tenant_id = :tid AND paid_date = :today
-        GROUP BY payment_mode
+        SELECT payment_method, COALESCE(SUM(amount), 0) as total
+        FROM payment_transactions
+        WHERE tenant_id = :tid AND status = 'completed' AND payment_date >= DATE_FORMAT(NOW(), '%Y-%m-01')
+        GROUP BY payment_method
     ");
-    $stmt->execute(['tid' => $tenantId, 'today' => $today]);
+    $stmt->execute(['tid' => $tenantId]);
     $data['fee_summary'] = $stmt->fetchAll();
 
-    // ── 5. ANNOUNCEMENTS ──
+    // ── 5. NOTICES (Announcements) ──
     $stmt = $db->prepare("
-        SELECT title, message, created_at, priority as category
-        FROM announcements
-        WHERE is_active = 1 AND (ends_at IS NULL OR ends_at >= :today)
+        SELECT title, content as `desc`, DATE_FORMAT(created_at, '%M %d') as time, notice_type as category, priority
+        FROM notices
+        WHERE tenant_id = :tid AND status = 'active' 
+        AND (display_until IS NULL OR display_until >= NOW())
         ORDER BY created_at DESC LIMIT 4
     ");
-    $stmt->execute(['tid' => $tenantId, 'today' => $today]);
-    $data['announcements'] = $stmt->fetchAll();
+    $stmt->execute(['tid' => $tenantId]);
+    $notices = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    foreach ($notices as &$n) {
+        $n['color'] = ($n['priority'] === 'high' || $n['priority'] === 'critical') ? '#EF4444' : '#10B981';
+    }
+    $data['announcements'] = $notices;
 
     // ── 6. ATTENDANCE SNAPSHOT (Batch Wise) ──
     $stmt = $db->prepare("
-        SELECT b.name as batch, COUNT(a.id) as present, 
-               (SELECT COUNT(*) FROM students s WHERE s.batch_id = b.id AND s.deleted_at IS NULL) as total
-        FROM batches b
-        LEFT JOIN attendance a ON a.batch_id = b.id AND a.attendance_date = :today AND a.status = 'present'
-        WHERE b.tenant_id = :tid AND b.status = 'active'
+        SELECT b.name as batch_name, 
+               COUNT(a.id) as present, 
+               COUNT(*) as total
+        FROM attendance a
+        JOIN batches b ON a.batch_id = b.id
+        WHERE a.tenant_id = :tid AND a.attendance_date = :today
         GROUP BY b.id LIMIT 5
     ");
     $stmt->execute(['tid' => $tenantId, 'today' => $today]);
-    $data['attendance_snapshot'] = $stmt->fetchAll();
+    $batchAttendance = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    // Calculate rate for each batch
+    foreach ($batchAttendance as &$ba) {
+        $ba['rate'] = $ba['total'] > 0 ? round(($ba['present'] / $ba['total']) * 100, 1) : 0;
+        if ($ba['rate'] >= 90) $ba['color'] = '#16A34A';
+        elseif ($ba['rate'] >= 80) $ba['color'] = '#10B981';
+        elseif ($ba['rate'] >= 70) $ba['color'] = '#F59E0B';
+        else $ba['color'] = '#EF4444';
+    }
+    $data['batch_attendance'] = $batchAttendance;
 
-    // ── 7. TODAY'S INQUIRIES ──
+    // ── 7. TODAY'S INQUIRIES - Sync with frontend keys
     $stmt = $db->prepare("
-        SELECT full_name as name, source, status, created_at
+        SELECT full_name as name, source as tag, status, DATE_FORMAT(created_at, '%h:%i %p') as time
         FROM inquiries
-        WHERE tenant_id = :tid AND DATE(created_at) = :today
+        WHERE tenant_id = :tid AND deleted_at IS NULL
         ORDER BY created_at DESC LIMIT 5
     ");
-    $stmt->execute(['tid' => $tenantId, 'today' => $today]);
-    $data['today_inquiries'] = $stmt->fetchAll();
+    $stmt->execute(['tid' => $tenantId]);
+    $inquiries = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    foreach ($inquiries as &$inq) {
+        $inq['note'] = 'Inquiry for Admission';
+        $inq['tag_color'] = ($inq['tag'] === 'Walk-in') ? '#10B981' : (($inq['tag'] === 'Phone') ? '#F59E0B' : '#3B82F6');
+    }
+    $data['today_inquiries'] = $inquiries;
 
     // ── 8. LEAVE REQUESTS ──
     $stmt = $db->prepare("
-        SELECT s.full_name as student, lr.reason as leave_type, lr.from_date, lr.status
+        SELECT s.full_name as student_name, lr.reason, lr.from_date, lr.to_date, lr.status
         FROM leave_requests lr
         JOIN students s ON lr.student_id = s.id
         WHERE lr.tenant_id = :tid AND lr.status = 'pending'
         ORDER BY lr.created_at DESC LIMIT 5
     ");
     $stmt->execute(['tid' => $tenantId]);
-    $data['leave_requests'] = $stmt->fetchAll();
+    $data['pending_leaves'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // ── 9. TIMETABLE ──
-    $data['timetable'] = [
-        ['time' => '09:00 AM', 'subject' => 'Mathematics', 'batch' => 'Grade 10-A', 'room' => 'R-101'],
-        ['time' => '11:00 AM', 'subject' => 'Science', 'batch' => 'Grade 12-B', 'room' => 'Lab-2'],
-        ['time' => '01:30 PM', 'subject' => 'English', 'batch' => 'Grade 9-C', 'room' => 'R-105']
-    ];
+    // Format for frontend
+    foreach ($data['pending_leaves'] as &$l) {
+        $l['date'] = date('M d', strtotime($l['from_date']));
+        if ($l['to_date'] && $l['to_date'] != $l['from_date']) {
+            $l['date'] .= ' - ' . date('d', strtotime($l['to_date']));
+        }
+    }
 
-    // ── 10. ACTIVITY LOG (Using table_name instead of module) ──
+    // ── 9. TIMETABLE (Real data with status) ──
+    $dayOfWeek = date('N'); // 1 (Monday) to 7 (Sunday)
+    $currentTime = date('H:i:s');
     $stmt = $db->prepare("
-        SELECT action, table_name as module, created_at
-        FROM audit_logs
-        WHERE tenant_id = :tid
-        ORDER BY created_at DESC LIMIT 10
+        SELECT 
+            TIME_FORMAT(ts.start_time, '%H:%i') as time, 
+            TIME_FORMAT(ts.end_time, '%H:%i') as end, 
+            s.name as title, 
+            CONCAT(b.name, ' · ', ts.room) as sub, 
+            NULL as teacher,
+            CASE WHEN :now BETWEEN ts.start_time AND ts.end_time THEN 'Ongoing' ELSE NULL END as status
+        FROM timetable_slots ts
+        JOIN subjects s ON ts.subject_id = s.id
+        JOIN batches b ON ts.batch_id = b.id
+        WHERE ts.tenant_id = :tid AND ts.day_of_week = :dow
+        ORDER BY ts.start_time ASC LIMIT 6
+    ");
+    $stmt->execute(['tid' => $tenantId, 'dow' => $dayOfWeek, 'now' => $currentTime]);
+    $data['today_timetable'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // ── 10. ACTIVITY LOG ──
+    $stmt = $db->prepare("
+        SELECT CONCAT(al.action, ' on ', al.table_name) as msg, 
+               DATE_FORMAT(al.created_at, '%h:%i %p') as time,
+               COALESCE(u.name, 'System') as user
+        FROM audit_logs al
+        LEFT JOIN users u ON al.user_id = u.id
+        WHERE al.tenant_id = :tid
+        ORDER BY al.created_at DESC LIMIT 10
     ");
     $stmt->execute(['tid' => $tenantId]);
-    $data['activity_log'] = $stmt->fetchAll();
+    $data['activity_log'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // ── 11. RECENT LIBRARY ISSUES ──
+    $stmt = $db->prepare("
+        SELECT lb.title, s.full_name as student, li.issue_date, li.due_date, li.return_date
+        FROM library_issues li
+        JOIN library_books lb ON li.book_id = lb.id
+        JOIN students s ON li.student_id = s.id
+        WHERE li.tenant_id = :tid 
+        ORDER BY li.created_at DESC LIMIT 4
+    ");
+    $stmt->execute(['tid' => $tenantId]);
+    $recentLibrary = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    foreach ($recentLibrary as &$l) {
+        if ($l['return_date']) {
+            $l['status'] = 'Returned';
+            $l['color'] = '#10B981'; // Green
+        } elseif ($l['due_date'] < date('Y-m-d')) {
+            $l['status'] = 'Overdue';
+            $l['color'] = '#EF4444'; // Red
+        } else {
+            $l['status'] = 'Issued';
+            $l['color'] = '#3B82F6'; // Blue
+        }
+    }
+    $data['recent_library'] = $recentLibrary;
+
+    // Library Summary Stats
+    $stmt = $db->prepare("
+        SELECT 
+            (SELECT COALESCE(SUM(total_copies), 0) FROM library_books WHERE tenant_id = :tid1) as total_books,
+            (SELECT COUNT(*) FROM library_issues WHERE tenant_id = :tid2 AND return_date IS NULL) as issued_books,
+            (SELECT COUNT(*) FROM library_issues WHERE tenant_id = :tid3 AND return_date IS NULL AND due_date < :today) as overdue_books
+    ");
+    $stmt->execute(['tid1' => $tenantId, 'tid2' => $tenantId, 'tid3' => $tenantId, 'today' => $today]);
+    $data['library_summary'] = $stmt->fetch(PDO::FETCH_ASSOC);
 
     // Header info
+    $stmt = $db->prepare("SELECT COUNT(*) FROM students WHERE tenant_id = :tid AND status = 'active' AND deleted_at IS NULL");
+    $stmt->execute(['tid' => $tenantId]);
+    $totalStudents = (int) $stmt->fetchColumn();
+    
+    $data['kpi_students'] = [
+        'total' => $totalStudents,
+        'new_today' => $data['kpi_admissions']['value']
+    ];
+    
     $data['header'] = [
         'institute_name' => $_SESSION['tenant_name'] ?? 'Institute',
         'academic_year' => '2080/81'

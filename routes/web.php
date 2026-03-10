@@ -300,25 +300,36 @@ Route::get('/dash/{role}/{page?}', function ($role, $page = 'index') use ($roleM
     $page = preg_replace('/\.php$/', '', $page);
 
     $fileAttempts = [
-        resource_path("views/{$roleDir}/{$page}.php"),
-        resource_path("views/{$roleDir}/index.php"),
+        resource_path("views/{$roleDir}/{$page}.blade.php") => 'blade',
+        resource_path("views/{$roleDir}/index.blade.php") => 'blade',
+        resource_path("views/{$roleDir}/{$page}.php") => 'php',
+        resource_path("views/{$roleDir}/index.php") => 'php',
     ];
 
-    foreach ($fileAttempts as $file) {
+    foreach ($fileAttempts as $file => $type) {
         if (file_exists($file)) {
             $viewDir = dirname($file);
             set_include_path(get_include_path() . PATH_SEPARATOR . $viewDir . PATH_SEPARATOR . resource_path('views/layouts'));
 
             $pageTitle = ucfirst($role) . ' Dashboard';
-            $PDO = getDBConnection();
-            $pdo = $PDO;
+            
+            if ($type === 'blade') {
+                $viewName = basename($file) === 'index.blade.php' ? "{$roleDir}.index" : "{$roleDir}.{$page}";
+                echo view($viewName, [
+                    'pageTitle' => $pageTitle,
+                    'roleCSS' => "{$roleDir}.css"
+                ])->render();
+            } else {
+                $PDO = getDBConnection();
+                $pdo = $PDO;
 
-            $sidebarFile = $viewDir . '/sidebar.php';
-            if (file_exists($sidebarFile)) {
-                require_once $sidebarFile;
+                $sidebarFile = $viewDir . '/sidebar.php';
+                if (file_exists($sidebarFile)) {
+                    require_once $sidebarFile;
+                }
+
+                require_once $file;
             }
-
-            require_once $file;
             return;
         }
     }
@@ -452,6 +463,10 @@ Route::any('/api/frontdesk/attendance/{action}', function($action) {
     require_once app_path('Http/Controllers/FrontDesk/attendance.php');
 });
 
+Route::any('/api/frontdesk/attendance/take', function() {
+    require_once app_path('Http/Controllers/FrontDesk/attendance.php');
+});
+
 Route::any('/api/frontdesk/inquiries', function() {
     require_once app_path('Http/Controllers/FrontDesk/inquiries.php');
 });
@@ -476,6 +491,18 @@ Route::any('/api/frontdesk/fee-reports', function() {
     require_once app_path('Http/Controllers/FrontDesk/FeeReports.php');
 });
 
+Route::any('/api/frontdesk/leave-requests', function() {
+    require_once app_path('Http/Controllers/FrontDesk/leave_requests.php');
+});
+
+Route::any('/api/frontdesk/announcements', function() {
+    require_once app_path('Http/Controllers/FrontDesk/announcements.php');
+});
+
+Route::any('/api/frontdesk/support', function() {
+    require_once app_path('Http/Controllers/FrontDesk/support.php');
+});
+
 
 
 Route::any('/api/student/fees', function() {
@@ -495,6 +522,10 @@ Route::any('/api/student/attendance', function() {
     require_once app_path('Http/Controllers/Student/attendance.php');
 });
 
+Route::any('/api/student/leave', function() {
+    require_once app_path('Http/Controllers/Student/leave.php');
+});
+
 // Phase 2 - New Front Desk Features (Reception Group)
 Route::any('/api/frontdesk/visitor-log', function() {
     require_once app_path('Http/Controllers/FrontDesk/visitor_log.php');
@@ -510,6 +541,78 @@ Route::any('/api/frontdesk/call-logs', function() {
 
 Route::any('/api/frontdesk/complaints', function() {
     require_once app_path('Http/Controllers/FrontDesk/complaints.php');
+});
+
+Route::any('/api/frontdesk/audit-logs', function() {
+    require_once app_path('Http/Controllers/FrontDesk/audit_logs.php');
+});
+
+Route::any('/api/frontdesk/staff', function() {
+    require_once app_path('Http/Controllers/FrontDesk/staff.php');
+});
+
+Route::any('/api/frontdesk/subjects', function() {
+    require_once app_path('Http/Controllers/FrontDesk/subjects.php');
+});
+
+Route::any('/api/frontdesk/timetable', function() {
+    require_once app_path('Http/Controllers/FrontDesk/timetable.php');
+});
+
+Route::any('/api/frontdesk/subject_allocation', function() {
+    require_once app_path('Http/Controllers/FrontDesk/subject_allocation.php');
+});
+
+Route::any('/api/frontdesk/homework', function() {
+    require_once app_path('Http/Controllers/FrontDesk/homework.php');
+});
+
+Route::any('/api/frontdesk/homework/store', function() {
+    require_once app_path('Http/Controllers/FrontDesk/homework_store.php');
+});
+
+Route::any('/api/frontdesk/salary', function() {
+    require_once app_path('Http/Controllers/FrontDesk/staff_salary.php');
+});
+
+Route::any('/api/frontdesk/profile', function() {
+    require_once app_path('Http/Controllers/FrontDesk/profile.php');
+});
+
+Route::any('/api/frontdesk/email-settings', function() {
+    require_once app_path('Http/Controllers/FrontDesk/email_settings.php');
+});
+
+Route::any('/api/frontdesk/automation-rules', function() {
+    require_once app_path('Http/Controllers/FrontDesk/automation_rules.php');
+});
+
+Route::any('/api/frontdesk/email_templates', function() {
+    require_once app_path('Http/Controllers/FrontDesk/email_templates.php');
+});
+
+Route::any('/api/frontdesk/global-search', function() {
+    require_once app_path('Http/Controllers/FrontDesk/global_search.php');
+});
+
+Route::any('/api/frontdesk/academic-calendar', function() {
+    require_once app_path('Http/Controllers/FrontDesk/academic_calendar.php');
+});
+
+Route::any('/api/frontdesk/date-convert', function() {
+    require_once app_path('Http/Controllers/FrontDesk/date_convert.php');
+});
+
+Route::any('/api/frontdesk/billing', function() {
+    require_once app_path('Http/Controllers/FrontDesk/billing.php');
+});
+
+Route::any('/api/frontdesk/lms', function() {
+    require_once app_path('Http/Controllers/FrontDesk/lms.php');
+});
+
+Route::any('/api/frontdesk/2fa_setup', function() {
+    require_once app_path('Http/Controllers/FrontDesk/profile.php');
 });
 
 Route::any('/api/frontdesk/id-card-requests', function() {
@@ -534,6 +637,18 @@ Route::any('/api/student/library', function() {
 
 Route::any('/api/student/profile', function() {
     require_once app_path('Http/Controllers/Student/profile.php');
+});
+
+Route::any('/api/student/study-materials', function() {
+    require_once app_path('Http/Controllers/Student/study_materials.php');
+});
+
+Route::any('/api/student/contact', function() {
+    require_once app_path('Http/Controllers/Student/contact.php');
+});
+
+Route::any('/api/student/leaderboard', function() {
+    require_once app_path('Http/Controllers/Student/leaderboard.php');
 });
 
 Route::any('/api/frontdesk/fees', function() {

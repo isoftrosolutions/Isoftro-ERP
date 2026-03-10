@@ -11,7 +11,7 @@ if (!defined('APP_NAME')) {
 header('Content-Type: application/json');
 
 // CSRF and role check via Middleware
-require_once app_path('Http/Middleware/FrontDeskMiddleware.php');
+require_once __DIR__ . '/../../Middleware/FrontDeskMiddleware.php';
 $auth = FrontDeskMiddleware::check();
 $tenantId = $auth['tenant_id'];
 $userRole = $auth['role'];

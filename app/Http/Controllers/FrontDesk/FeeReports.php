@@ -1,7 +1,7 @@
 <?php
 /**
  * Fee Reports API Controller
- * Provides detailed financial reporting for the institute
+ * Provides detailed financial reporting for the current tenant
  */
 
 if (!defined('APP_NAME')) {
@@ -10,24 +10,11 @@ if (!defined('APP_NAME')) {
 
 header('Content-Type: application/json');
 
-// Ensure user is logged in
-if (!isLoggedIn()) {
-    echo json_encode(['success' => false, 'message' => 'Unauthorized']);
-    exit;
-}
-
-$tenantId = $_SESSION['userData']['tenant_id'] ?? null;
-if (!$tenantId) {
-    echo json_encode(['success' => false, 'message' => 'Tenant ID missing']);
-    exit;
-}
-
-$role = $_SESSION['userData']['role'] ?? '';
-// RBAC check
-if (!in_array($role, ['instituteadmin', 'frontdesk', 'superadmin'])) {
-    echo json_encode(['success' => false, 'message' => 'Forbidden']);
-    exit;
-}
+// CSRF and role check via Middleware
+require_once __DIR__ . '/../../Middleware/FrontDeskMiddleware.php';
+$auth = FrontDeskMiddleware::check();
+$tenantId = $auth['tenant_id'];
+$userRole = $auth['role'];
 
 $action = $_GET['action'] ?? 'summary';
 
@@ -177,7 +164,7 @@ try {
         echo json_encode(['success' => true, 'data' => $data]);
     } elseif ($action === 'export_excel' || $action === 'export_pdf') {
         $reportType = $_GET['report_type'] ?? 'collection';
-        require_once __DIR__ . '/../../../app/Services/ReportExportService.php';
+        require_once __DIR__ . '/../../Services/ReportExportService.php';
         $exportService = new \App\Services\ReportExportService();
         
         $data = [];

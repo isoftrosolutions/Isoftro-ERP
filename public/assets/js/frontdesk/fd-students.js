@@ -583,148 +583,81 @@ window.exportAlumniCSV = async () => {
     }
 };
 
-/* ── RENDER ADD STUDENT FORM ───────────────────────────────────── */
+/* ── RENDER ADD STUDENT FORM (Premium — matches Institute Admin) ── */
 window.renderAddStudentForm = async () => {
     const mc = document.getElementById('mainContent');
     if (!mc) return;
 
+    // Show premium loading state
     mc.innerHTML = `
-        <div class="pg fu">
-            <div class="bc">
-                <a href="#" onclick="goNav('overview')">Dashboard</a> <span class="bc-sep">›</span> 
-                <a href="#" onclick="goNav('students')">Students</a> <span class="bc-sep">›</span> 
-                <span class="bc-cur">Add New Student</span>
-            </div>
-            <div class="pg-head">
-                <div class="pg-left">
-                    <div class="pg-ico"><i class="fa-solid fa-user-plus"></i></div>
-                    <div>
-                        <div class="pg-title">New Admission</div>
-                        <div class="pg-sub">Register a new student into the system</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card fu" style="max-width:1000px; margin:0 auto; padding:30px;">
-                <form id="studentAddForm" enctype="multipart/form-data">
-                    <div style="display:flex; gap:30px; margin-bottom:30px; align-items:flex-start;">
-                        <!-- Profile Image Upload with Preview -->
-                        <div style="flex-shrink:0; text-align:center;">
-                            <div id="imagePreviewContainer" style="width:140px; height:140px; border-radius:15px; background:#f1f5f9; border:2px dashed #cbd5e1; display:flex; align-items:center; justify-content:center; overflow:hidden; position:relative; margin-bottom:12px;">
-                                <i class="fa-solid fa-user" style="font-size:3rem; color:#94a3b8;"></i>
-                                <img id="stdImgPreview" src="" style="width:100%; height:100%; object-fit:cover; display:none;">
-                            </div>
-                            <label class="btn bs" style="cursor:pointer; font-size:12px; padding:6px 12px;">
-                                <i class="fa-solid fa-camera"></i> Upload Photo
-                                <input type="file" name="profile_image" id="stdImgInput" accept="image/*" style="display:none;" onchange="window._previewStdImage(this)">
-                            </label>
-                            <p style="font-size:10px; color:#64748b; margin-top:6px;">JPG, PNG max 2MB</p>
-                        </div>
-
-                        <div style="flex-grow:1;">
-                            <!-- Section: Personal Information -->
-                            <div class="form-section">
-                                <h4 style="margin-bottom:20px; color:var(--primary); display:flex; align-items:center;">
-                                    <i class="fa-solid fa-user" style="margin-right:10px;"></i> Personal Information
-                                </h4>
-                                <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
-                                    <div class="form-group">
-                                        <label class="form-label">Full Name *</label>
-                                        <input type="text" name="full_name" class="form-control" required placeholder="e.g. Ram Bahadur">
-                                    </div>
-                                    <div class="form-group">
-                                        <label class="form-label">Contact Number *</label>
-                                        <input type="text" name="contact_number" class="form-control" required placeholder="e.g. 9841000000">
-                                    </div>
-                                    <div class="form-group">
-                                        <label class="form-label">Email Address *</label>
-                                        <input type="email" name="email" class="form-control" required placeholder="e.g. ram@gmail.com">
-                                    </div>
-                                    <div class="form-group" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                                        <div>
-                                            <label class="form-label">Gender</label>
-                                            <select name="gender" class="form-control">
-                                                <option value="male">Male</option>
-                                                <option value="female">Female</option>
-                                                <option value="other">Other</option>
-                                            </select>
-                                        </div>
-                                    </div>
-
-                                    <div class="form-group">
-                                        <label class="form-label">Date of Birth (BS)</label>
-                                        <input type="text" name="dob_bs" id="add_dob_bs" class="form-control" placeholder="YYYY-MM-DD">
-                                    </div>
-                                    <div class="form-group">
-                                        <label class="form-label">Father's Name</label>
-                                        <input type="text" name="father_name" class="form-control">
-                                    </div>
-                                    <div class="form-group">
-                                        <label class="form-label">Mother's Name</label>
-                                        <input type="text" name="mother_name" class="form-control">
-                                    </div>
-
-                                    <div class="form-group">
-                                        <label class="form-label">Husband's Name</label>
-                                        <input type="text" name="husband_name" class="form-control">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    <!-- Section: Academic Details -->
-                    <div class="form-section" style="margin-top:30px;">
-                        <h4 style="margin-bottom:20px; color:var(--primary); display:flex; align-items:center;">
-                            <i class="fa-solid fa-graduation-cap" style="margin-right:10px;"></i> Academic Selection
-                        </h4>
-                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
-                            <div class="form-group">
-                                <label class="form-label">Course *</label>
-                                <select name="course_id" id="std_course_select" class="form-control" required onchange="window._loadBatchesForForm(this.value)">
-                                    <option value="">Select Course</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Batch *</label>
-                                <select name="batch_id" id="std_batch_select" class="form-control" required disabled>
-                                    <option value="">Select Course First</option>
-                                </select>
-                            </div>
-
-                            <div class="form-group">
-                                <label class="form-label">Password (Login)</label>
-                                <input type="text" name="password" class="form-control" value="Student@123">
-                                <small style="color:#64748b;">Default is Student@123. Credentials will be emailed.</small>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Permanent Address Section -->
-                    <div class="form-section" style="margin-top:30px;">
-                        <h4 style="margin-bottom:20px; color:var(--primary); display:flex; align-items:center;">
-                            <i class="fa-solid fa-home" style="margin-right:10px;"></i> Student Address
-                        </h4>
-                        <div class="form-group">
-                            <label class="form-label req">Full Address</label>
-                            <textarea name="permanent_address" class="form-control" style="min-height:80px;" required placeholder="Enter full address..."></textarea>
-                        </div>
-                    </div>                   
-                     <!-- Actions -->
-                    <div style="margin-top:40px; border-top:1px solid #e2e8f0; padding-top:20px; display:flex; gap:10px; justify-content:flex-end;">
-                        <button type="button" class="btn bs" onclick="goNav('students')">Cancel</button>
-                        <button type="submit" class="btn bt">Confirm Admission</button>
-                    </div>
-                </form>
-            </div>
+        <div style="display:flex; align-items:center; justify-content:center; min-height:300px; flex-direction:column; gap:16px;">
+            <i class="fas fa-spinner fa-spin" style="font-size:2.5rem; color:#00b894;"></i>
+            <p style="color:#475569; font-weight:600;">Loading Admission Form...</p>
         </div>
     `;
 
-    // Populate courses
-    await _populateCoursesInForm('std_course_select');
-    
+    try {
+        // Fetch the shared PHP partial (same component used by Institute Admin)
+        const res = await fetch(`${window.APP_URL}/dash/front-desk/admission-form?partial=true`, {
+            credentials: 'same-origin'
+        });
 
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
-    
-    document.getElementById('studentAddForm').onsubmit = (e) => _submitStudentForm(e, 'POST');
+        const html = await res.text();
+
+        // Inject the fetched PHP-rendered HTML into the SPA main content
+        mc.innerHTML = `
+            <div class="bc">
+                <a href="#" onclick="goNav('dashboard')">Dashboard</a>
+                <span class="bc-sep">&rsaquo;</span>
+                <a href="#" onclick="goNav('students')">Students</a>
+                <span class="bc-sep">&rsaquo;</span>
+                <span class="bc-cur">Add New Student</span>
+            </div>
+            ${html}
+        `;
+
+        // Execute inline scripts from the fetched PHP partial (same pattern as institute admin)
+        mc.querySelectorAll('script').forEach(s => {
+            try { eval(s.innerHTML); } catch(ex) { console.warn('[renderAddStudentForm] Script eval error:', ex); }
+        });
+
+        // Patch the "View All Students" button for SPA navigation
+        const viewBtn = mc.querySelector('.pg-acts .btn-p');
+        if (viewBtn && typeof window.goNav === 'function') {
+            viewBtn.href = '#';
+            viewBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                window.goNav('students');
+            });
+        }
+
+        // Patch the success modal "View Students" button for SPA navigation
+        const origSubmitFn = window['handleAdmissionSubmit_fd'];
+        if (origSubmitFn) {
+            window['handleAdmissionSubmit_fd'] = async function(e) {
+                window._fdSpaRedirectPatch = true;
+                return origSubmitFn.call(this, e);
+            };
+        }
+
+    } catch (err) {
+        console.error('[renderAddStudentForm] Failed to load admission form:', err);
+        mc.innerHTML = `
+            <div style="text-align:center; padding:60px 20px;">
+                <i class="fas fa-exclamation-triangle" style="font-size:3rem; color:#ff7675; margin-bottom:20px;"></i>
+                <h3 style="color:#1e293b; font-weight:800;">Failed to Load Form</h3>
+                <p style="color:#64748b; margin-bottom:20px;">Could not load the admission form. Please try again.</p>
+                <button class="btn bt" onclick="window.renderAddStudentForm()">
+                    <i class="fas fa-redo"></i> Retry
+                </button>
+                <button class="btn bs" onclick="goNav('students')" style="margin-left:10px;">
+                    Back to Students
+                </button>
+            </div>
+        `;
+    }
 };
 
 /* ── RENDER EDIT STUDENT FORM ──────────────────────────────────── */
@@ -1420,7 +1353,11 @@ window.loadStudents = async (page) => {
             const AV_COLORS = ['av-teal','av-blue','av-purple','av-amber','av-red','av-navy'];
             return AV_COLORS[(id || 0) % AV_COLORS.length];
         };
-        const initials = (name) => (name || 'S').split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+        const initials = (name) => {
+            if (!name) return 'S';
+            const parts = name.split(' ').slice(0,2).map(w => w && w[0] ? w[0] : '').join('');
+            return parts ? parts.toUpperCase() : 'S';
+        };
 
         tbody.innerHTML = students.map(s => {
             const isSelected = _StudentState.selectedIds.has(s.id);
@@ -1830,7 +1767,7 @@ window.renderStudentProfile = async (id, activeTab = 'personal') => {
 
         const s = result.data;
         const photoSrc = s.photo_url ? (s.photo_url.startsWith('http') ? s.photo_url : window.APP_URL + s.photo_url) : null;
-        const initials = s.full_name ? s.full_name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2) : 'ST';
+        const initials = s.full_name ? s.full_name.split(' ').filter(n => n).map(n => n[0] || '').join('').toUpperCase().substring(0, 2) : 'ST';
 
         const statusCls = s.status === 'active' ? 'sp-status-active' : 'sp-status-inactive';
         const statusIcon = s.status === 'active' ? 'fa-circle' : 'fa-circle-xmark';
@@ -2071,7 +2008,7 @@ function _spCourseTab(s) {
                             <td><strong>${e.course_name || '—'}</strong> (${e.course_code || '—'})</td>
                             <td>${e.batch_name || '—'}</td>
                             <td>${e.enrollment_date ? new Date(e.enrollment_date).toLocaleDateString() : '—'}</td>
-                            <td><span class="sp-ps-paid" style="font-size:10px; background:#f0fdf4; color:#16a34a; padding:2px 8px; border-radius:12px;">${(e.status || 'Active').toUpperCase()}</span></td>
+                            <td><span class="sp-ps-paid" style="font-size:10px; background:#f0fdf4; color:#16a34a; padding:2px 8px; border-radius:12px;">${(e.status || 'ACTIVE').toUpperCase()}</span></td>
                         </tr>`).join('') : `<tr><td colspan="4" class="sp-empty-td">No enrollment history found.</td></tr>`}
                 </tbody>
             </table>
@@ -2136,7 +2073,7 @@ function _spPaymentTab(s) {
                             <td><strong>PAY-${p.id}</strong></td>
                             <td>₹ ${parseFloat(p.amount).toLocaleString()}</td>
                             <td>${p.payment_date || '—'}</td>
-                            <td>${p.payment_mode ? p.payment_mode.replace('_','').toUpperCase() : '—'}</td>
+                            <td>${p.payment_mode ? (p.payment_mode.replace('_','') || 'CASH').toUpperCase() : '—'}</td>
                             <td>${p.reference || '—'}</td>
                             <td><span class="sp-payment-status sp-ps-paid">Recorded</span></td>
                         </tr>`;

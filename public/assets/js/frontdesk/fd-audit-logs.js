@@ -539,7 +539,7 @@
             'fee_records': `goNav('fee', 'details', {receipt_no: '${recordId}'})`,
             'payment_transactions': `goNav('fee', 'details', {receipt_no: '${recordId}'})`,
             'users': `goNav('teachers', null)`,
-            'inquiries': `goNav('inq', 'list')`,
+            'inquiries': `goNav('inquiries')`,
             'batches': `goNav('academic', 'batches', {id: ${recordId}})`,
             'courses': `goNav('academic', 'courses', {id: ${recordId}})`,
             'subjects': `goNav('academic', 'subjects', {id: ${recordId}})`,

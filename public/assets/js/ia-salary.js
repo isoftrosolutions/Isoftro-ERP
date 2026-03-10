@@ -77,10 +77,11 @@ window.renderStaffSalaryForm = async function(id = null) {
                 <div class="mb-3">
                     <label class="form-label fw-bold">Payment Method</label>
                     <select id="salMethod" class="form-select shadow-none">
-                        <option value="Cash">Cash</option>
-                        <option value="Bank Transfer">Bank Transfer</option>
-                        <option value="Cheque">Cheque</option>
-                        <option value="E-Sewa/Khalti">E-Sewa/Khalti</option>
+                        <option value="cash">Cash</option>
+                        <option value="bank_transfer">Bank Transfer</option>
+                        <option value="cheque">Cheque</option>
+                        <option value="esewa">E-Sewa</option>
+                        <option value="khalti">Khalti</option>
                     </select>
                 </div>
                 <div class="mb-4">

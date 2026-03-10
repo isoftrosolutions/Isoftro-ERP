@@ -4,68 +4,127 @@
  * Handles student-specific fee queries and payment history
  */
 
-use App\Models\FeeRecord;
-use App\Models\StudentInvoice;
-use App\Models\PaymentTransaction;
-use App\Models\Student;
+if (!defined('APP_NAME')) {
+    require_once __DIR__ . '/../../../../config/config.php';
+}
 
-// Set JSON header
 header('Content-Type: application/json');
 
-// Ensure student is logged in and session is valid
-$studentId = $_SESSION['student_id'] ?? null;
-$tenantId = $_SESSION['tenant_id'] ?? null;
-
-if (!$studentId || !$tenantId) {
+if (!isLoggedIn()) {
     echo json_encode(['success' => false, 'message' => 'Unauthorized access']);
     exit;
 }
 
-$action = $_GET['action'] ?? 'get_ledger';
+$user     = getCurrentUser();
+$tenantId = $user['tenant_id'] ?? null;
+$userId   = $user['id'] ?? null;
 
-// Initialize models
-$feeRecordModel = new FeeRecord();
-$transactionModel = new PaymentTransaction();
+// Resolve student_id from session or DB
+$studentId = $_SESSION['userData']['student_id'] ?? null;
+if (!$studentId && $userId) {
+    try {
+        $db = getDBConnection();
+        $stmt = $db->prepare("SELECT id FROM students WHERE user_id = :uid AND tenant_id = :tid LIMIT 1");
+        $stmt->execute(['uid' => $userId, 'tid' => $tenantId]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($row) {
+            $studentId = $row['id'];
+            $_SESSION['userData']['student_id'] = $studentId;
+        }
+    } catch (Exception $e) {
+        error_log('Student fees - failed to resolve student_id: ' . $e->getMessage());
+    }
+}
+
+if (!$tenantId || !$studentId) {
+    echo json_encode(['success' => false, 'message' => 'Student record not found']);
+    exit;
+}
 
 try {
+    $db     = getDBConnection();
+    $action = $_GET['action'] ?? 'get_ledger';
+
     switch ($action) {
         case 'get_ledger':
-            $ledger = $feeRecordModel->getByStudent($studentId, $tenantId);
-            $transactions = $transactionModel->getByStudent($studentId, $tenantId);
-            
-            // Calculate summary
-            $totalDue = 0;
+        default:
+            // Fee records with item name
+            $stmt = $db->prepare("
+                SELECT fr.id, fr.fee_item_id, fr.batch_id, fr.installment_no,
+                       fr.amount_due, fr.amount_paid, fr.discount_amount,
+                       fr.due_date, fr.paid_date, fr.receipt_no, fr.payment_mode,
+                       fr.fine_applied, fr.fine_waived, fr.notes,
+                       fr.academic_year, fr.status,
+                       fi.name  AS fee_item_name,
+                       fi.type  AS fee_item_type
+                FROM fee_records fr
+                LEFT JOIN fee_items fi ON fr.fee_item_id = fi.id
+                WHERE fr.student_id = :sid AND fr.tenant_id = :tid
+                ORDER BY fr.due_date DESC
+                LIMIT 50
+            ");
+            $stmt->execute(['sid' => $studentId, 'tid' => $tenantId]);
+            $ledger = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // Payment transactions
+            $stmt = $db->prepare("
+                SELECT pt.id, pt.fee_record_id, pt.amount,
+                       pt.payment_method  AS payment_mode,
+                       pt.receipt_number,
+                       pt.payment_date, pt.notes, pt.status,
+                       fi.name AS fee_item_name
+                FROM payment_transactions pt
+                LEFT JOIN fee_records fr ON pt.fee_record_id = fr.id
+                LEFT JOIN fee_items fi   ON fr.fee_item_id   = fi.id
+                WHERE pt.student_id = :sid AND pt.tenant_id = :tid
+                ORDER BY pt.payment_date DESC
+                LIMIT 30
+            ");
+            $stmt->execute(['sid' => $studentId, 'tid' => $tenantId]);
+            $transactions = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // Build summary from fee_records
+            $totalDue  = 0;
             $totalPaid = 0;
             foreach ($ledger as $l) {
-                $totalDue += $l['amount_due'];
-                $totalPaid += $l['amount_paid'];
+                $totalDue  += floatval($l['amount_due']  ?? 0);
+                $totalPaid += floatval($l['amount_paid'] ?? 0);
             }
-            
+
             echo json_encode([
-                'success' => true, 
-                'data' => [
-                    'ledger' => $ledger,
-                    'transactions' => $transactions,
-                    'summary' => [
-                        'total_due' => $totalDue,
-                        'total_paid' => $totalPaid,
-                        'balance' => $totalDue - $totalPaid
+                'success' => true,
+                'data'    => [
+                    'records'      => $ledger,
+                    'payments'     => $transactions,
+                    'total_fee'    => $totalDue,
+                    'total_paid'   => $totalPaid,
+                    'balance'      => $totalDue - $totalPaid,
+                    'summary'      => [
+                        'total_due'   => $totalDue,
+                        'total_paid'  => $totalPaid,
+                        'outstanding' => $totalDue - $totalPaid
                     ]
                 ]
             ]);
             break;
 
         case 'get_outstanding':
-            $ledger = $feeRecordModel->getByStudent($studentId, $tenantId);
-            $outstanding = array_filter($ledger, function($l) {
-                return ($l['amount_due'] - $l['amount_paid']) > 0;
-            });
-            echo json_encode(['success' => true, 'data' => array_values($outstanding)]);
+            $stmt = $db->prepare("
+                SELECT fr.id, fr.amount_due, fr.amount_paid,
+                       fr.due_date, fr.status,
+                       fi.name AS fee_item_name
+                FROM fee_records fr
+                LEFT JOIN fee_items fi ON fr.fee_item_id = fi.id
+                WHERE fr.student_id = :sid AND fr.tenant_id = :tid
+                  AND fr.amount_due > fr.amount_paid
+                ORDER BY fr.due_date ASC
+            ");
+            $stmt->execute(['sid' => $studentId, 'tid' => $tenantId]);
+            echo json_encode(['success' => true, 'data' => $stmt->fetchAll(PDO::FETCH_ASSOC)]);
             break;
-
-        default:
-            echo json_encode(['success' => false, 'message' => 'Invalid action']);
     }
+
 } catch (Exception $e) {
+    error_log('Student fees controller error: ' . $e->getMessage());
     echo json_encode(['success' => false, 'message' => $e->getMessage()]);
 }

@@ -77,17 +77,18 @@ try {
     
     // 2. Fetch today's classes from timetable
     if ($batchId) {
-        $dayOfWeek = date('l'); // Current day name
+        // Map day name to numeric day (1=Sunday, 2=Monday, ..., 7=Saturday)
+        $dayOfWeek = date('w') + 1; 
+        
         $stmt = $db->prepare("
             SELECT t.*, s.name as subject_name, s.code as subject_code,
-                   st.name as teacher_name
-            FROM timetables t
+                   tea.full_name as teacher_name
+            FROM timetable_slots t
             LEFT JOIN subjects s ON t.subject_id = s.id
-            LEFT JOIN staff st ON t.teacher_id = st.id
+            LEFT JOIN teachers tea ON t.teacher_id = tea.id
             WHERE t.batch_id = :bid 
               AND t.day_of_week = :day
               AND t.tenant_id = :tid
-              AND t.deleted_at IS NULL
             ORDER BY t.start_time ASC
         ");
         $stmt->execute(['bid' => $batchId, 'day' => $dayOfWeek, 'tid' => $tenantId]);

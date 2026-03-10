@@ -263,10 +263,10 @@
         `;
 
         try {
-            const data = await apiFetch('/api/support/tickets');
+            const data = await apiFetch('/api/frontdesk/support?action=list');
             
             if (data.success) {
-                SupportState.tickets = data.tickets || [];
+                SupportState.tickets = data.data || [];
                 renderTicketList(SupportState.tickets);
             } else {
                 throw new Error(data.message || 'Failed to load tickets');
@@ -317,10 +317,10 @@
 
     window.viewTicket = async function(ticketId) {
         try {
-            const data = await apiFetch(`/api/support/tickets?id=${ticketId}`);
+            const data = await apiFetch(`/api/frontdesk/support?action=view&id=${ticketId}`);
             
             if (data.success) {
-                showTicketModal(data.ticket);
+                showTicketModal(data.data || data.ticket);
             }
         } catch (error) {
             console.error('[View Ticket Error]', error);
@@ -436,7 +436,7 @@
         try {
             const formData = new FormData(form);
             
-            const data = await apiFetch('/api/support/tickets', {
+            const data = await apiFetch('/api/frontdesk/support?action=create', {
                 method: 'POST',
                 body: formData
             });
@@ -704,6 +704,15 @@
     window.renderSupportPage = async function() {
         const mc = document.getElementById('mainContent');
         if (!mc) return;
+
+        // Dynamically load support CSS if not already loaded
+        if (!document.getElementById('support-css')) {
+            const link = document.createElement('link');
+            link.id = 'support-css';
+            link.rel = 'stylesheet';
+            link.href = (window.APP_URL || '') + '/public/assets/css/ia-support.css?v=' + Date.now();
+            document.head.appendChild(link);
+        }
 
         // Show loading state
         mc.innerHTML = `
