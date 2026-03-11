@@ -24,86 +24,140 @@ class AuthController {
     }
     
     /**
-     * User login - returns JWT tokens
+     * User login - handles both session-based (web) and JWT-based (API) authentication
      */
     public function login() {
-        $email = sanitizeInput($_POST['email'] ?? '');
+        $email = sanitizeInput($_POST['username'] ?? $_POST['email'] ?? '');
         $password = $_POST['password'] ?? '';
         $otp = $_POST['otp'] ?? null;
-        $remember = $_POST['remember'] ?? false; // Remember me handled by frontend token storage duration
+        $remember = $_POST['remember'] ?? '';
+        $isApi = isset($_GET['api']) || php_sapi_name() === 'api';
         
         // Validate input
         if (empty($email) || empty($password)) {
-            return ['success' => false, 'error' => 'Email and password are required'];
+            return ['success' => false, 'message' => 'Email and password are required'];
         }
         
+        // Check rate limiting (IP-based)
+        if (!$this->checkRateLimit($_SERVER['REMOTE_ADDR'])) {
+            return ['success' => false, 'message' => 'Too many login attempts. Please try again in 15 minutes.'];
+        }
+
         // Find user by email
         $user = $this->findUserByEmail($email);
         
         if (!$user) {
-            $this->logLoginAttempt($email, null, 'failed', 'User not found');
-            return ['success' => false, 'error' => 'Invalid credentials'];
+            $this->logAuthEvent('LOGIN_FAILURE', null, null, $email, 'failed', 'User not found');
+            return ['success' => false, 'message' => 'Invalid email or password.'];
         }
         
         // Check if user is active
         if ($user['status'] !== 'active') {
-            $this->logLoginAttempt($email, $user['id'], 'failed', 'Account inactive');
-            return ['success' => false, 'error' => 'Your account is not active'];
+            $this->logAuthEvent('LOGIN_FAILURE', $user['id'], $user['tenant_id'], $email, 'failed', 'Account inactive');
+            return ['success' => false, 'message' => 'Your account is currently inactive.'];
         }
         
+        // Check explicit account lock (DB field)
+        if (!empty($user['locked_until']) && strtotime($user['locked_until']) > time()) {
+            return ['success' => false, 'message' => 'Account locked due to security reasons. Try again later.'];
+        }
+
         // Verify password
         if (!password_verify($password, $user['password_hash'])) {
             $this->logLoginAttempt($email, $user['id'], 'failed', 'Invalid password');
-            return ['success' => false, 'error' => 'Invalid credentials'];
+            return ['success' => false, 'message' => 'Invalid email or password.'];
         }
         
         // Check if 2FA is required
-        if ($user['two_fa_enabled'] && ($user['role'] === 'superadmin' || $user['role'] === 'instituteadmin')) {
+        if (!empty($user['two_fa_enabled']) && ($user['role'] === 'superadmin' || $user['role'] === 'instituteadmin')) {
             if (empty($otp)) {
-                // Return partial success - requires OTP
                 return ['success' => true, 'requires_otp' => true, 'user_id' => $user['id']];
             }
             
-            // Verify OTP
             if (!$this->verifyOTP($user['id'], $otp)) {
                 $this->logLoginAttempt($email, $user['id'], 'failed', 'Invalid OTP');
-                return ['success' => false, 'error' => 'Invalid OTP'];
+                return ['success' => false, 'message' => 'Invalid verification code.'];
             }
         }
         
-        // Check rate limiting
-        if (!$this->checkRateLimit($_SERVER['REMOTE_ADDR'])) {
-            $this->logLoginAttempt($email, $user['id'], 'failed', 'Rate limited');
-            return ['success' => false, 'error' => 'Too many login attempts. Please try again later.'];
-        }
+        // SUCCESSFUL LOGIN START
         
-        // Generate tokens
+        // Update session for web users
+        if (session_status() === PHP_SESSION_NONE) session_start();
+        session_regenerate_id(true);
+
+        // Fetch tenant branding
+        $tenantLogo = null;
+        if (!empty($user['tenant_id'])) {
+            $stmt = $this->db->prepare("SELECT logo_path FROM tenants WHERE id = ? LIMIT 1");
+            $stmt->execute([$user['tenant_id']]);
+            $tenantLogo = $stmt->fetchColumn();
+            if ($tenantLogo && strpos($tenantLogo, '/uploads/') === 0 && strpos($tenantLogo, '/public/') !== 0) {
+                $tenantLogo = '/public' . $tenantLogo;
+            }
+        }
+
+        $_SESSION['userData'] = [
+            'id' => $user['id'],
+            'email' => $user['email'],
+            'name' => $user['full_name'] ?? $user['name'] ?? $user['email'],
+            'role' => $user['role'],
+            'tenant_id' => $user['tenant_id'],
+            'avatar' => $user['avatar'] ?? $user['photo_url'] ?? null,
+            'last_login' => date('Y-m-d H:i:s'),
+            'ip_address' => $_SERVER['REMOTE_ADDR'],
+        ];
+        $_SESSION['tenant_logo'] = $tenantLogo;
+        $_SESSION['last_activity'] = time();
+
+        // Handle Remember Me
+        if ($remember === 'on' || $remember === true || $remember === 'true') {
+            $token = bin2hex(random_bytes(32));
+            $expiry = time() + (30 * 24 * 60 * 60);
+            setcookie('remember_token', $token, $expiry, '/', '', false, true);
+            try {
+                $stmt = $this->db->prepare("INSERT INTO remember_tokens (user_id, token, expires_at) VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 30 DAY))");
+                $stmt->execute([$user['id'], hash('sha256', $token)]);
+            } catch (\Exception $e) {}
+        }
+
+        // Generate loading token
+        $loadingToken = bin2hex(random_bytes(16));
+        $_SESSION['loading_token'] = $loadingToken;
+        $_SESSION['loading_token_expires'] = time() + 60;
+        
+        $roleSlugMap = [
+            'superadmin' => 'super-admin',
+            'instituteadmin' => 'admin',
+            'frontdesk' => 'front-desk',
+            'teacher' => 'teacher',
+            'student' => 'student',
+            'guardian' => 'guardian',
+        ];
+        $slug = $roleSlugMap[$user['role']] ?? strtolower($user['role']);
+        $redirect = $_SESSION['redirect_after_login'] ?? (APP_URL . '/dash/' . $slug);
+        unset($_SESSION['redirect_after_login']);
+        $_SESSION['pending_redirect'] = $redirect;
+
+        // Clear failed logins
+        $stmt = $this->db->prepare("DELETE FROM failed_logins WHERE user_id = ? OR ip_address = ?");
+        $stmt->execute([$user['id'], $_SERVER['REMOTE_ADDR']]);
+
+        $this->updateLastLogin($user['id']);
+        $this->logAuthEvent('LOGIN_SUCCESS', $user['id'], $user['tenant_id'], $email, 'success');
+
         $accessToken = $this->generateAccessToken($user);
         $refreshToken = $this->generateRefreshToken($user);
-        
-        // Store refresh token
         $this->storeRefreshToken($user['id'], $refreshToken);
-        
-        // Update last login
-        $this->updateLastLogin($user['id']);
-        
-        // Log successful login
-        $this->logLoginAttempt($email, $user['id'], 'success');
-        
-        // Get redirect URL based on role
-        $redirectUrl = $this->getRedirectUrl($user['role']);
-        
-        // Generate loading screen URL with token
-        $loadingScreenUrl = APP_URL . '/loading?token=' . urlencode($accessToken) . '&redirect=' . urlencode($redirectUrl);
-        
+
         return [
             'success' => true,
+            'message' => 'Login successful!',
+            'redirect' => $redirect,
+            'loading_screen' => APP_URL . '/loading?token=' . urlencode($loadingToken) . '&redirect=' . urlencode($redirect),
             'access_token' => $accessToken,
             'refresh_token' => $refreshToken,
-            'expires_in' => $this->accessTokenExpiry,
-            'user' => $this->sanitizeUser($user),
-            'redirect' => $redirectUrl,
-            'loading_screen' => $loadingScreenUrl
+            'user' => $this->sanitizeUser($user)
         ];
     }
     
@@ -141,6 +195,8 @@ class AuthController {
         // Store new refresh token
         $this->storeRefreshToken($user['id'], $newRefreshToken);
         
+        $this->logAuthEvent('TOKEN_REFRESH', $user['id'], $user['tenant_id'], $user['email'], 'success');
+
         return [
             'success' => true,
             'access_token' => $newAccessToken,
@@ -170,7 +226,54 @@ class AuthController {
         }
         session_destroy();
         
+        $this->logAuthEvent('LOGOUT', null, null, '', 'success');
+
         return ['success' => true];
+    }
+    
+    /**
+     * Change password for logged-in user
+     */
+    public function changePassword() {
+        if (!isLoggedIn()) {
+            return ['success' => false, 'error' => 'Access denied. Please log in.'];
+        }
+        
+        $oldPassword = $_POST['old_password'] ?? '';
+        $newPassword = $_POST['new_password'] ?? '';
+        $confirmPassword = $_POST['confirm_password'] ?? '';
+        
+        if (empty($oldPassword) || empty($newPassword) || empty($confirmPassword)) {
+            return ['success' => false, 'error' => 'All password fields are required.'];
+        }
+        
+        if ($newPassword !== $confirmPassword) {
+            return ['success' => false, 'error' => 'New passwords do not match.'];
+        }
+        
+        if (strlen($newPassword) < 8) {
+            return ['success' => false, 'error' => 'New password must be at least 8 characters long.'];
+        }
+        
+        $user = getCurrentUser();
+        
+        // Fetch full user record to check current password
+        $stmt = $this->db->prepare("SELECT password_hash FROM users WHERE id = ? LIMIT 1");
+        $stmt->execute([$user['id']]);
+        $passwordHash = $stmt->fetchColumn();
+        
+        if (!$passwordHash || !password_verify($oldPassword, $passwordHash)) {
+            return ['success' => false, 'error' => 'Current password is incorrect.'];
+        }
+        
+        // Update password
+        $newHash = password_hash($newPassword, PASSWORD_DEFAULT);
+        $stmt = $this->db->prepare("UPDATE users SET password_hash = ? WHERE id = ?");
+        if ($stmt->execute([$newHash, $user['id']])) {
+            return ['success' => true, 'message' => 'Password updated successfully!'];
+        }
+        
+        return ['success' => false, 'error' => 'System error. Failed to update password.'];
     }
     
     /**
@@ -206,25 +309,17 @@ class AuthController {
     }
     
     /**
-     * Find user by email
+     * 00
      */
     private function findUserByEmail($email) {
-        $stmt = $this->db->prepare("
-            SELECT * FROM users WHERE email = :email LIMIT 1
-        ");
-        $stmt->execute(['email' => $email]);
-        return $stmt->fetch();
+        return \App\Models\User::where('email', $email)->first();
     }
     
     /**
-     * Find user by ID
+     * Find user by ID (Eloquent)
      */
     private function findUserById($userId) {
-        $stmt = $this->db->prepare("
-            SELECT * FROM users WHERE id = :id LIMIT 1
-        ");
-        $stmt->execute(['id' => $userId]);
-        return $stmt->fetch();
+        return \App\Models\User::find($userId);
     }
     
     /**
@@ -377,37 +472,18 @@ class AuthController {
     }
     
     /**
-     * Check rate limiting
+     * Log login attempt using SRS AuditLogger
      */
-    private function checkRateLimit($ip) {
-        $stmt = $this->db->prepare("
-            SELECT COUNT(*) as attempts FROM login_attempts
-            WHERE ip_address = :ip AND status = 'failed'
-            AND created_at > DATE_SUB(NOW(), INTERVAL 15 MINUTE)
-        ");
-        $stmt->execute(['ip' => $ip]);
-        $result = $stmt->fetch();
-        
-        return ($result['attempts'] ?? 0) < MAX_LOGIN_ATTEMPTS;
+    private function logAuthEvent($action, $userId, $tenantId, $email, $status, $reason = null) {
+        if (class_exists('\App\Helpers\AuditLogger')) {
+            \App\Helpers\AuditLogger::log($action, $userId, $tenantId, [
+                'email' => $email,
+                'status' => $status,
+                'reason' => $reason
+            ]);
+        }
     }
-    
-    /**
-     * Log login attempt
-     */
-    private function logLoginAttempt($email, $userId, $status, $reason = null) {
-        $stmt = $this->db->prepare("
-            INSERT INTO login_attempts (email, ip_address, status, failure_reason)
-            VALUES (:email, :ip, :status, :reason)
-        ");
-        
-        $stmt->execute([
-            'email' => $email,
-            'ip' => $_SERVER['REMOTE_ADDR'] ?? null,
-            'status' => $status,
-            'reason' => $reason
-        ]);
-    }
-    
+
     /**
      * Update last login
      */
@@ -434,8 +510,19 @@ class AuthController {
     }
     
     /**
-     * Sanitize user data for response
+     * Check rate limiting
      */
+    private function checkRateLimit($ip) {
+        $stmt = $this->db->prepare("
+            SELECT COUNT(*) as attempts FROM audit_logs
+            WHERE ip_address = :ip AND action = 'LOGIN_FAILURE'
+            AND created_at > DATE_SUB(NOW(), INTERVAL 15 MINUTE)
+        ");
+        $stmt->execute(['ip' => $ip]);
+        $result = $stmt->fetch();
+        
+        return ($result['attempts'] ?? 0) < MAX_LOGIN_ATTEMPTS;
+    }
     private function sanitizeUser($user) {
         return [
             'id' => $user['id'],
@@ -493,6 +580,10 @@ if (php_sapi_name() === 'api' || isset($_GET['api'])) {
         case 'send_otp':
             $userId = $_POST['user_id'] ?? 0;
             echo json_encode($auth->sendOTP($userId));
+            break;
+            
+        case 'change_password':
+            echo json_encode($auth->changePassword());
             break;
             
         default:

@@ -12,6 +12,7 @@ function getSuperAdminMenu() {
                 [
                     'label' => 'Overview',
                     'icon'  => 'fa-house',
+                    'nav'   => 'overview',
                     'href'  => APP_URL . '/dash/super-admin/index',
                 ]
             ]
@@ -22,13 +23,15 @@ function getSuperAdminMenu() {
                 [
                     'label'       => 'Tenant Management',
                     'icon'        => 'fa-building',
+                    'nav'         => 'tenants',
+                    'sub'         => 'all',
                     'href'        => APP_URL . '/dash/super-admin/tenant-management',
                     'has_submenu' => true,
                     'submenu_id'  => 'tenant_mgmt',
                     'submenu'     => [
-                        ['label' => 'All Institutes',     'href' => APP_URL . '/dash/super-admin/tenant-management'],
-                        ['label' => 'Add New Institute',   'href' => APP_URL . '/dash/super-admin/add-tenant'],
-                        ['label' => 'Suspended Institutes','href' => APP_URL . '/dash/super-admin/tenant-management?filter=suspended'],
+                        ['label' => 'All Institutes',      'nav' => 'tenants', 'sub' => 'all',   'href' => APP_URL . '/dash/super-admin/tenant-management'],
+                        ['label' => 'Add New Institute',   'nav' => 'tenants', 'sub' => 'add',   'href' => APP_URL . '/dash/super-admin/add-tenant'],
+                        ['label' => 'Suspended Institutes','nav' => 'tenants', 'sub' => 'suspended', 'href' => APP_URL . '/dash/super-admin/tenant-management?filter=suspended'],
                     ]
                 ]
             ]
@@ -39,13 +42,14 @@ function getSuperAdminMenu() {
                 [
                     'label'       => 'Plan Management',
                     'icon'        => 'fa-clipboard-list',
+                    'nav'         => 'plans',
                     'href'        => '#',
                     'has_submenu' => true,
                     'submenu_id'  => 'plan_mgmt',
                     'submenu'     => [
-                        ['label' => 'Subscription Plans', 'href' => APP_URL . '/dash/super-admin/plans'],
-                        ['label' => 'Feature Flags',      'href' => APP_URL . '/dash/super-admin/flags'],
-                        ['label' => 'Plan Assignment',    'href' => APP_URL . '/dash/super-admin/plan-assign'],
+                        ['label' => 'Subscription Plans', 'nav' => 'plans', 'sub' => 'sub-plans', 'href' => APP_URL . '/dash/super-admin/plans'],
+                        ['label' => 'Feature Flags',      'nav' => 'plans', 'sub' => 'flags',     'href' => APP_URL . '/dash/super-admin/flags'],
+                        ['label' => 'Plan Assignment',    'nav' => 'plans', 'sub' => 'assign',    'href' => APP_URL . '/dash/super-admin/plan-assign'],
                     ]
                 ]
             ]
@@ -56,13 +60,14 @@ function getSuperAdminMenu() {
                 [
                     'label'       => 'Revenue Analytics',
                     'icon'        => 'fa-file-invoice-dollar',
+                    'nav'         => 'revenue',
                     'href'        => '#',
                     'has_submenu' => true,
                     'submenu_id'  => 'rev_mgmt',
                     'submenu'     => [
-                        ['label' => 'MRR / ARR Dashboard', 'href' => APP_URL . '/dash/super-admin/revenue-analytics'],
-                        ['label' => 'Payment History',     'href' => APP_URL . '/dash/super-admin/payments'],
-                        ['label' => 'Invoice Generator',   'href' => APP_URL . '/dash/super-admin/invoices'],
+                        ['label' => 'MRR / ARR Dashboard', 'nav' => 'revenue', 'sub' => 'mrr',      'href' => APP_URL . '/dash/super-admin/revenue-analytics'],
+                        ['label' => 'Payment History',     'nav' => 'revenue', 'sub' => 'payments', 'href' => APP_URL . '/dash/super-admin/payments'],
+                        ['label' => 'Invoice Generator',   'nav' => 'revenue', 'sub' => 'invoices', 'href' => APP_URL . '/dash/super-admin/invoices'],
                     ]
                 ]
             ]
@@ -73,14 +78,15 @@ function getSuperAdminMenu() {
                 [
                     'label'       => 'Platform Analytics',
                     'icon'        => 'fa-chart-pie',
+                    'nav'         => 'analytics',
                     'href'        => '#',
                     'has_submenu' => true,
                     'submenu_id'  => 'plat_mgmt',
                     'submenu'     => [
-                        ['label' => 'Active Users',           'href' => APP_URL . '/dash/super-admin/users'],
-                        ['label' => 'Feature Usage Heatmap',  'href' => APP_URL . '/dash/super-admin/heatmap'],
-                        ['label' => 'SMS Credit Consumption', 'href' => APP_URL . '/dash/super-admin/sms-credits'],
-                        ['label' => 'Report Engine',          'href' => APP_URL . '/dash/super-admin/reports'],
+                        ['label' => 'Active Users',           'nav' => 'analytics', 'sub' => 'users',   'href' => APP_URL . '/dash/super-admin/users'],
+                        ['label' => 'Feature Usage Heatmap',  'nav' => 'analytics', 'sub' => 'heatmap', 'href' => APP_URL . '/dash/super-admin/heatmap'],
+                        ['label' => 'SMS Credit Consumption', 'nav' => 'analytics', 'sub' => 'sms',     'href' => APP_URL . '/dash/super-admin/sms-credits'],
+                        ['label' => 'Report Engine',          'nav' => 'analytics', 'sub' => 'reports', 'href' => APP_URL . '/dash/super-admin/reports'],
                     ]
                 ]
             ]
@@ -91,14 +97,15 @@ function getSuperAdminMenu() {
                 [
                     'label'       => 'Support Tickets',
                     'icon'        => 'fa-ticket',
+                    'nav'         => 'support',
                     'href'        => '#',
                     'has_submenu' => true,
                     'submenu_id'  => 'supp_mgmt',
                     'submenu'     => [
-                        ['label' => 'Open Tickets',            'href' => APP_URL . '/dash/super-admin/support-tickets?status=open'],
-                        ['label' => 'User Feedbacks',          'href' => APP_URL . '/dash/super-admin/feedbacks'],
-                        ['label' => 'Tenant Impersonation Log', 'href' => APP_URL . '/dash/super-admin/impersonation-logs'],
-                        ['label' => 'Resolved History',        'href' => APP_URL . '/dash/super-admin/support-tickets?status=resolved'],
+                        ['label' => 'Open Tickets',            'nav' => 'support', 'sub' => 'open',      'href' => APP_URL . '/dash/super-admin/support-tickets?status=open'],
+                        ['label' => 'User Feedbacks',          'nav' => 'support', 'sub' => 'feedbacks', 'href' => APP_URL . '/dash/super-admin/feedbacks'],
+                        ['label' => 'Tenant Impersonation Log', 'nav' => 'support', 'sub' => 'impersonate','href' => APP_URL . '/dash/super-admin/impersonation-logs'],
+                        ['label' => 'Resolved History',        'nav' => 'support', 'sub' => 'resolved',  'href' => APP_URL . '/dash/super-admin/support-tickets?status=resolved'],
                     ]
                 ]
             ]
@@ -109,25 +116,27 @@ function getSuperAdminMenu() {
                 [
                     'label'       => 'System Configuration',
                     'icon'        => 'fa-wrench',
+                    'nav'         => 'system',
                     'href'        => '#',
                     'has_submenu' => true,
                     'submenu_id'  => 'sys_conf',
                     'submenu'     => [
-                        ['label' => 'Feature Toggles',   'href' => APP_URL . '/dash/super-admin/flags'],
-                        ['label' => 'Maintenance Mode',  'href' => APP_URL . '/dash/super-admin/maintenance'],
-                        ['label' => 'Push Announcements','href' => APP_URL . '/dash/super-admin/announcements'],
+                        ['label' => 'Feature Toggles',   'nav' => 'system', 'sub' => 'toggles',     'href' => APP_URL . '/dash/super-admin/flags'],
+                        ['label' => 'Maintenance Mode',  'nav' => 'system', 'sub' => 'maintenance', 'href' => APP_URL . '/dash/super-admin/maintenance'],
+                        ['label' => 'Push Announcements','nav' => 'system', 'sub' => 'announce',    'href' => APP_URL . '/dash/super-admin/announcements'],
                     ]
                 ],
                 [
                     'label'       => 'System Logs',
                     'icon'        => 'fa-scroll',
+                    'nav'         => 'logs',
                     'href'        => '#',
                     'has_submenu' => true,
                     'submenu_id'  => 'sys_logs',
                     'submenu'     => [
-                        ['label' => 'Audit Logs',        'href' => APP_URL . '/dash/super-admin/logs?type=audit'],
-                        ['label' => 'Error Logs',        'href' => APP_URL . '/dash/super-admin/logs?type=error'],
-                        ['label' => 'API Request Logs',  'href' => APP_URL . '/dash/super-admin/logs?type=api'],
+                        ['label' => 'Audit Logs',        'nav' => 'logs', 'sub' => 'audit',  'href' => APP_URL . '/dash/super-admin/logs?type=audit'],
+                        ['label' => 'Error Logs',        'nav' => 'logs', 'sub' => 'errors', 'href' => APP_URL . '/dash/super-admin/logs?type=error'],
+                        ['label' => 'API Request Logs',  'nav' => 'logs', 'sub' => 'api',    'href' => APP_URL . '/dash/super-admin/logs?type=api'],
                     ]
                 ]
             ]
@@ -138,13 +147,14 @@ function getSuperAdminMenu() {
                 [
                     'label'       => 'Settings',
                     'icon'        => 'fa-gear',
+                    'nav'         => 'settings',
                     'href'        => '#',
                     'has_submenu' => true,
                     'submenu_id'  => 'plat_sett',
                     'submenu'     => [
-                        ['label' => 'Platform Branding',    'href' => APP_URL . '/dash/super-admin/branding'],
-                        ['label' => 'Default SMS Templates','href' => APP_URL . '/dash/super-admin/sms-templates'],
-                        ['label' => 'Email Config',         'href' => APP_URL . '/dash/super-admin/email-config'],
+                        ['label' => 'Platform Branding',    'nav' => 'settings', 'sub' => 'branding', 'href' => APP_URL . '/dash/super-admin/branding'],
+                        ['label' => 'Default SMS Templates','nav' => 'settings', 'sub' => 'sms-tpl',  'href' => APP_URL . '/dash/super-admin/sms-templates'],
+                        ['label' => 'Email Config',         'nav' => 'settings', 'sub' => 'email-cfg','href' => APP_URL . '/dash/super-admin/email-config'],
                     ]
                 ]
             ]
@@ -157,6 +167,9 @@ function getCurrentPage() {
 }
 
 function renderSidebar($activePage = null) {
+    if (isset($_GET['partial']) && $_GET['partial'] == 'true') {
+        return;
+    }
     $menu        = getSuperAdminMenu();
     $currentFile = $activePage ?? getCurrentPage();
     

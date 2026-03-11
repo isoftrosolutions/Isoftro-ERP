@@ -340,6 +340,26 @@ class SuperAdminController {
      */
     public function impersonate($tenantId, $targetUserId = null) {
         try {
+            // Find target user if not provided (default to active admin)
+            if (!$targetUserId) {
+                $stmt = $this->db->prepare("SELECT id FROM users WHERE tenant_id = ? AND role = 'instituteadmin' AND status = 'active' LIMIT 1");
+                $stmt->execute([$tenantId]);
+                $targetUserId = $stmt->fetchColumn();
+                
+                if (!$targetUserId) {
+                    return ['success' => false, 'error' => 'No active admin found for this tenant.'];
+                }
+            }
+
+            // Get target user data
+            $stmt = $this->db->prepare("SELECT * FROM users WHERE id = ? AND status = 'active' LIMIT 1");
+            $stmt->execute([$targetUserId]);
+            $targetUser = $stmt->fetch();
+
+            if (!$targetUser) {
+                return ['success' => false, 'error' => 'Target user not found or inactive.'];
+            }
+
             // Log impersonation
             $stmt = $this->db->prepare("
                 INSERT INTO impersonation_logs (super_admin_id, tenant_id, target_user_id, ip_address, user_agent)
@@ -353,12 +373,28 @@ class SuperAdminController {
                 'ip' => $_SERVER['REMOTE_ADDR'] ?? null,
                 'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? null
             ]);
+            $logId = $this->db->lastInsertId();
             
-            // Set impersonation session
+            // Backup original admin session if not already impersonating
+            if (!isset($_SESSION['original_userData'])) {
+                $_SESSION['original_userData'] = $_SESSION['userData'];
+            }
+
+            // Set impersonation markers
             $_SESSION['impersonating'] = true;
-            $_SESSION['original_user_id'] = $_SESSION['userData']['id'];
-            $_SESSION['impersonation_log_id'] = $this->db->lastInsertId();
-            $_SESSION['tenant_id'] = $tenantId;
+            $_SESSION['impersonation_log_id'] = $logId;
+            
+            // Swap user data to the target user
+            $_SESSION['userData'] = [
+                'id' => $targetUser['id'],
+                'email' => $targetUser['email'],
+                'name' => $targetUser['full_name'] ?? $targetUser['name'] ?? $targetUser['email'],
+                'role' => $targetUser['role'],
+                'tenant_id' => $targetUser['tenant_id'],
+                'avatar' => $targetUser['avatar'] ?? $targetUser['photo_url'] ?? null,
+                'last_login' => date('Y-m-d H:i:s'),
+                'is_impersonated' => true
+            ];
             
             return ['success' => true];
         } catch (PDOException $e) {
@@ -383,10 +419,13 @@ class SuperAdminController {
             }
         }
         
-        // Restore original session
-        $_SESSION['tenant_id'] = $_SESSION['original_tenant_id'] ?? null;
+        // Restore original session if it exists
+        if (isset($_SESSION['original_userData'])) {
+            $_SESSION['userData'] = $_SESSION['original_userData'];
+            unset($_SESSION['original_userData']);
+        }
+        
         unset($_SESSION['impersonating']);
-        unset($_SESSION['original_user_id']);
         unset($_SESSION['impersonation_log_id']);
         
         return ['success' => true];

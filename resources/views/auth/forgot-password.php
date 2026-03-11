@@ -7,6 +7,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <?php require_once __DIR__ . '/../../../config/config.php'; ?>
+    <?= \App\Helpers\CsrfHelper::csrfMetaTag() ?>
     <?php $BASE = defined('APP_URL') ? APP_URL : '/erp'; ?>
     <style>
         :root {
@@ -111,7 +113,7 @@
             <i class="fa-solid fa-arrow-left" style="margin-right:8px;"></i> Back to Login
         </a>
     </div>
-
+    <?= \App\Helpers\CsrfHelper::csrfJsHeader() ?>
     <script>
         const forgotForm = document.getElementById('forgotForm');
         const otpForm = document.getElementById('otpForm');

@@ -9,9 +9,13 @@ if (!defined('APP_NAME')) {
     require_once __DIR__ . '/../../../config/config.php';
 }
 
+// Load sidebar component - required for renderSidebar() and getSuperAdminMenu()
+require_once __DIR__ . '/sidebar.php';
+
 $pageTitle = 'Super Admin Dashboard';
 $stats = \App\Helpers\StatsHelper::getSuperAdminStats();
 // Use the Super Admin specific header from layouts
+// require_once VIEWS_PATH . '/super-admin/sidebar.php';
 require_once VIEWS_PATH . '/layouts/header_1.php';
 ?>
 
@@ -305,77 +309,4 @@ require_once VIEWS_PATH . '/layouts/header_1.php';
         </div>
     </div>
 </main>
-<script>
-function updateWorkflowStatus() {
-    setTimeout(() => {
-        const checks = document.querySelectorAll('.wf-check');
-        let done = 0;
-        checks.forEach(c => { if(c.checked) done++; });
-        document.getElementById('workflowStatus').textContent = `${done} / 5 Completed`;
-    }, 50);
-}
-</script>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const ctx = document.getElementById('mrrChart').getContext('2d');
-    
-    // Create gradient
-    const gradient = ctx.createLinearGradient(0, 0, 0, 300);
-    gradient.addColorStop(0, 'rgba(0, 158, 126, 0.3)');
-    gradient.addColorStop(1, 'rgba(0, 158, 126, 0.0)');
-
-    new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: <?php echo json_encode(array_column($stats['mrrTrend'] ?? [], 'month')); ?>,
-            datasets: [
-                {
-                    label: 'Monthly Revenue (In K)',
-                    data: <?php echo json_encode(array_column($stats['mrrTrend'] ?? [], 'mrrK')); ?>,
-                    borderColor: '#009E7E',
-                    borderWidth: 3,
-                    fill: true,
-                    backgroundColor: gradient,
-                    tension: 0.4,
-                    pointRadius: 4,
-                    pointHoverRadius: 6,
-                    pointBackgroundColor: '#fff',
-                    pointBorderColor: '#009E7E'
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: true,
-                    position: 'bottom',
-                    labels: {
-                        usePointStyle: true,
-                        boxWidth: 8,
-                        font: { size: 10 }
-                    }
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    grid: { color: '#f1f5f9' },
-                    ticks: {
-                        callback: function(value) { return 'रू ' + value + 'K'; },
-                        font: { size: 10 }
-                    }
-                },
-                x: {
-                    grid: { display: false },
-                    ticks: { font: { size: 10 } }
-                }
-            }
-        }
-    });
-});
-</script>
-
 <?php include 'footer.php'; ?>

@@ -56,6 +56,7 @@ $BASE = defined('APP_URL') ? APP_URL : '/erp';
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <?= \App\Helpers\CsrfHelper::csrfMetaTag() ?>
     <style>
         :root {
             --green: #006D44;
@@ -136,6 +137,7 @@ $BASE = defined('APP_URL') ? APP_URL : '/erp';
         <p class="rp-subtitle">Verify your identity and choose a secure password to protect your account.</p>
 
         <form method="POST" id="resetForm">
+            <?= \App\Helpers\CsrfHelper::csrfField() ?>
             <input type="hidden" name="email" value="<?= htmlspecialchars($email) ?>">
             <input type="hidden" name="token" value="<?= htmlspecialchars($token) ?>">
 

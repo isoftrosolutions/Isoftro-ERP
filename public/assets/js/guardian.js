@@ -51,9 +51,12 @@ document.addEventListener('DOMContentLoaded', () => {
             { id: "receipts", l: "Download Receipts",nav: "fee", sub: "receipts"}
         ], sec: "MONITORING" },
 
+        { id: "homework", icon: "fa-book-open", label: "Homework", sub: [
+            { id: "list",  l: "Assignments", nav: "homework", sub: "list"  }
+        ], sec: "ACADEMICS" },
+
         { id: "notices", icon: "fa-bullhorn", label: "Notices", sub: [
-            { id: "inst",  l: "Institute Announcements", nav: "notices", sub: "inst"  },
-            { id: "batch", l: "My Child's Notices",      nav: "notices", sub: "batch" }
+            { id: "all",  l: "All Announcements", nav: "notices", sub: "all"  }
         ], sec: "MAIN" },
 
         { id: "messages", icon: "fa-envelope", label: "Messages", sub: [
@@ -174,6 +177,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (activeNav === 'dashboard') {
             renderDashboard();
+        } else if (activeNav.startsWith('attendance-')) {
+            renderAttendanceModule();
+        } else if (activeNav.startsWith('exams-')) {
+            renderExamsModule();
+        } else if (activeNav.startsWith('fee-')) {
+            renderFeeModule();
+        } else if (activeNav.startsWith('messages-')) {
+            renderContactModule();
+        } else if (activeNav.startsWith('homework-')) {
+            renderHomeworkModule();
+        } else if (activeNav.startsWith('notices-')) {
+            renderNoticesModule();
         } else {
             renderGenericPage();
         }
@@ -374,6 +389,453 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             console.error('Render Dashboard Error:', error);
             mainContent.innerHTML = `<div class="pg fu"><div class="alert alert-danger">Failed to load dashboard data.</div></div>`;
+        }
+    }
+
+    async function renderAttendanceModule() {
+        mainContent.innerHTML = '<div class="pg fu" style="display:flex;align-items:center;justify-content:center;height:50vh;"><i class="fa-solid fa-spinner fa-spin fa-2x"></i></div>';
+        
+        try {
+            const res = await fetch(`${APP_URL}/api/guardian/attendance`);
+            const json = await res.json();
+            if (!json.success) throw new Error(json.message);
+            
+            const data = json.data;
+            const subPage = activeNav.split('-')[1] || 'sum';
+
+            let content = '';
+            if (subPage === 'sum') {
+                content = renderAttendanceSummary(data.summary);
+            } else if (subPage === 'hist') {
+                content = renderAttendanceHistory(data.history);
+            } else {
+                content = `<div class="card" style="padding:40px; text-align:center;"><h3>Leave Applications</h3><p>Online leave application system is being integrated. Please contact the front desk for urgent leave requests.</p></div>`;
+            }
+
+            mainContent.innerHTML = `
+                <div class="pg fu">
+                    <div class="pg-header">
+                        <div class="pg-title">Attendance Monitoring</div>
+                        <div class="pg-sub">Detailed statistics and history for your child.</div>
+                    </div>
+                    ${content}
+                </div>
+            `;
+        } catch (err) {
+            mainContent.innerHTML = `<div class="pg fu"><div class="alert alert-danger">${err.message}</div></div>`;
+        }
+    }
+
+    function renderAttendanceSummary(summary) {
+        const pct = summary.total > 0 ? Math.round((summary.present / summary.total) * 100) : 0;
+        return `
+            <div class="sg" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+                <div class="sc green">
+                    <div class="sc-lbl">Present Days</div>
+                    <div class="sc-val">${summary.present}</div>
+                </div>
+                <div class="sc amber">
+                    <div class="sc-lbl">Late Days</div>
+                    <div class="sc-val">${summary.late}</div>
+                </div>
+                <div class="sc red">
+                    <div class="sc-lbl">Absent Days</div>
+                    <div class="sc-val">${summary.absent}</div>
+                </div>
+                <div class="sc blue">
+                    <div class="sc-lbl">Attendance Rate</div>
+                    <div class="sc-val">${pct}%</div>
+                </div>
+            </div>
+            <div class="card" style="margin-top:20px;">
+                <div class="card-h"><div class="card-t">Presence Overview</div></div>
+                <div class="card-b">
+                    <div style="height:200px; display:flex; align-items:center; justify-content:center; background:#f9fafb; border-radius:12px;">
+                        <div style="text-align:center;">
+                            <div style="font-size:48px; font-weight:800; color:var(--green);">${pct}%</div>
+                            <div style="color:var(--text-light);">Overall Academic Year Presence</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    function renderAttendanceHistory(history) {
+        let rows = history.map(h => `
+            <tr>
+                <td style="padding:12px; border-bottom:1px solid #eee;">${h.attendance_date}</td>
+                <td style="padding:12px; border-bottom:1px solid #eee;">
+                    <span class="badge ${h.status === 'present' ? 'bg-success' : (h.status === 'absent' ? 'bg-danger' : 'bg-warning')}">
+                        ${h.status.toUpperCase()}
+                    </span>
+                </td>
+                <td style="padding:12px; border-bottom:1px solid #eee; color:var(--text-light); font-size:12px;">${h.remarks || '-'}</td>
+            </tr>
+        `).join('');
+
+        return `
+            <div class="card">
+                <div class="card-h"><div class="card-t">Daily Attendance Log</div></div>
+                <div class="card-b" style="padding:0;">
+                    <table style="width:100%; border-collapse:collapse; text-align:left;">
+                        <thead>
+                            <tr style="background:#f8f9fa;">
+                                <th style="padding:12px; font-size:12px; color:var(--text-light);">DATE</th>
+                                <th style="padding:12px; font-size:12px; color:var(--text-light);">STATUS</th>
+                                <th style="padding:12px; font-size:12px; color:var(--text-light);">REMARKS</th>
+                            </tr>
+                        </thead>
+                        <tbody>${rows || '<tr><td colspan="3" style="padding:20px; text-align:center;">No records found.</td></tr>'}</tbody>
+                    </table>
+                </div>
+            </div>
+        `;
+    }
+
+    async function renderExamsModule() {
+        mainContent.innerHTML = '<div class="pg fu" style="display:flex;align-items:center;justify-content:center;height:50vh;"><i class="fa-solid fa-spinner fa-spin fa-2x"></i></div>';
+        
+        try {
+            const res = await fetch(`${APP_URL}/api/guardian/exams`);
+            const json = await res.json();
+            if (!json.success) throw new Error(json.message);
+            
+            const data = json.data;
+            const subPage = activeNav.split('-')[1] || 'hist';
+
+            let content = '';
+            if (subPage === 'hist') {
+                content = renderExamResults(data.results);
+            } else if (subPage === 'analysis') {
+                content = renderSubjectAnalysis(data.subject_analysis);
+            } else {
+                content = `<div class="card" style="padding:40px; text-align:center;"><h3>Performance Trends</h3><p>Visual performance charts are being synchronized with latest exam data.</p></div>`;
+            }
+
+            mainContent.innerHTML = `
+                <div class="pg fu">
+                    <div class="pg-header">
+                        <div class="pg-title">Academic Performance</div>
+                        <div class="pg-sub">Results and subject-wise analysis.</div>
+                    </div>
+                    ${content}
+                </div>
+            `;
+        } catch (err) {
+            mainContent.innerHTML = `<div class="pg fu"><div class="alert alert-danger">${err.message}</div></div>`;
+        }
+    }
+
+    function renderExamResults(results) {
+        let rows = results.map(r => `
+            <div class="ex-row" style="padding:15px; border-bottom:1px solid #eee;">
+                <div class="ex-info">
+                    <div class="ex-subj" style="font-weight:700;">${r.exam_title}</div>
+                    <div class="ex-meta">${r.subject_name || 'General'} · ${r.exam_date}</div>
+                </div>
+                <div style="text-align:right;">
+                    <div style="font-size:16px; font-weight:800; color:var(--primary);">${r.score} / ${r.total_marks}</div>
+                    <div style="font-size:11px; color:var(--text-light);">${Math.round((r.score/r.total_marks)*100)}%</div>
+                </div>
+            </div>
+        `).join('');
+
+        return `
+            <div class="card">
+                <div class="card-h"><div class="card-t">Recent Exam Scores</div></div>
+                <div class="card-b" style="padding:0;">
+                    ${rows || '<div style="padding:20px; text-align:center;">No exam records found.</div>'}
+                </div>
+            </div>
+        `;
+    }
+
+    function renderSubjectAnalysis(analysis) {
+        let cards = analysis.map(a => `
+            <div class="sc" style="background:#fff; border:1px solid #eee;">
+                <div class="sc-lbl" style="font-size:14px; color:var(--text-dark);">${a.subject}</div>
+                <div class="sc-val" style="font-size:24px; color:var(--primary);">${Math.round(a.avg_percentage)}%</div>
+                <div style="width:100%; height:6px; background:#eee; border-radius:3px; margin-top:10px; overflow:hidden;">
+                    <div style="width:${a.avg_percentage}%; height:100%; background:var(--primary);"></div>
+                </div>
+            </div>
+        `).join('');
+
+        return `
+            <div class="sg" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
+                ${cards || '<div class="card" style="grid-column: 1/-1; padding:20px; text-align:center;">No analysis data available.</div>'}
+            </div>
+        `;
+    }
+
+    function renderGenericPage() {
+        // ... (This will be replaced by the specific modules below)
+    }
+
+    async function renderFeeModule() {
+        mainContent.innerHTML = '<div class="pg fu" style="display:flex;align-items:center;justify-content:center;height:50vh;"><i class="fa-solid fa-spinner fa-spin fa-2x"></i></div>';
+        
+        try {
+            const res = await fetch(`${APP_URL}/api/guardian/fees`);
+            const json = await res.json();
+            if (!json.success) throw new Error(json.message);
+            
+            const data = json.data;
+            const subPage = activeNav.split('-')[1] || 'dues';
+
+            let content = '';
+            if (subPage === 'dues') {
+                content = renderFeeDues(data.outstanding);
+            } else if (subPage === 'pay') {
+                content = renderFeeHistory(data.history);
+            } else {
+                content = `<div class="card" style="padding:40px; text-align:center;"><h3>Receipt Downloads</h3><p>Official receipts are being generated. You can download existing receipts from the history section below each paid record.</p></div>`;
+            }
+
+            mainContent.innerHTML = `
+                <div class="pg fu">
+                    <div class="pg-header">
+                        <div class="pg-title">Fee Management</div>
+                        <div class="pg-sub">Track payments and outstanding dues.</div>
+                    </div>
+                    ${content}
+                </div>
+            `;
+        } catch (err) {
+            mainContent.innerHTML = `<div class="pg fu"><div class="alert alert-danger">${err.message}</div></div>`;
+        }
+    }
+
+    function renderFeeDues(dues) {
+        let total = dues.reduce((sum, d) => sum + parseFloat(d.amount), 0);
+        let rows = dues.map(d => `
+            <div class="fee-item" style="padding:15px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                    <div style="font-weight:700;">${d.title || 'Fee Item'}</div>
+                    <div style="font-size:12px; color:var(--red);">Due: ${d.due_date}</div>
+                </div>
+                <div style="text-align:right;">
+                    <div style="font-weight:800; font-size:16px;">Rs. ${parseFloat(d.amount).toLocaleString()}</div>
+                    <button class="btn btn-sm" style="margin-top:5px; background:var(--green); color:#fff; border:none; padding:4px 10px; border-radius:4px; font-size:11px;" onclick="alert('Proceeding to payment gateway...')">Pay Now</button>
+                </div>
+            </div>
+        `).join('');
+
+        return `
+            <div class="sc amber" style="margin-bottom:20px;">
+                <div class="sc-lbl">Total Outstanding</div>
+                <div class="sc-val">Rs. ${total.toLocaleString()}</div>
+            </div>
+            <div class="card">
+                <div class="card-h"><div class="card-t">Outstanding Invoices</div></div>
+                <div class="card-b" style="padding:0;">
+                    ${rows || '<div style="padding:20px; text-align:center;">All clear! No outstanding dues.</div>'}
+                </div>
+            </div>
+        `;
+    }
+
+    function renderFeeHistory(history) {
+        let rows = history.map(h => `
+            <tr style="border-bottom:1px solid #eee;">
+                <td style="padding:12px;">${h.title}</td>
+                <td style="padding:12px;">Rs. ${parseFloat(h.amount).toLocaleString()}</td>
+                <td style="padding:12px;">${h.updated_at.split(' ')[0]}</td>
+                <td style="padding:12px;"><span class="badge bg-success">PAID</span></td>
+            </tr>
+        `).join('');
+
+        return `
+            <div class="card">
+                <div class="card-h"><div class="card-t">Payment History</div></div>
+                <div class="card-b" style="padding:0;">
+                    <table style="width:100%; border-collapse:collapse; text-align:left;">
+                        <thead style="background:#f8f9fa;">
+                            <tr>
+                                <th style="padding:12px; font-size:12px;">ITEM</th>
+                                <th style="padding:12px; font-size:12px;">AMOUNT</th>
+                                <th style="padding:12px; font-size:12px;">DATE</th>
+                                <th style="padding:12px; font-size:12px;">STATUS</th>
+                            </tr>
+                        </thead>
+                        <tbody>${rows || '<tr><td colspan="4" style="padding:20px; text-align:center;">No payment history found.</td></tr>'}</tbody>
+                    </table>
+                </div>
+            </div>
+        `;
+    }
+
+    async function renderContactModule() {
+        mainContent.innerHTML = '<div class="pg fu" style="display:flex;align-items:center;justify-content:center;height:50vh;"><i class="fa-solid fa-spinner fa-spin fa-2x"></i></div>';
+        
+        try {
+            const res = await fetch(`${APP_URL}/api/guardian/contact`);
+            const json = await res.json();
+            if (!json.success) throw new Error(json.message);
+            
+            const tickets = json.data;
+            const subPage = activeNav.split('-')[1] || 'contact';
+
+            mainContent.innerHTML = `
+                <div class="pg fu">
+                    <div class="pg-header">
+                        <div class="pg-title">Message Institute</div>
+                        <div class="pg-sub">Direct communication channel with school administration.</div>
+                    </div>
+                    ${renderContactForm()}
+                    <div style="margin-top:30px;">
+                        <div class="card-t" style="margin-bottom:15px; font-size:16px; font-weight:700;"><i class="fa-solid fa-clock-rotate-left"></i> Previous Inquiries</div>
+                        ${renderMessageHistory(tickets)}
+                    </div>
+                </div>
+            `;
+        } catch (err) {
+            mainContent.innerHTML = `<div class="pg fu"><div class="alert alert-danger">${err.message}</div></div>`;
+        }
+    }
+
+    function renderContactForm() {
+        return `
+            <div class="card" style="background:#fff; border:1px solid #eee;">
+                <div class="card-b">
+                    <div style="margin-bottom:15px;">
+                        <label style="display:block; font-size:12px; font-weight:700; margin-bottom:5px; color:var(--text-light);">SUBJECT</label>
+                        <input id="msgSubject" type="text" placeholder="e.g., Leave inquiry, Result doubt..." style="width:100%; padding:10px; border:1px solid #ddd; border-radius:8px;">
+                    </div>
+                    <div style="margin-bottom:15px;">
+                        <label style="display:block; font-size:12px; font-weight:700; margin-bottom:5px; color:var(--text-light);">MESSAGE</label>
+                        <textarea id="msgBody" rows="4" placeholder="Type your detailed message here..." style="width:100%; padding:10px; border:1px solid #ddd; border-radius:8px;"></textarea>
+                    </div>
+                    <button class="btn btn-primary" onclick="window.submitGuardianMessage()">
+                        <i class="fa-solid fa-paper-plane"></i> Send Message
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+
+    function renderMessageHistory(tickets) {
+        if (!tickets || tickets.length === 0) return '<div style="color:var(--text-light); text-align:center;">No previous messages.</div>';
+        
+        return tickets.map(t => `
+            <div class="card" style="margin-bottom:10px; border:1px solid #eee; background:#fff;">
+                <div class="card-h" style="padding:10px 15px; background:#fcfcfc;">
+                    <div style="display:flex; justify-content:space-between; width:100%;">
+                        <div style="font-weight:700; font-size:14px;">${t.subject}</div>
+                        <div class="badge ${t.status === 'pending' ? 'bg-warning' : 'bg-success'}" style="font-size:10px;">${t.status.toUpperCase()}</div>
+                    </div>
+                </div>
+                <div class="card-b" style="padding:10px 15px; font-size:13px; color:var(--text-body);">
+                    ${t.description}
+                    <div style="margin-top:10px; font-size:10px; color:var(--text-light);">${t.created_at}</div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    window.submitGuardianMessage = async () => {
+        const sub = document.getElementById('msgSubject').value;
+        const msg = document.getElementById('msgBody').value;
+
+        if (!msg) return alert('Please enter a message.');
+
+        try {
+            const res = await fetch(`${APP_URL}/api/guardian/contact`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ subject: sub, message: msg })
+            });
+            const json = await res.json();
+            if (json.success) {
+                alert(json.message);
+                renderContactModule(); // Refresh
+            } else {
+                alert('Error: ' + json.message);
+            }
+        } catch (err) {
+            alert('Failed to send message.');
+        }
+    };
+
+    async function renderHomeworkModule() {
+        mainContent.innerHTML = '<div class="pg fu" style="display:flex;align-items:center;justify-content:center;height:50vh;"><i class="fa-solid fa-spinner fa-spin fa-2x"></i></div>';
+        
+        try {
+            const res = await fetch(`${APP_URL}/api/guardian/homework`);
+            const json = await res.json();
+            if (!json.success) throw new Error(json.message);
+            
+            const homeworks = json.data;
+
+            let rows = homeworks.map(h => `
+                <div class="card" style="margin-bottom:15px; border-left:4px solid ${h.submission_status === 'submitted' || h.submission_status === 'graded' ? 'var(--green)' : (new Date(h.due_date) < new Date() ? 'var(--red)' : 'var(--amber)')}">
+                    <div class="card-b">
+                        <div style="display:flex; justify-content:space-between; align-items:start;">
+                            <div>
+                                <div style="font-weight:700; font-size:16px;">${h.title}</div>
+                                <div style="font-size:12px; color:var(--text-light); margin-top:2px;">${h.subject_name || 'General'} · Due: ${h.due_date}</div>
+                            </div>
+                            <div class="badge ${h.submission_status === 'submitted' || h.submission_status === 'graded' ? 'bg-success' : 'bg-warning'}">
+                                ${h.submission_status ? h.submission_status.toUpperCase() : 'PENDING'}
+                            </div>
+                        </div>
+                        <div style="margin-top:10px; font-size:13px; color:var(--text-body);">${h.description || 'No description provided.'}</div>
+                        ${h.marks_obtained !== null ? `<div style="margin-top:10px; font-weight:700; color:var(--green);">Score: ${h.marks_obtained} / ${h.total_marks}</div>` : ''}
+                    </div>
+                </div>
+            `).join('');
+
+            mainContent.innerHTML = `
+                <div class="pg fu">
+                    <div class="pg-header">
+                        <div class="pg-title">Homework Assignments</div>
+                        <div class="pg-sub">Monitor active tasks and evaluation status.</div>
+                    </div>
+                    ${rows || '<div class="card" style="padding:40px; text-align:center;">No homework assigned.</div>'}
+                </div>
+            `;
+        } catch (err) {
+            mainContent.innerHTML = `<div class="pg fu"><div class="alert alert-danger">${err.message}</div></div>`;
+        }
+    }
+
+    async function renderNoticesModule() {
+        mainContent.innerHTML = '<div class="pg fu" style="display:flex;align-items:center;justify-content:center;height:50vh;"><i class="fa-solid fa-spinner fa-spin fa-2x"></i></div>';
+        
+        try {
+            const res = await fetch(`${APP_URL}/api/guardian/notices`);
+            const json = await res.json();
+            if (!json.success) throw new Error(json.message);
+            
+            const notices = json.data;
+
+            let blocks = notices.map(n => `
+                <div class="card" style="margin-bottom:20px;">
+                    <div class="card-h" style="padding:15px; background:#fcfcfc;">
+                        <div style="font-weight:800; color:var(--primary); font-size:16px;">${n.title}</div>
+                        <div style="font-size:11px; color:var(--text-light);">${new Date(n.created_at).toLocaleDateString()}</div>
+                    </div>
+                    <div class="card-b" style="padding:15px; font-size:14px; line-height:1.6; color:var(--text-dark);">
+                        ${n.content}
+                        ${n.attachment_path ? `<div style="margin-top:15px;"><a href="${APP_URL}/${n.attachment_path}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="fa-solid fa-paperclip"></i> View Attachment</a></div>` : ''}
+                    </div>
+                </div>
+            `).join('');
+
+            mainContent.innerHTML = `
+                <div class="pg fu">
+                    <div class="pg-header">
+                        <div class="pg-title">Notice Board</div>
+                        <div class="pg-sub">Important announcements and updates.</div>
+                    </div>
+                    <div style="max-width:800px;">
+                        ${blocks || '<div class="card" style="padding:40px; text-align:center;">No active notices.</div>'}
+                    </div>
+                </div>
+            `;
+        } catch (err) {
+            mainContent.innerHTML = `<div class="pg fu"><div class="alert alert-danger">${err.message}</div></div>`;
         }
     }
 

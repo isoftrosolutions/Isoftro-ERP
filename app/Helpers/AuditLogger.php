@@ -8,54 +8,46 @@ namespace App\Helpers;
 
 class AuditLogger {
     /**
-     * Log an action
+     * Log a security or data event (SRS FR-AUTH-008 Compliance)
      */
-    public static function log($action, $tableName, $recordId, $oldValues = null, $newValues = null) {
+    public static function log($action, $userId = null, $tenantId = null, $metadata = []) {
         try {
-            $tenantId = $_SESSION['userData']['tenant_id'] ?? null;
-            $userId = $_SESSION['userData']['id'] ?? 1;
-            $ipAddress = $_SERVER['REMOTE_ADDR'] ?? 'system';
-
-            // Filter out sensitive fields from logging (passwords, etc)
-            $filter = ['password', 'password_hash', 'token', 'secret'];
+            if (session_status() === PHP_SESSION_NONE) session_start();
+            $userId = $userId ?: ($_SESSION['userData']['id'] ?? null);
+            $tenantId = $tenantId ?: ($_SESSION['userData']['tenant_id'] ?? null);
             
-            if ($oldValues) {
-                if (is_array($oldValues)) {
-                    foreach ($filter as $f) unset($oldValues[$f]);
-                }
-                $oldValues = is_string($oldValues) ? $oldValues : json_encode($oldValues);
-            }
-            
-            if ($newValues) {
-                if (is_array($newValues)) {
-                    foreach ($filter as $f) unset($newValues[$f]);
-                }
-                $newValues = is_string($newValues) ? $newValues : json_encode($newValues);
+            // Filter sensitive fields
+            $sensitiveFields = ['password', 'password_hash', 'token', 'access_token', 'refresh_token', 'otp', 'secret'];
+            if (is_array($metadata)) {
+                array_walk_recursive($metadata, function (&$value, $key) use ($sensitiveFields) {
+                    if (in_array(strtolower($key), $sensitiveFields)) {
+                        $value = '********';
+                    }
+                });
             }
 
             if (class_exists('\Illuminate\Support\Facades\DB') && \Illuminate\Support\Facades\DB::getFacadeRoot()) {
                 $db = \Illuminate\Support\Facades\DB::connection()->getPdo();
             } elseif (function_exists('getDBConnection')) {
                 $db = getDBConnection();
+            } else {
+                return false;
             }
 
-            $query = "INSERT INTO audit_logs (tenant_id, user_id, ip_address, action, table_name, record_id, changes, description) 
-                      VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+            $query = "INSERT INTO audit_logs (user_id, tenant_id, action, ip_address, user_agent, metadata) 
+                      VALUES (?, ?, ?, ?, ?, ?)";
             $stmt = $db->prepare($query);
             $stmt->execute([
-                $tenantId,
                 $userId,
-                $ipAddress,
+                $tenantId,
                 strtoupper($action),
-                $tableName,
-                $recordId,
-                json_encode(['old' => $oldValues, 'new' => $newValues]),
-                "Audited {$action} on {$tableName}"
+                $_SERVER['REMOTE_ADDR'] ?? null,
+                $_SERVER['HTTP_USER_AGENT'] ?? null,
+                !empty($metadata) ? json_encode($metadata) : null
             ]);
             
             return true;
         } catch (\Exception $e) {
-            // Log to system error log if audit logging fails
             error_log("Audit Logger Failed: " . $e->getMessage());
             return false;
         }

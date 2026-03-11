@@ -4,6 +4,10 @@
  * Closes the .root wrapper, loads JS, ends document.
  */
 
+if (isset($_GET['partial']) && $_GET['partial'] == 'true') {
+    return;
+}
+
 function renderInlineConfig() {
     global $pageTitle;
     echo '    <script>' . "\n";
@@ -42,7 +46,6 @@ function renderInlineConfig() {
     <?php renderExternalScripts(); ?>
 
     <!-- App JS -->
-    <script src="<?php echo SUPERADMIN_JS_PATH; ?>/super_admin.js?v=<?php echo SUPERADMIN_ASSETS_VERSION; ?>"></script>
     <script src="<?php echo SUPERADMIN_JS_PATH; ?>/pwa-handler.js?v=<?php echo SUPERADMIN_ASSETS_VERSION; ?>"></script>
     <script src="<?php echo SUPERADMIN_JS_PATH; ?>/breadcrumb.js?v=<?php echo SUPERADMIN_ASSETS_VERSION; ?>"></script>
 

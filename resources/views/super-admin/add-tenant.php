@@ -357,7 +357,7 @@ $activePage = 'tenant-management.php'; // Highlighting the management section
                     if(data.success) {
                         SuperAdmin.showNotification(data.message, "success");
                         setTimeout(() => {
-                            window.location.href = "tenant-management.php";
+                            SuperAdmin.goNav('tenants');
                         }, 1500);
                     } else {
                         SuperAdmin.showNotification(data.message, "error");

@@ -54,143 +54,28 @@ Route::get('/login', function() {
 // Login API (POST) — session-based authentication
 Route::post('/api/login', function () {
     header('Content-Type: application/json');
-
-    $email = $_POST['username'] ?? $_POST['email'] ?? '';
-    $password = $_POST['password'] ?? '';
-    $remember = $_POST['remember'] ?? '';
-
-    if (empty($email) || empty($password)) {
-        echo json_encode(['success' => false, 'message' => 'Email and password are required.']);
+    if (!\App\Helpers\CsrfHelper::validateCsrfToken()) {
+        echo json_encode(['success' => false, 'message' => 'Security token expired. Please refresh the page.']);
         exit;
     }
 
-    $db = getDBConnection();
+    $_GET['api'] = 1;
+    $_POST['action'] = 'login';
+    require_once app_path('Http/Controllers/AuthController.php');
+});
 
-    try {
-        // Find user by email
-        $stmt = $db->prepare("SELECT * FROM users WHERE email = :email AND status = 'active' LIMIT 1");
-        $stmt->execute([':email' => $email]);
-        $user = $stmt->fetch();
-
-        if (!$user) {
-            echo json_encode(['success' => false, 'message' => 'Invalid email or password.']);
-            exit;
-        }
-
-        // Check account lock
-        if (!empty($user['locked_until']) && strtotime($user['locked_until']) > time()) {
-            echo json_encode(['success' => false, 'message' => 'Account locked. Try again later.']);
-            exit;
-        }
-
-        // Verify password
-        if (!password_verify($password, $user['password_hash'])) {
-            // Record failed attempt
-            try {
-                $stmt = $db->prepare("INSERT INTO failed_logins (user_id, ip_address, attempted_at) VALUES (:uid, :ip, NOW())");
-                $stmt->execute([':uid' => $user['id'], ':ip' => $_SERVER['REMOTE_ADDR']]);
-            } catch (Exception $e) { /* table may not exist yet */ }
-
-            echo json_encode(['success' => false, 'message' => 'Invalid email or password.']);
-            exit;
-        }
-
-        // Build role slug for redirect
-        $roleSlugMap = [
-            'superadmin' => 'super-admin',
-            'instituteadmin' => 'admin',
-            'frontdesk' => 'front-desk',
-            'teacher' => 'teacher',
-            'student' => 'student',
-            'guardian' => 'guardian',
-        ];
-        $slug = $roleSlugMap[$user['role']] ?? strtolower($user['role']);
-
-        // Fetch tenant logo if user has a tenant
-        $tenantLogo = null;
-        if (!empty($user['tenant_id'])) {
-            $stmtTenant = $db->prepare("SELECT logo_path FROM tenants WHERE id = :tid LIMIT 1");
-            $stmtTenant->execute([':tid' => $user['tenant_id']]);
-            $tenantData = $stmtTenant->fetch();
-            if ($tenantData && !empty($tenantData['logo_path'])) {
-                $tenantLogo = $tenantData['logo_path'];
-                // Fix old paths that don't have /public prefix
-                if (strpos($tenantLogo, '/uploads/') === 0 && strpos($tenantLogo, '/public/') !== 0) {
-                    $tenantLogo = '/public' . $tenantLogo;
-                }
-            }
-        }
-
-        // Create session
-        session_regenerate_id(true);
-        $_SESSION['userData'] = [
-            'id' => $user['id'],
-            'email' => $user['email'],
-            'name' => $user['full_name'] ?? $user['name'] ?? $user['email'],
-            'role' => $user['role'],
-            'tenant_id' => $user['tenant_id'],
-            'avatar' => $user['avatar'] ?? $user['photo_url'] ?? null,
-            'last_login' => date('Y-m-d H:i:s'),
-            'ip_address' => $_SERVER['REMOTE_ADDR'],
-        ];
-        
-        // Also set tenant logo in session for easy access
-        $_SESSION['tenant_logo'] = $tenantLogo;
-        $_SESSION['institute_logo'] = $tenantLogo;
-        $_SESSION['last_activity'] = time();
-
-        // Update last login
-        $stmt = $db->prepare("UPDATE users SET last_login_at = NOW() WHERE id = :id");
-        $stmt->execute([':id' => $user['id']]);
-
-        // Clear failed logins
-        try {
-            $stmt = $db->prepare("DELETE FROM failed_logins WHERE user_id = :uid");
-            $stmt->execute([':uid' => $user['id']]);
-        } catch (Exception $e) { /* table may not exist yet */ }
-
-        // Remember me cookie
-        if ($remember === 'on') {
-            $token = bin2hex(random_bytes(32));
-            $expiry = time() + (30 * 24 * 60 * 60);
-            setcookie('remember_token', $token, $expiry, '/', '', false, true);
-            try {
-                $stmt = $db->prepare("INSERT INTO remember_tokens (user_id, token, expires_at) VALUES (:uid, :token, DATE_ADD(NOW(), INTERVAL 30 DAY))");
-                $stmt->execute([':uid' => $user['id'], ':token' => hash('sha256', $token)]);
-            } catch (Exception $e) { /* table may not exist yet */ }
-        }
-
-        $redirect = $_SESSION['redirect_after_login'] ?? (APP_URL . '/dash/' . $slug);
-        unset($_SESSION['redirect_after_login']);
-        
-        // Generate loading screen URL with session token
-        $loadingToken = bin2hex(random_bytes(32));
-        $_SESSION['loading_token'] = $loadingToken;
-        $_SESSION['loading_token_expires'] = time() + 60; // 1 minute expiry
-        $_SESSION['pending_redirect'] = $redirect;
-        
-        $loadingScreenUrl = APP_URL . '/loading?token=' . urlencode($loadingToken) . '&redirect=' . urlencode($redirect);
-
-        echo json_encode([
-            'success' => true,
-            'message' => 'Login successful!',
-            'redirect' => $redirect,
-            'loading_screen' => $loadingScreenUrl,
-            'user' => [
-                'id' => $user['id'],
-                'name' => $user['full_name'] ?? $user['name'],
-                'email' => $user['email'],
-                'role' => $user['role'],
-                'avatar' => $user['avatar'] ?? $user['photo_url'] ?? null,
-            ]
-        ]);
-        exit;
-
-    } catch (PDOException $e) {
-        error_log("Login error: " . $e->getMessage());
-        echo json_encode(['success' => false, 'message' => 'System error. Please try again.']);
+// Change Password API (Internal)
+Route::post('/api/auth/change-password', function() {
+    requireAuth();
+    header('Content-Type: application/json');
+    if (!\App\Helpers\CsrfHelper::validateCsrfToken()) {
+        echo json_encode(['success' => false, 'error' => 'Security token expired. Please refresh the page.']);
         exit;
     }
+    
+    $_GET['api'] = 1;
+    $_POST['action'] = 'change_password';
+    require_once app_path('Http/Controllers/AuthController.php');
 });
 
 // Forgot Password Page (GET)
@@ -200,42 +85,43 @@ Route::get('/auth/forgot-password', function () {
 
 // Send Password Reset (POST)
 Route::post('/auth/send_password_reset', function () {
+    // CSRF Protection
+    if (!\App\Helpers\CsrfHelper::validateCsrfToken()) {
+        header('Content-Type: application/json');
+        echo json_encode(['success' => false, 'message' => 'Security token expired. Please refresh the page.']);
+        exit;
+    }
     require_once resource_path('views/auth/send_password_reset.php');
 });
 
 // Reset Password Page (GET/POST)
 Route::match(['get', 'post'], '/auth/reset-password', function () {
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        // CSRF Protection
+        if (!\App\Helpers\CsrfHelper::validateCsrfToken()) {
+            die('Security token expired. Please go back and try again.');
+        }
+    }
     require_once resource_path('views/auth/reset-password.php');
 });
 
 // Verify OTP (POST)
 Route::post('/auth/verify-otp', function () {
+    // CSRF Protection
+    if (!\App\Helpers\CsrfHelper::validateCsrfToken()) {
+        header('Content-Type: application/json');
+        echo json_encode(['success' => false, 'message' => 'Security token expired. Please refresh the page.']);
+        exit;
+    }
     require_once resource_path('views/auth/verify_otp.php');
 });
 
 // Logout
 Route::match(['get', 'post'], '/auth/logout', function () {
-    // Destroy session
-    $_SESSION = [];
-    if (ini_get("session.use_cookies")) {
-        $params = session_get_cookie_params();
-        setcookie(session_name(), '', time() - 42000,
-            $params["path"], $params["domain"],
-            $params["secure"], $params["httponly"]
-        );
-    }
-    session_destroy();
-
-    // Clear remember cookie
-    if (isset($_COOKIE['remember_token'])) {
-        try {
-            $db = getDBConnection();
-            $stmt = $db->prepare("DELETE FROM remember_tokens WHERE token = :token");
-            $stmt->execute([':token' => hash('sha256', $_COOKIE['remember_token'])]);
-        } catch (Exception $e) { /* ignore */ }
-        setcookie('remember_token', '', time() - 3600, '/', '', false, true);
-    }
-
+    $_GET['api'] = 1;
+    $_POST['action'] = 'logout';
+    require_once app_path('Http/Controllers/AuthController.php');
+    
     header('Location: ' . APP_URL . '/auth/login');
     exit;
 });
@@ -323,8 +209,12 @@ Route::get('/dash/{role}/{page?}', function ($role, $page = 'index') use ($roleM
                 $PDO = getDBConnection();
                 $pdo = $PDO;
 
+                // For super-admin views, we need to include sidebar.php before the main file
+                // The sidebar contains renderSidebar() and getSuperAdminMenu() functions
+                // that are called by the view files
                 $sidebarFile = $viewDir . '/sidebar.php';
-                if (file_exists($sidebarFile)) {
+                
+                if ($roleDir === 'super-admin' && file_exists($sidebarFile)) {
                     require_once $sidebarFile;
                 }
 
@@ -659,6 +549,30 @@ Route::any('/api/teacher/payments', function() {
 // Guardian Portal API Routes
 Route::any('/api/guardian/dashboard', function() {
     require_once app_path('Http/Controllers/Guardian/dashboard.php');
+});
+
+Route::any('/api/guardian/attendance', function() {
+    require_once app_path('Http/Controllers/Guardian/attendance.php');
+});
+
+Route::any('/api/guardian/exams', function() {
+    require_once app_path('Http/Controllers/Guardian/exams.php');
+});
+
+Route::any('/api/guardian/fees', function() {
+    require_once app_path('Http/Controllers/Guardian/fees.php');
+});
+
+Route::any('/api/guardian/contact', function() {
+    require_once app_path('Http/Controllers/Guardian/contact.php');
+});
+
+Route::any('/api/guardian/homework', function() {
+    require_once app_path('Http/Controllers/Guardian/homework.php');
+});
+
+Route::any('/api/guardian/notices', function() {
+    require_once app_path('Http/Controllers/Guardian/notices.php');
 });
 
 

@@ -1,55 +1,35 @@
 <?php
 namespace App\Models;
 
-class AttendanceSettings {
+use Illuminate\Database\Eloquent\Model;
+use App\Models\Traits\TenantScoped;
+
+class AttendanceSettings extends Model {
+    use TenantScoped;
+
     protected $table = 'attendance_settings';
-    private $db;
+    protected $fillable = [
+        'tenant_id', 'lock_period_hours', 'exclude_leave_from_total', 'allow_frontdesk_edit'
+    ];
     
-    public function __construct() {
-        $this->db = \DB::connection()->getPdo();
-    }
-    
-    public function getByTenant($tenantId) {
-        $stmt = $this->db->prepare("SELECT * FROM {$this->table} WHERE tenant_id = :tid LIMIT 1");
-        $stmt->execute(['tid' => $tenantId]);
-        $settings = $stmt->fetch();
-        
+    public static function getSettings() {
+        $settings = self::first();
         if (!$settings) {
-            return $this->createDefaults($tenantId);
+            return self::create([
+                'tenant_id' => $_SESSION['userData']['tenant_id'] ?? null,
+                'lock_period_hours' => 24,
+                'exclude_leave_from_total' => 1,
+                'allow_frontdesk_edit' => 0
+            ]);
         }
         return $settings;
     }
     
-    public function update($tenantId, $data) {
-        // Ensure settings exist first
-        $this->getByTenant($tenantId);
-        
-        $fields = [];
-        $params = ['tid' => $tenantId];
-        
-        foreach ($data as $key => $value) {
-            $fields[] = "$key = :$key";
-            $params[$key] = $value;
+    public static function updateSettings($data) {
+        $settings = self::getSettings();
+        if ($settings) {
+            $settings->update($data);
         }
-        $fields[] = "updated_at = NOW()";
-        
-        $stmt = $this->db->prepare("UPDATE {$this->table} SET " . implode(', ', $fields) . " WHERE tenant_id = :tid");
-        $stmt->execute($params);
-        
-        return $this->getByTenant($tenantId);
-    }
-    
-    public function createDefaults($tenantId) {
-        $stmt = $this->db->prepare("
-            INSERT INTO {$this->table} 
-            (tenant_id, lock_period_hours, exclude_leave_from_total, allow_frontdesk_edit, created_at, updated_at) 
-            VALUES (:tid, 24, 1, 0, NOW(), NOW())
-        ");
-        $stmt->execute(['tid' => $tenantId]);
-        
-        // Fetch the newly created settings
-        $stmt = $this->db->prepare("SELECT * FROM {$this->table} WHERE tenant_id = :tid LIMIT 1");
-        $stmt->execute(['tid' => $tenantId]);
-        return $stmt->fetch();
+        return $settings;
     }
 }

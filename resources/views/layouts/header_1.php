@@ -1,7 +1,4 @@
 <?php
-if (isset($_GET['partial']) && $_GET['partial'] == 'true') {
-    return;
-}
 /**
  * Hamro ERP — Super Admin Header Module
  * Refactored to match Institute Admin header structure & class names.
@@ -43,7 +40,14 @@ function getSuperAdminCSS() {
  */
 function getSuperAdminJS() {
     return [
-        'superadmin' => SUPERADMIN_JS_PATH . '/super_admin.js',
+        'sa-core'      => SUPERADMIN_JS_PATH . '/sa-core.js',
+        'sa-dash'      => SUPERADMIN_JS_PATH . '/sa-dashboard.js',
+        'sa-tenants'   => SUPERADMIN_JS_PATH . '/sa-tenants.js',
+        'sa-plans'     => SUPERADMIN_JS_PATH . '/sa-plans.js',
+        'sa-revenue'   => SUPERADMIN_JS_PATH . '/sa-revenue.js',
+        'sa-analytics' => SUPERADMIN_JS_PATH . '/sa-analytics.js',
+        'sa-support'   => SUPERADMIN_JS_PATH . '/sa-support.js',
+        'sa-system'    => SUPERADMIN_JS_PATH . '/sa-system.js',
     ];
 }
 
@@ -125,6 +129,9 @@ function renderAppConfig() {
  * Render the top header bar — mirrors institute-admin .hdr structure exactly.
  */
 function renderSuperAdminHeader() {
+    if (isset($_GET['partial']) && $_GET['partial'] == 'true') {
+        return;
+    }
     global $pageTitle;
 
     $user         = $_SESSION['userData'] ?? null;
@@ -258,6 +265,11 @@ function renderSuperAdminHeader() {
         </div>
     </header>
     <?php
+}
+?>
+<?php
+if (isset($_GET['partial']) && $_GET['partial'] == 'true') {
+    return;
 }
 ?>
 <!DOCTYPE html>

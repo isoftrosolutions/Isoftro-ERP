@@ -9,6 +9,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <?php require_once base_path('config/config.php'); ?>
+  <?= \App\Helpers\CsrfHelper::csrfMetaTag() ?>
   <?php $BASE = defined('APP_URL') ? APP_URL : '/erp'; ?>
   <link rel="stylesheet" href="<?= $BASE ?>/public/assets/css/login.css">
   <style>
@@ -126,6 +128,7 @@
   <script>
   const APP_URL = '<?= $BASE ?>';
   </script>
+  <?= \App\Helpers\CsrfHelper::csrfJsHeader() ?>
   <script src="<?= $BASE ?>/public/assets/js/login.js"></script>
 </body>
 </html>

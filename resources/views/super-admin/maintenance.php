@@ -4,7 +4,10 @@
  * Platform-wide maintenance toggle
  */
 
-require_once __DIR__ . '/../../config.php';
+// Config should already be loaded via bootstrap, but include if needed
+if (!defined('APP_NAME')) {
+    require_once __DIR__ . '/../../../config/config.php';
+}
 
 $pdo = getDBConnection();
 

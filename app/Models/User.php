@@ -1,133 +1,74 @@
-<?php
-/**
- * User Model
- * Authentication and user management
- */
-
+<?php 
 namespace App\Models;
 
-class User {
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\Traits\TenantScoped;
+
+class User extends Model {
+    use SoftDeletes, TenantScoped;
+
     protected $table = 'users';
-    protected $db;
     
-    public function __construct() {
-        if (class_exists('\Illuminate\Support\Facades\DB') && \Illuminate\Support\Facades\DB::getFacadeRoot()) {
-            $this->db = \Illuminate\Support\Facades\DB::connection()->getPdo();
-        } elseif (function_exists('getDBConnection')) {
-            $this->db = getDBConnection();
-        }
-    }
-    
+    protected $fillable = [
+        'tenant_id', 'role', 'email', 'password_hash', 'name', 'phone', 'status', 'two_fa_enabled', 'locked_until'
+    ];
+
+    protected $hidden = [
+        'password_hash', 'two_factor_secret'
+    ];
+
     /**
-     * Get all users
+     * Get all users (Eloquent version)
      */
-    public function all() {
-        $stmt = $this->db->query("SELECT * FROM {$this->table} ORDER BY created_at DESC");
-        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+    public function allUsers() {
+        return self::orderBy('created_at', 'DESC')->get()->toArray();
     }
     
     /**
-     * Find user by ID
+     * Static finder for email
      */
-    public function find($id) {
-        $stmt = $this->db->prepare("SELECT * FROM {$this->table} WHERE id = ?");
-        $stmt->execute([$id]);
-        $result = $stmt->fetch(\PDO::FETCH_ASSOC);
-        return $result ? $result : null;
+    public static function findByEmail($email) {
+        return self::where('email', $email)->first();
     }
     
     /**
-     * Find user by email
-     */
-    public function findByEmail($email) {
-        $stmt = $this->db->prepare("SELECT * FROM {$this->table} WHERE email = ?");
-        $stmt->execute([$email]);
-        $result = $stmt->fetch(\PDO::FETCH_ASSOC);
-        return $result ? $result : null;
-    }
-    
-    /**
-     * Create new user
+     * Create new user (Eloquent version)
      */
     public function create($data) {
-        $query = "INSERT INTO {$this->table} (tenant_id, role, email, password_hash, name, phone, status, two_fa_enabled) 
-                  VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-        $stmt = $this->db->prepare($query);
-        $stmt->execute([
-            $data['tenant_id'] ?? null,
-            $data['role'],
-            $data['email'],
-            password_hash($data['password'], PASSWORD_BCRYPT, ['cost' => 12]),
-            $data['name'],
-            $data['phone'] ?? null,
-            $data['status'] ?? 'active',
-            $data['two_fa_enabled'] ?? 0
-        ]);
-        
-        $userId = $this->db->lastInsertId();
-        // MARIADB 12 FIX: Do NOT read newly inserted row within the same transaction.
-        // Build result array from input data instead to avoid "Record has changed since last read" error.
-        return [
-            'id' => (int)$userId,
-            'tenant_id' => $data['tenant_id'] ?? null,
-            'role' => $data['role'],
-            'email' => $data['email'],
-            'name' => $data['name'],
-            'phone' => $data['phone'] ?? null,
-            'status' => $data['status'] ?? 'active',
-        ];
-    }
-    
-    /**
-     * Update user
-     */
-    public function update($id, $data) {
         if (isset($data['password'])) {
             $data['password_hash'] = password_hash($data['password'], PASSWORD_BCRYPT, ['cost' => 12]);
             unset($data['password']);
         }
         
-        $fields = [];
-        $values = [];
-        foreach($data as $key => $val) {
-            $fields[] = "$key = ?";
-            $values[] = $val;
+        $user = self::create($data);
+        return $user->toArray();
+    }
+    
+    /**
+     * Update user (Eloquent version)
+     */
+    public function update($id, $data) {
+        $user = self::find($id);
+        if (!$user) return null;
+
+        if (isset($data['password'])) {
+            $data['password_hash'] = password_hash($data['password'], PASSWORD_BCRYPT, ['cost' => 12]);
+            unset($data['password']);
         }
-        $values[] = $id;
         
-        $query = "UPDATE {$this->table} SET " . implode(', ', $fields) . " WHERE id = ?";
-        $stmt = $this->db->prepare($query);
-        $stmt->execute($values);
-        
-        return $this->find($id);
-    }
-    
-    /**
-     * Get users by role
-     */
-    public function getByRole($role) {
-        $stmt = $this->db->prepare("SELECT * FROM {$this->table} WHERE role = ? ORDER BY name");
-        $stmt->execute([$role]);
-        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
-    }
-    
-    /**
-     * Get users by tenant
-     */
-    public function getByTenant($tenantId) {
-        $stmt = $this->db->prepare("SELECT * FROM {$this->table} WHERE tenant_id = ? ORDER BY name");
-        $stmt->execute([$tenantId]);
-        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        $user->update($data);
+        return $user->toArray();
     }
     
     /**
      * Verify password
      */
     public function verifyPassword($email, $password) {
-        $user = $this->findByEmail($email);
+        $user = self::findByEmail($email);
         
-        if ($user && password_verify($password, $user['password_hash'])) {
-            return $user;
+        if ($user && password_verify($password, $user->password_hash)) {
+            return $user->toArray();
         }
         
         return null;
@@ -137,15 +78,14 @@ class User {
      * Update last login
      */
     public function updateLastLogin($id) {
-        $stmt = $this->db->prepare("UPDATE {$this->table} SET last_login_at = CURRENT_TIMESTAMP WHERE id = ?");
-        return $stmt->execute([$id]);
+        return self::where('id', $id)->update(['last_login_at' => now()]);
     }
     
     /**
      * Record Failed Login Attempt
      */
     public function recordFailedLogin($userId, $ipAddress) {
-        $stmt = $this->db->prepare("INSERT INTO failed_logins (user_id, ip_address) VALUES (?, ?)");
-        return $stmt->execute([$userId, $ipAddress]);
+        // This is handled by AuditLogger now in updated AuthController
+        return \App\Helpers\AuditLogger::log('LOGIN_FAILURE', $userId, null, ['ip' => $ipAddress]);
     }
 }

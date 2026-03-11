@@ -7,7 +7,7 @@
  * Nav classes     : .nb-btn, .nbc, .sub-menu, .sub-btn
  */
 
-const SuperAdmin = (function () {
+window.SuperAdmin = window.SuperAdmin || (function () {
   "use strict";
 
   let charts     = {};
@@ -1254,13 +1254,23 @@ function goNav(id, subId = null) {
     const defaults = {
       headers: {
         "Content-Type": "application/json",
+        "Accept": "application/json",
         "X-Requested-With": "XMLHttpRequest",
       },
       credentials: "same-origin",
     };
 
+    let fullUrl = url;
+    if (!url.includes('://')) {
+        if (url.startsWith('/')) {
+            fullUrl = (window.APP_URL || '') + url;
+        } else {
+            fullUrl = (window.APP_URL || '') + '/api/superadmin/' + url;
+        }
+    }
+    
     try {
-      const res  = await fetch(url, { ...defaults, ...options });
+      const res  = await fetch(fullUrl, { ...defaults, ...options });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "An error occurred");
       return data;
