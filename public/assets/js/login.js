@@ -50,6 +50,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const response = await fetch(baseUrl + '/api/login', {
                 method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                },
                 body: formData,
             });
 

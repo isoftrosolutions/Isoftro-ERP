@@ -66,7 +66,7 @@ class StudentService {
             if ($existingUser) {
                 $userId = $existingUser->id;
             } else {
-                $user = $this->userModel->create([
+                $user = $this->userModel->createUser([
                     'tenant_id' => $tenantId,
                     'role' => 'student',
                     'email' => $email,

@@ -210,7 +210,7 @@ function _iaRenderPage() {
     if (nav==='exams') {
         if (sub==='create-ex')    { window.renderCreateExamForm?.(); return; }
         if (sub==='schedule' || sub==='results' || !sub) { window.renderExamList?.(); return; }
-        if (sub==='qbank')        { mc.innerHTML=`<div class="pg fu"><div class="card" style="text-align:center;padding:100px 40px;"><i class="fa-solid fa-database" style="font-size:3rem;color:var(--purple);margin-bottom:20px;opacity:.5"></i><h2>Question Bank</h2><p style="color:var(--text-body);margin-top:10px">Coming in V3.1</p></div></div>`; return; }
+        if (sub==='qbank')        { if(window.renderQuestionBank) window.renderQuestionBank(); else mc.innerHTML=`<div class="pg fu"><div class="pg-loading">Loading QBank...</div></div>`; return; }
         window.renderExamList?.(); return;
     }
     if (nav==='homework') {
@@ -254,10 +254,23 @@ function _iaRenderPage() {
         if (sub==='categories') { window.renderLMSCategories?.(); return; }
         if (sub==='analytics') { window.renderLMSAnalytics?.(); return; }
     }
+    if (nav==='comms') {
+        if (sub==='email') { window.renderEmailModule?.(); return; }
+        if (sub==='msg-log') { window.renderMessageLog?.(); return; }
+    }
     if (nav==='staff-salary') {
         if (sub==='add' || sub==='edit') window.renderStaffSalaryForm?.(urlParams.get('id'));
         else window.renderStaffSalary?.();
         return;
+    }
+    if (nav==='reports') {
+        if (sub==='fee-rep') { window.renderFeeReports?.(); return; }
+        if (sub==='att-rep') { window.renderAttendanceReport?.(); return; }
+        if (sub==='ex-rep')  { window.renderExamAnalytics?.(); return; }
+        if (sub==='inq-rep') { window.renderInquiryAnalytics?.(); return; }
+        if (sub==='lms-rep') { window.renderLMSAnalytics?.(); return; }
+        if (sub==='custom')  { window.renderCustomReports?.(); return; }
+        window.renderFeeReports?.(); return;
     }
     if (nav==='auditlogs') {
         window.renderAuditLogs?.();

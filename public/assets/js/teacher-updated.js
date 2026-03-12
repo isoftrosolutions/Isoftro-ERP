@@ -152,6 +152,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (activeNav === 'dashboard') {
             renderDashboard();
+        } else if (activeNav === 'exams-qb') {
+            if (window.renderQuestionBank) window.renderQuestionBank();
+            else renderGenericPage();
         } else {
             renderGenericPage();
         }

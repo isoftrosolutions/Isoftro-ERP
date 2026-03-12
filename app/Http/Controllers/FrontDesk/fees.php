@@ -226,8 +226,9 @@ try {
             $params = ['tid' => $tenantId];
             
             if ($search) {
-                $query .= " AND (s.full_name LIKE :search OR pt.receipt_number LIKE :search)";
-                $params['search'] = "%$search%";
+                $query .= " AND (s.full_name LIKE :s1 OR pt.receipt_number LIKE :s2)";
+                $params['s1'] = "%$search%";
+                $params['s2'] = "%$search%";
             }
             
             if ($dateFrom) {
@@ -411,9 +412,23 @@ try {
             if (!$receiptNo) {
                 // Adjust params for ID search
                 $p = ['tid' => $transactionId, 'tenant' => $tenantId];
-                $stmt = $db->prepare("SELECT id, student_id, receipt_number as receipt_no FROM payment_transactions pt WHERE pt.id = :tid AND pt.tenant_id = :tenant");
+                $stmt = $db->prepare("SELECT pt.id, pt.student_id, pt.receipt_number as receipt_no, pt.amount, pt.payment_method, pt.payment_date, 
+                    s.full_name as student_name, s.email as student_email, s.roll_no,
+                    c.name as course_name, b.name as batch_name
+                FROM payment_transactions pt 
+                LEFT JOIN students s ON pt.student_id = s.id 
+                LEFT JOIN batches b ON s.batch_id = b.id
+                LEFT JOIN courses c ON b.course_id = c.id
+                WHERE pt.id = :tid AND pt.tenant_id = :tenant");
             } else {
-                $stmt = $db->prepare("SELECT pt.id, pt.student_id, pt.receipt_number as receipt_no FROM payment_transactions pt WHERE pt.receipt_number = :rno AND pt.tenant_id = :tid");
+                $stmt = $db->prepare("SELECT pt.id, pt.student_id, pt.receipt_number as receipt_no, pt.amount, pt.payment_method, pt.payment_date,
+                    s.full_name as student_name, s.email as student_email, s.roll_no,
+                    c.name as course_name, b.name as batch_name
+                FROM payment_transactions pt 
+                LEFT JOIN students s ON pt.student_id = s.id 
+                LEFT JOIN batches b ON s.batch_id = b.id
+                LEFT JOIN courses c ON b.course_id = c.id
+                WHERE pt.receipt_number = :rno AND pt.tenant_id = :tid");
             }
             
             $stmt->execute($p);
@@ -421,12 +436,21 @@ try {
 
             if (!$pay) throw new Exception("Payment record not found");
 
-            // Dispatch to Background Worker
+            // Dispatch to Background Worker with complete student and payment data
             $queue = new QueueService();
             $queue->dispatch('payment_receipt', [
                 'transaction_id' => $pay['id'],
                 'receipt_no' => $pay['receipt_no'],
-                'student_id' => $pay['student_id']
+                'student_id' => $pay['student_id'],
+                'student_name' => $pay['student_name'] ?? 'Student',
+                'student_email' => $pay['student_email'] ?? '',
+                'roll_no' => $pay['roll_no'] ?? '',
+                'course_name' => $pay['course_name'] ?? '',
+                'batch_name' => $pay['batch_name'] ?? '',
+                'amount' => $pay['amount'] ?? 0,
+                'paid_date' => !empty($pay['payment_date']) ? date('Y-m-d', strtotime($pay['payment_date'])) : date('Y-m-d'),
+                'payment_mode' => $pay['payment_method'] ?? 'cash',
+                'login_url' => (defined('APP_URL') ? APP_URL : '') . '/?page=login'
             ], $tenantId);
 
             echo json_encode([
@@ -564,12 +588,35 @@ try {
                 $transactionId = $result['transaction_id'];
                 $receiptNo = $result['receipt_no'];
 
-                // 1. Dispatch Background Job (Instant <1ms)
+                // 1. Fetch Student & Payment Details for Email dispatch
+                $stdStmt = $db->prepare("
+                    SELECT s.full_name as student_name, COALESCE(NULLIF(s.email, ''), u.email) as student_email, s.roll_no,
+                           c.name as course_name, b.name as batch_name
+                    FROM students s
+                    LEFT JOIN users u ON s.user_id = u.id
+                    LEFT JOIN batches b ON s.batch_id = b.id
+                    LEFT JOIN courses c ON b.course_id = c.id
+                    WHERE s.id = ?
+                ");
+                $stdStmt->execute([$result['fee_record']['student_id']]);
+                $stdInfo = $stdStmt->fetch(PDO::FETCH_ASSOC);
+
+                // 2. Dispatch Background Job (Standardized payload)
                 $queueService = new QueueService();
                 $jobId = $queueService->dispatch('payment_receipt', [
                     'transaction_id' => $transactionId,
                     'receipt_no' => $receiptNo,
-                    'student_id' => $result['fee_record']['student_id']
+                    'student_id' => $result['fee_record']['student_id'],
+                    'student_name' => $stdInfo['student_name'] ?? ($result['student_name'] ?? 'Student'),
+                    'student_email' => $stdInfo['student_email'] ?? '',
+                    'roll_no' => $stdInfo['roll_no'] ?? '',
+                    'course_name' => $stdInfo['course_name'] ?? '',
+                    'batch_name' => $stdInfo['batch_name'] ?? '',
+                    'amount' => $result['amount_paid'] ?? 0,
+                    'amount_due' => (float)$result['fee_record']['amount_due'] - (float)$result['fee_record']['amount_paid'],
+                    'paid_date' => date('Y-m-d'),
+                    'payment_mode' => $input['payment_method'] ?? 'cash',
+                    'login_url' => (defined('APP_URL') ? APP_URL : '') . '/?page=login'
                 ], $tenantId);
 
                 echo json_encode([
@@ -600,12 +647,35 @@ try {
                 $transactionId = $result['transaction_ids'][0] ?? null;
                 $receiptNo = $result['receipt_no'];
 
-                // 1. Dispatch Background Job (Instant <1ms)
+                // 1. Fetch Student & Payment Details for Email dispatch
+                $stdStmt = $db->prepare("
+                    SELECT s.full_name as student_name, COALESCE(NULLIF(s.email, ''), u.email) as student_email, s.roll_no,
+                           c.name as course_name, b.name as batch_name
+                    FROM students s
+                    LEFT JOIN users u ON s.user_id = u.id
+                    LEFT JOIN batches b ON s.batch_id = b.id
+                    LEFT JOIN courses c ON b.course_id = c.id
+                    WHERE s.id = ?
+                ");
+                $stdStmt->execute([$data['student_id']]);
+                $stdInfo = $stdStmt->fetch(PDO::FETCH_ASSOC);
+
+                // 2. Dispatch Background Job (Standardized payload)
                 $queueService = new QueueService();
                 $jobId = $queueService->dispatch('payment_receipt', [
                     'transaction_id' => $transactionId,
                     'receipt_no' => $receiptNo,
-                    'student_id' => $data['student_id']
+                    'student_id' => $data['student_id'],
+                    'student_name' => $stdInfo['student_name'] ?? ($result['student_name'] ?? 'Student'),
+                    'student_email' => $stdInfo['student_email'] ?? '',
+                    'roll_no' => $stdInfo['roll_no'] ?? '',
+                    'course_name' => $stdInfo['course_name'] ?? '',
+                    'batch_name' => $stdInfo['batch_name'] ?? '',
+                    'amount' => $result['amount_paid'] ?? 0,
+                    'amount_due' => 0, // In bulk, we assume partials aren't tracked at dispatch top level currently
+                    'paid_date' => date('Y-m-d'),
+                    'payment_mode' => $data['payment_method'] ?? 'cash',
+                    'login_url' => (defined('APP_URL') ? APP_URL : '') . '/?page=login'
                 ], $tenantId);
 
                 echo json_encode([
@@ -690,10 +760,33 @@ try {
 
             if ($resendEmail) {
                 $queue = new QueueService();
+                // Fetch complete student and payment details
+                $stdStmt = $db->prepare("
+                    SELECT s.full_name as student_name, COALESCE(NULLIF(s.email, ''), u.email) as student_email, s.roll_no,
+                           c.name as course_name, b.name as batch_name
+                    FROM students s
+                    LEFT JOIN users u ON s.user_id = u.id
+                    LEFT JOIN batches b ON s.batch_id = b.id
+                    LEFT JOIN courses c ON b.course_id = c.id
+                    WHERE s.id = :sid
+                ");
+                $stdStmt->execute(['sid' => $txn['student_id']]);
+                $studentInfo = $stdStmt->fetch(PDO::FETCH_ASSOC);
+
                 $queue->dispatch('payment_receipt', [
                     'transaction_id' => $transactionId,
                     'receipt_no' => $txn['receipt_number'],
-                    'student_id' => $txn['student_id']
+                    'student_id' => $txn['student_id'],
+                    'student_name' => $studentInfo['student_name'] ?? 'Student',
+                    'student_email' => $studentInfo['student_email'] ?? '',
+                    'roll_no' => $studentInfo['roll_no'] ?? '',
+                    'course_name' => $studentInfo['course_name'] ?? '',
+                    'batch_name' => $studentInfo['batch_name'] ?? '',
+                    'amount' => $amountPaid,
+                    'amount_due' => floatval($feeRecord['amount_due']) + floatval($feeRecord['fine_applied']) - ($newAmountPaidTotal),
+                    'paid_date' => $paidDate,
+                    'payment_mode' => $paymentMode,
+                    'login_url' => (defined('APP_URL') ? APP_URL : '') . '/?page=login'
                 ], $tenantId);
             }
 

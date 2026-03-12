@@ -210,7 +210,7 @@ function _iaRenderPage() {
     if (nav==='exams') {
         if (sub==='create-ex')    { window.renderCreateExamForm?.(); return; }
         if (sub==='schedule' || sub==='results' || !sub) { window.renderExamList?.(); return; }
-        if (sub==='qbank')        { mc.innerHTML=`<div class="pg fu"><div class="card" style="text-align:center;padding:100px 40px;"><i class="fa-solid fa-database" style="font-size:3rem;color:var(--purple);margin-bottom:20px;opacity:.5"></i><h2>Question Bank</h2><p style="color:var(--text-body);margin-top:10px">Coming in V3.1</p></div></div>`; return; }
+        if (sub==='qbank')        { mc.innerHTML=`<div class="pg fu"><div class="card" style="text-align:center;padding:100px 40px;"><i class="fa-solid fa-database" style="font-size:3rem;color:var(--purple);margin-bottom:20px;opacity:.5"></i><h2>Question Bank</h2><p style="color:var(--text-body);margin-top:10px;font-size:16px;">Coming in <b>V3.1</b></p><p style="color:var(--text-body);margin-top:15px;font-size:14px;max-width:500px;margin-left:auto;margin-right:auto;line-height:1.6;background:var(--bg-light);padding:15px;border-radius:8px;">This module can be viewed by <b>Teachers</b> and <b>Students</b>.<br><b>Teachers</b>, <b>Admins</b>, or <b>Front Desk</b> staff can upload questions (all kinds of documents supported).</p></div></div>`; return; }
         window.renderExamList?.(); return;
     }
     if (nav==='homework') {

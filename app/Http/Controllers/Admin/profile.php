@@ -131,6 +131,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                 $logoPath = $stmtLogo->fetchColumn();
             }
 
+            if ($logoPath) {
+                $_SESSION['institute_logo'] = $logoPath;
+                $_SESSION['tenant_logo'] = $logoPath;
+            }
+
             echo json_encode([
                 'success' => true, 
                 'message' => 'Institute profile updated',

@@ -87,7 +87,7 @@ class DashboardCacheService {
         // 2. Pending Dues
         $stmt = $db->prepare("
             SELECT 
-                COALESCE(SUM(due_amount), 0) as total_dues,
+                COALESCE(SUM(CASE WHEN due_amount > 0 THEN due_amount ELSE 0 END), 0) as total_dues,
                 COUNT(CASE WHEN due_amount > 0 THEN 1 END) as student_count
             FROM student_fee_summary 
             WHERE tenant_id = :tid

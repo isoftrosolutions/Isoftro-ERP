@@ -15,7 +15,7 @@ window.renderInstituteProfile = async function() {
             </div>
             
             <div id="profileLoadingSpinner" style="text-align:center;padding:100px;"><i class="fa-solid fa-circle-notch fa-spin" style="font-size:3rem;color:var(--teal)"></i><p style="margin-top:15px;color:var(--tl)">Fetching organization data...</p></div>
-            <!-- ... rest of the form ... -->
+            <form id="instituteProfileForm" style="display:none;">
                 <div style="display:grid;grid-template-columns:350px 1fr;gap:30px;align-items:start;">
                     <!-- LEFT COLUMN: Branding & Logo -->
                     <div style="display:grid;gap:25px;">
@@ -123,7 +123,8 @@ window.renderInstituteProfile = async function() {
     }
 
     await _loadInstituteProfile();
-    document.getElementById('instituteProfileForm').onsubmit = _saveInstituteProfile;
+    const form = document.getElementById('instituteProfileForm');
+    if (form) form.onsubmit = _saveInstituteProfile;
 };
 
 async function _loadInstituteProfile() {
@@ -156,8 +157,10 @@ async function _loadInstituteProfile() {
         }
     } catch(e) { console.warn('Profile load error',e); }
     finally {
-        document.getElementById('profileLoadingSpinner').style.display='none';
-        document.getElementById('instituteProfileForm').style.display='block';
+        const spinner = document.getElementById('profileLoadingSpinner');
+        const form = document.getElementById('instituteProfileForm');
+        if (spinner) spinner.style.display = 'none';
+        if (form) form.style.display = 'block';
     }
 }
 
@@ -289,10 +292,10 @@ window.renderEmailSettings = async function() {
         </div>
     </div>`;
 
-    await _loadEmailSettings();
-
     const form = document.getElementById('emailSettingsForm');
-    form.onsubmit = _saveEmailSettings;
+    if (form) form.onsubmit = _saveEmailSettings;
+
+    await _loadEmailSettings();
 
     // Live preview sync
     const nameInput    = document.getElementById('emSenderName');
@@ -304,21 +307,24 @@ window.renderEmailSettings = async function() {
     const track        = document.getElementById('emToggleTrack');
     const thumb        = document.getElementById('emToggleThumb');
 
-    const syncToggle = () => {
-        track.style.background = toggle.checked ? '#4F46E5' : '#e2e8f0';
-        thumb.style.left       = toggle.checked ? '25px'   : '3px';
-    };
-    toggle.addEventListener('change', syncToggle);
-    syncToggle();
+    if (nameInput && replyInput) {
+        const syncToggle = () => {
+            if (!track || !thumb) return;
+            track.style.background = toggle.checked ? '#4F46E5' : '#e2e8f0';
+            thumb.style.left       = toggle.checked ? '25px'   : '3px';
+        };
+        toggle.addEventListener('change', syncToggle);
+        syncToggle();
 
-    nameInput.addEventListener('input', () => {
-        const v = nameInput.value || 'Your Institute Name';
-        pvFrom.textContent    = v;
-        pvSubjInst.textContent = v;
-    });
-    replyInput.addEventListener('input', () => {
-        pvReply.textContent = replyInput.value || '—';
-    });
+        nameInput.addEventListener('input', () => {
+            const v = nameInput.value || 'Your Institute Name';
+            if (pvFrom) pvFrom.textContent = v;
+            if (pvSubjInst) pvSubjInst.textContent = v;
+        });
+        replyInput.addEventListener('input', () => {
+            if (pvReply) pvReply.textContent = replyInput.value || '—';
+        });
+    }
 };
 
 async function _loadEmailSettings() {
@@ -332,9 +338,16 @@ async function _loadEmailSettings() {
             const ac = document.getElementById('emActive');
             const track = document.getElementById('emToggleTrack');
             const thumb = document.getElementById('emToggleThumb');
+            
             if (sn) sn.value = e.sender_name || e.from_name || '';
             if (rt) rt.value = e.reply_to_email || e.from_email || '';
-            if (ac) { ac.checked = e.is_active == 1; track.style.background = ac.checked ? '#4F46E5' : '#e2e8f0'; thumb.style.left = ac.checked ? '25px' : '3px'; }
+            if (ac) { 
+                ac.checked = e.is_active == 1; 
+                if (track && thumb) {
+                    track.style.background = ac.checked ? '#4F46E5' : '#e2e8f0'; 
+                    thumb.style.left = ac.checked ? '25px' : '3px'; 
+                }
+            }
             // Sync preview
             const pv = document.getElementById('pvFromName');
             const pr = document.getElementById('pvReplyTo');
@@ -345,18 +358,24 @@ async function _loadEmailSettings() {
         }
     } catch(err) { console.warn('Email config load failed', err); }
     finally {
-        document.getElementById('emailFormLoading').style.display = 'none';
-        document.getElementById('emailSettingsForm').style.display = 'block';
+        const loader = document.getElementById('emailFormLoading');
+        const form = document.getElementById('emailSettingsForm');
+        if (loader) loader.style.display = 'none';
+        if (form) form.style.display = 'block';
     }
 }
 
 async function _saveEmailSettings(ev) {
     ev.preventDefault();
-    const btn = ev.target.querySelector('button[type="submit"]');
+    const form = ev.target;
+    const btn = form.querySelector('button[type="submit"]');
+    if (!btn) return;
     const orig = btn.innerHTML;
-    btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Saving...';
+    
+    btn.disabled = true; 
+    btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Saving...';
 
-    const fd = new FormData(ev.target);
+    const fd = new FormData(form);
     if (!fd.has('is_active')) fd.append('is_active', '0');
 
     try {
@@ -405,69 +424,7 @@ window.testEmailSend = async function() {
     }
 };
 
-async function _loadEmailSettings() {
-    try {
-        const res = await fetch(APP_URL + '/api/admin/email-settings');
-        const data = await res.json();
-        if (data.success && data.data) {
-            const e = data.data;
-            document.getElementById('emHost').value = e.smtp_host || '';
-            document.getElementById('emPort').value = e.smtp_port || 587;
-            document.getElementById('emEnc').value = e.smtp_encryption || 'tls';
-            document.getElementById('emUser').value = e.smtp_user || '';
-            document.getElementById('emPass').value = e.smtp_pass || '';
-            document.getElementById('emFrom').value = e.from_email || '';
-            document.getElementById('emFromName').value = e.from_name || '';
-            document.getElementById('emActive').checked = e.is_active == 1;
-        }
-    } catch(err) { console.warn('Email config load failed', err); }
-    finally {
-        document.getElementById('emailFormLoading').style.display = 'none';
-        document.getElementById('emailSettingsForm').style.display = 'block';
-    }
-}
 
-async function _saveEmailSettings(ev) {
-    ev.preventDefault();
-    const btn = ev.target.querySelector('button[type="submit"]');
-    const orig = btn.innerHTML;
-    btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Saving...';
-    
-    const fd = new FormData(ev.target);
-    if (!fd.has('is_active')) fd.append('is_active', '0');
-
-    try {
-        const res = await fetch(APP_URL + '/api/admin/email-settings', { method: 'POST', body: fd });
-        const result = await res.json();
-        if (result.success) Swal.fire('Updated!', 'Email settings saved successfully.', 'success');
-        else throw new Error(result.message);
-    } catch(e) { Swal.fire('Error', e.message, 'error'); }
-    finally { btn.disabled = false; btn.innerHTML = orig; }
-}
-
-window.testEmailConnection = async function() {
-    const { value: testEmail } = await Swal.fire({
-        title: 'Test SMTP Connection',
-        input: 'email',
-        inputLabel: 'Enter email to send test message to',
-        inputPlaceholder: 'someone@example.com',
-        showCancelButton: true,
-        confirmButtonText: 'Send Test Email',
-        confirmButtonColor: 'var(--teal)'
-    });
-
-    if (testEmail) {
-        Swal.fire({ title: 'Testing...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
-        try {
-            const fd = new FormData(document.getElementById('emailSettingsForm'));
-            fd.append('test_email', testEmail);
-            const res = await fetch(APP_URL + '/api/admin/email-settings/test', { method: 'POST', body: fd });
-            const result = await res.json();
-            if (result.success) Swal.fire('Success!', 'Test email sent successfully. Please check your inbox.', 'success');
-            else throw new Error(result.message);
-        } catch(e) { Swal.fire('Connection Failed', e.message, 'error'); }
-    }
-};
 
 /* ══════════════════════════════════════════════════════════════════
    MY PROFILE (USER)

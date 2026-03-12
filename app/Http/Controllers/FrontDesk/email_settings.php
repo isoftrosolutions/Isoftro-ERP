@@ -140,22 +140,34 @@ try {
     echo json_encode(['success' => false, 'message' => $e->getMessage()]);
 }
 
-// ── DB auto-migration: add new columns if missing ─────────────
+// ── DB auto-migration: create table and add columns ───────────
 function self_migrate(PDO $db): void {
-    try {
-        $db->query("SELECT sender_name FROM tenant_email_settings LIMIT 1");
-    } catch (\Throwable $e) {
-        // Column missing — add it
+    // 1. Create table if missing
+    $db->exec("CREATE TABLE IF NOT EXISTS tenant_email_settings (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        tenant_id INT NOT NULL,
+        sender_name VARCHAR(255) NULL,
+        reply_to_email VARCHAR(255) NULL,
+        from_name VARCHAR(255) NULL,
+        from_email VARCHAR(255) NULL,
+        is_active TINYINT(1) DEFAULT 1,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        UNIQUE KEY unique_tenant (tenant_id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+
+    // 2. Backwards compatibility: add columns if table existed but was old
+    $columns = [
+        'sender_name'    => 'ALTER TABLE tenant_email_settings ADD COLUMN sender_name VARCHAR(255) NULL AFTER from_name',
+        'reply_to_email' => 'ALTER TABLE tenant_email_settings ADD COLUMN reply_to_email VARCHAR(255) NULL AFTER sender_name'
+    ];
+
+    foreach ($columns as $col => $sql) {
         try {
-            $db->exec("ALTER TABLE tenant_email_settings ADD COLUMN sender_name VARCHAR(255) NULL AFTER from_name");
-        } catch (\Throwable $ex) {}
-    }
-    try {
-        $db->query("SELECT reply_to_email FROM tenant_email_settings LIMIT 1");
-    } catch (\Throwable $e) {
-        try {
-            $db->exec("ALTER TABLE tenant_email_settings ADD COLUMN reply_to_email VARCHAR(255) NULL AFTER sender_name");
-        } catch (\Throwable $ex) {}
+            $db->query("SELECT $col FROM tenant_email_settings LIMIT 1");
+        } catch (\Throwable $e) {
+            try { $db->exec($sql); } catch (\Throwable $ex) {}
+        }
     }
 }
 

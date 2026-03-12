@@ -31,7 +31,9 @@ class AuthController {
         $password = $_POST['password'] ?? '';
         $otp = $_POST['otp'] ?? null;
         $remember = $_POST['remember'] ?? '';
-        $isApi = isset($_GET['api']) || php_sapi_name() === 'api';
+        $isApi = isset($_GET['api']) || php_sapi_name() === 'api' || 
+                 (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest') ||
+                 (isset($_SERVER['HTTP_ACCEPT']) && strpos($_SERVER['HTTP_ACCEPT'], 'application/json') !== false);
         
         // Validate input
         if (empty($email) || empty($password)) {

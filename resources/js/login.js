@@ -153,8 +153,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
-            const response = await fetch('api/login.php', {
+            const response = await fetch('api/login', {
                 method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                },
                 body: formData
             });
 

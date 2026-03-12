@@ -196,44 +196,44 @@ window.SuperAdmin = window.SuperAdmin || (function () {
     }
   }
 
+  function processPartialHtml(html, container) {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+    const incomingMain = doc.querySelector('main#mainContent') || doc.querySelector('main');
+    
+    container.innerHTML = incomingMain ? incomingMain.innerHTML : html;
+    
+    // Search and execute scripts in the newly loaded HTML
+    const scripts = container.querySelectorAll("script");
+    scripts.forEach(oldScript => {
+        const newScript = document.createElement("script");
+        Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+        if (oldScript.src) {
+            newScript.src = oldScript.src;
+        } else {
+            newScript.textContent = oldScript.textContent;
+        }
+        // Ensure scripts are truly global by appending to body or head instead of inner container if needed,
+        // but replacing in-place is usually fine for side-effects.
+        oldScript.parentNode.replaceChild(newScript, oldScript);
+    });
+    initCharts();
+  }
+
   function fetchAndRender(pagePath) {
     const mainContent = document.getElementById('mainContent');
     if (!mainContent) return;
     
-    // Ensure absolute URL
     let fullUrl = pagePath;
     if (!pagePath.includes('://')) {
         fullUrl = pagePath.startsWith('/') ? (window.APP_URL || '') + pagePath : (window.APP_URL || '') + '/' + pagePath;
     }
     
-    // Append partial=true
     fullUrl += (fullUrl.includes('?') ? '&' : '?') + 'partial=true';
     
     fetch(fullUrl)
       .then(response => response.text())
-      .then(html => {
-        // If the HTML contains a <main id="mainContent">, extract its inner content to avoid nesting
-        let cleanHtml = html;
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, 'text/html');
-        const incomingMain = doc.querySelector('main#mainContent') || doc.querySelector('main');
-        
-        if (incomingMain) {
-            cleanHtml = incomingMain.innerHTML;
-        }
-
-        mainContent.innerHTML = cleanHtml;
-        
-        // Search and execute scripts in the newly loaded HTML
-        const scripts = mainContent.querySelectorAll("script");
-        scripts.forEach(oldScript => {
-            const newScript = document.createElement("script");
-            Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
-            newScript.appendChild(document.createTextNode(oldScript.innerHTML));
-            oldScript.parentNode.replaceChild(newScript, oldScript);
-        });
-        initCharts();
-      })
+      .then(html => processPartialHtml(html, mainContent))
       .catch(err => {
         console.error('Error loading page:', err);
         mainContent.innerHTML = '<div class="pg fu"><p>Error loading page</p></div>';
@@ -242,21 +242,14 @@ window.SuperAdmin = window.SuperAdmin || (function () {
 
   function fetchGenericPage(page) {
     const mainContent = document.getElementById('mainContent');
-    // Remove .php extension as it's a route
+    if (!mainContent) return;
+
     let pageUrl = (window.APP_URL || '') + '/pages/super_admin/' + page.replace('.php', '');
     pageUrl += (pageUrl.includes('?') ? '&' : '?') + 'partial=true';
     
     fetch(pageUrl)
       .then(res => res.text())
-      .then(html => {
-        // Extract inner content if nested
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, 'text/html');
-        const incomingMain = doc.querySelector('main#mainContent') || doc.querySelector('main');
-        mainContent.innerHTML = incomingMain ? incomingMain.innerHTML : html;
-
-        initCharts();
-      })
+      .then(html => processPartialHtml(html, mainContent))
       .catch(err => {
         console.error("[SuperAdmin] Error loading page:", err);
         mainContent.innerHTML = `<div class="pg fu"><div class="card">Error loading page ${page}</div></div>`;

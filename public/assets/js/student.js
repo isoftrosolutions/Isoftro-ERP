@@ -57,6 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         { id: "exams", icon: "fa-trophy", label: "Exams & Mock Tests", sub: [
             { id: "avail",     l: "Available Exams",        nav: "exams", sub: "avail"     },
+            { id: "qbank",     l: "Question Bank",          nav: "exams", sub: "qbank"     },
             { id: "results",   l: "My Results",             nav: "exams", sub: "results"   },
             { id: "analytics", l: "Performance Analytics",  nav: "exams", sub: "analytics" },
             { id: "leader",    l: "Leaderboard",            nav: "exams", sub: "leader"    }
@@ -612,6 +613,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Exams
         if (activeNav === 'exams') {
             if (activeSub === 'avail') { renderExamsAvailable(); return; }
+            if (activeSub === 'qbank') { if(window.renderSTQBank) window.renderSTQBank(); return; }
             if (activeSub === 'results') { renderExamsResults(); return; }
             if (activeSub === 'analytics') { renderExamsAnalytics(); return; }
             if (activeSub === 'leader') { renderExamsLeaderboard(); return; }

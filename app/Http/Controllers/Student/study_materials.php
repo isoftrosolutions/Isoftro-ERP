@@ -20,7 +20,7 @@ if (!isLoggedIn()) {
 }
 
 $role = $_SESSION['userData']['role'] ?? '';
-if (!in_array($role, ['student', 'instituteadmin', 'superadmin'])) {
+if (!in_array($role, ['student', 'instituteadmin', 'superadmin', 'teacher', 'frontdesk'])) {
     echo json_encode(['success' => false, 'message' => 'Forbidden']);
     exit;
 }
@@ -125,6 +125,11 @@ try {
                 $params['search'] = '%' . $_GET['search'] . '%';
                 $params['search_tag'] = $_GET['search'];
             }
+
+            // FILTER: QBank status
+            $isQB = isset($_GET['is_qbank']) ? (int)$_GET['is_qbank'] : 0;
+            $where[] = "sm.is_qbank = :is_qbank";
+            $params['is_qbank'] = $isQB;
             
             $whereClause = implode(' AND ', $where);
             
@@ -324,16 +329,19 @@ try {
             $db->prepare("UPDATE study_materials SET download_count = download_count + 1 WHERE id = :id")
                 ->execute(['id' => $id]);
             
-            // Return file info for download
-            echo json_encode([
-                'success' => true,
-                'type' => 'file',
-                'file_name' => $material['file_name'],
-                'file_path' => $material['file_path'],
-                'file_type' => $material['file_type'],
-                'download_url' => APP_URL . '/' . $material['file_path']
-            ]);
-            break;
+            // Serve file directly
+            header('Content-Type: ' . ($material['file_type'] ?? 'application/octet-stream'));
+            header('Content-Disposition: attachment; filename="' . ($material['file_name'] ?? basename($material['file_path'])) . '"');
+            header('Expires: 0');
+            header('Cache-Control: must-revalidate');
+            header('Pragma: public');
+            header('Content-Length: ' . filesize($material['file_path']));
+            
+            // Clear output buffer if any
+            if (ob_get_level()) ob_end_clean();
+            
+            readfile($material['file_path']);
+            exit;
             
         case 'categories':
             // Get categories with material counts

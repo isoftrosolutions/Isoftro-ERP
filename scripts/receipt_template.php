@@ -393,17 +393,6 @@ $autoDownload = isset($isDownload) ? (bool)$isDownload : true;
     <p style="margin-top:14px; font-weight:600; color:#555;">Generating PDF…</p>
 </div>
 
-<?php if (empty($r['is_email'])): ?>
-<!-- ── Toolbar ─────────────────────────────────────────────────────── -->
-<div class="toolbar no-print">
-    <a href="?action=generate_receipt_html&is_pdf=1&<?= !empty($r['transaction_id']) ? 'transaction_id='.$r['transaction_id'] : 'receipt_no='.$recNo ?>" class="btn-pdf">
-        ⬇ Download PDF
-    </a>
-    <button class="btn-print" onclick="window.print()">🖨 Print</button>
-    <button class="btn-back" onclick="window.close(); window.history.back();">← Back</button>
-</div>
-<?php endif; ?>
-
 <!-- ── Main Printable Receipt ──────────────────────────────────────── -->
 <div class="page-wrapper" id="printable">
 

@@ -243,8 +243,15 @@ class RoleMiddleware {
      * Redirect to unauthorized page
      */
     private static function unauthorized($message) {
+        // Check if this is an API (JSON) request
+        $isApi = isset($_SERVER['HTTP_ACCEPT']) && strpos($_SERVER['HTTP_ACCEPT'], 'application/json') !== false;
+        if ($isApi) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'message' => $message, 'code' => 401]);
+            exit();
+        }
         $_SESSION['error'] = $message;
-        header('Location: ' . APP_URL . '/login.php');
+        header('Location: ' . (defined('APP_URL') ? APP_URL : '') . '/auth/login');
         exit();
     }
     
@@ -252,8 +259,18 @@ class RoleMiddleware {
      * Redirect to forbidden page
      */
     private static function forbidden($message) {
+        $isApi = isset($_SERVER['HTTP_ACCEPT']) && strpos($_SERVER['HTTP_ACCEPT'], 'application/json') !== false;
+        if ($isApi) {
+            header('Content-Type: application/json');
+            http_response_code(403);
+            echo json_encode(['success' => false, 'message' => $message, 'code' => 403]);
+            exit();
+        }
+        http_response_code(403);
         $_SESSION['error'] = $message;
-        header('Location: ' . APP_URL . '/error/403.php');
+        // Redirect back or to dashboard
+        $dashUrl = (defined('APP_URL') ? APP_URL : '') . '/auth/login';
+        header('Location: ' . $dashUrl);
         exit();
     }
 }

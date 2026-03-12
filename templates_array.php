@@ -1,8 +1,28 @@
 <?php
         return [
             'student_registration_success' => [
-                'subject' => 'Welcome to {{institute_name}} - Registration Successful! 🎓',
-                'body' => '<div style="font-family:sans-serif;color:#333;"><p>Dear {{student_name}},</p><p>Congratulations! Your registration at {{institute_name}} has been completed successfully.</p><p>✅ REGISTRATION DETAILS:<br>• Roll Number: {{roll_no}}<br>• Course: {{course_name}}<br>• Batch: {{batch_name}} ({{batch_shift}} Shift)<br>• Admission Date: {{admission_date}}</p><p>🔐 LOGIN CREDENTIALS:<br>• Portal: {{login_url}}<br>• Username: {{student_email}}<br>• Temporary Password: {{temp_password}}</p><p>⚠️ IMPORTANT: Please change your password immediately after first login for security purposes.</p><p>5. Access study materials and announcements</p><p>If you face any login issues or have questions, please contact our support team at {{institute_phone}} or reply to this email.</p><p>We\'re excited to have you join us!</p><p>Best regards,<br>Admissions Team<br>{{institute_name}}<br>{{institute_phone}} | {{institute_email}}</p></div>'
+                'subject' => 'Registration Successful - {{institute_name}}! 🎓',
+                'body' => '<div style="font-family:\'Plus Jakarta Sans\',\'Helvetica Neue\',sans-serif;max-width:600px;margin:20px auto;padding:40px;border:1px solid #eef2f6;border-radius:24px;color:#2d3436;background:#ffffff;box-shadow:0 10px 30px rgba(0,0,0,0.02);">
+                    <div style="text-align:center;margin-bottom:32px;">
+                        <h2 style="color:#009E7E;font-size:28px;font-weight:800;margin:0;letter-spacing:-0.5px;">Registeration successful</h2>
+                    </div>
+                    
+                    <p style="font-size:16px;margin-bottom:24px;line-height:1.6;">Hello , <strong style="color:#111;">{{student_name}} ji</strong></p>
+                    
+                    <p style="font-size:15px;margin-bottom:28px;line-height:1.6;color:#636e72;">You are successfully enrolled in the batch for <span style="color:#2d3436;font-weight:600;">{{course_name}}</span> .</p>
+                    
+                    <div style="background:#f8fafc;padding:24px;border-radius:16px;margin-bottom:32px;border:1px solid #f1f5f9;">
+                        <h3 style="font-size:14px;text-transform:uppercase;letter-spacing:1px;color:#94a3b8;margin-top:0;margin-bottom:16px;">Login details</h3>
+                        <p style="margin:8px 0;font-size:14px;"><strong>portal :-</strong> <a href="{{login_url}}" style="color:#009E7E;text-decoration:none;">{{login_url}}</a></p>
+                        <p style="margin:8px 0;font-size:14px;"><strong>Username :-</strong> {{student_email}}</p>
+                        <p style="margin:8px 0;font-size:14px;"><strong>password :-</strong> {{temp_password}}</p>
+                    </div>
+
+                    <div style="text-align:right;margin-top:40px;">
+                        <p style="margin:0;font-size:16px;color:#2d3436;">Best wishes</p>
+                        <p style="margin:4px 0 0;font-size:18px;font-weight:800;color:#009E7E;">{{institute_name}}</p>
+                    </div>
+                </div>'
             ],
             'student_account_verification' => [
                 'subject' => 'Verify Your Email - {{institute_name}}',
@@ -22,12 +42,54 @@
                 'body' => '<div style="font-family:sans-serif;color:#333;"><p>Dear {{student_name}},</p><p>Your password has been changed successfully on {{current_date}}.</p><p>If you made this change, no further action is required.</p><p>⚠️ If you did NOT change your password:<br>1. Reset your password immediately: {{login_url}}<br>2. Contact our security team at {{institute_phone}}</p><p>Security Reminder:<br>• Never share your password<br>• Use a unique password for your student account<br>• Enable two-factor authentication if available</p><p>Stay secure!</p><p>{{institute_name}}<br>Security Team</p></div>'
             ],
             'payment_success_full' => [
-                'subject' => 'Payment Received - Receipt #{{receipt_no}}',
-                'body' => '<div style="font-family:sans-serif;color:#333;"><p>Dear {{student_name}},</p><p>✅ PAYMENT RECEIVED SUCCESSFULLY</p><p>Thank you! Your payment has been processed successfully.</p><p>📄 RECEIPT DETAILS:<br>• Receipt Number: {{receipt_no}}<br>• Date: {{paid_date}}<br>• Amount Paid: NPR {{amount}}<br>• Payment Method: {{payment_mode}}<br>• Transaction ID: {{transaction_id}}</p><p>📚 COURSE DETAILS:<br>• Course: {{course_name}}<br>• Roll Number: {{roll_no}}<br>• Installment: {{installment_no}}</p><p>💰 PAYMENT SUMMARY:<br>• Total Fee: NPR {{amount_due}}<br>• Amount Paid: NPR {{amount_paid}}<br>• Balance: NPR 0.00<br>• Status: PAID IN FULL ✓</p><p>You can download your official receipt from the student portal: {{login_url}}</p><p>This email serves as payment acknowledgment. Please retain this for your records.</p><p>For any queries regarding this payment, contact our accounts department at {{institute_phone}}.</p><p>Thank you for your prompt payment!</p><p>Accounts Department<br>{{institute_name}}<br>{{institute_email}} | {{institute_phone}}</p></div>'
+                'subject' => 'Payment Successful - Receipt #{{receipt_no}}',
+                'body' => '<div style="font-family:\'Plus Jakarta Sans\',\'Helvetica Neue\',sans-serif;max-width:600px;margin:20px auto;padding:40px;border:1px solid #eef2f6;border-radius:24px;color:#2d3436;background:#ffffff;box-shadow:0 10px 30px rgba(0,0,0,0.02);">
+                    <div style="text-align:center;margin-bottom:32px;">
+                        <h2 style="color:#009E7E;font-size:28px;font-weight:800;margin:0;letter-spacing:-0.5px;">Payment successful</h2>
+                    </div>
+                    
+                    <p style="font-size:16px;margin-bottom:24px;line-height:1.6;">Hello , <strong style="color:#111;">{{student_name}} ji</strong></p>
+                    
+                    <p style="font-size:15px;margin-bottom:28px;line-height:1.6;color:#636e72;">Your payment for <span style="color:#2d3436;font-weight:600;">{{course_name}}</span> has been received successfully.</p>
+                    
+                    <div style="background:#f8fafc;padding:24px;border-radius:16px;margin-bottom:32px;border:1px solid #f1f5f9;">
+                        <h3 style="font-size:14px;text-transform:uppercase;letter-spacing:1px;color:#94a3b8;margin-top:0;margin-bottom:16px;">Receipt details</h3>
+                        <p style="margin:8px 0;font-size:14px;"><strong>Date :-</strong> {{paid_date}}</p>
+                        <p style="margin:8px 0;font-size:14px;"><strong>Amount :-</strong> NPR {{amount}}</p>
+                        <p style="margin:8px 0;font-size:14px;"><strong>Receipt No :-</strong> {{receipt_no}}</p>
+                        <p style="margin:8px 0;font-size:14px;"><strong>portal :-</strong> <a href="{{login_url}}" style="color:#009E7E;text-decoration:none;">{{login_url}}</a></p>
+                    </div>
+
+                    <div style="text-align:right;margin-top:40px;">
+                        <p style="margin:0;font-size:16px;color:#2d3436;">Best wishes</p>
+                        <p style="margin:4px 0 0;font-size:18px;font-weight:800;color:#009E7E;">{{institute_name}}</p>
+                    </div>
+                </div>'
             ],
             'payment_success_partial' => [
                 'subject' => 'Partial Payment Received - Receipt #{{receipt_no}}',
-                'body' => '<div style="font-family:sans-serif;color:#333;"><p>Dear {{student_name}},</p><p>✅ PARTIAL PAYMENT RECEIVED</p><p>Thank you for your payment. We have received your partial payment successfully.</p><p>📄 RECEIPT DETAILS:<br>• Receipt Number: {{receipt_no}}<br>• Date: {{paid_date}}<br>• Amount Paid: NPR {{amount}}<br>• Payment Method: {{payment_mode}}<br>• Transaction ID: {{transaction_id}}</p><p>💰 OUTSTANDING BALANCE:<br>• Total Fee Due: NPR {{amount_due}}<br>• Amount Paid to Date: NPR {{amount_paid}}<br>• Remaining Balance: NPR [amount_due - amount_paid]<br>• Next Due Date: {{due_date}}</p><p>📚 COURSE DETAILS:<br>• Course: {{course_name}}<br>• Roll Number: {{roll_no}}<br>• Installment: {{installment_no}}</p><p>⚠️ IMPORTANT:<br>Please clear the remaining balance before {{due_date}} to avoid late fines and ensure uninterrupted access to classes and exams.</p><p>You can make the next payment:<br>• Online: {{login_url}}<br>• At Institute: Visit our accounts office<br>• Payment Methods: Cash, eSewa, Khalti, Bank Transfer</p><p>Download receipt: {{login_url}}</p><p>For payment assistance, contact {{institute_phone}}.</p><p>Thank you!</p><p>Accounts Department<br>{{institute_name}}</p></div>'
+                'body' => '<div style="font-family:\'Plus Jakarta Sans\',\'Helvetica Neue\',sans-serif;max-width:600px;margin:20px auto;padding:40px;border:1px solid #eef2f6;border-radius:24px;color:#2d3436;background:#ffffff;box-shadow:0 10px 30px rgba(0,0,0,0.02);">
+                    <div style="text-align:center;margin-bottom:32px;">
+                        <h2 style="color:#009E7E;font-size:28px;font-weight:800;margin:0;letter-spacing:-0.5px;">Payment successful (Partial)</h2>
+                    </div>
+                    
+                    <p style="font-size:16px;margin-bottom:24px;line-height:1.6;">Hello , <strong style="color:#111;">{{student_name}} ji</strong></p>
+                    
+                    <p style="font-size:15px;margin-bottom:28px;line-height:1.6;color:#636e72;">Your partial payment for <span style="color:#2d3436;font-weight:600;">{{course_name}}</span> has been received successfully.</p>
+                    
+                    <div style="background:#f8fafc;padding:24px;border-radius:16px;margin-bottom:32px;border:1px solid #f1f5f9;">
+                        <h3 style="font-size:14px;text-transform:uppercase;letter-spacing:1px;color:#94a3b8;margin-top:0;margin-bottom:16px;">Receipt details</h3>
+                        <p style="margin:8px 0;font-size:14px;"><strong>Date :-</strong> {{paid_date}}</p>
+                        <p style="margin:8px 0;font-size:14px;"><strong>Amount Paid :-</strong> NPR {{amount}}</p>
+                        <p style="margin:8px 0;font-size:14px;"><strong>Receipt No :-</strong> {{receipt_no}}</p>
+                        <p style="margin:8px 0;font-size:14px;"><strong>portal :-</strong> <a href="{{login_url}}" style="color:#009E7E;text-decoration:none;">{{login_url}}</a></p>
+                    </div>
+
+                    <div style="text-align:right;margin-top:40px;">
+                        <p style="margin:0;font-size:16px;color:#2d3436;">Best wishes</p>
+                        <p style="margin:4px 0 0;font-size:18px;font-weight:800;color:#009E7E;">{{institute_name}}</p>
+                    </div>
+                </div>'
             ],
             'payment_failed' => [
                 'subject' => 'Payment Failed - Action Required',
@@ -39,15 +101,15 @@
             ],
             'fee_reminder_7days' => [
                 'subject' => 'Fee Payment Reminder - Due in 7 Days',
-                'body' => '<div style="font-family:sans-serif;color:#333;"><p>Dear {{student_name}},</p><p>📅 UPCOMING PAYMENT DUE</p><p>This is a friendly reminder that your fee payment is due in 7 days.</p><p>💰 PAYMENT DETAILS:<br>• Amount Due: NPR {{amount_due}}<br>• Amount Paid: NPR {{amount_paid}}<br>• Balance: NPR [amount_due - amount_paid]<br>• Due Date: {{due_date}}<br>• Installment: {{installment_no}}</p><p>📚 COURSE INFORMATION:<br>• Course: {{course_name}}<br>• Roll Number: {{roll_no}}<br>• Batch: {{batch_name}}</p><p>⚠️ IMPORTANT NOTICE:<br>Please ensure timely payment to avoid:<br>• Late payment fines (charged per day after due date)<br>• Exam access restrictions<br>• Class attendance restrictions (if applicable)</p><p>💳 PAYMENT OPTIONS:<br>1. Online Portal: {{login_url}}<br>   • eSewa, Khalti, Bank Transfer<br>2. Institute Office: Visit our accounts desk<br>   • Cash, Cheque accepted<br>3. Bank Transfer:<br>   • Use your roll number as reference</p><p>📱 PAY NOW: {{login_url}}</p><p>Already paid? Please share your payment proof at {{institute_email}} or upload it on the portal.</p><p>For payment assistance or installment queries:<br>📞 {{institute_phone}}<br>✉️ {{institute_email}}</p><p>Thank you for your cooperation!</p><p>Accounts Team<br>{{institute_name}}</p></div>'
+                'body' => '<div style="font-family:sans-serif;color:#333;"><p>Dear {{student_name}},</p><p>📅 UPCOMING PAYMENT DUE</p><p>This is a friendly reminder that your fee payment is due in 7 days.</p><p>💰 PAYMENT DETAILS:<br>• Amount Due: NPR {{amount_due}}<br>• Amount Paid: NPR {{amount_paid}}<br>• Balance: NPR {{balance}}<br>• Due Date: {{due_date}}<br>• Installment: {{installment_no}}</p><p>📚 COURSE INFORMATION:<br>• Course: {{course_name}}<br>• Roll Number: {{roll_no}}<br>• Batch: {{batch_name}}</p><p>⚠️ IMPORTANT NOTICE:<br>Please ensure timely payment to avoid:<br>• Late payment fines (charged per day after due date)<br>• Exam access restrictions<br>• Class attendance restrictions (if applicable)</p><p>💳 PAYMENT OPTIONS:<br>1. Online Portal: {{login_url}}<br>   • eSewa, Khalti, Bank Transfer<br>2. Institute Office: Visit our accounts desk<br>   • Cash, Cheque accepted<br>3. Bank Transfer:<br>   • Use your roll number as reference</p><p>📱 PAY NOW: {{login_url}}</p><p>Already paid? Please share your payment proof at {{institute_email}} or upload it on the portal.</p><p>For payment assistance or installment queries:<br>📞 {{institute_phone}}<br>✉️ {{institute_email}}</p><p>Thank you for your cooperation!</p><p>Accounts Team<br>{{institute_name}}</p></div>'
             ],
             'fee_reminder_3days' => [
                 'subject' => 'URGENT: Fee Payment Due in 3 Days ⚠️',
-                'body' => '<div style="font-family:sans-serif;color:#333;"><p>Dear {{student_name}},</p><p>⚠️ URGENT PAYMENT REMINDER</p><p>Your fee payment is due in just 3 DAYS. Please take immediate action to avoid penalties.</p><p>💰 OUTSTANDING AMOUNT:<br>• Total Due: NPR {{amount_due}}<br>• Paid to Date: NPR {{amount_paid}}<br>• BALANCE: NPR [amount_due - amount_paid]<br>• Due Date: {{due_date}} ⏰</p><p>📚 STUDENT DETAILS:<br>• Roll Number: {{roll_no}}<br>• Course: {{course_name}}<br>• Installment: {{installment_no}}</p><p>🚨 CONSEQUENCES OF LATE PAYMENT:<br>• Late Fine: Charged per day after {{due_date}}<br>• Exam Access: May be blocked if payment not received<br>• Class Restrictions: Possible attendance restrictions</p><p>💳 MAKE PAYMENT NOW:</p><p>OPTION 1 - Online Payment (Instant):<br>• Portal: {{login_url}}<br>• eSewa / Khalti / Bank Transfer</p><p>OPTION 2 - Office Payment:<br>• Visit: {{institute_address}}<br>• Timing: 10 AM - 5 PM (Mon-Fri)<br>• Payment Desk: Accounts Office</p><p>OPTION 3 - Bank Transfer:<br>(Share payment proof immediately)</p><p>✅ PAY IMMEDIATELY: {{login_url}}</p><p>Need help or facing payment issues?<br>📞 CALL NOW: {{institute_phone}}<br>✉️ EMAIL: {{institute_email}}</p><p>We\'re here to help you complete your payment smoothly.</p><p>URGENT ATTENTION REQUIRED</p><p>Accounts Department<br>{{institute_name}}</p></div>'
+                'body' => '<div style="font-family:sans-serif;color:#333;"><p>Dear {{student_name}},</p><p>⚠️ URGENT PAYMENT REMINDER</p><p>Your fee payment is due in just 3 DAYS. Please take immediate action to avoid penalties.</p><p>💰 OUTSTANDING AMOUNT:<br>• Total Due: NPR {{amount_due}}<br>• Paid to Date: NPR {{amount_paid}}<br>• BALANCE: NPR {{balance}}<br>• Due Date: {{due_date}} ⏰</p><p>📚 STUDENT DETAILS:<br>• Roll Number: {{roll_no}}<br>• Course: {{course_name}}<br>• Installment: {{installment_no}}</p><p>🚨 CONSEQUENCES OF LATE PAYMENT:<br>• Late Fine: Charged per day after {{due_date}}<br>• Exam Access: May be blocked if payment not received<br>• Class Restrictions: Possible attendance restrictions</p><p>💳 MAKE PAYMENT NOW:</p><p>OPTION 1 - Online Payment (Instant):<br>• Portal: {{login_url}}<br>• eSewa / Khalti / Bank Transfer</p><p>OPTION 2 - Office Payment:<br>• Visit: {{institute_address}}<br>• Timing: 10 AM - 5 PM (Mon-Fri)<br>• Payment Desk: Accounts Office</p><p>OPTION 3 - Bank Transfer:<br>(Share payment proof immediately)</p><p>✅ PAY IMMEDIATELY: {{login_url}}</p><p>Need help or facing payment issues?<br>📞 CALL NOW: {{institute_phone}}<br>✉️ EMAIL: {{institute_email}}</p><p>We\'re here to help you complete your payment smoothly.</p><p>URGENT ATTENTION REQUIRED</p><p>Accounts Department<br>{{institute_name}}</p></div>'
             ],
             'fee_overdue_notice' => [
                 'subject' => 'OVERDUE: Payment Required Immediately 🔴',
-                'body' => '<div style="font-family:sans-serif;color:#333;"><p>Dear {{student_name}},</p><p>🔴 PAYMENT OVERDUE - IMMEDIATE ACTION REQUIRED</p><p>Your fee payment deadline has passed. Please settle your outstanding balance immediately.</p><p>💰 OVERDUE PAYMENT:<br>• Original Amount: NPR {{amount_due}}<br>• Amount Paid: NPR {{amount_paid}}<br>• Outstanding: NPR [amount_due - amount_paid]<br>• Due Date: {{due_date}} (PASSED)<br>• Days Overdue: [calculated]<br>• Late Fine Applied: NPR {{fine_applied}}<br>• TOTAL PAYABLE NOW: NPR [total with fine]</p><p>📚 ACCOUNT DETAILS:<br>• Roll Number: {{roll_no}}<br>• Course: {{course_name}}<br>• Batch: {{batch_name}}</p><p>🚨 IMMEDIATE CONSEQUENCES:<br>• Late fine continues to accumulate daily<br>• Academic activities may be restricted<br>• Results and certificates will be withheld<br>• Eligibility for exams may be affected</p><p>💳 CLEAR DUES IMMEDIATELY:</p><p>1️⃣ ONLINE PAYMENT (Fastest):<br>   {{login_url}}</p><p>2️⃣ OFFICE PAYMENT:<br>   Visit: {{institute_address}}<br>   Timing: 10 AM - 5 PM (Mon-Fri)</p><p>3️⃣ BANK TRANSFER:<br>   ⚠️ Share proof immediately</p><p>📱 PAY NOW TO RESTORE ACCESS: {{login_url}}</p><p>FACING FINANCIAL DIFFICULTY?<br>If you\'re unable to pay the full amount, please contact our accounts office immediately to discuss:<br>• Installment arrangements<br>• Fine waiver requests<br>• Payment extensions</p><p>📞 CONTACT URGENTLY:<br>Phone: {{institute_phone}}<br>Email: {{institute_email}}<br>Visit: Accounts Office</p><p>⏰ Please resolve this within 24 hours to avoid further complications.</p><p>This is a system-generated notice. Your immediate attention is required.</p><p>Accounts Department<br>{{institute_name}}</p></div>'
+                'body' => '<div style="font-family:sans-serif;color:#333;"><p>Dear {{student_name}},</p><p>🔴 PAYMENT OVERDUE - IMMEDIATE ACTION REQUIRED</p><p>Your fee payment deadline has passed. Please settle your outstanding balance immediately.</p><p>💰 OVERDUE PAYMENT:<br>• Original Amount: NPR {{amount_due}}<br>• Amount Paid: NPR {{amount_paid}}<br>• Outstanding: NPR {{balance}}<br>• Due Date: {{due_date}} (PASSED)<br>• Days Overdue: {{days_overdue}}<br>• Late Fine Applied: NPR {{fine_applied}}<br>• TOTAL PAYABLE NOW: NPR {{total_payable}}</p><p>📚 ACCOUNT DETAILS:<br>• Roll Number: {{roll_no}}<br>• Course: {{course_name}}<br>• Batch: {{batch_name}}</p><p>🚨 IMMEDIATE CONSEQUENCES:<br>• Late fine continues to accumulate daily<br>• Academic activities may be restricted<br>• Results and certificates will be withheld<br>• Eligibility for exams may be affected</p><p>💳 CLEAR DUES IMMEDIATELY:</p><p>1️⃣ ONLINE PAYMENT (Fastest):<br>   {{login_url}}</p><p>2️⃣ OFFICE PAYMENT:<br>   Visit: {{institute_address}}<br>   Timing: 10 AM - 5 PM (Mon-Fri)</p><p>3️⃣ BANK TRANSFER:<br>   ⚠️ Share proof immediately</p><p>📱 PAY NOW TO RESTORE ACCESS: {{login_url}}</p><p>FACING FINANCIAL DIFFICULTY?<br>If you\'re unable to pay the full amount, please contact our accounts office immediately to discuss:<br>• Installment arrangements<br>• Fine waiver requests<br>• Payment extensions</p><p>📞 CONTACT URGENTLY:<br>Phone: {{institute_phone}}<br>Email: {{institute_email}}<br>Visit: Accounts Office</p><p>⏰ Please resolve this within 24 hours to avoid further complications.</p><p>This is a system-generated notice. Your immediate attention is required.</p><p>Accounts Department<br>{{institute_name}}</p></div>'
             ],
             'invoice_generated' => [
                 'subject' => 'New Invoice Generated - {{invoice_number}}',

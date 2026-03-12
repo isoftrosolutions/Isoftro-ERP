@@ -63,8 +63,11 @@ try {
 
         if (!empty($_GET['search'])) {
             $search = '%' . $_GET['search'] . '%';
-            $whereSql .= " AND (s.full_name LIKE :search OR s.roll_no LIKE :search OR s.email LIKE :search OR s.phone LIKE :search)";
-            $params['search'] = $search;
+            $whereSql .= " AND (s.full_name LIKE :s1 OR s.roll_no LIKE :s2 OR s.email LIKE :s3 OR s.phone LIKE :s4)";
+            $params['s1'] = $search;
+            $params['s2'] = $search;
+            $params['s3'] = $search;
+            $params['s4'] = $search;
         }
         if (!empty($_GET['status'])) {
             $whereSql .= " AND s.status = :status";
@@ -201,8 +204,11 @@ try {
         // Search filter
         if (!empty($_GET['search'])) {
             $search = '%' . $_GET['search'] . '%';
-            $whereSql .= " AND (s.full_name LIKE :search OR s.roll_no LIKE :search OR s.email LIKE :search OR s.phone LIKE :search)";
-            $params['search'] = $search;
+            $whereSql .= " AND (s.full_name LIKE :s1 OR s.roll_no LIKE :s2 OR s.email LIKE :s3 OR s.phone LIKE :s4)";
+            $params['s1'] = $search;
+            $params['s2'] = $search;
+            $params['s3'] = $search;
+            $params['s4'] = $search;
         }
 
         // Single ID filter
@@ -410,8 +416,12 @@ try {
 
             if (!$studentId) throw new Exception("Student ID is required");
 
-            // Fetch student email and name
-            $stmt = $db->prepare("SELECT full_name, email, registration_mode FROM students WHERE id = :id AND tenant_id = :tid AND deleted_at IS NULL");
+            // Fetch student email, name, course and batch info
+            $stmt = $db->prepare("SELECT s.full_name, s.email, s.registration_mode, s.roll_no, c.name as course_name, b.name as batch_name 
+                FROM students s 
+                LEFT JOIN batches b ON s.batch_id = b.id 
+                LEFT JOIN courses c ON b.course_id = c.id
+                WHERE s.id = :id AND s.tenant_id = :tid AND s.deleted_at IS NULL");
             $stmt->execute(['id' => $studentId, 'tid' => $tenantId]);
             $student = $stmt->fetch();
 
@@ -424,9 +434,13 @@ try {
                 // Use default password if not provided
                 $password = $input['password'] ?? 'Student@123'; 
                 $success = \App\Helpers\StudentEmailHelper::sendWelcomeEmail($db, $tenantId, [
-                    'full_name' => $student['full_name'],
-                    'email' => $student['email'],
-                    'plain_password' => $password
+                    'student_name' => $student['full_name'],
+                    'student_email' => $student['email'],
+                    'roll_no' => $student['roll_no'] ?? '',
+                    'course_name' => $student['course_name'] ?? '',
+                    'batch_name' => $student['batch_name'] ?? '',
+                    'temp_password' => $password,
+                    'login_url' => (defined('APP_URL') ? APP_URL : '') . '/?page=login'
                 ]);
             } else {
                 if (empty($subject) || empty($message)) throw new Exception("Subject and message are required");

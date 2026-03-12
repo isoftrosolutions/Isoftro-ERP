@@ -24,6 +24,10 @@ class AttendanceSettings extends Model {
         }
         return $settings;
     }
+
+    public static function getByTenant($tenantId) {
+        return self::where('tenant_id', $tenantId)->first();
+    }
     
     public static function updateSettings($data) {
         $settings = self::getSettings();

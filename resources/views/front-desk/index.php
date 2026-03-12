@@ -39,6 +39,7 @@ renderFrontDeskSidebar('index');
 <script src="<?php echo APP_URL; ?>/public/assets/js/frontdesk/fd-academic.js?v=1.1"></script>
 <script src="<?php echo APP_URL; ?>/public/assets/js/frontdesk/fd-academics.js?v=1.1"></script>
 <script src="<?php echo APP_URL; ?>/public/assets/js/frontdesk/fd-exams.js?v=1.1"></script>
+<script src="<?php echo APP_URL; ?>/public/assets/js/frontdesk/fd-qbank.js?v=1.1"></script>
 <script src="<?php echo APP_URL; ?>/public/assets/js/frontdesk/fd-homework.js?v=1.1"></script>
 <script src="<?php echo APP_URL; ?>/public/assets/js/frontdesk/fd-timetable.js?v=1.1"></script>
 <script src="<?php echo APP_URL; ?>/public/assets/js/frontdesk/fd-audit-logs.js?v=1.1"></script>

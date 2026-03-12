@@ -18,6 +18,13 @@ class FeeSettings extends Model {
     public static function getSettings() {
         return self::first();
     }
+
+    /**
+     * Get settings by tenant ID
+     */
+    public static function getByTenant($tenantId) {
+        return self::where('tenant_id', $tenantId)->first();
+    }
     
     /**
      * Create default settings for a tenant

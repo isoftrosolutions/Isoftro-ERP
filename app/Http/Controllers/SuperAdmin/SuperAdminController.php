@@ -4,7 +4,9 @@
  * Platform-wide management, billing, and support
  */
 
-require_once '../../config.php';
+if (!defined('LARAVEL_START')) {
+    require_once '../../config.php';
+}
 
 class SuperAdminController {
     private $db;
@@ -350,16 +352,16 @@ class SuperAdminController {
                     return ['success' => false, 'error' => 'No active admin found for this tenant.'];
                 }
             }
-
+    
             // Get target user data
             $stmt = $this->db->prepare("SELECT * FROM users WHERE id = ? AND status = 'active' LIMIT 1");
             $stmt->execute([$targetUserId]);
             $targetUser = $stmt->fetch();
-
+    
             if (!$targetUser) {
                 return ['success' => false, 'error' => 'Target user not found or inactive.'];
             }
-
+    
             // Log impersonation
             $stmt = $this->db->prepare("
                 INSERT INTO impersonation_logs (super_admin_id, tenant_id, target_user_id, ip_address, user_agent)
@@ -379,7 +381,7 @@ class SuperAdminController {
             if (!isset($_SESSION['original_userData'])) {
                 $_SESSION['original_userData'] = $_SESSION['userData'];
             }
-
+    
             // Set impersonation markers
             $_SESSION['impersonating'] = true;
             $_SESSION['impersonation_log_id'] = $logId;
@@ -432,8 +434,8 @@ class SuperAdminController {
     }
 }
 
-// Handle requests
-if (isset($_GET['action'])) {
+// Handle requests only when accessed directly
+if (isset($_GET['action']) && !defined('LARAVEL_START')) {
     $controller = new SuperAdminController();
     $action = $_GET['action'];
     
@@ -459,7 +461,7 @@ if (isset($_GET['action'])) {
         default:
             $controller->index();
     }
-} else {
+} elseif (!defined('LARAVEL_START')) {
     $controller = new SuperAdminController();
     $controller->index();
 }

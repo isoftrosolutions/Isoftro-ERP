@@ -43,6 +43,59 @@ if ($method === 'POST' && isset($_POST['_method'])) {
     $method = strtoupper($_POST['_method']);
 }
 
+/**
+ * Securely validate and store an uploaded file.
+ * Uses finfo MIME detection (not extension) to prevent PHP/shell upload attacks.
+ *
+ * @param array  $fileEntry     Entry from $_FILES
+ * @param string $prefix        Filename prefix (e.g. 'std' or 'id')
+ * @param array  $allowedMimes  Allowed MIME types
+ * @param array  $allowedExts   Allowed file extensions (lowercase)
+ * @return string|null  Public URL on success, null on failure
+ */
+function validateAndUploadFile(array $fileEntry, string $prefix, array $allowedMimes, array $allowedExts): ?string {
+    if ($fileEntry['error'] !== UPLOAD_ERR_OK) return null;
+    if ($fileEntry['size'] > 5 * 1024 * 1024) { // 5 MB cap
+        throw new Exception('File too large. Maximum size is 5 MB.');
+    }
+
+    // MIME detection via finfo (reads magic bytes, not extension)
+    $finfo    = finfo_open(FILEINFO_MIME_TYPE);
+    $mimeType = finfo_file($finfo, $fileEntry['tmp_name']);
+    finfo_close($finfo);
+
+    if (!in_array($mimeType, $allowedMimes, true)) {
+        throw new Exception('Invalid file type. Allowed types: ' . implode(', ', $allowedMimes));
+    }
+
+    // Derive and whitelist extension from MIME
+    $ext = strtolower(pathinfo($fileEntry['name'], PATHINFO_EXTENSION));
+    if (!in_array($ext, $allowedExts, true)) {
+        // Fall back to a safe extension derived from MIME
+        $mimeExtMap = [
+            'image/jpeg' => 'jpg',
+            'image/png'  => 'png',
+            'image/gif'  => 'gif',
+            'image/webp' => 'webp',
+            'application/pdf' => 'pdf',
+        ];
+        $ext = $mimeExtMap[$mimeType] ?? 'bin';
+    }
+
+    $uploadDir = APP_ROOT . '/public/uploads/students/';
+    if (!is_dir($uploadDir)) mkdir($uploadDir, 0775, true);
+
+    // Use a random UUID-style name to prevent any path traversal
+    $safeFilename = $prefix . '_' . bin2hex(random_bytes(12)) . '.' . $ext;
+    $destination  = $uploadDir . $safeFilename;
+
+    if (!move_uploaded_file($fileEntry['tmp_name'], $destination)) {
+        throw new Exception('Failed to move uploaded file.');
+    }
+
+    return APP_URL . '/public/uploads/students/' . $safeFilename;
+}
+
 try {
     $db = getDBConnection();
 
@@ -53,8 +106,11 @@ try {
 
         if (!empty($_GET['search'])) {
             $search = '%' . $_GET['search'] . '%';
-            $whereSql .= " AND (s.full_name LIKE :search OR s.roll_no LIKE :search OR s.email LIKE :search OR s.phone LIKE :search)";
-            $params['search'] = $search;
+            $whereSql .= " AND (s.full_name LIKE :s1 OR s.roll_no LIKE :s2 OR s.email LIKE :s3 OR s.phone LIKE :s4)";
+            $params['s1'] = $search;
+            $params['s2'] = $search;
+            $params['s3'] = $search;
+            $params['s4'] = $search;
         }
         if (!empty($_GET['status'])) {
             $whereSql .= " AND s.status = :status";
@@ -191,8 +247,11 @@ try {
         // Search filter
         if (!empty($_GET['search'])) {
             $search = '%' . $_GET['search'] . '%';
-            $whereSql .= " AND (s.full_name LIKE :search OR s.roll_no LIKE :search OR s.email LIKE :search OR s.phone LIKE :search)";
-            $params['search'] = $search;
+            $whereSql .= " AND (s.full_name LIKE :s1 OR s.roll_no LIKE :s2 OR s.email LIKE :s3 OR s.phone LIKE :s4)";
+            $params['s1'] = $search;
+            $params['s2'] = $search;
+            $params['s3'] = $search;
+            $params['s4'] = $search;
         }
 
         // Single ID filter
@@ -305,11 +364,16 @@ try {
             $student['fee_summary'] = $feeSummaryStmt->fetchAll(PDO::FETCH_ASSOC);
 
             $paymentStmt = $db->prepare("
-                SELECT * FROM student_payments
-                WHERE student_id = :sid AND tenant_id = :tid
+                SELECT id, amount, payment_date, payment_mode, reference, reference as receipt_number, 'historical' as source 
+                FROM student_payments 
+                WHERE student_id = :sid1 AND tenant_id = :tid1
+                UNION ALL
+                SELECT id, amount, payment_date, payment_method as payment_mode, receipt_number as reference, receipt_number, 'transaction' as source 
+                FROM payment_transactions 
+                WHERE student_id = :sid2 AND tenant_id = :tid2
                 ORDER BY payment_date DESC, id DESC
             ");
-            $paymentStmt->execute(['sid' => $sid, 'tid' => $tenantId]);
+            $paymentStmt->execute(['sid1' => $sid, 'tid1' => $tenantId, 'sid2' => $sid, 'tid2' => $tenantId]);
             $student['payments'] = $paymentStmt->fetchAll(PDO::FETCH_ASSOC);
 
 
@@ -400,8 +464,8 @@ try {
 
             if (!$studentId) throw new Exception("Student ID is required");
 
-            // Fetch student email and name
-            $stmt = $db->prepare("SELECT full_name, email, registration_mode FROM students WHERE id = :id AND tenant_id = :tid AND deleted_at IS NULL");
+            // Fetch student email, name, course and batch info
+            $stmt = $db->prepare("SELECT s.full_name, s.email, s.registration_mode, s.roll_no, c.name as course_name, b.name as batch_name FROM students s LEFT JOIN batches b ON s.batch_id = b.id LEFT JOIN courses c ON b.course_id = c.id WHERE s.id = :id AND s.tenant_id = :tid AND s.deleted_at IS NULL");
             $stmt->execute(['id' => $studentId, 'tid' => $tenantId]);
             $student = $stmt->fetch();
 
@@ -414,9 +478,13 @@ try {
                 // Use default password if not provided
                 $password = $input['password'] ?? 'Student@123'; 
                 $success = \App\Helpers\StudentEmailHelper::sendWelcomeEmail($db, $tenantId, [
-                    'full_name' => $student['full_name'],
-                    'email' => $student['email'],
-                    'plain_password' => $password
+                    'student_name' => $student['full_name'],
+                    'student_email' => $student['email'],
+                    'roll_no' => $student['roll_no'] ?? '',
+                    'course_name' => $student['course_name'] ?? '',
+                    'batch_name' => $student['batch_name'] ?? '',
+                    'temp_password' => $password,
+                    'login_url' => (defined('APP_URL') ? APP_URL : '') . '/?page=login'
                 ]);
             } else {
                 if (empty($subject) || empty($message)) throw new Exception("Subject and message are required");
@@ -587,11 +655,25 @@ try {
 
                 // 5. Queue Receipt Tasks (PDF & Email)
                 $queue = new QueueService($db);
+                // Fetch student and course details for email
+                $stdStmt = $db->prepare("SELECT s.full_name as student_name, s.email as student_email, s.roll_no, c.name as course_name, b.name as batch_name FROM students s LEFT JOIN batches b ON s.batch_id = b.id LEFT JOIN courses c ON b.course_id = c.id WHERE s.id = :sid");
+                $stdStmt->execute(['sid' => $studentId]);
+                $studentInfo = $stdStmt->fetch(PDO::FETCH_ASSOC);
+                
                 $queue->dispatch('payment_receipt', [
                     'tenant_id' => $tenantId,
                     'student_id' => $studentId,
                     'receipt_no' => $receiptNo,
-                    'transaction_ids' => [0] // Use 0 for Direct Payment
+                    'transaction_ids' => [0], // Use 0 for Direct Payment
+                    'student_name' => $studentInfo['student_name'] ?? 'Student',
+                    'student_email' => $studentInfo['student_email'] ?? '',
+                    'roll_no' => $studentInfo['roll_no'] ?? '',
+                    'course_name' => $studentInfo['course_name'] ?? '',
+                    'batch_name' => $studentInfo['batch_name'] ?? '',
+                    'amount' => $amount,
+                    'paid_date' => $paymentDate,
+                    'payment_mode' => $paymentMode,
+                    'login_url' => (defined('APP_URL') ? APP_URL : '') . '/?page=login'
                 ]);
 
                 $emailStatus = 'no_email';
@@ -606,12 +688,24 @@ try {
                     $stdEmailInfo = $stmtGetEmail->fetch(PDO::FETCH_ASSOC);
 
                     if ($stdEmailInfo && !empty($stdEmailInfo['email'])) {
+                        // Get additional student info
+                        $stdDetailStmt = $db->prepare("SELECT s.roll_no, c.name as course_name, b.name as batch_name FROM students s LEFT JOIN batches b ON s.batch_id = b.id LEFT JOIN courses c ON b.course_id = c.id WHERE s.id = :sid");
+                        $stdDetailStmt->execute(['sid' => $studentId]);
+                        $stdDetail = $stdDetailStmt->fetch(PDO::FETCH_ASSOC);
+                        
                         $queue->dispatch('send_email_receipt', [
                             'tenant_id' => $tenantId,
                             'student_id' => $studentId,
                             'recipient_email' => $stdEmailInfo['email'],
                             'recipient_name' => $stdEmailInfo['full_name'],
-                            'receipt_no' => $receiptNo
+                            'receipt_no' => $receiptNo,
+                            'roll_no' => $stdDetail['roll_no'] ?? '',
+                            'course_name' => $stdDetail['course_name'] ?? '',
+                            'batch_name' => $stdDetail['batch_name'] ?? '',
+                            'amount' => $amount,
+                            'paid_date' => $paymentDate,
+                            'payment_mode' => $paymentMode,
+                            'login_url' => (defined('APP_URL') ? APP_URL : '') . '/?page=login'
                         ]);
                         $emailStatus = 'queued';
                     }
@@ -654,27 +748,20 @@ try {
         $batchId = $input['batch_id'] ?? null;
         $rollNo  = $input['roll_no'] ?? null;
 
-        // 1. Handle File Uploads (Optional)
+        // 1. Handle File Uploads with MIME validation
+        $allowedImageMimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        $allowedImageExts  = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+        $allowedDocMimes   = ['image/jpeg', 'image/png', 'application/pdf'];
+        $allowedDocExts    = ['jpg', 'jpeg', 'png', 'pdf'];
+
         $photoUrl = $input['photo_url'] ?? null;
         if (isset($_FILES['profile_image']) && $_FILES['profile_image']['error'] === UPLOAD_ERR_OK) {
-            $uploadDir = APP_ROOT . '/public/uploads/students/';
-            if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
-            $ext = pathinfo($_FILES['profile_image']['name'], PATHINFO_EXTENSION);
-            $fileName = 'std_' . time() . '_' . uniqid() . '.' . $ext;
-            if (move_uploaded_file($_FILES['profile_image']['tmp_name'], $uploadDir . $fileName)) {
-                $photoUrl = APP_URL . '/public/uploads/students/' . $fileName;
-            }
+            $photoUrl = validateAndUploadFile($_FILES['profile_image'], 'std', $allowedImageMimes, $allowedImageExts);
         }
 
         $identityDocUrl = null;
         if (isset($_FILES['identity_doc']) && $_FILES['identity_doc']['error'] === UPLOAD_ERR_OK) {
-            $uploadDir = APP_ROOT . '/public/uploads/students/';
-            if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
-            $ext = pathinfo($_FILES['identity_doc']['name'], PATHINFO_EXTENSION);
-            $fileName = 'id_' . time() . '_' . uniqid() . '.' . $ext;
-            if (move_uploaded_file($_FILES['identity_doc']['tmp_name'], $uploadDir . $fileName)) {
-                $identityDocUrl = APP_URL . '/public/uploads/students/' . $fileName;
-            }
+            $identityDocUrl = validateAndUploadFile($_FILES['identity_doc'], 'id', $allowedDocMimes, $allowedDocExts);
         }
 
         // 2. Prepare Data for Service
@@ -711,24 +798,19 @@ try {
 
         $db->beginTransaction();
 
-        // Handle File Uploads on Update
+        // Handle File Uploads on Update — with MIME validation
+        $allowedImageMimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        $allowedImageExts  = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+        $allowedDocMimes   = ['image/jpeg', 'image/png', 'application/pdf'];
+        $allowedDocExts    = ['jpg', 'jpeg', 'png', 'pdf'];
+
         if (isset($_FILES['profile_image']) && $_FILES['profile_image']['error'] === UPLOAD_ERR_OK) {
-            $uploadDir = APP_ROOT . '/public/uploads/students/';
-            if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
-            $ext = pathinfo($_FILES['profile_image']['name'], PATHINFO_EXTENSION);
-            $fileName = 'std_' . time() . '_' . uniqid() . '.' . $ext;
-            if (move_uploaded_file($_FILES['profile_image']['tmp_name'], $uploadDir . $fileName)) {
-                $input['photo_url'] = APP_URL . '/public/uploads/students/' . $fileName;
-            }
+            $url = validateAndUploadFile($_FILES['profile_image'], 'std', $allowedImageMimes, $allowedImageExts);
+            if ($url) $input['photo_url'] = $url;
         }
         if (isset($_FILES['identity_doc']) && $_FILES['identity_doc']['error'] === UPLOAD_ERR_OK) {
-            $uploadDir = APP_ROOT . '/public/uploads/students/';
-            if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
-            $ext = pathinfo($_FILES['identity_doc']['name'], PATHINFO_EXTENSION);
-            $fileName = 'id_' . time() . '_' . uniqid() . '.' . $ext;
-            if (move_uploaded_file($_FILES['identity_doc']['tmp_name'], $uploadDir . $fileName)) {
-                $input['identity_doc_url'] = APP_URL . '/public/uploads/students/' . $fileName;
-            }
+            $url = validateAndUploadFile($_FILES['identity_doc'], 'id', $allowedDocMimes, $allowedDocExts);
+            if ($url) $input['identity_doc_url'] = $url;
         }
 
         // Handle Date Conversions (AD <-> BS) on update

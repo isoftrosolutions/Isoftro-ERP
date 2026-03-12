@@ -58,8 +58,9 @@ try {
 
         if (!empty($_GET['search'])) {
             $search = '%' . $_GET['search'] . '%';
-            $query .= " AND (c.name LIKE :search OR c.code LIKE :search)";
-            $params['search'] = $search;
+            $query .= " AND (c.name LIKE :s1 OR c.code LIKE :s2)";
+            $params['s1'] = $search;
+            $params['s2'] = $search;
         }
 
         $query .= " ORDER BY c.name ASC";

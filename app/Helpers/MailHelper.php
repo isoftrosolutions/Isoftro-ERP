@@ -35,7 +35,7 @@ class MailHelper
         try {
             $stmt = $db->prepare(
                 "SELECT sender_name AS from_name, reply_to_email AS from_email, is_active
-                 FROM   email_settings
+                 FROM   tenant_email_settings
                  WHERE  tenant_id = :tid LIMIT 1"
             );
             $stmt->execute(['tid' => $tenantId]);
@@ -74,16 +74,18 @@ class MailHelper
         string $subject,
         string $email,
         string $status,
-        ?string $error = null
+        ?string $error = null,
+        int $campaignId = 0
     ): void {
         try {
             $stmt = $db->prepare("
-                INSERT INTO email_logs (tenant_id, student_id, email, subject, status, error_message)
-                VALUES (:tid, :sid, :email, :subj, :status, :err)
+                INSERT INTO email_logs (tenant_id, student_id, campaign_id, email, subject, status, error_message)
+                VALUES (:tid, :sid, :cid, :email, :subj, :status, :err)
             ");
             $stmt->execute([
                 'tid' => $tenantId,
                 'sid' => $studentId,
+                'cid' => $campaignId,
                 'email' => $email,
                 'subj' => $subject,
                 'status' => $status,
@@ -169,11 +171,27 @@ class MailHelper
 
         $data['institute_name'] = $data['institute_name'] ?? 'Your Institute';
         
+        // Auto-compute financial fields if components are present
+        if (isset($data['amount_due']) && isset($data['amount_paid']) && !isset($data['balance'])) {
+            $data['balance'] = (float)$data['amount_due'] - (float)$data['amount_paid'];
+        }
+        if (isset($data['balance']) && isset($data['fine_applied']) && !isset($data['total_payable'])) {
+            $data['total_payable'] = (float)$data['balance'] + (float)$data['fine_applied'];
+        }
+        if (!isset($data['login_url'])) {
+            $data['login_url'] = (defined('APP_URL') ? APP_URL : '') . '/?page=login';
+        }
+
         foreach ($data as $key => $val) {
             if (is_scalar($val)) {
                 $search = '{{' . $key . '}}';
-                $subject = str_ireplace($search, (string)$val, $subject);
-                $body = str_ireplace($search, (string)$val, $body);
+                $valStr = (string)$val;
+                // Format numbers that look like money
+                if (in_array($key, ['amount', 'amount_due', 'amount_paid', 'balance', 'total_payable', 'fine_applied'])) {
+                    $valStr = number_format((float)$val, 2);
+                }
+                $subject = str_ireplace($search, $valStr, $subject);
+                $body = str_ireplace($search, $valStr, $body);
             }
         }
 
@@ -219,6 +237,19 @@ class MailHelper
             }
         }
 
+        // --- NEW: Simple Email Broadcast / Campaign handling ---
+        if ($jobType === 'send_email' || $jobType === 'generic_broadcast') {
+            $subject = $payload['subject'] ?? 'Notification from ' . $toName;
+            $body = $payload['body'] ?? '';
+            if (empty($body)) return false;
+            
+            $campaignId = (int)($payload['campaign_id'] ?? 0);
+            
+            // Log it before sending
+            self::logEmail($db, $tenantId, $payload['student_id'] ?? 0, $subject, $toEmail, 'processing', null, $campaignId);
+            return self::sendDirect($db, $tenantId, $toEmail, $toName, $subject, $body, '', $campaignId);
+        }
+
         // Generic template-based processing fallback
         $templateKey = $payload['template_key'] ?? $jobType;
 
@@ -240,7 +271,7 @@ class MailHelper
      * Shared send logic (for internal use by specialized helpers)
      */
 
-    public static function sendDirect(\PDO $db, int $tenantId, string $toEmail, string $toName, string $subject, string $htmlBody, string $attachmentPath = ''): bool
+    public static function sendDirect(\PDO $db, int $tenantId, string $toEmail, string $toName, string $subject, string $htmlBody, string $attachmentPath = '', int $campaignId = 0): bool
     {
         $branding = self::getTenantBranding($db, $tenantId);
         $sys = self::systemConfig();
@@ -258,10 +289,10 @@ class MailHelper
             }
 
             $success = $mail->send();
-            self::logEmail($db, $tenantId, 0, $subject, $toEmail, $success ? 'sent' : 'failed');
+            self::logEmail($db, $tenantId, 0, $subject, $toEmail, $success ? 'sent' : 'failed', null, $campaignId);
             return $success;
         } catch (\Throwable $e) {
-            self::logEmail($db, $tenantId, 0, $subject, $toEmail, 'failed', $e->getMessage());
+            self::logEmail($db, $tenantId, 0, $subject, $toEmail, 'failed', $e->getMessage(), $campaignId);
             error_log("[MailHelper] Send Direct Error: " . $e->getMessage());
             return false;
         }

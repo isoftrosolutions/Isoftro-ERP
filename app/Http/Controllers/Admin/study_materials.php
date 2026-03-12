@@ -111,6 +111,11 @@ try {
                 $params['status'] = $_GET['status'];
             }
             
+            // FILTER: QBank status
+            $isQB = isset($_GET['is_qbank']) ? (int)$_GET['is_qbank'] : 0;
+            $where[] = "sm.is_qbank = :is_qbank";
+            $params['is_qbank'] = $isQB;
+            
             if (!empty($_GET['search'])) {
                 $where[] = "(sm.title LIKE :search OR sm.description LIKE :search)";
                 $params['search'] = '%' . $_GET['search'] . '%';
@@ -168,7 +173,7 @@ try {
                         smp.*,
                         CASE 
                             WHEN smp.entity_type = 'batch' THEN b.name
-                            WHEN smp.entity_type = 'student' THEN CONCAT(st.first_name, ' ', st.last_name)
+                            WHEN smp.entity_type = 'student' THEN st.full_name
                         END as entity_name
                     FROM study_material_permissions smp
                     LEFT JOIN batches b ON smp.entity_type = 'batch' AND smp.entity_id = b.id
@@ -239,7 +244,7 @@ try {
                 SELECT smp.*, 
                     CASE 
                         WHEN smp.entity_type = 'batch' THEN b.name
-                        WHEN smp.entity_type = 'student' THEN CONCAT(s.name, ' (', s.registration_number, ')')
+                        WHEN smp.entity_type = 'student' THEN CONCAT(s.full_name, ' (', s.roll_no, ')')
                     END as entity_name
                 FROM study_material_permissions smp
                 LEFT JOIN batches b ON smp.entity_type = 'batch' AND smp.entity_id = b.id
@@ -273,6 +278,7 @@ try {
             $visibility = $input['visibility'] ?? 'all';
             $status = $input['status'] ?? 'active';
             $isFeatured = !empty($input['is_featured']) ? 1 : 0;
+            $isQbank = !empty($input['is_qbank']) ? 1 : 0;
             $sortOrder = $input['sort_order'] ?? 0;
             $tags = !empty($input['tags']) ? json_encode($input['tags']) : null;
             $publishedAt = !empty($input['published_at']) ? $input['published_at'] : date('Y-m-d H:i:s');
@@ -302,7 +308,7 @@ try {
             // Insert study material
             $stmt = $db->prepare("
                 INSERT INTO study_materials (
-                    tenant_id, category_id, title, description,
+                    tenant_id, category_id, is_qbank, title, description,
                     file_name, file_path, file_type, file_size, file_extension,
                     external_url, content_type,
                     access_type, visibility,
@@ -310,7 +316,7 @@ try {
                     tags, status, is_featured, sort_order,
                     published_at, expires_at, created_by
                 ) VALUES (
-                    :tid, :category_id, :title, :description,
+                    :tid, :category_id, :is_qbank, :title, :description,
                     :file_name, :file_path, :file_type, :file_size, :file_extension,
                     :external_url, :content_type,
                     :access_type, :visibility,
@@ -323,6 +329,7 @@ try {
             $stmt->execute([
                 'tid' => $tenantId,
                 'category_id' => $categoryId,
+                'is_qbank' => $isQbank,
                 'title' => $title,
                 'description' => $description,
                 'file_name' => $fileName,
@@ -383,7 +390,7 @@ try {
             $fields = [];
             $params = ['id' => $id, 'tid' => $tenantId];
             $allowedFields = [
-                'title', 'description', 'category_id', 'subject_id', 'batch_id', 'course_id',
+                'title', 'description', 'category_id', 'is_qbank', 'subject_id', 'batch_id', 'course_id',
                 'content_type', 'external_url', 'access_type', 'visibility',
                 'status', 'is_featured', 'sort_order', 'expires_at'
             ];

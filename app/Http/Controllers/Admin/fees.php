@@ -227,8 +227,9 @@ try {
             $params = ['tid' => $tenantId];
             
             if ($search) {
-                $query .= " AND (s.full_name LIKE :search OR pt.receipt_number LIKE :search)";
-                $params['search'] = "%$search%";
+                $query .= " AND (s.full_name LIKE :s1 OR pt.receipt_number LIKE :s2)";
+                $params['s1'] = "%$search%";
+                $params['s2'] = "%$search%";
             }
             
             if ($dateFrom) {
@@ -405,8 +406,13 @@ try {
             if (!$receiptNo) throw new Exception("Receipt number required");
 
             $stmt = $db->prepare("
-                SELECT pt.id, pt.student_id, pt.receipt_number as receipt_no
-                FROM payment_transactions pt
+                SELECT pt.id, pt.student_id, pt.receipt_number as receipt_no, pt.amount, pt.payment_method, pt.payment_date,
+                    s.full_name as student_name, s.email as student_email, s.roll_no,
+                    c.name as course_name, b.name as batch_name
+                FROM payment_transactions pt 
+                LEFT JOIN students s ON pt.student_id = s.id 
+                LEFT JOIN batches b ON s.batch_id = b.id
+                LEFT JOIN courses c ON b.course_id = c.id
                 WHERE pt.receipt_number = :rno AND pt.tenant_id = :tid
             ");
             $stmt->execute(['rno' => $receiptNo, 'tid' => $tenantId]);
@@ -414,12 +420,21 @@ try {
 
             if (!$pay) throw new Exception("Payment record not found");
 
-            // Dispatch to Background Worker
+            // Dispatch to Background Worker with complete student and payment data
             $queue = new QueueService();
             $queue->dispatch('payment_receipt', [
                 'transaction_id' => $pay['id'],
                 'receipt_no' => $pay['receipt_no'],
-                'student_id' => $pay['student_id']
+                'student_id' => $pay['student_id'],
+                'student_name' => $pay['student_name'] ?? 'Student',
+                'student_email' => $pay['student_email'] ?? '',
+                'roll_no' => $pay['roll_no'] ?? '',
+                'course_name' => $pay['course_name'] ?? '',
+                'batch_name' => $pay['batch_name'] ?? '',
+                'amount' => $pay['amount'] ?? 0,
+                'paid_date' => !empty($pay['payment_date']) ? date('Y-m-d', strtotime($pay['payment_date'])) : date('Y-m-d'),
+                'payment_mode' => $pay['payment_method'] ?? 'cash',
+                'login_url' => (defined('APP_URL') ? APP_URL : '') . '/?page=login'
             ], $tenantId);
 
             echo json_encode([
@@ -588,10 +603,26 @@ try {
                     }
                 } else {
                     $queueService = new QueueService();
+                    $studentId = $result['fee_record']['student_id'];
+                    // Fetch student and payment details
+                    $stdStmt = $db->prepare("SELECT s.full_name as student_name, s.email as student_email, s.roll_no, c.name as course_name, b.name as batch_name FROM students s LEFT JOIN batches b ON s.batch_id = b.id LEFT JOIN courses c ON b.course_id = c.id WHERE s.id = :sid");
+                    $stdStmt->execute(['sid' => $studentId]);
+                    $studentInfo = $stdStmt->fetch(PDO::FETCH_ASSOC);
+                    
                     $jobId = $queueService->dispatch('payment_receipt', [
                         'transaction_id' => $transactionId,
                         'receipt_no' => $receiptNo,
-                        'student_id' => $result['fee_record']['student_id']
+                        'student_id' => $studentId,
+                        'student_name' => $studentInfo['student_name'] ?? 'Student',
+                        'student_email' => $studentInfo['student_email'] ?? '',
+                        'roll_no' => $studentInfo['roll_no'] ?? '',
+                        'course_name' => $studentInfo['course_name'] ?? '',
+                        'batch_name' => $studentInfo['batch_name'] ?? '',
+                        'amount' => $result['amount_paid'] ?? 0,
+                        'amount_due' => (float)$result['fee_record']['amount_due'] - (float)$result['fee_record']['amount_paid'],
+                        'paid_date' => date('Y-m-d'),
+                        'payment_mode' => $result['payment_method'] ?? 'cash',
+                        'login_url' => (defined('APP_URL') ? APP_URL : '') . '/?page=login'
                     ], $tenantId);
                 }
 
@@ -654,10 +685,25 @@ try {
                     }
                 } else {
                     $queueService = new QueueService();
+                    $studentId = $data['student_id'];
+                    // Fetch student and payment details
+                    $stdStmt = $db->prepare("SELECT s.full_name as student_name, s.email as student_email, s.roll_no, c.name as course_name, b.name as batch_name FROM students s LEFT JOIN batches b ON s.batch_id = b.id LEFT JOIN courses c ON b.course_id = c.id WHERE s.id = :sid");
+                    $stdStmt->execute(['sid' => $studentId]);
+                    $studentInfo = $stdStmt->fetch(PDO::FETCH_ASSOC);
+                    
                     $jobId = $queueService->dispatch('payment_receipt', [
                         'transaction_id' => $transactionId,
                         'receipt_no' => $receiptNo,
-                        'student_id' => $data['student_id']
+                        'student_id' => $studentId,
+                        'student_name' => $studentInfo['student_name'] ?? 'Student',
+                        'student_email' => $studentInfo['student_email'] ?? '',
+                        'roll_no' => $studentInfo['roll_no'] ?? '',
+                        'course_name' => $studentInfo['course_name'] ?? '',
+                        'batch_name' => $studentInfo['batch_name'] ?? '',
+                        'amount' => $result['amount_paid'] ?? 0,
+                        'paid_date' => date('Y-m-d'),
+                        'payment_mode' => $result['payment_method'] ?? 'cash',
+                        'login_url' => (defined('APP_URL') ? APP_URL : '') . '/?page=login'
                     ], $tenantId);
                 }
 
@@ -682,8 +728,15 @@ try {
             $transactionId = $input['transaction_id'] ?? null;
             if (!$transactionId) throw new Exception("Transaction ID is required");
 
-            $stmt = $db->prepare("SELECT id, receipt_number as receipt_no, student_id FROM payment_transactions WHERE id = ?");
-            $stmt->execute([$transactionId]);
+            $stmt = $db->prepare("SELECT pt.id, pt.student_id, pt.receipt_number as receipt_no, pt.amount, pt.payment_method, pt.payment_date,
+                s.full_name as student_name, s.email as student_email, s.roll_no,
+                c.name as course_name, b.name as batch_name
+                FROM payment_transactions pt 
+                LEFT JOIN students s ON pt.student_id = s.id 
+                LEFT JOIN batches b ON s.batch_id = b.id
+                LEFT JOIN courses c ON b.course_id = c.id
+                WHERE pt.id = :tid AND pt.tenant_id = :tenant");
+            $stmt->execute(['tid' => $transactionId, 'tenant' => $tenantId]);
             $txn = $stmt->fetch();
 
             if ($txn) {
@@ -691,7 +744,16 @@ try {
                 $queue->dispatch('payment_receipt', [
                     'transaction_id' => $txn['id'],
                     'receipt_no' => $txn['receipt_no'],
-                    'student_id' => $txn['student_id']
+                    'student_id' => $txn['student_id'],
+                    'student_name' => $txn['student_name'] ?? 'Student',
+                    'student_email' => $txn['student_email'] ?? '',
+                    'roll_no' => $txn['roll_no'] ?? '',
+                    'course_name' => $txn['course_name'] ?? '',
+                    'batch_name' => $txn['batch_name'] ?? '',
+                    'amount' => $txn['amount'] ?? 0,
+                    'paid_date' => !empty($txn['payment_date']) ? date('Y-m-d', strtotime($txn['payment_date'])) : date('Y-m-d'),
+                    'payment_mode' => $txn['payment_method'] ?? 'cash',
+                    'login_url' => (defined('APP_URL') ? APP_URL : '') . '/?page=login'
                 ], $tenantId);
             }
 
@@ -712,11 +774,13 @@ try {
             exit;
         }
         else if ($action === 'update_payment') {
-            // ... original update_payment logic ...
-            // This was at line 852 in original, I'll keep it summarized as I don't want to break it
-            // Wait, I should probably keep the original update_payment logic if I can find it.
-            // Let's look at lines 852 onwards.
-            throw new Exception("Update payment not fully refactored, please use individual actions.");
+            // 'update_payment' is superseded by 'edit_payment'.
+            // Redirect to edit_payment for backward compatibility.
+            $input['action'] = 'edit_payment';
+            // fall through intentionally — continue to edit_payment block below
+            // (handled by routing the action key; clients should use edit_payment directly)
+            echo json_encode(['success' => false, 'message' => 'Use action=edit_payment to update a payment record.']);
+            exit;
         }
         // Moved GET endpoints to the $method === 'GET' block above
         else if ($action === 'edit_payment') {
@@ -762,14 +826,30 @@ try {
 
             if ($resendEmail) {
                 $queue = new QueueService();
+                // Fetch complete student and payment details
+                $stdStmt = $db->prepare("SELECT s.full_name as student_name, s.email as student_email, s.roll_no, c.name as course_name, b.name as batch_name FROM students s LEFT JOIN batches b ON s.batch_id = b.id LEFT JOIN courses c ON b.course_id = c.id WHERE s.id = :sid");
+                $stdStmt->execute(['sid' => $txn['student_id']]);
+                $studentInfo = $stdStmt->fetch(PDO::FETCH_ASSOC);
+                
                 $queue->dispatch('payment_receipt', [
                     'transaction_id' => $transactionId,
                     'receipt_no' => $txn['receipt_number'],
-                    'student_id' => $txn['student_id']
+                    'student_id' => $txn['student_id'],
+                    'student_name' => $studentInfo['student_name'] ?? 'Student',
+                    'student_email' => $studentInfo['student_email'] ?? '',
+                    'roll_no' => $studentInfo['roll_no'] ?? '',
+                    'course_name' => $studentInfo['course_name'] ?? '',
+                    'batch_name' => $studentInfo['batch_name'] ?? '',
+                    'amount' => $amountPaid,
+                    'paid_date' => $paidDate,
+                    'payment_mode' => $paymentMode,
+                    'login_url' => (defined('APP_URL') ? APP_URL : '') . '/?page=login'
                 ], $tenantId);
             }
 
-            echo json_encode(['success' => true, 'message' => 'Payment updated successfully' . ($emailSent ? ' and Email Resent' : '')]);
+            // $resendEmail is already defined above; use it to build the status message
+            $emailQueued = $resendEmail;
+            echo json_encode(['success' => true, 'message' => 'Payment updated successfully' . ($emailQueued ? ' and email receipt queued.' : '.')]);
         }
         else if ($action === 'delete_payment') {
             $transactionId = $input['transaction_id'] ?? null;

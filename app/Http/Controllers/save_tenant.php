@@ -84,6 +84,23 @@ try {
     $stmt = $pdo->prepare("INSERT INTO tenants (name, nepali_name, subdomain, brand_color, tagline, address, phone, email, plan, status, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())");
     $stmt->execute([$name, $nepaliName, $subdomain, $brandColor, $tagline, $address, $phone, $email, $plan, $status, $currentUserId]);
     $tenantId = $pdo->lastInsertId();
+
+    // Process logo if uploaded
+    if (isset($_FILES['logo']) && $_FILES['logo']['error'] === UPLOAD_ERR_OK) {
+        $uploadDir = __DIR__ . '/../../../public/uploads/logos/';
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0755, true);
+        }
+        $fileExt = strtolower(pathinfo($_FILES['logo']['name'], PATHINFO_EXTENSION));
+        if (in_array($fileExt, ['jpg', 'jpeg', 'png', 'svg', 'webp', 'gif'])) {
+            $newFileName = 'logo_' . $tenantId . '_' . time() . '.' . $fileExt;
+            if (move_uploaded_file($_FILES['logo']['tmp_name'], $uploadDir . $newFileName)) {
+                $logoPath = '/public/uploads/logos/' . $newFileName;
+                $stmtLogo = $pdo->prepare("UPDATE tenants SET logo_path = ? WHERE id = ?");
+                $stmtLogo->execute([$logoPath, $tenantId]);
+            }
+        }
+    }
     
     // 2. Create Admin User
     $passwordHash = password_hash($adminPass, PASSWORD_DEFAULT);

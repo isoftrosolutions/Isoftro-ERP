@@ -91,10 +91,10 @@ class CsrfHelper
         $sessionToken = $_SESSION[$tokenName];
         $isValid = hash_equals($sessionToken, $token);
 
-        // Regenerate token after successful validation to prevent reuse
-        if ($isValid) {
-            self::generateCsrfToken();
-        }
+        // NOTE: We intentionally do NOT regenerate the token here.
+        // Regenerating on every validation causes stale-token failures in SPA
+        // partial-page loads where the <head> meta tag is not re-rendered.
+        // Token rotation is handled naturally by the 30-minute expiry.
 
         return $isValid;
     }
@@ -145,6 +145,7 @@ class CsrfHelper
                     const meta = document.querySelector('meta[name=\"csrf-token\"]');
                     if (meta) meta.setAttribute('content', newToken);
                     window.csrfToken = newToken; // Legacy global support
+                    window.CSRF_TOKEN = newToken; // Ensure uppercase version is also synced
                 };
 
                 const originalFetch = window.fetch;

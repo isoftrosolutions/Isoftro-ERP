@@ -108,24 +108,26 @@ function processEmailReceipt($db, $tenantId, $payload) {
         return;
     }
 
-    // Fetch details
+    // Fetch details with JOINS to ensure placeholders like course_name, amount_due, etc. are available
+    $query = "
+        SELECT pt.*, s.full_name as name, COALESCE(NULLIF(s.email, ''), u.email) as email,
+               c.name as course_name, b.name as batch_name,
+               fr.amount_due, fr.amount_paid as fr_amount_paid, fr.fine_applied
+        FROM payment_transactions pt
+        JOIN students s ON pt.student_id = s.id
+        LEFT JOIN users u ON s.user_id = u.id
+        LEFT JOIN batches b ON s.batch_id = b.id
+        LEFT JOIN courses c ON b.course_id = c.id
+        LEFT JOIN fee_records fr ON pt.fee_record_id = fr.id
+        WHERE ";
+    
     if ($transactionId) {
-        $stmt = $db->prepare("
-            SELECT pt.*, s.full_name as name, COALESCE(NULLIF(s.email, ''), u.email) as email 
-            FROM payment_transactions pt
-            JOIN students s ON pt.student_id = s.id
-            LEFT JOIN users u ON s.user_id = u.id
-            WHERE pt.id = :tid AND pt.tenant_id = :tenant
-        ");
+        $query .= "pt.id = :tid AND pt.tenant_id = :tenant";
+        $stmt = $db->prepare($query);
         $stmt->execute(['tid' => $transactionId, 'tenant' => $tenantId]);
     } else {
-        $stmt = $db->prepare("
-            SELECT pt.*, s.full_name as name, COALESCE(NULLIF(s.email, ''), u.email) as email 
-            FROM payment_transactions pt
-            JOIN students s ON pt.student_id = s.id
-            LEFT JOIN users u ON s.user_id = u.id
-            WHERE pt.receipt_number = :rno AND pt.tenant_id = :tenant
-        ");
+        $query .= "pt.receipt_number = :rno AND pt.tenant_id = :tenant";
+        $stmt = $db->prepare($query);
         $stmt->execute(['rno' => $receiptNo, 'tenant' => $tenantId]);
     }
     $txn = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -152,17 +154,21 @@ function processEmailReceipt($db, $tenantId, $payload) {
     }
 
     if ($pdfPath && file_exists($pdfPath)) {
+        // Build receipt data: Prefer payload (from controller) but fallback to DB (worker query)
         $receiptData = array_merge($txn, [
-            'receipt_no' => $txn['receipt_number'],
-            'student_name' => $txn['name'],
-            'paid_date' => date('Y-m-d', strtotime($txn['payment_date'] ?? 'now')),
-            'payment_mode' => $txn['payment_method'] ?? 'Online',
-            'transaction_id' => $txn['id']
+            'course_name'    => $payload['course_name']  ?? ($txn['course_name'] ?? 'N/A'),
+            'student_name'   => $payload['student_name'] ?? ($txn['name'] ?? 'Student'),
+            'student_email'  => $payload['student_email'] ?? ($txn['email'] ?? ''),
+            'amount'         => $payload['amount']       ?? ($txn['amount'] ?? 0),
+            'amount_due'     => $payload['amount_due']   ?? ($txn['amount_due'] ?? 0),
+            'paid_date'      => $payload['paid_date']    ?? date('Y-m-d', strtotime($txn['payment_date'] ?? 'now')),
+            'payment_mode'   => $payload['payment_mode'] ?? ($txn['payment_method'] ?? 'Online'),
+            'receipt_no'     => $payload['receipt_no']   ?? ($txn['receipt_number'] ?? 'N/A'),
+            'transaction_id' => $transactionId,
+            'pdf_path'       => $pdfPath
         ]);
 
-        $sent = MailHelper::sendPaymentReceiptEmail(
-            $db, $tenantId, $receiptData, $pdfPath
-        );
+        $sent = MailHelper::sendPaymentReceiptEmail($db, $tenantId, $receiptData, $pdfPath);
     }
 }
 

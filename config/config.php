@@ -29,8 +29,16 @@ if (!defined('DB_NAME')) define('DB_NAME', getenv('DB_DATABASE') ?: 'hamrolabs_d
 if (!defined('DB_USER')) define('DB_USER', getenv('DB_USERNAME') ?: 'root');
 if (!defined('DB_PASS')) define('DB_PASS', getenv('DB_PASSWORD') ?: '');
 
+// Initialize session (Required early for dynamic APP_NAME)
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 // Application Configuration
-if (!defined('APP_NAME')) define('APP_NAME', getenv('APP_NAME') ?: 'Hamro ERP');
+if (!defined('APP_NAME')) {
+    $dynamicAppName = $_SESSION['tenant_name'] ?? getenv('APP_NAME') ?: 'Hamro ERP';
+    define('APP_NAME', $dynamicAppName);
+}
 if (!defined('APP_VERSION')) define('APP_VERSION', '3.0');
 
 if (!defined('APP_URL')) define('APP_URL', getenv('APP_URL') ?: 'http://localhost/erp');
@@ -324,10 +332,8 @@ if (!function_exists('showTenantNotFound')) {
     }
 }
 
-// Initialize session
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+// Set timezone
+date_default_timezone_set(TIMEZONE);
 
 if (!function_exists('checkRememberMe')) {
     function checkRememberMe() {
@@ -394,9 +400,6 @@ if (!function_exists('checkRememberMe')) {
 
 // Check for remember me cookie
 checkRememberMe();
-
-// Set timezone
-date_default_timezone_set(TIMEZONE);
 
 // Error reporting based on environment
 if (APP_ENV === 'development') {

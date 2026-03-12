@@ -44,8 +44,12 @@ if ($tenantId && (empty($tenantLogo) || $tenantName === 'Dashboard')) {
 }
 
 if (!empty($tenantLogo)) {
-    // Build final logo URL without forcing /public prefix
-    $logoUrl = (strpos($tenantLogo, 'http') === 0) ? $tenantLogo : APP_URL . $tenantLogo;
+    // Build final logo URL handling missing /public prefix
+    $logoRelativePath = $tenantLogo;
+    if (strpos($logoRelativePath, '/uploads/') === 0 && strpos($logoRelativePath, '/public/') !== 0) {
+        $logoRelativePath = '/public' . $logoRelativePath;
+    }
+    $logoUrl = (strpos($logoRelativePath, 'http') === 0) ? $logoRelativePath : APP_URL . $logoRelativePath;
 }
 
 // Current page detection for active states

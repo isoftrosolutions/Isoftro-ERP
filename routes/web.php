@@ -54,7 +54,12 @@ Route::get('/login', function() {
 // Login API (POST) — session-based authentication
 Route::post('/api/login', function () {
     header('Content-Type: application/json');
-    if (!\App\Helpers\CsrfHelper::validateCsrfToken()) {
+    
+    $isApi = isset($_GET['api']) || 
+             (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest') ||
+             (isset($_SERVER['HTTP_ACCEPT']) && strpos($_SERVER['HTTP_ACCEPT'], 'application/json') !== false);
+
+    if (!$isApi && !\App\Helpers\CsrfHelper::validateCsrfToken()) {
         echo json_encode(['success' => false, 'message' => 'Security token expired. Please refresh the page.']);
         exit;
     }
@@ -150,6 +155,38 @@ $roleMap = [
     'student' => 'student',
     'guardian' => 'guardian',
 ];
+
+Route::any('/api/admin/communications', function() {
+    requireAuth();
+    require_once app_path('Http/Controllers/Admin/communications.php');
+});
+
+// ─── Super Admin Impersonation ───────────────────────────
+Route::get('/dash/super-admin/impersonate/{id}', function ($id) {
+    if (!isLoggedIn()) return redirect('/auth/login');
+    $user = getCurrentUser();
+    if ($user['role'] !== 'superadmin') abort(403, "Only Super Admins can impersonate.");
+
+    require_once app_path('Http/Controllers/SuperAdmin/SuperAdminController.php');
+    $controller = new SuperAdminController();
+    $result = $controller->impersonate($id);
+
+    if ($result['success']) {
+        return redirect('/dash/admin');
+    } else {
+        abort(500, "Impersonation failed: " . $result['error']);
+    }
+});
+
+Route::get('/dash/super-admin/stop-impersonating', function () {
+    if (!isLoggedIn()) return redirect('/auth/login');
+    
+    require_once app_path('Http/Controllers/SuperAdmin/SuperAdminController.php');
+    $controller = new SuperAdminController();
+    $controller->endImpersonation();
+
+    return redirect('/dash/super-admin');
+});
 
 Route::get('/dash/{role}/{page?}', function ($role, $page = 'index') use ($roleMap) {
     // Auth check — must be logged in
@@ -652,6 +689,12 @@ Route::middleware(['auth.superadmin'])->group(function () {
         
         foreach ($fileAttempts as $file) {
             if (file_exists($file)) {
+                // Ensure sidebar is included as it defines functions used in super-admin views
+                $sidebarFile = resource_path('views/super-admin/sidebar.php');
+                if (file_exists($sidebarFile)) {
+                    require_once $sidebarFile;
+                }
+                
                 require_once $file;
                 return;
             }

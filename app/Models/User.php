@@ -35,7 +35,7 @@ class User extends Model {
     /**
      * Create new user (Eloquent version)
      */
-    public function create($data) {
+    public function createUser($data) {
         if (isset($data['password'])) {
             $data['password_hash'] = password_hash($data['password'], PASSWORD_BCRYPT, ['cost' => 12]);
             unset($data['password']);
@@ -48,7 +48,7 @@ class User extends Model {
     /**
      * Update user (Eloquent version)
      */
-    public function update($id, $data) {
+    public function updateUser($id, $data) {
         $user = self::find($id);
         if (!$user) return null;
 

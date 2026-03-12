@@ -45,17 +45,6 @@ if (!defined('APP_NAME')) {
                 <div class="skeleton" style="height:20px; width:70%; margin-bottom:15px;"></div>
             </div>
 
-            <div style="padding:24px; border-top:1px solid #f1f5f9; display:grid; grid-template-columns:1fr 1fr; gap:12px;" id="actionButtons" style="display:none;">
-                <button class="btn bt" onclick="printReceipt()" style="justify-content:center;">
-                    <i class="fa-solid fa-print"></i> Print Receipt
-                </button>
-                <button class="btn bt" onclick="downloadReceipt()" style="justify-content:center;">
-                    <i class="fa-solid fa-file-pdf"></i> Download PDF
-                </button>
-                <button class="btn bt" onclick="sendReceiptEmail()" id="emailBtn" style="justify-content:center; grid-column: span 2;">
-                    <i class="fa-solid fa-envelope"></i> Send Email to Student
-                </button>
-            </div>
         </div>
 
         <div class="card" style="height:fit-content;">
@@ -125,47 +114,6 @@ if (!defined('APP_NAME')) {
         }
     }
 
-    window.printReceipt = function() {
-        window.open(`<?= APP_URL ?>/api/frontdesk/fees?action=generate_receipt_html&receipt_no=${receiptNo}`, '_blank');
-    };
-
-    window.downloadReceipt = function() {
-        window.open(`<?= APP_URL ?>/api/frontdesk/fees?action=generate_receipt_html&is_pdf=1&receipt_no=${receiptNo}`, '_blank');
-    };
-
-    window.sendReceiptEmail = async function() {
-        const btn = document.getElementById('emailBtn');
-        const originalHtml = btn.innerHTML;
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Sending...';
-
-        try {
-            const res = await fetch(`<?= APP_URL ?>/api/frontdesk/fees`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': window.CSRF_TOKEN },
-                body: JSON.stringify({ action: 'trigger_email', receipt_no: receiptNo })
-            });
-            const result = await res.json();
-            
-            if (result.success) {
-                btn.innerHTML = '<i class="fa-solid fa-check"></i> Email Queued!';
-                btn.classList.replace('bt', 'bs');
-                btn.style.background = '#DCFCE7';
-                btn.style.color = '#166534';
-                btn.style.borderColor = '#166534';
-            } else {
-                throw new Error(result.message);
-            }
-        } catch (e) {
-            btn.innerHTML = '<i class="fa-solid fa-xmark"></i> Failed';
-            alert(e.message);
-        } finally {
-            setTimeout(() => {
-                btn.disabled = false;
-                if (!btn.innerHTML.includes('Queued')) btn.innerHTML = originalHtml;
-            }, 3000);
-        }
-    };
 
     loadDetails();
 })();

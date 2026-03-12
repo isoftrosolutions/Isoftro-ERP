@@ -32,7 +32,7 @@ if (!in_array($role, ['instituteadmin', 'frontdesk', 'superadmin'])) {
 $action = $_GET['action'] ?? 'summary';
 
 try {
-    $db = \App\Support\Database::getInstance()->getConnection();
+    $db = getDBConnection();
 
     if ($action === 'summary') {
         $stats = [];
@@ -111,8 +111,8 @@ try {
                    c.name as course_name, fi.name as fee_name
             FROM payment_transactions pt
             JOIN students s ON pt.student_id = s.id
-            JOIN fee_records fr ON pt.fee_record_id = fr.id
-            JOIN fee_items fi ON fr.fee_item_id = fi.id
+            LEFT JOIN fee_records fr ON pt.fee_record_id = fr.id
+            LEFT JOIN fee_items fi ON fr.fee_item_id = fi.id
             LEFT JOIN batches b ON s.batch_id = b.id
             LEFT JOIN courses c ON b.course_id = c.id
             WHERE pt.tenant_id = :tid 
@@ -273,8 +273,8 @@ try {
                        fi.name as fee_name, pt.payment_method, pt.amount
                 FROM payment_transactions pt
                 JOIN students s ON pt.student_id = s.id
-                JOIN fee_records fr ON pt.fee_record_id = fr.id
-                JOIN fee_items fi ON fr.fee_item_id = fi.id
+                LEFT JOIN fee_records fr ON pt.fee_record_id = fr.id
+                LEFT JOIN fee_items fi ON fr.fee_item_id = fi.id
                 LEFT JOIN batches b ON s.batch_id = b.id
                 WHERE pt.tenant_id = :tid 
                 AND DATE(pt.payment_date) BETWEEN :start AND :end

@@ -277,7 +277,7 @@ if (isset($_GET['partial']) && $_GET['partial'] == 'true') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo htmlspecialchars($pageTitle); ?> | <?php echo APP_NAME; ?> — Super Admin</title>
+    <title><?php echo APP_NAME; ?> | <?php echo htmlspecialchars($pageTitle); ?> — Super Admin</title>
 
     <!-- External Resources -->
     <?php renderExternalStyles(); ?>
@@ -308,6 +308,14 @@ if (isset($_GET['partial']) && $_GET['partial'] == 'true') {
     ?>
 </head>
 <body class="<?php echo htmlspecialchars($bodyClass); ?>">
+    <?php if (isset($_SESSION['impersonating']) && $_SESSION['impersonating']): ?>
+    <!-- Impersonation Alert Bar -->
+    <div style="background: var(--red); color: #fff; padding: 10px 20px; text-align: center; font-size: 13px; font-weight: 700; position: sticky; top: 0; z-index: 9999; display: flex; justify-content: center; align-items: center; gap: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.2);">
+        <span><i class="fa-solid fa-user-secret" style="margin-right: 8px;"></i> You are currently impersonating <strong><?php echo htmlspecialchars($_SESSION['userData']['name']); ?></strong> (<?php echo htmlspecialchars($_SESSION['userData']['email']); ?>)</span>
+        <a href="<?php echo APP_URL; ?>/dash/super-admin/stop-impersonating" style="background: rgba(255,255,255,0.2); color: #fff; text-decoration: none; padding: 4px 12px; border-radius: 4px; font-size: 11px; text-transform: uppercase; transition: 0.2s; border: 1px solid rgba(255,255,255,0.4);" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">End Session</a>
+    </div>
+    <?php endif; ?>
+
     <!-- Overlay (mobile sidebar backdrop) -->
     <div class="sb-overlay" id="sbOverlay"></div>
     <div class="<?php echo htmlspecialchars($wrapperClass); ?>">

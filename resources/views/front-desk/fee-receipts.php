@@ -62,7 +62,6 @@ if (!isset($_GET['partial'])) {
                         <th style="padding:14px 16px; text-align:left; font-size:12px; font-weight:700; color:#64748b; text-transform:uppercase;">Fee Item</th>
                         <th style="padding:14px 16px; text-align:right; font-size:12px; font-weight:700; color:#64748b; text-transform:uppercase;">Amount</th>
                         <th style="padding:14px 16px; text-align:center; font-size:12px; font-weight:700; color:#64748b; text-transform:uppercase;">Mode</th>
-                        <th style="padding:14px 16px; text-align:center; font-size:12px; font-weight:700; color:#64748b; text-transform:uppercase;">Actions</th>
                     </tr>
                 </thead>
                 <tbody id="receiptsTableBody">
@@ -115,8 +114,8 @@ async function loadReceipts() {
                 const methodClass = `m-${item.payment_method}`;
                 
                 return `
-                    <tr style="border-bottom:1px solid #f1f5f9;">
-                        <td style="padding:14px 16px; font-weight:700; color:#1e293b;">${item.receipt_number}</td>
+                    <tr style="border-bottom:1px solid #f1f5f9; cursor:pointer;" onclick="goNav('fee', 'fee-details', '&receipt_no=${item.receipt_number}')">
+                        <td style="padding:14px 16px; font-weight:700; color:#3B82F6;">${item.receipt_number}</td>
                         <td style="padding:14px 16px; font-size:13px; color:#475569;">
                             ${new Date(item.payment_date).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'})}
                         </td>
@@ -132,19 +131,6 @@ async function loadReceipts() {
                         </td>
                         <td style="padding:14px 16px; text-align:center;">
                             <span class="m-tag ${methodClass}">${item.payment_method.replace('_', ' ')}</span>
-                        </td>
-                        <td style="padding:14px 16px; text-align:center;">
-                            <div style="display:flex; justify-content:center; gap:8px;">
-                                <button class="btn bt" style="padding:6px 10px; font-size:12px;" onclick="goNav('fee', 'fee-details', '&receipt_no=${item.receipt_number}')" title="View Details">
-                                    <i class="fa-solid fa-eye" style="color:#6366F1;"></i>
-                                </button>
-                                <button class="btn bt" style="padding:6px 10px; font-size:12px;" onclick="window.open('<?= APP_URL ?>/api/frontdesk/fees?action=generate_receipt_html&is_pdf=1&receipt_no=${item.receipt_number}')" title="View PDF">
-                                    <i class="fa-solid fa-file-pdf" style="color:#EF4444;"></i>
-                                </button>
-                                <button class="btn bt" style="padding:6px 10px; font-size:12px;" onclick="emailReceipt('${item.receipt_number}', this)" title="Email Receipt">
-                                    <i class="fa-solid fa-envelope" style="color:#3B82F6;"></i>
-                                </button>
-                            </div>
                         </td>
                     </tr>
                 `;

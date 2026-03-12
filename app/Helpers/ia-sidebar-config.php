@@ -197,7 +197,6 @@ function getIASidebarConfig() {
                     'sub' => [
                         ['id' => 'sms',       'l' => 'SMS Broadcast',   'icon' => 'fa-message'],
                         ['id' => 'email',     'l' => 'Email Campaigns', 'icon' => 'fa-envelope-open-text'],
-                        ['id' => 'em-tpls',   'l' => 'Email Templates', 'icon' => 'fa-envelope-open-text', 'onclick' => 'goNav(\'settings\', \'em-tpls\')'],
                         ['id' => 'templates', 'l' => 'SMS Templates',   'icon' => 'fa-comment-dots'],
                         ['id' => 'msg-log',   'l' => 'Message Log',     'icon' => 'fa-clock-rotate-left'],
                     ],
@@ -230,6 +229,8 @@ function getIASidebarConfig() {
                         ['id' => 'fee-rep', 'l' => 'Fee Reports',           'icon' => 'fa-file-invoice-dollar'],
                         ['id' => 'att-rep', 'l' => 'Attendance Reports',    'icon' => 'fa-clipboard-user'],
                         ['id' => 'ex-rep',  'l' => 'Exam Reports',          'icon' => 'fa-square-poll-vertical'],
+                        ['id' => 'inq-rep', 'l' => 'Inquiry Reports',       'icon' => 'fa-magnifying-glass-chart'],
+                        ['id' => 'lms-rep', 'l' => 'LMS Analytics',         'icon' => 'fa-book-open-reader'],
                         ['id' => 'custom',  'l' => 'Custom Report Builder', 'icon' => 'fa-wand-magic-sparkles'],
                     ],
                 ],

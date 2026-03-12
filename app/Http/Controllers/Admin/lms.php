@@ -119,16 +119,23 @@ try {
             break;
             
         case 'create_material':
-            $_POST['action'] = 'create';
+        case 'create':
+            if ($method === 'POST') {
+                $_POST['action'] = 'create';
+            } else {
+                $_GET['action'] = 'create';
+            }
             require_once __DIR__ . '/study_materials.php';
             break;
             
         case 'update_material':
+        case 'update':
             $_POST['action'] = 'update';
             require_once __DIR__ . '/study_materials.php';
             break;
             
         case 'delete_material':
+        case 'delete':
             $_GET['action'] = 'delete';
             require_once __DIR__ . '/study_materials.php';
             break;

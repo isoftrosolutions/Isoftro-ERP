@@ -21,9 +21,10 @@ $role = $user['role'] ?? '';
 $tenantId = $user['tenant_id'] ?? null;
 $userId = $user['id'] ?? null;
 
-// Only guardians or supers/admins can access
-if ($role !== 'guardian' && $role !== 'superadmin' && $role !== 'instituteadmin') {
-    // Just a check
+// Only guardians, superadmins, and instituteadmins can access
+if (!in_array($role, ['guardian', 'superadmin', 'instituteadmin'])) {
+    echo json_encode(['success' => false, 'message' => 'Access denied']);
+    exit;
 }
 
 try {
@@ -99,14 +100,17 @@ try {
         $dashboard['stats']['attendance_present'] = $presentDays;
         $dashboard['stats']['attendance_total'] = $totalDays;
         
-        // 4. Recent Exams
+        // 4. Recent Exams — use correct schema columns (start_at not exam_date, no exam_type)
         try {
             $stmt = $db->prepare("
-                SELECT ea.score, ea.total_marks, e.title as exam_title, e.exam_date, e.exam_type
+                SELECT ea.score, ea.total_marks,
+                       e.title as exam_title,
+                       DATE(e.start_at) as exam_date,
+                       e.question_mode as exam_type
                 FROM exam_attempts ea
                 JOIN exams e ON ea.exam_id = e.id
                 WHERE ea.student_id = :sid AND ea.tenant_id = :tid
-                ORDER BY e.exam_date DESC LIMIT 3
+                ORDER BY e.start_at DESC LIMIT 3
             ");
             $stmt->execute(['sid' => $studentId, 'tid' => $tenantId]);
             $recentExams = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -119,35 +123,52 @@ try {
             }
         } catch (Exception $e) {}
         
-        // 5. Fee Dues
-        try {
-            $stmt = $db->prepare("SELECT SUM(amount) as total_due FROM fee_records WHERE student_id = :sid AND status = 'unpaid'");
-            $stmt->execute(['sid' => $studentId]);
-            $feeRow = $stmt->fetch(PDO::FETCH_ASSOC);
-            $dashboard['stats']['fee_dues'] = $feeRow['total_due'] ? (float)$feeRow['total_due'] : 0;
-            
-            // Fee Schedule
-            $stmt = $db->prepare("SELECT title as fee_name, due_date, amount, status 
-                                  FROM fee_records 
-                                  WHERE student_id = :sid AND tenant_id = :tid 
-                                  ORDER BY due_date ASC LIMIT 5");
-            $stmt->execute(['sid' => $studentId, 'tid' => $tenantId]);
-            $dashboard['fee_status'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        } catch(Exception $e) {}
-        
-        // 6. Recent Notices
+        // 5. Fee Dues — use actual schema columns (amount_due, amount_paid)
         try {
             $stmt = $db->prepare("
-                SELECT * FROM notices 
-                WHERE tenant_id = :tid AND target_type IN ('all', 'guardians') 
-                  OR (target_type = 'batch' AND target_id = :bid)
+                SELECT SUM(fr.amount_due - fr.amount_paid) as total_due
+                FROM fee_records fr
+                WHERE fr.student_id = :sid AND fr.tenant_id = :tid
+                  AND fr.amount_due > fr.amount_paid
+            ");
+            $stmt->execute(['sid' => $studentId, 'tid' => $tenantId]);
+            $feeRow = $stmt->fetch(PDO::FETCH_ASSOC);
+            $dashboard['stats']['fee_dues'] = $feeRow['total_due'] ? (float)$feeRow['total_due'] : 0;
+
+            // Fee Schedule — join fee_items for the name; use correct column names
+            $stmt = $db->prepare("
+                SELECT fi.name as fee_name, fr.due_date,
+                       fr.amount_due, fr.amount_paid,
+                       (fr.amount_due - fr.amount_paid) as balance,
+                       fr.status
+                FROM fee_records fr
+                JOIN fee_items fi ON fr.fee_item_id = fi.id
+                WHERE fr.student_id = :sid AND fr.tenant_id = :tid
+                ORDER BY fr.due_date ASC LIMIT 5
+            ");
+            $stmt->execute(['sid' => $studentId, 'tid' => $tenantId]);
+            $dashboard['fee_status'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Exception $e) {
+            error_log('Guardian fee query error: ' . $e->getMessage());
+        }
+        
+        // 6. Recent Notices — parentheses required around OR clauses to maintain tenant isolation
+        try {
+            $stmt = $db->prepare("
+                SELECT id, title, content, created_at, target_type FROM notices
+                WHERE (
+                    (tenant_id = :tid AND target_type IN ('all', 'guardians'))
+                    OR (tenant_id = :tid2 AND target_type = 'batch' AND target_id = :bid)
+                )
                 ORDER BY created_at DESC LIMIT 3
             ");
-            $stmt->execute(['tid' => $tenantId, 'bid' => $batchId]);
+            $stmt->execute(['tid' => $tenantId, 'tid2' => $tenantId, 'bid' => $batchId]);
             $notices = $stmt->fetchAll(PDO::FETCH_ASSOC);
             $dashboard['recent_notices'] = $notices;
             $dashboard['stats']['notices_count'] = count($notices);
-        } catch (Exception $e) {}
+        } catch (Exception $e) {
+            error_log('Guardian notices query error: ' . $e->getMessage());
+        }
 
     }
 

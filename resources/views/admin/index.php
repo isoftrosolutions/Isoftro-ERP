@@ -42,10 +42,14 @@ include __DIR__ . '/layouts/sidebar.php';   // Side Navigation
 <script src="<?php echo APP_URL; ?>/public/assets/js/ia-fees.js?v=<?php echo $v; ?>"></script>
 <script src="<?php echo APP_URL; ?>/public/assets/js/ia-attendance.js?v=<?php echo $v; ?>"></script>
 <script src="<?php echo APP_URL; ?>/public/assets/js/ia-homework.js?v=<?php echo $v; ?>"></script>
+<script src="<?php echo APP_URL; ?>/public/assets/js/ia-reports.js?v=<?php echo $v; ?>"></script>
 <script src="<?php echo APP_URL; ?>/public/assets/js/ia-academic-calendar.js?v=<?php echo $v; ?>"></script>
 <script src="<?php echo APP_URL; ?>/public/assets/js/ia-lms.js?v=<?php echo $v; ?>"></script>
 <script src="<?php echo APP_URL; ?>/public/assets/js/ia-study-materials.js?v=<?php echo $v; ?>"></script>
+<script src="<?php echo APP_URL; ?>/public/assets/js/ia-qbank.js?v=<?php echo $v; ?>"></script>
 <script src="<?php echo APP_URL; ?>/public/assets/js/ia-email-templates.js?v=<?php echo $v; ?>"></script>
+<script src="<?php echo APP_URL; ?>/public/assets/js/ia-emails.js?v=<?php echo $v; ?>"></script>
+<script src="<?php echo APP_URL; ?>/public/assets/js/ia-comms-logs.js?v=<?php echo $v; ?>"></script>
 <script src="<?php echo APP_URL; ?>/public/assets/js/ia-audit-logs.js?v=<?php echo $v; ?>"></script>
 <script src="<?php echo APP_URL; ?>/public/assets/js/ia-support.js?v=<?php echo $v; ?>"></script>
 <script src="<?php echo APP_URL; ?>/public/assets/js/ia-feedback.js?v=<?php echo $v; ?>"></script>

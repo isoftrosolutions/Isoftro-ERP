@@ -112,7 +112,8 @@ document.addEventListener('DOMContentLoaded', () => {
             { id: "leave-requests", icon: "fa-user-clock", l: "Leave Requests", badge: { val: 5, c: "amber" } },
             { id: "library", icon: "fa-book", l: "Library Desk" },
             { id: "timetable", icon: "fa-table", l: "Today's Timetable" },
-            { id: "announcements", icon: "fa-bullhorn", l: "Announcements", badge: { val: 2, c: "green" } }
+            { id: "announcements", icon: "fa-bullhorn", l: "Announcements", badge: { val: 2, c: "green" } },
+            { id: "qbank", icon: "fa-database", l: "Question Bank" }
         ]},
         { sec: "System", divider: true, items: [
             { id: "support", icon: "fa-headset", l: "Support Tickets" },
@@ -298,6 +299,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (window.renderAnnouncementsList) window.renderAnnouncementsList();
         } else if (activeNav === 'exams' || activeNav === 'assessments') {
             if (window.renderExamList) window.renderExamList();
+        } else if (activeNav === 'qbank') {
+            if (window.renderQuestionBank) window.renderQuestionBank();
         } else if (activeNav === 'homework') {
             if (window.renderHomeworkList) window.renderHomeworkList();
         } else if (activeNav === 'staff') {

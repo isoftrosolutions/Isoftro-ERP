@@ -366,18 +366,19 @@ try {
                 // Get payment transactions
                 // NOTE: payment_transactions uses payment_method (not payment_mode) and receipt_number
                 $stmt = $db->prepare("
-                    SELECT pt.id, pt.student_id, pt.fee_record_id, pt.amount,
-                           pt.payment_method as payment_mode,
-                           pt.receipt_number, pt.payment_date, pt.notes, pt.status,
-                           fi.name as fee_item_name
+                    SELECT id, student_id, amount, payment_date, payment_mode, reference as receipt_number, reference, 'historical' as source, NULL as fee_item_name
+                    FROM student_payments 
+                    WHERE student_id = :sid1 AND tenant_id = :tid1
+                    UNION ALL
+                    SELECT pt.id, pt.student_id, pt.amount, pt.payment_date, pt.payment_method as payment_mode, pt.receipt_number, pt.receipt_number as reference, 'transaction' as source, fi.name as fee_item_name
                     FROM payment_transactions pt
                     LEFT JOIN fee_records fr ON pt.fee_record_id = fr.id
                     LEFT JOIN fee_items fi ON fr.fee_item_id = fi.id
-                    WHERE pt.student_id = :sid AND pt.tenant_id = :tid
-                    ORDER BY pt.payment_date DESC
-                    LIMIT 30
+                    WHERE pt.student_id = :sid2 AND pt.tenant_id = :tid2
+                    ORDER BY payment_date DESC
+                    LIMIT 50
                 ");
-                $stmt->execute(['sid' => $studentId, 'tid' => $tenantId]);
+                $stmt->execute(['sid1' => $studentId, 'tid1' => $tenantId, 'sid2' => $studentId, 'tid2' => $tenantId]);
                 $payments = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 
                 // Calculate summary from fee_records

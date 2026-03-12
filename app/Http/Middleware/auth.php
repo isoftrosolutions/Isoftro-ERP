@@ -130,7 +130,9 @@ function login($userData) {
         $token = bin2hex(random_bytes(32));
         $expiry = time() + (30 * 24 * 60 * 60); // 30 days
         
-        setcookie('remember_token', $token, $expiry, '/', '', false, true);
+        // Secure flag: true in production, allow false only on localhost/dev
+        $isSecure = !(defined('APP_ENV') && APP_ENV === 'development');
+        setcookie('remember_token', $token, $expiry, '/', '', $isSecure, true);
         
         // Store token in database
         $db = getDBConnection();
@@ -145,7 +147,8 @@ function login($userData) {
 function logout() {
     // Clear remember me cookie
     if (isset($_COOKIE['remember_token'])) {
-        setcookie('remember_token', '', time() - 3600, '/', '', false, true);
+        $isSecure = !(defined('APP_ENV') && APP_ENV === 'development');
+        setcookie('remember_token', '', time() - 3600, '/', '', $isSecure, true);
         
         // Remove token from database
         $db = getDBConnection();

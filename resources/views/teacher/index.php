@@ -18,7 +18,7 @@ include VIEWS_PATH . '/layouts/header.php';
                     <div style="width:36px; height:36px; border-radius:50%; overflow:hidden; display:flex; align-items:center; justify-content:center; background:#fff; margin-right:10px;">
                         <img src="<?php echo APP_URL; ?>/public/assets/images/logo.png" alt="Logo" style="width:100%; height:auto;">
                     </div>
-                    <span class="logo-txt">Hamro ERP</span>
+                    <span class="logo-txt"><?php echo APP_NAME; ?></span>
                 </div>
             </div>
 
@@ -81,9 +81,10 @@ include VIEWS_PATH . '/layouts/header.php';
         </main>
 
     </div>
-        <!-- Custom Scripts -->
+    <!-- Custom Scripts -->
     <script src="<?php echo APP_URL; ?>/public/assets/js/pwa-handler.js"></script>
     <script src="<?php echo APP_URL; ?>/public/assets/js/ia-study-materials.js"></script>
+    <script src="<?php echo APP_URL; ?>/public/assets/js/ia-qbank.js"></script>
     <script src="<?php echo APP_URL; ?>/public/assets/js/ia-lms.js"></script>
     <script src="<?php echo APP_URL; ?>/public/assets/js/ta-profile.js"></script>
     <script src="<?php echo APP_URL; ?>/public/assets/js/ta-classes.js"></script>
