@@ -33,15 +33,18 @@ try {
         $status = $_GET['status'] ?? null;
         $search = $_GET['search'] ?? null;
 
-        $query = "SELECT id, full_name, roll_no, id_card_status, id_card_issued_at FROM students WHERE tenant_id = :tid";
+        $query = "SELECT s.id, u.name as full_name, s.roll_no, s.id_card_status, s.id_card_issued_at 
+                  FROM students s
+                  JOIN users u ON s.user_id = u.id
+                  WHERE s.tenant_id = :tid";
         $params = ['tid' => $tenantId];
 
         if ($status) {
-            $query .= " AND id_card_status = :status";
+            $query .= " AND s.id_card_status = :status";
             $params['status'] = $status;
         }
         if ($search) {
-            $query .= " AND (full_name LIKE :search OR roll_no LIKE :search)";
+            $query .= " AND (u.name LIKE :search OR s.roll_no LIKE :search)";
             $params['search'] = "%$search%";
         }
 

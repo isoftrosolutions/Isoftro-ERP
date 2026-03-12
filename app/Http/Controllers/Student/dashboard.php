@@ -64,7 +64,8 @@ try {
                c.name as course_name, c.id as course_id,
                t.name as institute_name, t.logo_path as institute_logo
         FROM students s
-        LEFT JOIN batches b ON s.batch_id = b.id
+        LEFT JOIN enrollments e ON s.id = e.student_id AND e.status = 'active'
+        LEFT JOIN batches b ON e.batch_id = b.id
         LEFT JOIN courses c ON b.course_id = c.id
         LEFT JOIN tenants t ON s.tenant_id = t.id
         WHERE s.id = :sid AND s.tenant_id = :tid

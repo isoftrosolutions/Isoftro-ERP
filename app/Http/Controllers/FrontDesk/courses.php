@@ -44,7 +44,7 @@ try {
         // List courses
         $query = "SELECT c.*, 
                   (SELECT COUNT(*) FROM batches b WHERE b.course_id = c.id AND b.deleted_at IS NULL) as total_batches,
-                  (SELECT COUNT(*) FROM students s JOIN batches b ON s.batch_id = b.id WHERE b.course_id = c.id AND s.deleted_at IS NULL) as total_students
+                  (SELECT COUNT(*) FROM students s JOIN enrollments e ON s.id = e.student_id AND e.status = 'active' JOIN batches b ON e.batch_id = b.id WHERE b.course_id = c.id AND s.deleted_at IS NULL) as total_students
                   FROM courses c 
                   WHERE c.tenant_id = :tid AND c.deleted_at IS NULL AND c.is_active = 1 AND c.status = 'active'";
         // ISSUE-C2 FIX: Filter by both is_active AND status for consistency

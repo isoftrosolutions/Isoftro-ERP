@@ -106,7 +106,7 @@ try {
 
         if (!empty($_GET['search'])) {
             $search = '%' . $_GET['search'] . '%';
-            $whereSql .= " AND (s.full_name LIKE :s1 OR s.roll_no LIKE :s2 OR s.email LIKE :s3 OR s.phone LIKE :s4)";
+            $whereSql .= " AND (u.name LIKE :s1 OR s.roll_no LIKE :s2 OR u.email LIKE :s3 OR u.phone LIKE :s4)";
             $params['s1'] = $search;
             $params['s2'] = $search;
             $params['s3'] = $search;
@@ -117,7 +117,7 @@ try {
             $params['status'] = $_GET['status'];
         }
         if (!empty($_GET['batch_id'])) {
-            $whereSql .= " AND s.batch_id = :batch_id";
+            $whereSql .= " AND e.batch_id = :batch_id";
             $params['batch_id'] = $_GET['batch_id'];
         }
         if (!empty($_GET['ids'])) {
@@ -132,13 +132,15 @@ try {
         }
 
         // Get all students for CSV (no pagination limit)
-        $query = "SELECT s.roll_no, s.full_name, s.email, s.phone, s.gender, s.dob_bs, s.dob_ad,
+        $query = "SELECT s.roll_no, u.name as full_name, u.email, u.phone, s.gender, s.dob_bs, s.dob_ad,
                          s.citizenship_no, s.father_name, s.mother_name, s.guardian_name, s.guardian_relation,
                          s.permanent_address, s.temporary_address,
                          b.name as batch_name, c.name as course_name,
                          s.status, s.registration_status, s.admission_date, s.created_at
                   FROM students s 
-                  LEFT JOIN batches b ON s.batch_id = b.id 
+                  JOIN users u ON s.user_id = u.id
+                  LEFT JOIN enrollments e ON s.id = e.student_id AND e.status = 'active'
+                  LEFT JOIN batches b ON e.batch_id = b.id 
                   LEFT JOIN courses c ON b.course_id = c.id
                   $whereSql
                   ORDER BY s.roll_no ASC";
@@ -247,7 +249,7 @@ try {
         // Search filter
         if (!empty($_GET['search'])) {
             $search = '%' . $_GET['search'] . '%';
-            $whereSql .= " AND (s.full_name LIKE :s1 OR s.roll_no LIKE :s2 OR s.email LIKE :s3 OR s.phone LIKE :s4)";
+            $whereSql .= " AND (u.name LIKE :s1 OR s.roll_no LIKE :s2 OR u.email LIKE :s3 OR u.phone LIKE :s4)";
             $params['s1'] = $search;
             $params['s2'] = $search;
             $params['s3'] = $search;
@@ -279,27 +281,31 @@ try {
 
         // Batch filter
         if (!empty($_GET['batch_id'])) {
-            $whereSql .= " AND s.batch_id = :batch_id";
+            $whereSql .= " AND e.batch_id = :batch_id";
             $params['batch_id'] = $_GET['batch_id'];
         }
 
         // Count total for pagination
         $countQuery = "SELECT COUNT(*) FROM students s 
-                       LEFT JOIN batches b ON s.batch_id = b.id 
+                       JOIN users u ON s.user_id = u.id
+                       LEFT JOIN enrollments e ON s.id = e.student_id AND e.status = 'active'
+                       LEFT JOIN batches b ON e.batch_id = b.id 
                        $whereSql";
         $stmtCount = $db->prepare($countQuery);
         $stmtCount->execute($params);
         $total = (int)$stmtCount->fetchColumn();
 
         // Data query
-        $query = "SELECT s.*, s.registration_mode, s.registration_status, s.admission_date,
-                         b.name as batch_name, b.course_id as course_id, c.name as course_name,
+        $query = "SELECT s.*, u.name as full_name, u.email, u.phone, s.registration_mode, s.registration_status, s.admission_date,
+                         b.name as batch_name, e.batch_id as batch_id, b.course_id as course_id, c.name as course_name,
                          COALESCE(sfs.fee_status, 'no_fees') as fee_status,
                          COALESCE(sfs.total_fee, 0) as total_fee,
                          COALESCE(sfs.paid_amount, 0) as paid_amount,
                          COALESCE(sfs.due_amount, 0) as due_amount
                   FROM students s 
-                  LEFT JOIN batches b ON s.batch_id = b.id 
+                  JOIN users u ON s.user_id = u.id
+                  LEFT JOIN enrollments e ON s.id = e.student_id AND e.status = 'active'
+                  LEFT JOIN batches b ON e.batch_id = b.id 
                   LEFT JOIN courses c ON b.course_id = c.id
                   LEFT JOIN student_fee_summary sfs ON s.id = sfs.student_id
                   $whereSql
@@ -465,7 +471,7 @@ try {
             if (!$studentId) throw new Exception("Student ID is required");
 
             // Fetch student email, name, course and batch info
-            $stmt = $db->prepare("SELECT s.full_name, s.email, s.registration_mode, s.roll_no, c.name as course_name, b.name as batch_name FROM students s LEFT JOIN batches b ON s.batch_id = b.id LEFT JOIN courses c ON b.course_id = c.id WHERE s.id = :id AND s.tenant_id = :tid AND s.deleted_at IS NULL");
+            $stmt = $db->prepare("SELECT u.name as full_name, u.email, s.registration_mode, s.roll_no, c.name as course_name, b.name as batch_name FROM students s JOIN users u ON s.user_id = u.id LEFT JOIN enrollments e ON s.id = e.student_id AND e.status = 'active' LEFT JOIN batches b ON e.batch_id = b.id LEFT JOIN courses c ON b.course_id = c.id WHERE s.id = :id AND s.tenant_id = :tid AND s.deleted_at IS NULL");
             $stmt->execute(['id' => $studentId, 'tid' => $tenantId]);
             $student = $stmt->fetch();
 
@@ -478,7 +484,7 @@ try {
                 // Use default password if not provided
                 $password = $input['password'] ?? 'Student@123'; 
                 $success = \App\Helpers\StudentEmailHelper::sendWelcomeEmail($db, $tenantId, [
-                    'student_name' => $student['full_name'],
+                    'student_name' => $student['name'],
                     'student_email' => $student['email'],
                     'roll_no' => $student['roll_no'] ?? '',
                     'course_name' => $student['course_name'] ?? '',
@@ -491,7 +497,7 @@ try {
                 // For custom admin emails, we can use AdminEmailHelper to dispatch a general announcement or custom message
                 $success = \App\Helpers\AdminEmailHelper::sendAnnouncement($db, $tenantId, [
                     'email' => $student['email'],
-                    'name' => $student['full_name'],
+                    'name' => $student['name'],
                     'subject' => $subject,
                     'body' => $message // sendAnnouncement will use 'general_announcement' template
                 ]);
@@ -530,7 +536,7 @@ try {
             foreach ($students as $student) {
                 $success = \App\Helpers\AdminEmailHelper::sendAnnouncement($db, $tenantId, [
                     'email' => $student['email'],
-                    'name' => $student['full_name'],
+                    'name' => $student['name'],
                     'subject' => $subject,
                     'body' => $message
                 ]);
@@ -656,7 +662,7 @@ try {
                 // 5. Queue Receipt Tasks (PDF & Email)
                 $queue = new QueueService($db);
                 // Fetch student and course details for email
-                $stdStmt = $db->prepare("SELECT s.full_name as student_name, s.email as student_email, s.roll_no, c.name as course_name, b.name as batch_name FROM students s LEFT JOIN batches b ON s.batch_id = b.id LEFT JOIN courses c ON b.course_id = c.id WHERE s.id = :sid");
+                $stdStmt = $db->prepare("SELECT u.name as student_name, u.email as student_email, s.roll_no, c.name as course_name, b.name as batch_name FROM students s LEFT JOIN enrollments e ON s.id = e.student_id AND e.status = 'active' LEFT JOIN batches b ON e.batch_id = b.id LEFT JOIN courses c ON b.course_id = c.id WHERE s.id = :sid");
                 $stdStmt->execute(['sid' => $studentId]);
                 $studentInfo = $stdStmt->fetch(PDO::FETCH_ASSOC);
                 
@@ -689,7 +695,7 @@ try {
 
                     if ($stdEmailInfo && !empty($stdEmailInfo['email'])) {
                         // Get additional student info
-                        $stdDetailStmt = $db->prepare("SELECT s.roll_no, c.name as course_name, b.name as batch_name FROM students s LEFT JOIN batches b ON s.batch_id = b.id LEFT JOIN courses c ON b.course_id = c.id WHERE s.id = :sid");
+                        $stdDetailStmt = $db->prepare("SELECT s.roll_no, c.name as course_name, b.name as batch_name FROM students s LEFT JOIN enrollments e ON s.id = e.student_id AND e.status = 'active' LEFT JOIN batches b ON e.batch_id = b.id LEFT JOIN courses c ON b.course_id = c.id WHERE s.id = :sid");
                         $stdDetailStmt->execute(['sid' => $studentId]);
                         $stdDetail = $stdDetailStmt->fetch(PDO::FETCH_ASSOC);
                         
@@ -899,7 +905,7 @@ try {
             try {
                 // Fetch full fresh data for ID card
                 $stmtS = $db->prepare("
-                    SELECT s.*, t.name as institute_name 
+                    SELECT s.*, u.name, u.email, t.name as institute_name 
                     FROM students s 
                     JOIN tenants t ON s.tenant_id = t.id 
                     WHERE s.id = :id
@@ -917,7 +923,7 @@ try {
                         // Send Email with Attachment via Queue
                         $emailData = [
                             'email' => $sData['email'],
-                            'student_name' => $sData['full_name'],
+                            'student_name' => $sData['name'],
                             'subject' => "Profile Completed & Digital ID Card – " . $sData['institute_name'],
                             'pdf_path' => $tempPath, // Attachment path
                             'template_key' => 'student_profile_updated' // Or a specific ID card template

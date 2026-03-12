@@ -99,9 +99,10 @@ try {
 
     // Today's Transactions - Pulled from payment_transactions to match revenue
     $stmt = $db->prepare("
-        SELECT pt.transaction_id as receipt_no, s.full_name as student_name, pt.amount, pt.payment_method, pt.payment_date, pt.created_at
+        SELECT pt.transaction_id as receipt_no, u.name as student_name, pt.amount, pt.payment_method, pt.payment_date, pt.created_at
         FROM payment_transactions pt
         JOIN students s ON pt.student_id = s.id
+        JOIN users u ON s.user_id = u.id
         WHERE pt.tenant_id = :tid AND pt.status = 'completed'
         ORDER BY pt.created_at DESC LIMIT 6
     ");
@@ -173,9 +174,10 @@ try {
 
     // ── 8. LEAVE REQUESTS ──
     $stmt = $db->prepare("
-        SELECT s.full_name as student_name, lr.reason, lr.from_date, lr.to_date, lr.status
+        SELECT u.name as student_name, lr.reason, lr.from_date, lr.to_date, lr.status
         FROM leave_requests lr
         JOIN students s ON lr.student_id = s.id
+        JOIN users u ON s.user_id = u.id
         WHERE lr.tenant_id = :tid AND lr.status = 'pending'
         ORDER BY lr.created_at DESC LIMIT 5
     ");
@@ -225,10 +227,11 @@ try {
 
     // ── 11. RECENT LIBRARY ISSUES ──
     $stmt = $db->prepare("
-        SELECT lb.title, s.full_name as student, li.issue_date, li.due_date, li.return_date
+        SELECT lb.title, u.name as student, li.issue_date, li.due_date, li.return_date
         FROM library_issues li
         JOIN library_books lb ON li.book_id = lb.id
         JOIN students s ON li.student_id = s.id
+        JOIN users u ON s.user_id = u.id
         WHERE li.tenant_id = :tid 
         ORDER BY li.created_at DESC LIMIT 4
     ");

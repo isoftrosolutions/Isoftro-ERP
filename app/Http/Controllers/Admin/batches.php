@@ -57,7 +57,7 @@ try {
     if ($method === 'GET') {
         // List batches
         $query = "SELECT b.*, c.name as course_name,
-                  (SELECT COUNT(*) FROM students s WHERE s.batch_id = b.id AND s.deleted_at IS NULL) as total_students
+                  (SELECT COUNT(*) FROM enrollments e JOIN students s ON e.student_id = s.id WHERE e.batch_id = b.id AND e.status = 'active' AND s.deleted_at IS NULL) as total_students
                   FROM batches b
                   JOIN courses c ON b.course_id = c.id
                     AND c.deleted_at IS NULL AND c.is_active = 1

@@ -32,9 +32,11 @@ try {
     
     // 1. Get guardian info to find student_id and batch_id
     $stmt = $db->prepare("
-        SELECT g.student_id, s.batch_id, s.course_id
+        SELECT g.student_id, e.batch_id, b.course_id
         FROM guardians g
         JOIN students s ON g.student_id = s.id
+        LEFT JOIN enrollments e ON s.id = e.student_id AND e.status = 'active'
+        LEFT JOIN batches b ON e.batch_id = b.id
         WHERE g.user_id = :uid AND g.tenant_id = :tid 
         LIMIT 1
     ");
@@ -47,7 +49,13 @@ try {
     if (!$studentId && isset($_SESSION['userData']['student_id'])) {
         $studentId = $_SESSION['userData']['student_id'];
         // Re-fetch batch info if session used
-        $stmt = $db->prepare("SELECT batch_id, course_id FROM students WHERE id = :sid LIMIT 1");
+        $stmt = $db->prepare("
+            SELECT e.batch_id, b.course_id 
+            FROM students s
+            LEFT JOIN enrollments e ON s.id = e.student_id AND e.status = 'active'
+            LEFT JOIN batches b ON e.batch_id = b.id
+            WHERE s.id = :sid LIMIT 1
+        ");
         $stmt->execute(['sid' => $studentId]);
         $si = $stmt->fetch(PDO::FETCH_ASSOC);
         $batchId = $si['batch_id'] ?? null;

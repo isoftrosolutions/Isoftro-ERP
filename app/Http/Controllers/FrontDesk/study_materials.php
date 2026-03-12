@@ -244,11 +244,12 @@ try {
                 SELECT smp.*, 
                     CASE 
                         WHEN smp.entity_type = 'batch' THEN b.name
-                        WHEN smp.entity_type = 'student' THEN CONCAT(s.full_name, ' (', s.roll_no, ')')
+                        WHEN smp.entity_type = 'student' THEN CONCAT(u.name, ' (', s.roll_no, ')')
                     END as entity_name
                 FROM study_material_permissions smp
                 LEFT JOIN batches b ON smp.entity_type = 'batch' AND smp.entity_id = b.id
                 LEFT JOIN students s ON smp.entity_type = 'student' AND smp.entity_id = s.id
+                LEFT JOIN users u ON s.user_id = u.id
                 WHERE smp.material_id = :mid
             ");
             $permStmt->execute(['mid' => $id]);

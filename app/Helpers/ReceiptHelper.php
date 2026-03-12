@@ -18,8 +18,8 @@ class ReceiptHelper {
         if (!$transactionId && !$receiptNo) return "";
 
         $query = "
-            SELECT pt.*, fr.fee_item_id, fi.name as fee_item_name, fi.amount as fee_item_amount,
-                   s.full_name as student_name, COALESCE(NULLIF(s.email, ''), u.email) as student_email, s.phone,
+            SELECT pt.*, fr.fee_record_id, fi.name as fee_item_name, fi.amount as fee_item_amount,
+                   u.name as student_name, u.email as student_email, u.phone,
                    COALESCE(JSON_UNQUOTE(JSON_EXTRACT(s.permanent_address, '$.district')), '') as student_address,
                    s.roll_no, c.name as course_name, b.name as batch_name,
                    fr.amount_due, fr.amount_paid as record_paid, fr.fine_applied,
@@ -31,8 +31,9 @@ class ReceiptHelper {
             JOIN fee_records fr ON pt.fee_record_id = fr.id
             JOIN fee_items fi ON fr.fee_item_id = fi.id
             JOIN students s ON pt.student_id = s.id
-            LEFT JOIN users u ON s.user_id = u.id
-            LEFT JOIN batches b ON s.batch_id = b.id
+            JOIN users u ON s.user_id = u.id
+            LEFT JOIN enrollments e ON s.id = e.student_id AND e.status = 'active'
+            LEFT JOIN batches b ON e.batch_id = b.id
             LEFT JOIN courses c ON b.course_id = c.id
             LEFT JOIN tenants t ON pt.tenant_id = t.id
             WHERE pt.tenant_id = :tenant

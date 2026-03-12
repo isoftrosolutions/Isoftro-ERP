@@ -130,7 +130,7 @@ try {
                 $stmt = $db->prepare("
                     SELECT s.id, s.full_name as name, s.email 
                     FROM students s
-                    JOIN batches b ON s.batch_id = b.id
+                    JOIN enrollments e ON s.id = e.student_id AND e.status = 'active' JOIN batches b ON e.batch_id = b.id
                     WHERE s.tenant_id = ? AND b.course_id = ? AND s.status = 'active' AND (s.email IS NOT NULL AND s.email != '')
                 ");
                 $stmt->execute([$tenantId, $targetId]);

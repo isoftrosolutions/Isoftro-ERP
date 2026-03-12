@@ -32,9 +32,10 @@ try {
     
     // 1. Get student info for batch filtering
     $stmt = $db->prepare("
-        SELECT s.batch_id
+        SELECT e.batch_id
         FROM guardians g
         JOIN students s ON g.student_id = s.id
+        LEFT JOIN enrollments e ON s.id = e.student_id AND e.status = 'active'
         WHERE g.user_id = :uid AND g.tenant_id = :tid 
         LIMIT 1
     ");

@@ -77,7 +77,7 @@ try {
                     ON ea.student_id = s.id AND ea.tenant_id = s.tenant_id
                 LEFT JOIN attendance a_stats
                     ON a_stats.student_id = s.id AND a_stats.tenant_id = s.tenant_id
-                WHERE s.batch_id = :bid AND s.tenant_id = :tid
+                WHERE e.batch_id = :bid AND s.tenant_id = :tid
                   AND (s.status = 'active' OR s.status IS NULL)
                   AND s.deleted_at IS NULL
                 GROUP BY s.id, s.full_name, s.photo_url, s.roll_no
@@ -155,7 +155,7 @@ try {
                 FROM students s
                 LEFT JOIN attendance a
                     ON a.student_id = s.id AND a.tenant_id = s.tenant_id
-                WHERE s.batch_id = :bid AND s.tenant_id = :tid
+                WHERE e.batch_id = :bid AND s.tenant_id = :tid
                   AND s.deleted_at IS NULL
                 GROUP BY s.id, s.full_name, s.photo_url, s.roll_no
                 ORDER BY attendance_pct DESC, present_days DESC

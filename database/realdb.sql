@@ -63,54 +63,6 @@ CREATE TABLE `announcements` (
 
 /*Data for the table `announcements` */
 
-/*Table structure for table `api_keys` */
-
-DROP TABLE IF EXISTS `api_keys`;
-
-CREATE TABLE `api_keys` (
-  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `tenant_id` bigint(20) unsigned NOT NULL,
-  `key_name` varchar(100) NOT NULL,
-  `api_key` varchar(100) NOT NULL,
-  `api_secret` varchar(255) NOT NULL,
-  `permissions` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`permissions`)),
-  `is_active` tinyint(1) NOT NULL DEFAULT 1,
-  `last_used_at` timestamp NULL DEFAULT NULL,
-  `expires_at` timestamp NULL DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `api_key` (`api_key`),
-  KEY `idx_apikey_tenant` (`tenant_id`),
-  KEY `idx_apikey_key` (`api_key`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-/*Data for the table `api_keys` */
-
-/*Table structure for table `api_logs` */
-
-DROP TABLE IF EXISTS `api_logs`;
-
-CREATE TABLE `api_logs` (
-  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `tenant_id` bigint(20) unsigned DEFAULT NULL,
-  `user_id` bigint(20) unsigned DEFAULT NULL,
-  `endpoint` varchar(255) NOT NULL,
-  `method` varchar(10) NOT NULL,
-  `request_body` text DEFAULT NULL,
-  `response_code` int(5) DEFAULT NULL,
-  `response_time` int(10) DEFAULT NULL,
-  `ip_address` varchar(45) DEFAULT NULL,
-  `user_agent` text DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`id`),
-  KEY `idx_api_tenant` (`tenant_id`),
-  KEY `idx_api_user` (`user_id`),
-  KEY `idx_api_endpoint` (`endpoint`),
-  KEY `idx_api_created` (`created_at`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-/*Data for the table `api_logs` */
-
 /*Table structure for table `assignment_submissions` */
 
 DROP TABLE IF EXISTS `assignment_submissions`;
@@ -220,25 +172,6 @@ CREATE TABLE `attendance_audit_logs` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 /*Data for the table `attendance_audit_logs` */
-
-/*Table structure for table `attendance_settings` */
-
-DROP TABLE IF EXISTS `attendance_settings`;
-
-CREATE TABLE `attendance_settings` (
-  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `tenant_id` bigint(20) unsigned NOT NULL,
-  `lock_period_hours` int(11) NOT NULL DEFAULT 24,
-  `exclude_leave_from_total` tinyint(1) NOT NULL DEFAULT 1,
-  `allow_frontdesk_edit` tinyint(1) NOT NULL DEFAULT 0,
-  `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `attendance_settings_tenant_id_unique` (`tenant_id`),
-  CONSTRAINT `attendance_settings_tenant_id_foreign` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-/*Data for the table `attendance_settings` */
 
 /*Table structure for table `audit_logs` */
 
@@ -381,50 +314,6 @@ CREATE TABLE `courses` (
 insert  into `courses`(`id`,`tenant_id`,`name`,`code`,`description`,`fee`,`duration_weeks`,`seats`,`is_active`,`category`,`status`,`duration_months`,`created_at`,`updated_at`,`deleted_at`) values 
 (1,3,'computer Course','101','jedhb\n',7000.00,12,100,1,'general','active',NULL,'2026-03-11 10:15:53','2026-03-11 11:24:57',NULL);
 
-/*Table structure for table `dashboard_checklists` */
-
-DROP TABLE IF EXISTS `dashboard_checklists`;
-
-CREATE TABLE `dashboard_checklists` (
-  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `tenant_id` bigint(20) unsigned NOT NULL,
-  `user_id` bigint(20) unsigned NOT NULL,
-  `checklist_date` date NOT NULL,
-  `step_key` varchar(100) NOT NULL,
-  `is_completed` tinyint(1) NOT NULL DEFAULT 0,
-  `completed_at` timestamp NULL DEFAULT NULL,
-  `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `unique_checklist_step` (`tenant_id`,`user_id`,`checklist_date`,`step_key`),
-  KEY `dashboard_checklists_tenant_id_checklist_date_index` (`tenant_id`,`checklist_date`),
-  KEY `dashboard_checklists_user_id_foreign` (`user_id`),
-  CONSTRAINT `dashboard_checklists_tenant_id_foreign` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `dashboard_checklists_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-/*Data for the table `dashboard_checklists` */
-
-/*Table structure for table `dashboard_targets` */
-
-DROP TABLE IF EXISTS `dashboard_targets`;
-
-CREATE TABLE `dashboard_targets` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `tenant_id` int(11) NOT NULL,
-  `month` int(11) NOT NULL,
-  `year` int(11) NOT NULL,
-  `fee_collection_target` decimal(15,2) DEFAULT 0.00,
-  `enrollment_target` int(11) DEFAULT 0,
-  `created_at` timestamp NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `unique_target_month` (`tenant_id`,`year`,`month`),
-  KEY `idx_tenant_month` (`tenant_id`,`year`,`month`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-/*Data for the table `dashboard_targets` */
-
 /*Table structure for table `email_logs` */
 
 DROP TABLE IF EXISTS `email_logs`;
@@ -462,25 +351,6 @@ insert  into `email_logs`(`id`,`tenant_id`,`student_id`,`email`,`subject`,`statu
 (13,3,0,'addamssmith937@gmail.com','Payment Successful - Receipt #RCP-000014','sent',NULL,'2026-03-11 14:22:00'),
 (14,3,0,'addamssmith937@gmail.com','Payment Successful - Receipt #RCP-000015','sent',NULL,'2026-03-11 14:40:34'),
 (15,3,0,'addamssmith937@gmail.com','Payment Successful - Receipt #RCP-000016','sent',NULL,'2026-03-11 14:52:17');
-
-/*Table structure for table `email_settings` */
-
-DROP TABLE IF EXISTS `email_settings`;
-
-CREATE TABLE `email_settings` (
-  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `tenant_id` bigint(20) unsigned NOT NULL,
-  `sender_name` varchar(255) DEFAULT NULL,
-  `reply_to_email` varchar(255) DEFAULT NULL,
-  `is_active` tinyint(1) NOT NULL DEFAULT 0,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `unique_email_settings_tenant` (`tenant_id`),
-  CONSTRAINT `fk_email_settings_tenant` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-/*Data for the table `email_settings` */
 
 /*Table structure for table `email_templates` */
 
@@ -563,30 +433,6 @@ CREATE TABLE `exam_attempts` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 /*Data for the table `exam_attempts` */
-
-/*Table structure for table `exam_questions` */
-
-DROP TABLE IF EXISTS `exam_questions`;
-
-CREATE TABLE `exam_questions` (
-  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `tenant_id` bigint(20) unsigned NOT NULL,
-  `exam_id` bigint(20) unsigned NOT NULL,
-  `question_id` bigint(20) unsigned NOT NULL,
-  `sort_order` smallint(5) unsigned NOT NULL DEFAULT 0,
-  `marks` decimal(5,2) NOT NULL DEFAULT 1.00,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `uq_exam_question` (`exam_id`,`question_id`),
-  KEY `fk_eq_tenant` (`tenant_id`),
-  KEY `fk_eq_question` (`question_id`),
-  CONSTRAINT `fk_eq_exam` FOREIGN KEY (`exam_id`) REFERENCES `exams` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `fk_eq_question` FOREIGN KEY (`question_id`) REFERENCES `questions` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `fk_eq_tenant` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-/*Data for the table `exam_questions` */
 
 /*Table structure for table `exams` */
 
@@ -764,34 +610,6 @@ insert  into `fee_records`(`id`,`tenant_id`,`student_id`,`batch_id`,`fee_item_id
 (1,3,1,1,1,1,5000.00,5000.00,0.00,'2026-03-11','2026-03-11','RCP-000016',NULL,'cash',123,0.00,0.00,NULL,'2026-2027','paid',NULL,'2026-03-11 10:17:01','2026-03-11 14:52:02'),
 (2,3,2,1,1,1,7000.00,7000.00,0.00,'2026-03-11','2026-03-11','RCP-000010',NULL,'cash',123,0.00,0.00,NULL,'2026-2027','paid',NULL,'2026-03-11 11:26:22','2026-03-11 14:20:43');
 
-/*Table structure for table `fee_settings` */
-
-DROP TABLE IF EXISTS `fee_settings`;
-
-CREATE TABLE `fee_settings` (
-  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `tenant_id` bigint(20) unsigned NOT NULL,
-  `invoice_prefix` varchar(10) NOT NULL DEFAULT 'INV',
-  `receipt_prefix` varchar(10) NOT NULL DEFAULT 'RCP',
-  `next_invoice_number` int(11) NOT NULL DEFAULT 1,
-  `next_receipt_number` int(11) NOT NULL DEFAULT 1,
-  `auto_generate_invoice` tinyint(1) NOT NULL DEFAULT 1,
-  `send_invoice_email` tinyint(1) NOT NULL DEFAULT 1,
-  `apply_late_fine` tinyint(1) NOT NULL DEFAULT 1,
-  `late_fine_grace_days` int(11) NOT NULL DEFAULT 5,
-  `currency` varchar(3) NOT NULL DEFAULT 'NPR',
-  `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `fee_settings_tenant_id_unique` (`tenant_id`),
-  CONSTRAINT `fee_settings_tenant_id_foreign` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-/*Data for the table `fee_settings` */
-
-insert  into `fee_settings`(`id`,`tenant_id`,`invoice_prefix`,`receipt_prefix`,`next_invoice_number`,`next_receipt_number`,`auto_generate_invoice`,`send_invoice_email`,`apply_late_fine`,`late_fine_grace_days`,`currency`,`created_at`,`updated_at`) values 
-(1,3,'INV','RCP',1,17,1,1,1,5,'NPR','2026-03-11 10:20:39','2026-03-11 14:52:02');
-
 /*Table structure for table `feedbacks` */
 
 DROP TABLE IF EXISTS `feedbacks`;
@@ -833,9 +651,13 @@ CREATE TABLE `guardians` (
   CONSTRAINT `fk_guardians_student` FOREIGN KEY (`student_id`) REFERENCES `students` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_guardians_tenant` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_guardians_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 /*Data for the table `guardians` */
+
+insert  into `guardians`(`id`,`tenant_id`,`user_id`,`student_id`,`relation`,`created_at`,`updated_at`,`deleted_at`) values 
+(1,3,127,1,'father','2026-03-12 06:48:00','2026-03-12 06:48:00',NULL),
+(2,3,128,2,'father','2026-03-12 06:48:00','2026-03-12 06:48:00',NULL);
 
 /*Table structure for table `homework` */
 
@@ -893,29 +715,6 @@ CREATE TABLE `homework_submissions` (
 
 /*Data for the table `homework_submissions` */
 
-/*Table structure for table `impersonation_logs` */
-
-DROP TABLE IF EXISTS `impersonation_logs`;
-
-CREATE TABLE `impersonation_logs` (
-  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `super_admin_id` bigint(20) unsigned NOT NULL,
-  `tenant_id` bigint(20) unsigned NOT NULL,
-  `target_user_id` bigint(20) unsigned DEFAULT NULL,
-  `ip_address` varchar(45) DEFAULT NULL,
-  `user_agent` text DEFAULT NULL,
-  `session_token` varchar(255) DEFAULT NULL,
-  `started_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `ended_at` timestamp NULL DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`id`),
-  KEY `idx_imperson_superadmin` (`super_admin_id`),
-  KEY `idx_imperson_tenant` (`tenant_id`),
-  KEY `idx_imperson_dates` (`started_at`,`ended_at`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-/*Data for the table `impersonation_logs` */
-
 /*Table structure for table `inquiries` */
 
 DROP TABLE IF EXISTS `inquiries`;
@@ -969,27 +768,6 @@ CREATE TABLE `inquiry_followups` (
 
 /*Data for the table `inquiry_followups` */
 
-/*Table structure for table `invoice_items` */
-
-DROP TABLE IF EXISTS `invoice_items`;
-
-CREATE TABLE `invoice_items` (
-  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `invoice_id` bigint(20) unsigned NOT NULL,
-  `fee_record_id` bigint(20) unsigned NOT NULL,
-  `description` varchar(255) NOT NULL,
-  `quantity` int(11) NOT NULL DEFAULT 1,
-  `unit_price` decimal(10,2) NOT NULL,
-  `total_price` decimal(10,2) NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `invoice_items_invoice_id_foreign` (`invoice_id`),
-  KEY `invoice_items_fee_record_id_foreign` (`fee_record_id`),
-  CONSTRAINT `invoice_items_fee_record_id_foreign` FOREIGN KEY (`fee_record_id`) REFERENCES `fee_records` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `invoice_items_invoice_id_foreign` FOREIGN KEY (`invoice_id`) REFERENCES `student_invoices` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-/*Data for the table `invoice_items` */
-
 /*Table structure for table `invoices` */
 
 DROP TABLE IF EXISTS `invoices`;
@@ -1001,6 +779,8 @@ CREATE TABLE `invoices` (
   `student_id` bigint(20) unsigned DEFAULT NULL,
   `fee_record_id` bigint(20) unsigned DEFAULT NULL,
   `batch_id` bigint(20) unsigned DEFAULT NULL,
+  `academic_year` varchar(20) DEFAULT NULL,
+  `invoice_type` enum('student','subscription','other') DEFAULT 'student',
   `subscription_id` bigint(20) unsigned DEFAULT NULL,
   `amount` decimal(10,2) NOT NULL,
   `tax_amount` decimal(10,2) NOT NULL DEFAULT 0.00,
@@ -1171,39 +951,6 @@ CREATE TABLE `library_issues` (
 
 /*Data for the table `library_issues` */
 
-/*Table structure for table `login_attempts` */
-
-DROP TABLE IF EXISTS `login_attempts`;
-
-CREATE TABLE `login_attempts` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `email` varchar(255) DEFAULT NULL,
-  `ip_address` varchar(45) DEFAULT NULL,
-  `status` enum('success','failed') NOT NULL,
-  `created_at` timestamp NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
-
-/*Data for the table `login_attempts` */
-
-/*Table structure for table `mail_logs` */
-
-DROP TABLE IF EXISTS `mail_logs`;
-
-CREATE TABLE `mail_logs` (
-  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `tenant_id` bigint(20) unsigned NOT NULL,
-  `student_id` bigint(20) unsigned DEFAULT NULL,
-  `email` varchar(255) NOT NULL,
-  `subject` varchar(255) NOT NULL,
-  `status` enum('sent','failed') NOT NULL DEFAULT 'sent',
-  `error_message` text DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-/*Data for the table `mail_logs` */
-
 /*Table structure for table `message_templates` */
 
 DROP TABLE IF EXISTS `message_templates`;
@@ -1368,24 +1115,6 @@ CREATE TABLE `notifications` (
 
 /*Data for the table `notifications` */
 
-/*Table structure for table `notify_sup_admin` */
-
-DROP TABLE IF EXISTS `notify_sup_admin`;
-
-CREATE TABLE `notify_sup_admin` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `type` varchar(50) NOT NULL DEFAULT 'info',
-  `title` varchar(255) NOT NULL,
-  `message` text NOT NULL,
-  `link` varchar(255) DEFAULT NULL,
-  `is_read` tinyint(1) NOT NULL DEFAULT 0,
-  `created_at` timestamp NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
-
-/*Data for the table `notify_sup_admin` */
-
 /*Table structure for table `online_class_attendance` */
 
 DROP TABLE IF EXISTS `online_class_attendance`;
@@ -1455,34 +1184,6 @@ CREATE TABLE `otp_codes` (
 
 /*Data for the table `otp_codes` */
 
-/*Table structure for table `password_resets` */
-
-DROP TABLE IF EXISTS `password_resets`;
-
-CREATE TABLE `password_resets` (
-  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `tenant_id` bigint(20) unsigned DEFAULT NULL,
-  `user_id` bigint(20) unsigned NOT NULL,
-  `role` varchar(50) NOT NULL,
-  `email` varchar(255) NOT NULL,
-  `token` varchar(255) NOT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `expires_at` timestamp NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `idx_pwd_reset_email` (`email`),
-  KEY `idx_pwd_reset_token` (`token`),
-  KEY `fk_pwd_reset_tenant` (`tenant_id`),
-  KEY `fk_pwd_reset_user` (`user_id`),
-  CONSTRAINT `fk_pwd_reset_tenant` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `fk_pwd_reset_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-/*Data for the table `password_resets` */
-
-insert  into `password_resets`(`id`,`tenant_id`,`user_id`,`role`,`email`,`token`,`created_at`,`expires_at`) values 
-(1,3,123,'instituteadmin','nepalcyberfirm@gmail.com','508315','2026-03-11 10:11:47','2026-03-11 10:41:47'),
-(2,3,123,'instituteadmin','nepalcyberfirm@gmail.com','692638','2026-03-11 10:12:15','2026-03-11 10:42:15');
-
 /*Table structure for table `payment_receipts` */
 
 DROP TABLE IF EXISTS `payment_receipts`;
@@ -1507,6 +1208,8 @@ CREATE TABLE `payment_transactions` (
   `tenant_id` bigint(20) unsigned NOT NULL,
   `student_id` bigint(20) unsigned NOT NULL,
   `fee_record_id` bigint(20) unsigned NOT NULL,
+  `source_type` varchar(50) DEFAULT 'fee_record',
+  `source_id` bigint(20) unsigned DEFAULT NULL,
   `invoice_id` bigint(20) unsigned DEFAULT NULL,
   `amount` decimal(10,2) NOT NULL,
   `payment_method` enum('cash','bank_transfer','cheque','esewa','khalti','card') NOT NULL,
@@ -1536,20 +1239,20 @@ CREATE TABLE `payment_transactions` (
 
 /*Data for the table `payment_transactions` */
 
-insert  into `payment_transactions`(`id`,`tenant_id`,`student_id`,`fee_record_id`,`invoice_id`,`amount`,`payment_method`,`transaction_id`,`receipt_number`,`payment_date`,`receipt_path`,`recorded_by`,`notes`,`status`,`created_at`,`updated_at`) values 
-(1,3,1,1,NULL,1000.00,'cash',NULL,'RCP-000001','2026-03-11','public/uploads/receipts/receipt_RCP-000001.pdf',123,' (Bulk Payment Part)','completed','2026-03-11 10:20:39','2026-03-11 10:20:40'),
-(2,3,1,1,NULL,500.00,'cash',NULL,'RCP-000002','2026-03-11','public/uploads/receipts/receipt_RCP-000002.pdf',123,' (Bulk Payment Part)','completed','2026-03-11 11:15:51','2026-03-11 11:16:02'),
-(3,3,2,2,NULL,1000.00,'cash',NULL,'RCP-000003','2026-03-11','public/uploads/receipts/receipt_RCP-000003.pdf',123,' (Bulk Payment Part)','completed','2026-03-11 11:26:56','2026-03-11 11:26:59'),
-(4,3,2,2,NULL,1000.00,'cash',NULL,'RCP-000004','2026-03-11','public/uploads/receipts/receipt_RCP-000004.pdf',123,' (Bulk Payment Part)','completed','2026-03-11 11:56:13','2026-03-11 11:56:17'),
-(5,3,2,2,NULL,1000.00,'cash',NULL,'RCP-000005','2026-03-11','public/uploads/receipts/receipt_RCP-000005.pdf',123,' (Bulk Payment Part)','completed','2026-03-11 11:59:33','2026-03-11 11:59:37'),
-(6,3,2,2,NULL,1000.00,'esewa',NULL,'RCP-000006','2026-03-11','public/uploads/receipts/receipt_RCP-000006.pdf',123,' (Bulk Payment Part)','completed','2026-03-11 12:04:18','2026-03-11 12:04:21'),
-(7,3,1,1,NULL,500.00,'cash',NULL,'RCP-000007','2026-03-11','public/uploads/receipts/receipt_RCP-000007.pdf',123,' (Bulk Payment Part)','completed','2026-03-11 12:18:14','2026-03-11 12:18:17'),
-(8,3,2,2,NULL,1000.00,'cash',NULL,'RCP-000008','2026-03-11','public/uploads/receipts/receipt_RCP-000008.pdf',123,' (Bulk Payment Part)','completed','2026-03-11 14:20:07','2026-03-11 14:20:10'),
-(9,3,2,2,NULL,1000.00,'cash',NULL,'RCP-000009','2026-03-11','public/uploads/receipts/receipt_RCP-000009.pdf',123,' (Bulk Payment Part)','completed','2026-03-11 14:20:23','2026-03-11 14:20:27'),
-(10,3,2,2,NULL,1000.00,'cash',NULL,'RCP-000010','2026-03-11','public/uploads/receipts/receipt_RCP-000010.pdf',123,' (Bulk Payment Part)','completed','2026-03-11 14:20:43','2026-03-11 14:20:46'),
-(11,3,1,1,NULL,1000.00,'cash',NULL,'RCP-000014','2026-03-11','public/uploads/receipts/receipt_RCP-000014.pdf',123,' (Bulk Payment Part)','completed','2026-03-11 14:21:45','2026-03-11 14:21:48'),
-(12,3,1,1,NULL,1000.00,'cash',NULL,'RCP-000015','2026-03-11','public/uploads/receipts/receipt_RCP-000015.pdf',123,' (Bulk Payment Part)','completed','2026-03-11 14:40:12','2026-03-11 14:40:19'),
-(13,3,1,1,NULL,1000.00,'cash',NULL,'RCP-000016','2026-03-11','public/uploads/receipts/receipt_RCP-000016.pdf',123,' (Bulk Payment Part)','completed','2026-03-11 14:52:02','2026-03-11 14:52:05');
+insert  into `payment_transactions`(`id`,`tenant_id`,`student_id`,`fee_record_id`,`source_type`,`source_id`,`invoice_id`,`amount`,`payment_method`,`transaction_id`,`receipt_number`,`payment_date`,`receipt_path`,`recorded_by`,`notes`,`status`,`created_at`,`updated_at`) values 
+(1,3,1,1,'fee_record',1,NULL,1000.00,'cash',NULL,'RCP-000001','2026-03-11','public/uploads/receipts/receipt_RCP-000001.pdf',123,' (Bulk Payment Part)','completed','2026-03-11 10:20:39','2026-03-12 06:32:33'),
+(2,3,1,1,'fee_record',1,NULL,500.00,'cash',NULL,'RCP-000002','2026-03-11','public/uploads/receipts/receipt_RCP-000002.pdf',123,' (Bulk Payment Part)','completed','2026-03-11 11:15:51','2026-03-12 06:32:33'),
+(3,3,2,2,'fee_record',2,NULL,1000.00,'cash',NULL,'RCP-000003','2026-03-11','public/uploads/receipts/receipt_RCP-000003.pdf',123,' (Bulk Payment Part)','completed','2026-03-11 11:26:56','2026-03-12 06:32:33'),
+(4,3,2,2,'fee_record',2,NULL,1000.00,'cash',NULL,'RCP-000004','2026-03-11','public/uploads/receipts/receipt_RCP-000004.pdf',123,' (Bulk Payment Part)','completed','2026-03-11 11:56:13','2026-03-12 06:32:33'),
+(5,3,2,2,'fee_record',2,NULL,1000.00,'cash',NULL,'RCP-000005','2026-03-11','public/uploads/receipts/receipt_RCP-000005.pdf',123,' (Bulk Payment Part)','completed','2026-03-11 11:59:33','2026-03-12 06:32:33'),
+(6,3,2,2,'fee_record',2,NULL,1000.00,'esewa',NULL,'RCP-000006','2026-03-11','public/uploads/receipts/receipt_RCP-000006.pdf',123,' (Bulk Payment Part)','completed','2026-03-11 12:04:18','2026-03-12 06:32:33'),
+(7,3,1,1,'fee_record',1,NULL,500.00,'cash',NULL,'RCP-000007','2026-03-11','public/uploads/receipts/receipt_RCP-000007.pdf',123,' (Bulk Payment Part)','completed','2026-03-11 12:18:14','2026-03-12 06:32:33'),
+(8,3,2,2,'fee_record',2,NULL,1000.00,'cash',NULL,'RCP-000008','2026-03-11','public/uploads/receipts/receipt_RCP-000008.pdf',123,' (Bulk Payment Part)','completed','2026-03-11 14:20:07','2026-03-12 06:32:33'),
+(9,3,2,2,'fee_record',2,NULL,1000.00,'cash',NULL,'RCP-000009','2026-03-11','public/uploads/receipts/receipt_RCP-000009.pdf',123,' (Bulk Payment Part)','completed','2026-03-11 14:20:23','2026-03-12 06:32:33'),
+(10,3,2,2,'fee_record',2,NULL,1000.00,'cash',NULL,'RCP-000010','2026-03-11','public/uploads/receipts/receipt_RCP-000010.pdf',123,' (Bulk Payment Part)','completed','2026-03-11 14:20:43','2026-03-12 06:32:33'),
+(11,3,1,1,'fee_record',1,NULL,1000.00,'cash',NULL,'RCP-000014','2026-03-11','public/uploads/receipts/receipt_RCP-000014.pdf',123,' (Bulk Payment Part)','completed','2026-03-11 14:21:45','2026-03-12 06:32:33'),
+(12,3,1,1,'fee_record',1,NULL,1000.00,'cash',NULL,'RCP-000015','2026-03-11','public/uploads/receipts/receipt_RCP-000015.pdf',123,' (Bulk Payment Part)','completed','2026-03-11 14:40:12','2026-03-12 06:32:33'),
+(13,3,1,1,'fee_record',1,NULL,1000.00,'cash',NULL,'RCP-000016','2026-03-11','public/uploads/receipts/receipt_RCP-000016.pdf',123,' (Bulk Payment Part)','completed','2026-03-11 14:52:02','2026-03-12 06:32:33');
 
 /*Table structure for table `payments` */
 
@@ -1639,39 +1342,6 @@ CREATE TABLE `platform_settings` (
 
 /*Data for the table `platform_settings` */
 
-/*Table structure for table `questions` */
-
-DROP TABLE IF EXISTS `questions`;
-
-CREATE TABLE `questions` (
-  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `tenant_id` bigint(20) unsigned NOT NULL,
-  `teacher_id` bigint(20) unsigned NOT NULL,
-  `subject` varchar(150) NOT NULL,
-  `topic` varchar(150) DEFAULT NULL,
-  `difficulty` enum('easy','medium','hard') NOT NULL DEFAULT 'medium',
-  `question_text` text NOT NULL,
-  `options` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`options`)),
-  `correct_option` tinyint(3) unsigned NOT NULL,
-  `explanation` text DEFAULT NULL,
-  `tags` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`tags`)),
-  `status` enum('draft','pending','approved','rejected') NOT NULL DEFAULT 'draft',
-  `approved_by` bigint(20) unsigned DEFAULT NULL,
-  `approved_at` timestamp NULL DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `deleted_at` timestamp NULL DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `fk_questions_tenant` (`tenant_id`),
-  KEY `fk_questions_teacher` (`teacher_id`),
-  KEY `fk_questions_approver` (`approved_by`),
-  CONSTRAINT `fk_questions_approver` FOREIGN KEY (`approved_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
-  CONSTRAINT `fk_questions_teacher` FOREIGN KEY (`teacher_id`) REFERENCES `teachers` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `fk_questions_tenant` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-/*Data for the table `questions` */
-
 /*Table structure for table `refresh_tokens` */
 
 DROP TABLE IF EXISTS `refresh_tokens`;
@@ -1741,26 +1411,6 @@ CREATE TABLE `sms_logs` (
 
 /*Data for the table `sms_logs` */
 
-/*Table structure for table `sms_settings` */
-
-DROP TABLE IF EXISTS `sms_settings`;
-
-CREATE TABLE `sms_settings` (
-  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `tenant_id` bigint(20) unsigned NOT NULL,
-  `provider` varchar(50) NOT NULL DEFAULT 'mock',
-  `api_key` varchar(255) DEFAULT NULL,
-  `api_secret` varchar(255) DEFAULT NULL,
-  `sender_id` varchar(20) DEFAULT 'HamroLabs',
-  `is_active` tinyint(1) NOT NULL DEFAULT 1,
-  `created_at` timestamp NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `idx_tenant_sms` (`tenant_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-/*Data for the table `sms_settings` */
-
 /*Table structure for table `sms_templates` */
 
 DROP TABLE IF EXISTS `sms_templates`;
@@ -1782,30 +1432,6 @@ CREATE TABLE `sms_templates` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 /*Data for the table `sms_templates` */
-
-/*Table structure for table `staff_attendance` */
-
-DROP TABLE IF EXISTS `staff_attendance`;
-
-CREATE TABLE `staff_attendance` (
-  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `tenant_id` bigint(20) unsigned NOT NULL,
-  `teacher_id` bigint(20) unsigned NOT NULL,
-  `date` date NOT NULL,
-  `status` enum('present','absent','late','excused') NOT NULL DEFAULT 'present',
-  `remarks` text DEFAULT NULL,
-  `marked_by` bigint(20) unsigned DEFAULT NULL,
-  `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `unique_staff_attendance` (`teacher_id`,`date`),
-  KEY `staff_attendance_tenant_id_date_index` (`tenant_id`,`date`),
-  KEY `staff_attendance_teacher_id_date_index` (`teacher_id`,`date`),
-  CONSTRAINT `staff_attendance_teacher_id_foreign` FOREIGN KEY (`teacher_id`) REFERENCES `teachers` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `staff_attendance_tenant_id_foreign` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-/*Data for the table `staff_attendance` */
 
 /*Table structure for table `staff_salaries` */
 
@@ -1865,70 +1491,6 @@ insert  into `student_fee_summary`(`id`,`tenant_id`,`student_id`,`enrollment_id`
 (1,3,1,1,7000.00,5000.00,2000.00,'partial','2026-03-11 10:17:01','2026-03-11 14:52:02'),
 (2,3,2,2,7000.00,10000.00,-3000.00,'paid','2026-03-11 11:26:22','2026-03-11 14:20:57');
 
-/*Table structure for table `student_invoices` */
-
-DROP TABLE IF EXISTS `student_invoices`;
-
-CREATE TABLE `student_invoices` (
-  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `invoice_number` varchar(50) NOT NULL,
-  `tenant_id` bigint(20) unsigned NOT NULL,
-  `student_id` bigint(20) unsigned NOT NULL,
-  `batch_id` bigint(20) unsigned DEFAULT NULL,
-  `academic_year` varchar(20) DEFAULT NULL,
-  `invoice_date` date NOT NULL,
-  `due_date` date NOT NULL,
-  `total_amount` decimal(10,2) NOT NULL,
-  `paid_amount` decimal(10,2) NOT NULL DEFAULT 0.00,
-  `status` enum('draft','sent','partial','paid','overdue','cancelled') NOT NULL DEFAULT 'draft',
-  `notes` text DEFAULT NULL,
-  `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `student_invoices_invoice_number_unique` (`invoice_number`),
-  KEY `idx_si_tenant` (`tenant_id`),
-  KEY `idx_si_student` (`student_id`),
-  KEY `idx_si_invoice_number` (`invoice_number`),
-  KEY `idx_si_status` (`status`),
-  KEY `idx_si_dates` (`invoice_date`,`due_date`),
-  KEY `student_invoices_batch_id_foreign` (`batch_id`),
-  CONSTRAINT `student_invoices_batch_id_foreign` FOREIGN KEY (`batch_id`) REFERENCES `batches` (`id`) ON DELETE SET NULL,
-  CONSTRAINT `student_invoices_student_id_foreign` FOREIGN KEY (`student_id`) REFERENCES `students` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `student_invoices_tenant_id_foreign` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-/*Data for the table `student_invoices` */
-
-/*Table structure for table `student_payments` */
-
-DROP TABLE IF EXISTS `student_payments`;
-
-CREATE TABLE `student_payments` (
-  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `tenant_id` bigint(20) unsigned NOT NULL,
-  `student_id` bigint(20) unsigned NOT NULL,
-  `enrollment_id` bigint(20) unsigned NOT NULL,
-  `amount` decimal(10,2) NOT NULL,
-  `payment_mode` enum('cash','bank_transfer','cheque','esewa','khalti','card') NOT NULL DEFAULT 'cash',
-  `reference` varchar(255) DEFAULT NULL,
-  `payment_date` date NOT NULL,
-  `receipt_path` varchar(255) DEFAULT NULL,
-  `collected_by` bigint(20) unsigned DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  PRIMARY KEY (`id`),
-  KEY `fk_student_payments_tenant` (`tenant_id`),
-  KEY `fk_student_payments_student` (`student_id`),
-  KEY `fk_student_payments_enrollment` (`enrollment_id`),
-  KEY `fk_student_payments_user` (`collected_by`),
-  CONSTRAINT `fk_student_payments_enrollment` FOREIGN KEY (`enrollment_id`) REFERENCES `enrollments` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `fk_student_payments_student` FOREIGN KEY (`student_id`) REFERENCES `students` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `fk_student_payments_tenant` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `fk_student_payments_user` FOREIGN KEY (`collected_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-/*Data for the table `student_payments` */
-
 /*Table structure for table `students` */
 
 DROP TABLE IF EXISTS `students`;
@@ -1937,25 +1499,15 @@ CREATE TABLE `students` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `tenant_id` bigint(20) unsigned NOT NULL,
   `user_id` bigint(20) unsigned DEFAULT NULL,
-  `batch_id` bigint(20) unsigned NOT NULL,
   `roll_no` varchar(50) NOT NULL,
-  `full_name` varchar(255) NOT NULL,
-  `dob_ad` date DEFAULT NULL COMMENT 'Date of birth (AD) — nullable for quick registration',
   `dob_bs` varchar(20) DEFAULT NULL COMMENT 'Date of birth (BS) — nullable for quick registration',
   `gender` enum('male','female','other') DEFAULT NULL COMMENT 'Gender — nullable for quick registration',
   `blood_group` varchar(5) DEFAULT NULL,
-  `phone` varchar(20) DEFAULT NULL,
-  `email` varchar(255) DEFAULT NULL,
   `citizenship_no` varchar(255) DEFAULT NULL,
   `national_id` varchar(255) DEFAULT NULL,
-  `father_name` varchar(255) DEFAULT NULL,
-  `mother_name` varchar(255) DEFAULT NULL,
-  `husband_name` varchar(255) DEFAULT NULL,
-  `guardian_name` varchar(255) DEFAULT NULL,
-  `guardian_relation` varchar(100) DEFAULT NULL,
-  `permanent_address` longtext DEFAULT NULL COMMENT 'Permanent address JSON — nullable for quick registration',
+  `permanent_address` longtext DEFAULT NULL,
   `temporary_address` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`temporary_address`)),
-  `academic_qualifications` longtext DEFAULT NULL COMMENT 'Academic qualifications JSON — nullable for quick registration',
+  `academic_qualifications` longtext DEFAULT NULL,
   `admission_date` date DEFAULT NULL,
   `photo_url` varchar(500) DEFAULT NULL,
   `identity_doc_url` varchar(255) DEFAULT NULL,
@@ -1974,17 +1526,18 @@ CREATE TABLE `students` (
   KEY `idx_students_id_card` (`tenant_id`,`id_card_status`),
   KEY `idx_students_tenant_status` (`tenant_id`,`status`,`deleted_at`),
   KEY `idx_students_user_id_lookup` (`user_id`,`tenant_id`),
-  KEY `idx_students_batch` (`batch_id`,`tenant_id`),
-  CONSTRAINT `fk_students_batch` FOREIGN KEY (`batch_id`) REFERENCES `batches` (`id`),
+  KEY `idx_students_batch` (`tenant_id`),
   CONSTRAINT `fk_students_tenant` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `fk_students_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
+  CONSTRAINT `fk_students_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `check_stu_permanent_addr` CHECK (json_valid(`permanent_address`)),
+  CONSTRAINT `check_stu_qualifications` CHECK (json_valid(`academic_qualifications`))
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 /*Data for the table `students` */
 
-insert  into `students`(`id`,`tenant_id`,`user_id`,`batch_id`,`roll_no`,`full_name`,`dob_ad`,`dob_bs`,`gender`,`blood_group`,`phone`,`email`,`citizenship_no`,`national_id`,`father_name`,`mother_name`,`husband_name`,`guardian_name`,`guardian_relation`,`permanent_address`,`temporary_address`,`academic_qualifications`,`admission_date`,`photo_url`,`identity_doc_url`,`status`,`registration_mode`,`registration_status`,`id_card_status`,`id_card_issued_at`,`created_at`,`updated_at`,`deleted_at`) values 
-(1,3,124,1,'STD-2026-0001','Nepal Cyber Firm','2006-12-20','2063-09-05','female',NULL,'9833344402','addamssmith937@gmail.com',NULL,NULL,'nepalcyberfirm@gmail.com',NULL,NULL,NULL,NULL,'{\"address\":\"Hamro Labs ,No. 13, Radhemai, Birgunj Metropolitan City Parsa District, Madhesh Province, Nepal Postal Code: 44300\"}',NULL,NULL,NULL,NULL,NULL,'active','full','fully_registered','none',NULL,'2026-03-11 10:17:01','2026-03-11 15:39:37','2026-03-11 15:39:37'),
-(2,3,126,1,'STD-2026-0002','Devbart  ji','2006-12-20','2063-09-05','male',NULL,'9811144402','pdewbrath@gmail.com',NULL,NULL,'nepalcyberfirm@gmail.com',NULL,NULL,NULL,NULL,'{\"address\":\"Hamro Labs ,No. 13, Radhemai, Birgunj Metropolitan City Parsa District, Madhesh Province, Nepal Postal Code: 44300\"}',NULL,NULL,NULL,NULL,NULL,'active','full','fully_registered','none',NULL,'2026-03-11 11:26:22','2026-03-11 14:21:34','2026-03-11 14:21:34');
+insert  into `students`(`id`,`tenant_id`,`user_id`,`roll_no`,`dob_bs`,`gender`,`blood_group`,`citizenship_no`,`national_id`,`permanent_address`,`temporary_address`,`academic_qualifications`,`admission_date`,`photo_url`,`identity_doc_url`,`status`,`registration_mode`,`registration_status`,`id_card_status`,`id_card_issued_at`,`created_at`,`updated_at`,`deleted_at`) values 
+(1,3,124,'STD-2026-0001','2063-09-05','female',NULL,NULL,NULL,'{\"address\":\"Hamro Labs ,No. 13, Radhemai, Birgunj Metropolitan City Parsa District, Madhesh Province, Nepal Postal Code: 44300\"}',NULL,NULL,NULL,NULL,NULL,'active','full','fully_registered','none',NULL,'2026-03-11 10:17:01','2026-03-11 15:39:37','2026-03-11 15:39:37'),
+(2,3,126,'STD-2026-0002','2063-09-05','male',NULL,NULL,NULL,'{\"address\":\"Hamro Labs ,No. 13, Radhemai, Birgunj Metropolitan City Parsa District, Madhesh Province, Nepal Postal Code: 44300\"}',NULL,NULL,NULL,NULL,NULL,'active','full','fully_registered','none',NULL,'2026-03-11 11:26:22','2026-03-11 14:21:34','2026-03-11 14:21:34');
 
 /*Table structure for table `study_material_access_logs` */
 
@@ -2254,29 +1807,6 @@ CREATE TABLE `teachers` (
 insert  into `teachers`(`id`,`tenant_id`,`user_id`,`employee_id`,`full_name`,`phone`,`email`,`qualification`,`specialization`,`joined_date`,`monthly_salary`,`leave_balance`,`status`,`created_at`,`updated_at`,`deleted_at`) values 
 (1,3,125,'101','Nepal Cyber Firm','9811144402','mind59024@gmail.com',NULL,'GK ,IQ','2026-03-11',0.00,0,'active','2026-03-11 10:33:37','2026-03-11 10:33:37',NULL);
 
-/*Table structure for table `tenant_email_settings` */
-
-DROP TABLE IF EXISTS `tenant_email_settings`;
-
-CREATE TABLE `tenant_email_settings` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `tenant_id` int(11) NOT NULL,
-  `sender_name` varchar(255) DEFAULT NULL,
-  `reply_to_email` varchar(255) DEFAULT NULL,
-  `from_name` varchar(255) DEFAULT NULL,
-  `from_email` varchar(255) DEFAULT NULL,
-  `is_active` tinyint(1) DEFAULT 1,
-  `created_at` timestamp NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `unique_tenant` (`tenant_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
-
-/*Data for the table `tenant_email_settings` */
-
-insert  into `tenant_email_settings`(`id`,`tenant_id`,`sender_name`,`reply_to_email`,`from_name`,`from_email`,`is_active`,`created_at`,`updated_at`) values 
-(1,3,'Hamro Loksewa Institute','nepalcyberfirm@gmail.com',NULL,NULL,1,'2026-03-11 14:46:16','2026-03-11 14:46:16');
-
 /*Table structure for table `tenant_payments` */
 
 DROP TABLE IF EXISTS `tenant_payments`;
@@ -2335,7 +1865,7 @@ CREATE TABLE `tenants` (
 /*Data for the table `tenants` */
 
 insert  into `tenants`(`id`,`name`,`nepali_name`,`subdomain`,`brand_color`,`tagline`,`logo_path`,`phone`,`email`,`pan_number`,`website`,`address`,`province`,`pan_no`,`plan`,`status`,`created_by`,`student_limit`,`sms_credits`,`trial_ends_at`,`created_at`,`updated_at`,`deleted_at`,`settings`) values 
-(3,'Hamro Loksewa institute','हाम्रो लोकसेवा ईस्टिट्युट','hamroloksewa','#009e7e','Love you','/public/uploads/logos/tenant_3_1773207024.png','+9779811144402','nepalcyberfirm@gmail.com',NULL,'','Birgunj-13,Radhemai',NULL,'','growth','active',1,100,500,NULL,'2026-03-11 10:10:40','2026-03-11 11:15:24',NULL,NULL);
+(3,'Hamro Loksewa institute','हाम्रो लोकसेवा ईस्टिट्युट','hamroloksewa','#009e7e','Love you','/public/uploads/logos/tenant_3_1773207024.png','+9779811144402','nepalcyberfirm@gmail.com',NULL,'','Birgunj-13,Radhemai',NULL,'','growth','active',1,100,500,NULL,'2026-03-11 10:10:40','2026-03-12 06:33:51',NULL,'{\"finance\":{\"invoice_prefix\":\"INV\",\"receipt_prefix\":\"RCP\",\"next_invoice_number\":1,\"next_receipt_number\":17,\"auto_generate_invoice\":1,\"send_invoice_email\":1,\"apply_late_fine\":1,\"late_fine_grace_days\":5,\"currency\":\"NPR\"}}');
 
 /*Table structure for table `timetable_slots` */
 
@@ -2392,45 +1922,19 @@ CREATE TABLE `users` (
   PRIMARY KEY (`id`),
   KEY `fk_users_tenant` (`tenant_id`),
   CONSTRAINT `fk_users_tenant` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=127 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=129 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 /*Data for the table `users` */
 
 insert  into `users`(`id`,`tenant_id`,`role`,`email`,`password_hash`,`phone`,`status`,`monthly_salary`,`last_login_at`,`two_fa_enabled`,`created_at`,`updated_at`,`deleted_at`,`locked_until`,`avatar`,`name`,`two_factor_enabled`,`two_factor_secret`) values 
 (1,NULL,'superadmin','pdewbrath@gmail.com','$2y$12$04j0nPzxsEZUNJscHMmGrOuq89J0fPAkfXZifa4xJY4xSYuwN3I0C',NULL,'active',0.00,'2026-03-11 10:25:15',0,'2026-02-21 14:02:24','2026-03-11 10:25:15',NULL,NULL,NULL,NULL,0,NULL),
 (2,NULL,'superadmin','super2@hamrolabs.com','$2y$12$R.v07Zun1pS.k.v7F.v/Oun8n9Z6E6Z6E6Z6E6Z6E6Z6E6Z6E6Z6',NULL,'active',0.00,NULL,0,'2026-02-21 14:02:24','2026-02-23 14:01:23',NULL,NULL,NULL,NULL,0,NULL),
-(123,3,'instituteadmin','nepalcyberfirm@gmail.com','$2y$12$o9kp2WIwcOP8F2WN8fuhw.jm5YpJE4j72XkDGcjbb4oSpLvOVorY2','9811144402','active',0.00,'2026-03-11 21:03:53',0,'2026-03-11 10:10:41','2026-03-11 21:03:53',NULL,NULL,NULL,'Devbarat Prasad Patel',0,NULL),
+(123,3,'instituteadmin','nepalcyberfirm@gmail.com','$2y$12$o9kp2WIwcOP8F2WN8fuhw.jm5YpJE4j72XkDGcjbb4oSpLvOVorY2','9811144402','active',0.00,'2026-03-12 06:41:35',0,'2026-03-11 10:10:41','2026-03-12 06:41:35',NULL,NULL,NULL,'Devbarat Prasad Patel',0,NULL),
 (124,3,'student','addamssmith937@gmail.com','$2y$12$X4H.901M/3N.wo6TkbpE.OBsJRqTRufGdbXR1jiEs2w/3BsOXW0ja','9833344402','active',0.00,NULL,0,'2026-03-11 10:17:01','2026-03-11 15:39:37','2026-03-11 15:39:37',NULL,NULL,'Nepal Cyber Firm',0,NULL),
 (125,3,'teacher','mind59024@gmail.com','$2y$12$vued2T9rC/G9OUhRdDbD9uaIcqPu8hClzV/sqK5616yKTcafacHgm','9811144402','active',50000.00,'2026-03-11 10:34:31',0,'2026-03-11 10:33:37','2026-03-11 10:34:31',NULL,NULL,NULL,'Nepal Cyber Firm',0,NULL),
-(126,3,'student','pdewbrath@gmail.com','$2y$12$K9UnYPenNDSSG6Skseupo.idsE0RhObW8JLn2MXoONNz0Gr5OPbTG','9811144402','active',0.00,NULL,0,'2026-03-11 11:26:22','2026-03-11 14:21:34','2026-03-11 14:21:34',NULL,NULL,'Devbart  ji',0,NULL);
-
-/*Table structure for table `workflow_checklists` */
-
-DROP TABLE IF EXISTS `workflow_checklists`;
-
-CREATE TABLE `workflow_checklists` (
-  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `tenant_id` bigint(20) unsigned NOT NULL,
-  `user_id` bigint(20) unsigned NOT NULL,
-  `task_key` varchar(100) NOT NULL,
-  `task_name` varchar(255) NOT NULL,
-  `task_description` text DEFAULT NULL,
-  `is_completed` tinyint(1) NOT NULL DEFAULT 0,
-  `checklist_date` date NOT NULL,
-  `completed_at` timestamp NULL DEFAULT NULL,
-  `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `unique_workflow_item` (`tenant_id`,`user_id`,`task_key`,`checklist_date`),
-  KEY `idx_workflow_lookup` (`tenant_id`,`user_id`,`checklist_date`),
-  KEY `idx_workflow_pending` (`tenant_id`,`checklist_date`,`is_completed`),
-  KEY `idx_workflow_date` (`checklist_date`),
-  KEY `workflow_checklists_user_id_foreign` (`user_id`),
-  CONSTRAINT `workflow_checklists_tenant_id_foreign` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `workflow_checklists_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-/*Data for the table `workflow_checklists` */
+(126,3,'student','pdewbrath@gmail.com','$2y$12$K9UnYPenNDSSG6Skseupo.idsE0RhObW8JLn2MXoONNz0Gr5OPbTG','9811144402','active',0.00,NULL,0,'2026-03-11 11:26:22','2026-03-11 14:21:34','2026-03-11 14:21:34',NULL,NULL,'Devbart  ji',0,NULL),
+(127,3,'guardian','guardian_e99d0166@temporary.hamrolabs.com','LEGACY_MIGRATED',NULL,'active',0.00,NULL,0,'2026-03-12 06:48:00','2026-03-12 06:48:00',NULL,NULL,NULL,'nepalcyberfirm@gmail.com',0,NULL),
+(128,3,'guardian','guardian_413b6e7c@temporary.hamrolabs.com','LEGACY_MIGRATED',NULL,'active',0.00,NULL,0,'2026-03-12 06:48:00','2026-03-12 06:48:00',NULL,NULL,NULL,'nepalcyberfirm@gmail.com',0,NULL);
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
 /*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;

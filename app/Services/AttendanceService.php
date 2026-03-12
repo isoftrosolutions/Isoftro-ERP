@@ -178,9 +178,10 @@ class AttendanceService {
         
         // Fetch student's current batch - course_id comes from batches table
         $stmt = $this->db->prepare("
-            SELECT s.batch_id, b.course_id 
+            SELECT e.batch_id, b.course_id 
             FROM students s 
-            JOIN batches b ON s.batch_id = b.id 
+            LEFT JOIN enrollments e ON s.id = e.student_id AND e.status = 'active'
+            LEFT JOIN batches b ON e.batch_id = b.id 
             WHERE s.id = ?
         ");
         $stmt->execute([$leave['student_id']]);

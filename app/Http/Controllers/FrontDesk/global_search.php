@@ -35,7 +35,12 @@ try {
     ];
 
     // Students
-    $stmt = $db->prepare("SELECT id, roll_no, full_name as name, email, phone FROM students WHERE tenant_id = :tid AND (full_name LIKE :q OR roll_no LIKE :q OR phone LIKE :q OR email LIKE :q) AND deleted_at IS NULL LIMIT 5");
+    $stmt = $db->prepare("SELECT s.id, s.roll_no, u.name as name, u.email, u.phone 
+                          FROM students s 
+                          JOIN users u ON s.user_id = u.id
+                          WHERE s.tenant_id = :tid 
+                          AND (u.name LIKE :q OR s.roll_no LIKE :q OR u.phone LIKE :q OR u.email LIKE :q) 
+                          AND s.deleted_at IS NULL LIMIT 5");
     $stmt->execute(['tid' => $tenantId, 'q' => $term]);
     $results['students'] = $stmt->fetchAll();
 

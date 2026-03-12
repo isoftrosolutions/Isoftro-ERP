@@ -63,7 +63,7 @@ try {
 
         if (!empty($_GET['search'])) {
             $search = '%' . $_GET['search'] . '%';
-            $whereSql .= " AND (s.full_name LIKE :s1 OR s.roll_no LIKE :s2 OR s.email LIKE :s3 OR s.phone LIKE :s4)";
+            $whereSql .= " AND (u.name LIKE :s1 OR s.roll_no LIKE :s2 OR u.email LIKE :s3 OR u.phone LIKE :s4)";
             $params['s1'] = $search;
             $params['s2'] = $search;
             $params['s3'] = $search;
@@ -74,7 +74,7 @@ try {
             $params['status'] = $_GET['status'];
         }
         if (!empty($_GET['batch_id'])) {
-            $whereSql .= " AND s.batch_id = :batch_id";
+            $whereSql .= " AND e.batch_id = :batch_id";
             $params['batch_id'] = $_GET['batch_id'];
         }
         if (!empty($_GET['ids'])) {
@@ -89,13 +89,14 @@ try {
         }
 
         // Get all students for CSV (no pagination limit)
-        $query = "SELECT s.roll_no, s.full_name, s.email, s.phone, s.gender, s.dob_bs, s.dob_ad,
+        $query = "SELECT s.roll_no, u.name as full_name, u.email, u.phone, s.gender, s.dob_bs, s.dob_ad,
                          s.citizenship_no, s.father_name, s.mother_name, s.guardian_name, s.guardian_relation,
                          s.permanent_address, s.temporary_address,
                          b.name as batch_name, c.name as course_name,
                          s.status, s.registration_status, s.admission_date, s.created_at
                   FROM students s 
-                  LEFT JOIN batches b ON s.batch_id = b.id 
+                  JOIN users u ON s.user_id = u.id
+                  LEFT JOIN enrollments e ON s.id = e.student_id AND e.status = 'active' LEFT JOIN batches b ON e.batch_id = b.id 
                   LEFT JOIN courses c ON b.course_id = c.id
                   $whereSql
                   ORDER BY s.roll_no ASC";
@@ -204,7 +205,7 @@ try {
         // Search filter
         if (!empty($_GET['search'])) {
             $search = '%' . $_GET['search'] . '%';
-            $whereSql .= " AND (s.full_name LIKE :s1 OR s.roll_no LIKE :s2 OR s.email LIKE :s3 OR s.phone LIKE :s4)";
+            $whereSql .= " AND (u.name LIKE :s1 OR s.roll_no LIKE :s2 OR u.email LIKE :s3 OR u.phone LIKE :s4)";
             $params['s1'] = $search;
             $params['s2'] = $search;
             $params['s3'] = $search;
@@ -236,27 +237,29 @@ try {
 
         // Batch filter
         if (!empty($_GET['batch_id'])) {
-            $whereSql .= " AND s.batch_id = :batch_id";
+            $whereSql .= " AND e.batch_id = :batch_id";
             $params['batch_id'] = $_GET['batch_id'];
         }
 
         // Count total for pagination
         $countQuery = "SELECT COUNT(*) FROM students s 
-                       LEFT JOIN batches b ON s.batch_id = b.id 
+                       JOIN users u ON s.user_id = u.id
+                       LEFT JOIN enrollments e ON s.id = e.student_id AND e.status = 'active' LEFT JOIN batches b ON e.batch_id = b.id 
                        $whereSql";
         $stmtCount = $db->prepare($countQuery);
         $stmtCount->execute($params);
         $total = (int)$stmtCount->fetchColumn();
 
         // Data query
-        $query = "SELECT s.*, s.registration_mode, s.registration_status, s.admission_date,
+        $query = "SELECT s.*, u.name, u.email, u.phone, s.registration_mode, s.registration_status, s.admission_date,
                          b.name as batch_name, b.course_id as course_id, c.name as course_name,
                          COALESCE(sfs.fee_status, 'no_fees') as fee_status,
                          COALESCE(sfs.total_fee, 0) as total_fee,
                          COALESCE(sfs.paid_amount, 0) as paid_amount,
                          COALESCE(sfs.due_amount, 0) as due_amount
                   FROM students s 
-                  LEFT JOIN batches b ON s.batch_id = b.id 
+                  JOIN users u ON s.user_id = u.id
+                  LEFT JOIN enrollments e ON s.id = e.student_id AND e.status = 'active' LEFT JOIN batches b ON e.batch_id = b.id 
                   LEFT JOIN courses c ON b.course_id = c.id
                   LEFT JOIN student_fee_summary sfs ON s.id = sfs.student_id
                   $whereSql
@@ -417,9 +420,9 @@ try {
             if (!$studentId) throw new Exception("Student ID is required");
 
             // Fetch student email, name, course and batch info
-            $stmt = $db->prepare("SELECT s.full_name, s.email, s.registration_mode, s.roll_no, c.name as course_name, b.name as batch_name 
+            $stmt = $db->prepare("SELECT u.name as full_name, s.email, s.registration_mode, s.roll_no, c.name as course_name, b.name as batch_name 
                 FROM students s 
-                LEFT JOIN batches b ON s.batch_id = b.id 
+                LEFT JOIN enrollments e ON s.id = e.student_id AND e.status = 'active' LEFT JOIN batches b ON e.batch_id = b.id 
                 LEFT JOIN courses c ON b.course_id = c.id
                 WHERE s.id = :id AND s.tenant_id = :tid AND s.deleted_at IS NULL");
             $stmt->execute(['id' => $studentId, 'tid' => $tenantId]);
@@ -621,7 +624,7 @@ try {
                 $emailStatus = 'no_email';
                 try {
                     $stmtGetEmail = $db->prepare("
-                        SELECT s.full_name, COALESCE(NULLIF(s.email, ''), u.email) as email 
+                        SELECT u.name as full_name, COALESCE(NULLIF(s.email, ''), u.email) as email 
                         FROM students s 
                         LEFT JOIN users u ON s.user_id = u.id 
                         WHERE s.id = :sid AND s.tenant_id = :tid

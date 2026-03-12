@@ -68,14 +68,14 @@ try {
         
         echo json_encode(['success' => true, 'data' => $summary]);
     } elseif ($action === 'defaulters') {
-        $query = "SELECT s.id as student_id, s.full_name as full_name, s.roll_no, b.name as batch_name,
+        $query = "SELECT s.id as student_id, u.name as full_name, s.roll_no, b.name as batch_name,
                   SUM(fr.amount_due - fr.amount_paid) as total_due,
                   MIN(fr.due_date) as oldest_due_date
                   FROM fee_records fr
-                  JOIN students s ON fr.student_id = s.id
-                  LEFT JOIN batches b ON s.batch_id = b.id
+                  JOIN students s ON fr.student_id = s.id JOIN users u ON s.user_id = u.id
+                  LEFT JOIN enrollments e ON s.id = e.student_id AND e.status = 'active' LEFT JOIN batches b ON e.batch_id = b.id
                   WHERE fr.tenant_id = :tid AND fr.due_date < CURDATE() AND fr.amount_due > fr.amount_paid
-                  GROUP BY s.id, s.full_name, s.roll_no, b.name
+                  GROUP BY s.id, u.name, s.roll_no, b.name
                   ORDER BY total_due DESC";
         
         $stmt = $db->prepare($query);
@@ -107,13 +107,13 @@ try {
         $params = ['tid' => $tenantId, 'start' => $start, 'end' => $end];
         
         $query = "
-            SELECT pt.*, s.full_name as student_name, s.roll_no, b.name as batch_name,
+            SELECT pt.*, u.name as student_name, s.roll_no, b.name as batch_name,
                    c.name as course_name, fi.name as fee_name
             FROM payment_transactions pt
-            JOIN students s ON pt.student_id = s.id
+            JOIN students s ON pt.student_id = s.id JOIN users u ON s.user_id = u.id
             LEFT JOIN fee_records fr ON pt.fee_record_id = fr.id
             LEFT JOIN fee_items fi ON fr.fee_item_id = fi.id
-            LEFT JOIN batches b ON s.batch_id = b.id
+            LEFT JOIN enrollments e ON s.id = e.student_id AND e.status = 'active' LEFT JOIN batches b ON e.batch_id = b.id
             LEFT JOIN courses c ON b.course_id = c.id
             WHERE pt.tenant_id = :tid 
             AND DATE(pt.payment_date) BETWEEN :start AND :end
@@ -125,7 +125,7 @@ try {
             $params['method'] = $method;
         }
         if ($batchId) {
-            $query .= " AND s.batch_id = :batch_id";
+            $query .= " AND e.batch_id = :batch_id";
             $params['batch_id'] = $batchId;
         }
         
@@ -159,12 +159,12 @@ try {
     } elseif ($action === 'discount_report') {
         $query = "
             SELECT fr.id as fee_record_id, fr.due_date, fr.fine_waived, fr.notes,
-                   s.full_name as student_name, s.roll_no, b.name as batch_name,
+                   u.name as student_name, s.roll_no, b.name as batch_name,
                    fi.name as fee_name
             FROM fee_records fr
-            JOIN students s ON fr.student_id = s.id
+            JOIN students s ON fr.student_id = s.id JOIN users u ON s.user_id = u.id
             JOIN fee_items fi ON fr.fee_item_id = fi.id
-            LEFT JOIN batches b ON s.batch_id = b.id
+            LEFT JOIN enrollments e ON s.id = e.student_id AND e.status = 'active' LEFT JOIN batches b ON e.batch_id = b.id
             WHERE fr.tenant_id = :tid 
             AND fr.fine_waived > 0
             ORDER BY fr.updated_at DESC
@@ -190,11 +190,11 @@ try {
             $end = $_GET['end'] ?? date('Y-m-d');
             
             $stmt = $db->prepare("
-                SELECT pt.receipt_number, DATE(pt.payment_date) as payment_date, s.full_name, s.roll_no, 
+                SELECT pt.receipt_number, DATE(pt.payment_date) as payment_date, u.name as full_name, s.roll_no, 
                        b.name as batch, pt.payment_method, pt.amount
                 FROM payment_transactions pt
-                JOIN students s ON pt.student_id = s.id
-                LEFT JOIN batches b ON s.batch_id = b.id
+                JOIN students s ON pt.student_id = s.id JOIN users u ON s.user_id = u.id
+                LEFT JOIN enrollments e ON s.id = e.student_id AND e.status = 'active' LEFT JOIN batches b ON e.batch_id = b.id
                 WHERE pt.tenant_id = :tid 
                 AND DATE(pt.payment_date) BETWEEN :start AND :end
                 AND pt.status = 'completed'
@@ -207,14 +207,14 @@ try {
             $title = "Collection Report ($start to $end)";
             $filename = "Collection_Report_{$start}_{$end}";
         } elseif ($reportType === 'defaulters') {
-            $query = "SELECT s.roll_no, s.full_name as student_name, b.name as batch_name,
+            $query = "SELECT s.roll_no, u.name as student_name, b.name as batch_name,
                       SUM(fr.amount_due - fr.amount_paid) as total_due,
                       MIN(fr.due_date) as oldest_due_date
                       FROM fee_records fr
-                      JOIN students s ON fr.student_id = s.id
-                      LEFT JOIN batches b ON s.batch_id = b.id
+                      JOIN students s ON fr.student_id = s.id JOIN users u ON s.user_id = u.id
+                      LEFT JOIN enrollments e ON s.id = e.student_id AND e.status = 'active' LEFT JOIN batches b ON e.batch_id = b.id
                       WHERE fr.tenant_id = :tid AND fr.due_date < CURDATE() AND fr.amount_due > fr.amount_paid
-                      GROUP BY s.id, s.full_name, s.roll_no, b.name
+                      GROUP BY s.id, u.name, s.roll_no, b.name
                       ORDER BY total_due DESC";
             
             $stmt = $db->prepare($query);
@@ -244,12 +244,12 @@ try {
             $filename = "Batch_Summary_" . date('Y-m-d');
         } elseif ($reportType === 'discount_report') {
             $query = "
-                SELECT s.full_name as student_name, s.roll_no, b.name as batch_name,
+                SELECT u.name as student_name, s.roll_no, b.name as batch_name,
                        fi.name as fee_name, fr.due_date, fr.fine_waived, fr.notes
                 FROM fee_records fr
-                JOIN students s ON fr.student_id = s.id
+                JOIN students s ON fr.student_id = s.id JOIN users u ON s.user_id = u.id
                 JOIN fee_items fi ON fr.fee_item_id = fi.id
-                LEFT JOIN batches b ON s.batch_id = b.id
+                LEFT JOIN enrollments e ON s.id = e.student_id AND e.status = 'active' LEFT JOIN batches b ON e.batch_id = b.id
                 WHERE fr.tenant_id = :tid 
                 AND fr.fine_waived > 0
                 ORDER BY fr.updated_at DESC
@@ -269,13 +269,13 @@ try {
             
             $params = ['tid' => $tenantId, 'start' => $start, 'end' => $end];
             $query = "
-                SELECT DATE(pt.payment_date) as payment_date, pt.receipt_number, s.full_name as student_name, s.roll_no, b.name as batch_name,
+                SELECT DATE(pt.payment_date) as payment_date, pt.receipt_number, u.name as student_name, s.roll_no, b.name as batch_name,
                        fi.name as fee_name, pt.payment_method, pt.amount
                 FROM payment_transactions pt
-                JOIN students s ON pt.student_id = s.id
+                JOIN students s ON pt.student_id = s.id JOIN users u ON s.user_id = u.id
                 LEFT JOIN fee_records fr ON pt.fee_record_id = fr.id
                 LEFT JOIN fee_items fi ON fr.fee_item_id = fi.id
-                LEFT JOIN batches b ON s.batch_id = b.id
+                LEFT JOIN enrollments e ON s.id = e.student_id AND e.status = 'active' LEFT JOIN batches b ON e.batch_id = b.id
                 WHERE pt.tenant_id = :tid 
                 AND DATE(pt.payment_date) BETWEEN :start AND :end
                 AND pt.status = 'completed'
@@ -286,7 +286,7 @@ try {
                 $params['method'] = $method;
             }
             if ($batchId) {
-                $query .= " AND s.batch_id = :batch_id";
+                $query .= " AND e.batch_id = :batch_id";
                 $params['batch_id'] = $batchId;
             }
             

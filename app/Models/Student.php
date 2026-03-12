@@ -12,13 +12,31 @@ class Student extends Model {
 
     protected $table = 'students';
     
+    /**
+     * Eager load user profile by default
+     */
+    protected $with = ['user'];
+
     protected $fillable = [
-        'tenant_id', 'user_id', 'batch_id', 'roll_no', 'full_name', 'dob_ad', 'dob_bs', 'gender', 'blood_group', 
-        'phone', 'email', 'citizenship_no', 'national_id', 'father_name', 'mother_name', 'husband_name', 
-        'guardian_name', 'guardian_relation', 'permanent_address', 'temporary_address', 
+        'tenant_id', 'user_id', 'roll_no', 'dob_bs', 'gender', 'blood_group', 
+        'citizenship_no', 'national_id', 'permanent_address', 'temporary_address', 
         'academic_qualifications', 'admission_date', 'photo_url', 'identity_doc_url', 'status', 
         'registration_mode', 'registration_status', 'id_card_status'
     ];
+
+    /**
+     * Relationship with the User account
+     */
+    public function user() {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
+    /**
+     * Relationship with Guardians
+     */
+    public function guardians() {
+        return $this->hasMany(Guardian::class, 'student_id');
+    }
 
     /**
      * Citizenship Account - Decrypt on access
@@ -40,10 +58,15 @@ class Student extends Model {
     }
 
     /**
-     * Get students by batch
+     * Get students by batch (Via Enrollments table)
      */
     public static function getByBatch($batchId) {
-        return self::where('batch_id', $batchId)->where('status', 'active')->orderBy('roll_no')->get();
+        return self::join('enrollments', 'students.id', '=', 'enrollments.student_id')
+            ->where('enrollments.batch_id', $batchId)
+            ->where('enrollments.status', 'active')
+            ->select('students.*')
+            ->orderBy('roll_no')
+            ->get();
     }
     
     /**
@@ -58,8 +81,8 @@ class Student extends Model {
     /**
      * Generate next roll no
      */
-    public static function generateRollNo() {
-        $maxId = self::max('id');
+    public static function generateRollNo($tenantId = null) {
+        $maxId = self::withoutGlobalScopes()->withTrashed()->max('id');
         $nextId = (int)$maxId + 1;
         $year = date('Y');
         try { $year = DateUtils::getCurrentYear(); } catch (\Throwable $e) {}
@@ -68,12 +91,16 @@ class Student extends Model {
     }
 
     /**
-     * Search students
+     * Search students (Joining User table for Name search)
      */
     public static function search($term) {
-        return self::where(function($q) use ($term) {
-            $q->where('full_name', 'LIKE', "%{$term}%")
-              ->orWhere('roll_no', 'LIKE', "%{$term}%");
-        })->limit(20)->get();
+        return self::join('users', 'students.user_id', '=', 'users.id')
+            ->where(function($q) use ($term) {
+                $q->where('users.name', 'LIKE', "%{$term}%")
+                  ->orWhere('students.roll_no', 'LIKE', "%{$term}%");
+            })
+            ->select('students.*')
+            ->limit(20)
+            ->get();
     }
 }

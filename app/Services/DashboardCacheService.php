@@ -196,9 +196,11 @@ class DashboardCacheService {
 
         // --- SECTION G: RECENT ADMISSIONS ---
         $stmt = $db->prepare("
-            SELECT s.full_name, c.name as course_name, s.created_at, s.status, s.photo_url 
+            SELECT u.name as full_name, c.name as course_name, s.created_at, s.status, s.photo_url 
             FROM students s
-            LEFT JOIN batches b ON s.batch_id = b.id
+            JOIN users u ON s.user_id = u.id
+            LEFT JOIN enrollments e ON s.id = e.student_id AND e.status = 'active'
+            LEFT JOIN batches b ON e.batch_id = b.id
             LEFT JOIN courses c ON b.course_id = c.id
             WHERE s.tenant_id = :tid AND s.deleted_at IS NULL
             ORDER BY s.created_at DESC LIMIT 5
@@ -312,9 +314,10 @@ class DashboardCacheService {
         // --- SECTION M: FRONT DESK - LEAVE REQUESTS ---
         try {
             $stmt = $db->prepare("
-                SELECT l.*, s.full_name as student_name, s.roll_no, s.photo_url 
+                SELECT l.*, u.name as student_name, s.roll_no, s.photo_url 
                 FROM leave_requests l
                 JOIN students s ON s.id = l.student_id
+                JOIN users u ON s.user_id = u.id
                 WHERE l.tenant_id = :tid AND l.status = 'pending' 
                 ORDER BY l.created_at ASC LIMIT 10
             ");
@@ -327,7 +330,7 @@ class DashboardCacheService {
         // --- SECTION N: FRONT DESK - TIMETABLE ---
         try {
             $stmt = $db->prepare("
-                SELECT ts.*, s.name as subject_name, b.name as batch_name, r.name as room_name, u.full_name as teacher_name
+                SELECT ts.*, s.name as subject_name, b.name as batch_name, r.name as room_name, u.name as teacher_name
                 FROM timetable_slots ts
                 LEFT JOIN subjects s ON ts.subject_id = s.id
                 LEFT JOIN batches b ON ts.batch_id = b.id
@@ -345,12 +348,14 @@ class DashboardCacheService {
         // --- SECTION O: FRONT DESK - RECENT TRANSACTIONS & SUMMARY ---
         try {
             $stmt = $db->prepare("
-                SELECT pt.id, pt.transaction_id as receipt_no, s.full_name as student_name, s.roll_no,
+                SELECT pt.id, pt.transaction_id as receipt_no, u.name as student_name, s.roll_no,
                        b.name as batch_name, pt.amount, pt.payment_method, pt.payment_date as receipt_time,
                        pt.remarks as fee_item_name
                 FROM payment_transactions pt
                 JOIN students s ON pt.student_id = s.id
-                LEFT JOIN batches b ON s.batch_id = b.id
+                JOIN users u ON s.user_id = u.id
+                LEFT JOIN enrollments e ON s.id = e.student_id AND e.status = 'active'
+                LEFT JOIN batches b ON e.batch_id = b.id
                 WHERE pt.tenant_id = :tid AND DATE(pt.payment_date) = CURDATE()
                 ORDER BY pt.created_at DESC LIMIT 10
             ");
@@ -374,10 +379,11 @@ class DashboardCacheService {
         // --- SECTION P: FRONT DESK - LIBRARY ISSUES TODAY ---
         try {
             $stmt = $db->prepare("
-                SELECT li.id, lb.title as book_title, lb.author, s.full_name as student_name, li.issue_date, li.due_date, li.return_date
+                SELECT li.id, lb.title as book_title, lb.author, u.name as student_name, li.issue_date, li.due_date, li.return_date
                 FROM library_issues li
                 JOIN library_books lb ON li.book_id = lb.id
                 JOIN students s ON li.student_id = s.id
+                JOIN users u ON s.user_id = u.id
                 WHERE li.tenant_id = :tid AND DATE(li.issue_date) = CURDATE()
                 ORDER BY li.created_at DESC LIMIT 5
             ");

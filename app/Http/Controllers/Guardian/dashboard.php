@@ -69,7 +69,8 @@ try {
         $stmt = $db->prepare("
             SELECT s.*, b.name as batch_name, c.name as course_name
             FROM students s
-            LEFT JOIN batches b ON s.batch_id = b.id
+            LEFT JOIN enrollments e ON s.id = e.student_id AND e.status = 'active'
+            LEFT JOIN batches b ON e.batch_id = b.id
             LEFT JOIN courses c ON b.course_id = c.id
             WHERE s.id = :sid AND s.tenant_id = :tid
             LIMIT 1
