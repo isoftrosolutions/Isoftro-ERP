@@ -1167,9 +1167,9 @@ document.addEventListener('DOMContentLoaded', () => {
                                     ${photoSrc ? `<img src="${photoSrc}" style="width:100%; height:100%; object-fit:cover;" onerror="this.parentElement.innerHTML='<i class=\\'fa-solid fa-user\\' style=\\'color:#94a3b8;\\'></i>'">` : `<i class="fa-solid fa-user" style="color:#94a3b8;"></i>`}
                                 </div>
                                 <div>
-                                    <div style="font-weight:600; color:#1e293b;">${s.full_name}</div>
+                                    <div style="font-weight:600; color:#1e293b;">${s.name}</div>
                                     <div style="font-size:11px; color:#64748b;">
-                                        ${s.phone || 'No phone'} 
+                                        ${u.phone || 'No phone'} 
                                         ${s.dob_bs ? ` • <span style="color:var(--brand); font-weight:600;">BS: ${s.dob_bs}</span>` : ''}
                                     </div>
                                 </div>
@@ -1186,7 +1186,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             <button class="btn-icon" title="View Profile"><i class="fa-solid fa-eye"></i></button>
                             <button class="btn-icon" title="Edit" onclick="goNav('students', 'edit', {id: ${s.id}})"><i class="fa-solid fa-pen-to-square"></i></button>
                             <button class="btn-icon" title="Payment"><i class="fa-solid fa-money-bill-transfer"></i></button>
-                            <button class="btn-icon text-danger" title="Delete" onclick="deleteStudent(${s.id}, '${s.full_name}')"><i class="fa-solid fa-trash"></i></button>
+                            <button class="btn-icon text-danger" title="Delete" onclick="deleteStudent(${s.id}, '${s.name}')"><i class="fa-solid fa-trash"></i></button>
                         </td>
                     </tr>
                 `;
@@ -2258,9 +2258,9 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const searchLower = search.toLowerCase();
         const filtered = staff.filter(s => {
-            const name = (s.full_name || s.name || '').toLowerCase();
-            const email = (s.email || '').toLowerCase();
-            const phone = (s.phone || '').toLowerCase();
+            const name = (u.name || s.name || '').toLowerCase();
+            const email = (u.email || '').toLowerCase();
+            const phone = (u.phone || '').toLowerCase();
             const matchesSearch = !search || name.includes(searchLower) || email.includes(searchLower) || phone.includes(searchLower);
             const matchesStatus = !status || s.status === status;
             return matchesSearch && matchesStatus;
@@ -2298,9 +2298,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
             staff.forEach(s => {
                 const statusClass = s.status === 'active' ? 'bg-t' : 'bg-r';
-                const displayName = s.full_name || s.name || 'N/A';
-                const displayEmail = s.email || 'No email';
-                const displayPhone = s.phone || 'No phone';
+                const displayName = u.name || s.name || 'N/A';
+                const displayEmail = u.email || 'No email';
+                const displayPhone = u.phone || 'No phone';
                 const displaySpec = s.specialization || 'General';
                 const displayEmpId = s.employee_id || 'N/A';
                 
@@ -3003,7 +3003,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await res.json();
             if (data.success && data.data.length > 0) {
                 const s = data.data[0];
-                document.getElementById('edit_full_name').value = s.full_name;
+                document.getElementById('edit_full_name').value = u.name;
                 document.getElementById('edit_roll_no').value = s.roll_no;
                 document.getElementById('edit_batch_id').value = s.batch_id;
                 document.getElementById('edit_status').value = s.status;

@@ -1011,7 +1011,7 @@ $currentPage = basename($_SERVER['PHP_SELF'], '.php');
                     data.students.forEach(s => {
                         const name = s.name || '';
                         const roll = s.roll_no ? 'Roll: ' + s.roll_no : '';
-                        const meta = [roll, s.phone, s.email].filter(Boolean).join(' • ');
+                        const meta = [roll, u.phone, u.email].filter(Boolean).join(' • ');
                         
                         // Avatar logic
                         const initials = name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();

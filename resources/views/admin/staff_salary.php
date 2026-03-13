@@ -111,7 +111,7 @@ async function loadStaffList() {
                 const opt = document.createElement('option');
                 opt.value = s.user_id;
                 opt.setAttribute('data-role', 'Teacher');
-                opt.textContent = `${s.full_name} (Teacher)`;
+                opt.textContent = `${s.name} (Teacher)`;
                 staffSelect.appendChild(opt);
             });
         }
@@ -124,7 +124,7 @@ async function loadStaffList() {
                 const opt = document.createElement('option');
                 opt.value = s.user_id;
                 opt.setAttribute('data-role', 'Front Desk');
-                opt.textContent = `${s.name || s.full_name} (Front Desk)`;
+                opt.textContent = `${s.name || u.name} (Front Desk)`;
                 staffSelect.appendChild(opt);
             });
         }

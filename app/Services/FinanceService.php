@@ -53,7 +53,7 @@ class FinanceService {
             }
 
             // Fetch student name
-            $stmtS = $this->db->prepare("SELECT full_name FROM students WHERE id = ?");
+            $stmtS = $this->db->prepare("SELECT u.name as full_name FROM students s JOIN users u ON s.user_id = u.id WHERE s.id = ?");
             $stmtS->execute([$feeRecord['student_id']]);
             $student = $stmtS->fetch();
             $studentName = $student ? $student['full_name'] : 'Student';
@@ -154,7 +154,7 @@ class FinanceService {
             $this->settingsModel->incrementNumber($tenantId, 'receipt');
 
             // Fetch student name - single query
-            $stmtS = $this->db->prepare("SELECT full_name FROM students WHERE id = ?");
+            $stmtS = $this->db->prepare("SELECT u.name as full_name FROM students s JOIN users u ON s.user_id = u.id WHERE s.id = ?");
             $stmtS->execute([$studentId]);
             $student = $stmtS->fetch();
             $studentName = $student ? $student['full_name'] : 'Student';

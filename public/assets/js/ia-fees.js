@@ -1296,7 +1296,7 @@ async function _autoSelectStudent(id) {
             const s = Array.isArray(result.data) ? result.data[0] : result.data;
             if (s) {
                 // Mapping field names if they differ
-                const name = s.full_name || s.name;
+                const name = u.name || s.name;
                 const course = s.course_name || '';
                 const batch = s.batch_name || '';
                 _selectStudent(s.id, name, course, batch);

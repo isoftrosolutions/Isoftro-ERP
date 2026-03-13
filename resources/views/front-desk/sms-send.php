@@ -153,9 +153,9 @@ async function searchStudents() {
         const result = await response.json();
         if (result.success && result.data.length > 0) {
             res.innerHTML = result.data.map(s => `
-                <div class="search-item" onclick="addRecipient({id:${s.id}, name:'${s.full_name}'})">
-                    <div style="font-weight:600; font-size:13px;">${s.full_name}</div>
-                    <div style="font-size:11px; color:#64748b;">${s.roll_no} • ${s.phone || 'No Phone'}</div>
+                <div class="search-item" onclick="addRecipient({id:${s.id}, name:'${s.name}'})">
+                    <div style="font-weight:600; font-size:13px;">${s.name}</div>
+                    <div style="font-size:11px; color:#64748b;">${s.roll_no} • ${u.phone || 'No Phone'}</div>
                 </div>
             `).join('');
             res.style.display = 'block';

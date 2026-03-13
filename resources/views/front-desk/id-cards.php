@@ -112,7 +112,7 @@ async function loadIDCards() {
                 return `
                     <tr style="border-bottom:1px solid #f1f5f9;">
                         <td style="padding:14px 16px; font-weight:700; color:#475569;">${esc(s.roll_no)}</td>
-                        <td style="padding:14px 16px; font-weight:700; color:#1e293b;">${esc(s.full_name)}</td>
+                        <td style="padding:14px 16px; font-weight:700; color:#1e293b;">${esc(u.name)}</td>
                         <td style="padding:14px 16px; text-align:center;">
                             <span class="id-tag ${tagClass}">${cur.replace('_', ' ')}</span>
                         </td>

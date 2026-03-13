@@ -137,7 +137,7 @@ try {
                 if ($summary && $summary['due_amount'] > 0 && count($records) === 0) {
                     try {
                         $db->beginTransaction();
-                        $stmtB = $db->prepare("SELECT batch_id FROM students WHERE id = :sid");
+                        $stmtB = $db->prepare("SELECT batch_id FROM enrollments WHERE student_id = :sid AND status = 'active' LIMIT 1");
                         $stmtB->execute(['sid' => $studentId]);
                         $batchInfo = $stmtB->fetch();
                         $batchId = $batchInfo ? $batchInfo['batch_id'] : null;
@@ -223,7 +223,7 @@ try {
                       FROM payment_transactions pt
                       JOIN fee_records fr ON pt.fee_record_id = fr.id
                       JOIN fee_items fi ON fr.fee_item_id = fi.id
-                      JOIN students s ON pt.student_id = s.id JOIN users u ON s.user_id = u.id
+                      JOIN students s ON pt.student_id = s.id 
                       LEFT JOIN users u ON s.user_id = u.id
                       WHERE pt.tenant_id = :tid";
             
@@ -296,12 +296,13 @@ try {
             }
 
             $stmt = $db->prepare("
-                SELECT pt.*, fr.fee_item_id, fi.name as fee_item_name, u.name as student_name, s.email,
+                SELECT pt.*, fr.fee_item_id, fi.name as fee_item_name, u.name as student_name, u.email,
                        c.name as course_name, b.name as batch_name, fr.amount_due, fr.fine_applied
                 FROM payment_transactions pt
                 LEFT JOIN fee_records fr ON pt.fee_record_id = fr.id
                 LEFT JOIN fee_items fi ON fr.fee_item_id = fi.id
-                JOIN students s ON pt.student_id = s.id JOIN users u ON s.user_id = u.id
+                JOIN students s ON pt.student_id = s.id 
+                LEFT JOIN users u ON s.user_id = u.id
                 LEFT JOIN enrollments e ON s.id = e.student_id AND e.status = 'active' LEFT JOIN batches b ON e.batch_id = b.id
                 LEFT JOIN courses c ON b.course_id = c.id
                 WHERE $whereClause AND pt.tenant_id = :tenant
@@ -334,7 +335,9 @@ try {
                 SELECT s.id, u.name as name, s.roll_no, s.photo_url,
                        c.name as course_name, b.name as batch_name
                 FROM students s
-                LEFT JOIN enrollments e ON s.id = e.student_id AND e.status = 'active' LEFT JOIN batches b ON e.batch_id = b.id
+                JOIN users u ON s.user_id = u.id
+                LEFT JOIN enrollments e ON s.id = e.student_id AND e.status = 'active' 
+                LEFT JOIN batches b ON e.batch_id = b.id
                 LEFT JOIN courses c ON b.course_id = c.id
                 WHERE s.id = :sid AND s.tenant_id = :tid
             ");
@@ -410,7 +413,7 @@ try {
 
             $stmt = $db->prepare("
                 SELECT pt.id, pt.student_id, pt.receipt_number as receipt_no, pt.amount, pt.payment_method, pt.payment_date,
-                    u.name as student_name, s.email as student_email, s.roll_no,
+                    u.name as student_name, u.email as student_email, s.roll_no,
                     c.name as course_name, b.name as batch_name
                 FROM payment_transactions pt 
                 LEFT JOIN students s ON pt.student_id = s.id JOIN users u ON s.user_id = u.id 
@@ -585,7 +588,7 @@ try {
                         $pdfPath = ReceiptHelper::generatePdf($db, $tenantId, $transactionId, $receiptNo);
                         
                         // Fetch student info for template
-                        $stmt = $db->prepare("SELECT u.name as name, COALESCE(NULLIF(s.email, ''), u.email) as email 
+                        $stmt = $db->prepare("SELECT u.name as name, u.email as email 
                                             FROM students s LEFT JOIN users u ON s.user_id = u.id 
                                             WHERE s.id = ?");
                         $stmt->execute([$result['fee_record']['student_id']]);
@@ -608,7 +611,7 @@ try {
                     $queueService = new QueueService();
                     $studentId = $result['fee_record']['student_id'];
                     // Fetch student and payment details
-                    $stdStmt = $db->prepare("SELECT u.name as student_name, s.email as student_email, s.roll_no, c.name as course_name, b.name as batch_name FROM students s JOIN users u ON s.user_id = u.id LEFT JOIN enrollments e ON s.id = e.student_id AND e.status = 'active' LEFT JOIN batches b ON e.batch_id = b.id LEFT JOIN courses c ON b.course_id = c.id WHERE s.id = :sid");
+                    $stdStmt = $db->prepare("SELECT u.name as student_name, u.email as student_email, s.roll_no, c.name as course_name, b.name as batch_name FROM students s JOIN users u ON s.user_id = u.id LEFT JOIN enrollments e ON s.id = e.student_id AND e.status = 'active' LEFT JOIN batches b ON e.batch_id = b.id LEFT JOIN courses c ON b.course_id = c.id WHERE s.id = :sid");
                     $stdStmt->execute(['sid' => $studentId]);
                     $studentInfo = $stdStmt->fetch(PDO::FETCH_ASSOC);
                     
@@ -667,7 +670,7 @@ try {
                         $pdfPath = ReceiptHelper::generatePdf($db, $tenantId, $transactionId, $receiptNo);
                         
                         // Fetch student info 
-                        $stmt = $db->prepare("SELECT u.name as name, COALESCE(NULLIF(s.email, ''), u.email) as email 
+                        $stmt = $db->prepare("SELECT u.name as name, u.email as email 
                                             FROM students s LEFT JOIN users u ON s.user_id = u.id 
                                             WHERE s.id = ?");
                         $stmt->execute([$data['student_id']]);
@@ -690,7 +693,7 @@ try {
                     $queueService = new QueueService();
                     $studentId = $data['student_id'];
                     // Fetch student and payment details
-                    $stdStmt = $db->prepare("SELECT u.name as student_name, s.email as student_email, s.roll_no, c.name as course_name, b.name as batch_name FROM students s JOIN users u ON s.user_id = u.id LEFT JOIN enrollments e ON s.id = e.student_id AND e.status = 'active' LEFT JOIN batches b ON e.batch_id = b.id LEFT JOIN courses c ON b.course_id = c.id WHERE s.id = :sid");
+                    $stdStmt = $db->prepare("SELECT u.name as student_name, u.email as student_email, s.roll_no, c.name as course_name, b.name as batch_name FROM students s JOIN users u ON s.user_id = u.id LEFT JOIN enrollments e ON s.id = e.student_id AND e.status = 'active' LEFT JOIN batches b ON e.batch_id = b.id LEFT JOIN courses c ON b.course_id = c.id WHERE s.id = :sid");
                     $stdStmt->execute(['sid' => $studentId]);
                     $studentInfo = $stdStmt->fetch(PDO::FETCH_ASSOC);
                     
@@ -732,7 +735,7 @@ try {
             if (!$transactionId) throw new Exception("Transaction ID is required");
 
             $stmt = $db->prepare("SELECT pt.id, pt.student_id, pt.receipt_number as receipt_no, pt.amount, pt.payment_method, pt.payment_date,
-                u.name as student_name, s.email as student_email, s.roll_no,
+                u.name as student_name, u.email as student_email, s.roll_no,
                 c.name as course_name, b.name as batch_name
                 FROM payment_transactions pt 
                 LEFT JOIN students s ON pt.student_id = s.id JOIN users u ON s.user_id = u.id 
@@ -819,7 +822,7 @@ try {
             $stmt = $db->prepare("UPDATE payment_transactions SET amount = :amt, payment_date = :pdate, payment_method = :pmode, receipt_path = :rpath, notes = :notes WHERE id = :tid");
             $stmt->execute(['amt' => $amountPaid, 'pdate' => $paidDate, 'pmode' => $paymentMode, 'rpath' => $receiptPath, 'notes' => $notes, 'tid' => $transactionId]);
 
-            $stmt = $db->prepare("SELECT u.name as student_name, s.email, c.name as course_name, b.name as batch_name FROM students s JOIN users u ON s.user_id = u.id LEFT JOIN enrollments e ON s.id = e.student_id AND e.status = 'active' LEFT JOIN batches b ON e.batch_id = b.id LEFT JOIN courses c ON b.course_id = c.id WHERE s.id = :sid AND s.tenant_id = :tid");
+            $stmt = $db->prepare("SELECT u.name as student_name, u.email, c.name as course_name, b.name as batch_name FROM students s JOIN users u ON s.user_id = u.id LEFT JOIN enrollments e ON s.id = e.student_id AND e.status = 'active' LEFT JOIN batches b ON e.batch_id = b.id LEFT JOIN courses c ON b.course_id = c.id WHERE s.id = :sid AND s.tenant_id = :tid");
             $stmt->execute(['sid' => $txn['student_id'], 'tid' => $tenantId]);
             $student = $stmt->fetch(\PDO::FETCH_ASSOC);
 
@@ -830,7 +833,7 @@ try {
             if ($resendEmail) {
                 $queue = new QueueService();
                 // Fetch complete student and payment details
-                $stdStmt = $db->prepare("SELECT u.name as student_name, s.email as student_email, s.roll_no, c.name as course_name, b.name as batch_name FROM students s JOIN users u ON s.user_id = u.id LEFT JOIN enrollments e ON s.id = e.student_id AND e.status = 'active' LEFT JOIN batches b ON e.batch_id = b.id LEFT JOIN courses c ON b.course_id = c.id WHERE s.id = :sid");
+                $stdStmt = $db->prepare("SELECT u.name as student_name, u.email as student_email, s.roll_no, c.name as course_name, b.name as batch_name FROM students s JOIN users u ON s.user_id = u.id LEFT JOIN enrollments e ON s.id = e.student_id AND e.status = 'active' LEFT JOIN batches b ON e.batch_id = b.id LEFT JOIN courses c ON b.course_id = c.id WHERE s.id = :sid");
                 $stdStmt->execute(['sid' => $txn['student_id']]);
                 $studentInfo = $stdStmt->fetch(PDO::FETCH_ASSOC);
                 

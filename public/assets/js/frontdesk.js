@@ -1406,9 +1406,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 data.data.forEach(s => {
                     html += `
                     <div class="search-res-item" onclick="goNav('students', 'view', {id: ${s.id}}); closeSearch();">
-                        <div class="res-avatar">${(s.full_name || 'S').charAt(0)}</div>
+                        <div class="res-avatar">${(u.name || 'S').charAt(0)}</div>
                         <div style="flex:1;">
-                            <div class="res-main">${s.full_name}</div>
+                            <div class="res-main">${s.name}</div>
                             <div class="res-sub">${s.roll_no || 'No ID'} • ${s.batch_name || 'No Batch'}</div>
                         </div>
                         <i class="fa fa-chevron-right" style="font-size:10px; opacity:0.3;"></i>

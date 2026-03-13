@@ -15,9 +15,10 @@ use App\Services\FeeCalculationService;
 // For now, it will process all tenants if not specified
 $targetTenantId = $argv[1] ?? null;
 
-function processTenant($tenantId) {
+function processTenant($tenantId)
+{
     echo "Processing Tenant: $tenantId\n";
-    
+
     // 1. Get all active students
     // Assuming a Student::getActive($tenantId) exists or raw query
     $db = \App\Support\Database::getInstance()->getConnection();
@@ -33,7 +34,8 @@ function processTenant($tenantId) {
             echo " - Student: {$student['name']} ({$student['id']})\n";
             $result = $service->generateMonthlyFees($student['id'], $tenantId);
             echo "   Result: " . json_encode($result) . "\n";
-        } catch (Exception $e) {
+        }
+        catch (Exception $e) {
             echo "   Error: " . $e->getMessage() . "\n";
         }
     }
@@ -42,7 +44,8 @@ function processTenant($tenantId) {
 // Logic to iterate through tenants or specific one
 if ($targetTenantId) {
     processTenant($targetTenantId);
-} else {
+}
+else {
     // Get all tenants
     $db = \App\Support\Database::getInstance()->getConnection();
     $tenants = $db->query("SELECT id FROM tenants")->fetchAll(PDO::FETCH_COLUMN);

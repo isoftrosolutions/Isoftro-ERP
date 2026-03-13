@@ -231,7 +231,7 @@ function renderTable(students) {
         const statusBadge = isQuick
             ? `<span class="badge badge-quick"><i class="fa-solid fa-bolt"></i> Quick</span>`
             : `<span class="badge badge-full"><i class="fa-solid fa-check-circle"></i> Full</span>`;
-        const initials  = (s.full_name || '?').charAt(0).toUpperCase();
+        const initials  = (u.name || '?').charAt(0).toUpperCase();
         const regDate   = s.admission_date || s.created_at?.substr(0,10) || 'N/A';
         
         // Build photo URL - check for existing photo_url field
@@ -254,7 +254,7 @@ function renderTable(students) {
                             : initials}
                     </div>
                     <div>
-                        <div style="font-size:13px;font-weight:600;color:#1a1a2e;">${escHtml(s.full_name)}</div>
+                        <div style="font-size:13px;font-weight:600;color:#1a1a2e;">${escHtml(u.name)}</div>
                         <div style="font-size:11px;color:#94a3b8;">${escHtml(s.roll_no)}</div>
                     </div>
                 </div>
@@ -263,7 +263,7 @@ function renderTable(students) {
                 <div style="font-size:13px;font-weight:500;color:#1a1a2e;">${escHtml(s.batch_name || 'N/A')}</div>
                 <div style="font-size:11px;color:#94a3b8;">${escHtml(s.course_name || 'N/A')}</div>
             </td>
-            <td style="font-size:13px;color:#374151;">${escHtml(s.phone || '—')}</td>
+            <td style="font-size:13px;color:#374151;">${escHtml(u.phone || '—')}</td>
             <td style="font-size:12px;color:#64748b;">${regDate}</td>
             <td>${statusBadge}</td>
             <td>
@@ -304,9 +304,9 @@ async function viewProfile(id) {
                 <i class="fa-solid fa-xmark"></i>
             </button>
             <div style="width:64px;height:64px;background:rgba(255,255,255,0.2);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:700;margin-bottom:12px;">
-                ${(s.full_name||'?').charAt(0).toUpperCase()}
+                ${(u.name||'?').charAt(0).toUpperCase()}
             </div>
-            <div style="font-size:20px;font-weight:700;">${escHtml(s.full_name)}</div>
+            <div style="font-size:20px;font-weight:700;">${escHtml(u.name)}</div>
             <div style="font-size:13px;opacity:0.85;margin-top:3px;">${escHtml(s.roll_no)} • ${escHtml(s.batch_name||'N/A')}</div>
             <div style="margin-top:10px;">
                 <span style="background:rgba(255,255,255,0.2);font-size:11px;font-weight:600;padding:4px 12px;border-radius:20px;">
@@ -323,8 +323,8 @@ async function viewProfile(id) {
             </div>` : ''}
 
             <div style="display:grid;gap:12px;">
-                ${profileRow('fa-envelope', 'Email', s.email || '—')}
-                ${profileRow('fa-phone', 'Phone', s.phone || '—')}
+                ${profileRow('fa-envelope', 'Email', u.email || '—')}
+                ${profileRow('fa-phone', 'Phone', u.phone || '—')}
                 ${profileRow('fa-venus-mars', 'Gender', s.gender ? s.gender.charAt(0).toUpperCase() + s.gender.slice(1) : '—')}
                 ${profileRow('fa-calendar', 'DOB (AD)', s.dob_ad || '—')}
                 ${profileRow('fa-calendar-days', 'DOB (BS)', s.dob_bs || '—')}

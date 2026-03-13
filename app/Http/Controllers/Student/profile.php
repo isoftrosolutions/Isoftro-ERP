@@ -132,7 +132,7 @@ try {
                        t.name as institute_name, t.address as institute_address,
                        t.phone as institute_phone, t.email as institute_email,
                        t.logo_path as institute_logo,
-                       u.email as login_email, u.phone as login_phone,
+                       u.name as name, u.email as login_email, u.phone as login_phone,
                        u.last_login_at
                 FROM students s
                 LEFT JOIN batches b ON s.batch_id = b.id

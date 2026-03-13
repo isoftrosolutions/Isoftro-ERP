@@ -15,7 +15,7 @@ $tenantId = $_SESSION['userData']['tenant_id'];
 // Get batches with course names and student counts
 $stmt = $db->prepare("
     SELECT b.*, c.name as course_name, 
-           (SELECT COUNT(*) FROM students s WHERE s.batch_id = b.id AND s.status = 'active') as enrolled_students
+           (SELECT COUNT(*) FROM enrollments e WHERE e.batch_id = b.id AND e.status = 'active') as enrolled_students
     FROM batches b
     JOIN courses c ON b.course_id = c.id
     WHERE b.tenant_id = :tid AND b.deleted_at IS NULL

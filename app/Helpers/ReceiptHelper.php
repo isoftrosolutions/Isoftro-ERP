@@ -18,7 +18,7 @@ class ReceiptHelper {
         if (!$transactionId && !$receiptNo) return "";
 
         $query = "
-            SELECT pt.*, fr.fee_record_id, fi.name as fee_item_name, fi.amount as fee_item_amount,
+            SELECT pt.*, fi.name as fee_item_name, fi.amount as fee_item_amount,
                    u.name as student_name, u.email as student_email, u.phone,
                    COALESCE(JSON_UNQUOTE(JSON_EXTRACT(s.permanent_address, '$.district')), '') as student_address,
                    s.roll_no, c.name as course_name, b.name as batch_name,

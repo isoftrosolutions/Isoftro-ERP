@@ -484,7 +484,7 @@ try {
                 // Use default password if not provided
                 $password = $input['password'] ?? 'Student@123'; 
                 $success = \App\Helpers\StudentEmailHelper::sendWelcomeEmail($db, $tenantId, [
-                    'student_name' => $student['name'],
+                    'student_name' => $student['full_name'],
                     'student_email' => $student['email'],
                     'roll_no' => $student['roll_no'] ?? '',
                     'course_name' => $student['course_name'] ?? '',
@@ -497,7 +497,7 @@ try {
                 // For custom admin emails, we can use AdminEmailHelper to dispatch a general announcement or custom message
                 $success = \App\Helpers\AdminEmailHelper::sendAnnouncement($db, $tenantId, [
                     'email' => $student['email'],
-                    'name' => $student['name'],
+                    'name' => $student['full_name'],
                     'subject' => $subject,
                     'body' => $message // sendAnnouncement will use 'general_announcement' template
                 ]);
@@ -523,7 +523,7 @@ try {
 
             // Fetch all students with email addresses
             $placeholders = implode(',', array_fill(0, count($studentIds), '?'));
-            $stmt = $db->prepare("SELECT id, full_name, email FROM students WHERE id IN ($placeholders) AND tenant_id = ? AND email IS NOT NULL AND email != '' AND deleted_at IS NULL");
+            $stmt = $db->prepare("SELECT s.id, u.name as full_name, u.email FROM students s JOIN users u ON s.user_id = u.id WHERE s.id IN ($placeholders) AND s.tenant_id = ? AND u.email IS NOT NULL AND u.email != '' AND s.deleted_at IS NULL");
             $stmt->execute(array_merge($studentIds, [$tenantId]));
             $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -536,7 +536,7 @@ try {
             foreach ($students as $student) {
                 $success = \App\Helpers\AdminEmailHelper::sendAnnouncement($db, $tenantId, [
                     'email' => $student['email'],
-                    'name' => $student['name'],
+                    'name' => $student['full_name'],
                     'subject' => $subject,
                     'body' => $message
                 ]);
@@ -662,7 +662,7 @@ try {
                 // 5. Queue Receipt Tasks (PDF & Email)
                 $queue = new QueueService($db);
                 // Fetch student and course details for email
-                $stdStmt = $db->prepare("SELECT u.name as student_name, u.email as student_email, s.roll_no, c.name as course_name, b.name as batch_name FROM students s LEFT JOIN enrollments e ON s.id = e.student_id AND e.status = 'active' LEFT JOIN batches b ON e.batch_id = b.id LEFT JOIN courses c ON b.course_id = c.id WHERE s.id = :sid");
+                $stdStmt = $db->prepare("SELECT u.name as student_name, u.email as student_email, s.roll_no, c.name as course_name, b.name as batch_name FROM students s JOIN users u ON s.user_id = u.id LEFT JOIN enrollments e ON s.id = e.student_id AND e.status = 'active' LEFT JOIN batches b ON e.batch_id = b.id LEFT JOIN courses c ON b.course_id = c.id WHERE s.id = :sid");
                 $stdStmt->execute(['sid' => $studentId]);
                 $studentInfo = $stdStmt->fetch(PDO::FETCH_ASSOC);
                 
@@ -685,9 +685,9 @@ try {
                 $emailStatus = 'no_email';
                 try {
                     $stmtGetEmail = $db->prepare("
-                        SELECT s.full_name, COALESCE(NULLIF(s.email, ''), u.email) as email 
+                        SELECT u.name as full_name, COALESCE(NULLIF(u.email, ''), u.email) as email 
                         FROM students s 
-                        LEFT JOIN users u ON s.user_id = u.id 
+                        JOIN users u ON s.user_id = u.id 
                         WHERE s.id = :sid AND s.tenant_id = :tid
                     ");
                     $stmtGetEmail->execute(['sid' => $studentId, 'tid' => $tenantId]);

@@ -715,7 +715,7 @@ async function loadStudentList() {
         if (result.success) {
             studentList = (result.data || []).map(s => ({
                 id: s.student_id,
-                full_name: s.full_name,
+                full_name: u.name,
                 roll_no: s.roll_no,
                 photo_url: s.photo_url || '',
                 status: s.attendance?.status || (s.on_leave ? 'leave' : 'present'),
@@ -762,7 +762,7 @@ function renderSheet() {
             <img class="att-stu-avatar" src="${s.photo_url || DEFAULT_AVATAR}" onerror="this.src='${DEFAULT_AVATAR}'" alt="">
             <div class="att-stu-info">
                 <div class="att-stu-name">
-                    ${s.full_name}
+                    ${s.name}
                     ${s.on_leave ? '<span class="att-stu-leave"><i class="fa-solid fa-umbrella-beach"></i> Leave</span>' : ''}
                 </div>
                 <div class="att-stu-roll">#${s.roll_no}</div>
@@ -827,7 +827,7 @@ function updateCounters() {
 function filterStudents(query) {
     const q = query.toLowerCase();
     studentList.forEach(s => {
-        s.visible = s.full_name.toLowerCase().includes(q) || (s.roll_no + '').toLowerCase().includes(q);
+        s.visible = u.name.toLowerCase().includes(q) || (s.roll_no + '').toLowerCase().includes(q);
     });
     renderSheet();
 }

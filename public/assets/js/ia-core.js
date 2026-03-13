@@ -950,7 +950,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (data.students && data.students.length > 0) {
                 html += `<div class="gs-section"><div class="gs-section-title">Students</div>`;
                 data.students.forEach(s => {
-                    const meta = s.roll_no ? `Roll: ${s.roll_no}` : (s.email || '');
+                    const meta = s.roll_no ? `Roll: ${s.roll_no}` : (u.email || '');
                     html += `<a href="#" class="gs-item" data-type="student" data-id="${s.id}">
                         <span class="gs-icon">🎓</span>
                         <span class="gs-name">${s.name}</span>

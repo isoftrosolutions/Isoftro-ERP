@@ -14,9 +14,11 @@ $db = getDBConnection();
 
 // 1. Find inconsistencies
 $query = "
-    SELECT s.id as student_id, s.tenant_id, s.batch_id, s.full_name, sfs.total_fee, sfs.due_amount
+    SELECT s.id as student_id, s.tenant_id, e.batch_id, u.name as full_name, sfs.total_fee, sfs.due_amount
     FROM students s
+    JOIN users u ON s.user_id = u.id
     JOIN student_fee_summary sfs ON s.id = sfs.student_id
+    LEFT JOIN enrollments e ON s.id = e.student_id AND e.status = 'active'
     WHERE sfs.due_amount > 0 AND s.deleted_at IS NULL
       AND NOT EXISTS (
           SELECT 1 FROM fee_records fr WHERE fr.student_id = s.id

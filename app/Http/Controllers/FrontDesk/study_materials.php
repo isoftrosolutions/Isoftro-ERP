@@ -173,11 +173,12 @@ try {
                         smp.*,
                         CASE 
                             WHEN smp.entity_type = 'batch' THEN b.name
-                            WHEN smp.entity_type = 'student' THEN st.full_name
+                            WHEN smp.entity_type = 'student' THEN u.name
                         END as entity_name
                     FROM study_material_permissions smp
                     LEFT JOIN batches b ON smp.entity_type = 'batch' AND smp.entity_id = b.id
                     LEFT JOIN students st ON smp.entity_type = 'student' AND smp.entity_id = st.id
+                    LEFT JOIN users u ON st.user_id = u.id
                     WHERE smp.material_id IN (" . implode(',', array_fill(0, count($materialIds), '?')) . ")
                 ";
                 
@@ -222,7 +223,7 @@ try {
                     c.icon as category_icon,
                     s.name as subject_name,
                     b.name as batch_name,
-                    cr.title as course_name,
+                    cr.name as course_name,
                     u.name as created_by_name
                 FROM study_materials sm
                 LEFT JOIN study_material_categories c ON sm.category_id = c.id

@@ -1,7 +1,7 @@
 <?php
 /**
  * Communications Controller
- * Handles mass emailing and campaigns
+ * Handles masu.emailing and campaigns
  */
 
 require_once realpath(__DIR__ . '/../../../../config/config.php');
@@ -14,7 +14,7 @@ $db = getDBConnection();
 // Initial Setup / Migration
 function self_migrate_comms($db) {
     // email_campaigns table
-    $db->exec("CREATE TABLE IF NOT EXISTS email_campaigns (
+    $db->exec("CREATE TABLE IF NOT EXISTu.email_campaigns (
         id INT AUTO_INCREMENT PRIMARY KEY,
         tenant_id INT NOT NULL,
         campaign_name VARCHAR(255) NOT NULL,
@@ -30,7 +30,7 @@ function self_migrate_comms($db) {
     )");
 
     // email_logs (if not exists)
-    $db->exec("CREATE TABLE IF NOT EXISTS email_logs (
+    $db->exec("CREATE TABLE IF NOT EXISTu.email_logs (
         id INT AUTO_INCREMENT PRIMARY KEY,
         tenant_id INT NOT NULL,
         student_id INT DEFAULT 0,
@@ -80,7 +80,7 @@ try {
             $type = $_GET['type'] ?? 'email';
             if ($type === 'email') {
                 $stmt = $db->prepare("
-                    SELECT el.*, s.full_name as student_name 
+                    SELECT el.*, u.name as student_name 
                     FROM email_logs el 
                     LEFT JOIN students s ON el.student_id = s.id 
                     WHERE el.tenant_id = ? 
@@ -119,7 +119,7 @@ try {
             // 1. Fetch Recipients
             $recipients = [];
             if ($target === 'all_students') {
-                $stmt = $db->prepare("SELECT id, full_name as name, email FROM students WHERE tenant_id = ? AND status = 'active' AND (email IS NOT NULL AND email != '')");
+                $stmt = $db->prepare("SELECT s.id, u.name as name, u.email FROM students s JOIN users u ON s.user_id = u.id WHERE tenant_id = ? AND status = 'active' AND (email IS NOT NULL AND email != '')");
                 $stmt->execute([$tenantId]);
                 $recipients = $stmt->fetchAll(\PDO::FETCH_ASSOC);
             } elseif ($target === 'all_teachers') {
@@ -128,15 +128,15 @@ try {
                 $recipients = $stmt->fetchAll(\PDO::FETCH_ASSOC);
             } elseif ($target === 'by_course') {
                 $stmt = $db->prepare("
-                    SELECT s.id, s.full_name as name, s.email 
+                    SELECT s.id, u.name as name, u.email 
                     FROM students s
                     JOIN enrollments e ON s.id = e.student_id AND e.status = 'active' JOIN batches b ON e.batch_id = b.id
-                    WHERE s.tenant_id = ? AND b.course_id = ? AND s.status = 'active' AND (s.email IS NOT NULL AND s.email != '')
+                    WHERE s.tenant_id = ? AND b.course_id = ? AND s.status = 'active' AND (u.email IS NOT NULL AND u.email != '')
                 ");
                 $stmt->execute([$tenantId, $targetId]);
                 $recipients = $stmt->fetchAll(\PDO::FETCH_ASSOC);
             } elseif ($target === 'by_batch') {
-                $stmt = $db->prepare("SELECT id, full_name as name, email FROM students WHERE tenant_id = ? AND batch_id = ? AND status = 'active' AND (email IS NOT NULL AND email != '')");
+                $stmt = $db->prepare("SELECT s.id, u.name as name, u.email FROM students s JOIN users u ON s.user_id = u.id WHERE tenant_id = ? AND batch_id = ? AND status = 'active' AND (email IS NOT NULL AND email != '')");
                 $stmt->execute([$tenantId, $targetId]);
                 $recipients = $stmt->fetchAll(\PDO::FETCH_ASSOC);
             }

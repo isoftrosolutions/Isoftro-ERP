@@ -420,9 +420,11 @@ try {
             if (!$studentId) throw new Exception("Student ID is required");
 
             // Fetch student email, name, course and batch info
-            $stmt = $db->prepare("SELECT u.name as full_name, s.email, s.registration_mode, s.roll_no, c.name as course_name, b.name as batch_name 
+            $stmt = $db->prepare("SELECT u.name as full_name, u.email, s.registration_mode, s.roll_no, c.name as course_name, b.name as batch_name 
                 FROM students s 
-                LEFT JOIN enrollments e ON s.id = e.student_id AND e.status = 'active' LEFT JOIN batches b ON e.batch_id = b.id 
+                JOIN users u ON s.user_id = u.id
+                LEFT JOIN enrollments e ON s.id = e.student_id AND e.status = 'active' 
+                LEFT JOIN batches b ON e.batch_id = b.id 
                 LEFT JOIN courses c ON b.course_id = c.id
                 WHERE s.id = :id AND s.tenant_id = :tid AND s.deleted_at IS NULL");
             $stmt->execute(['id' => $studentId, 'tid' => $tenantId]);
@@ -476,7 +478,7 @@ try {
 
             // Fetch all students with email addresses
             $placeholders = implode(',', array_fill(0, count($studentIds), '?'));
-            $stmt = $db->prepare("SELECT id, full_name, email FROM students WHERE id IN ($placeholders) AND tenant_id = ? AND email IS NOT NULL AND email != '' AND deleted_at IS NULL");
+            $stmt = $db->prepare("SELECT s.id, u.name as full_name, u.email FROM students s JOIN users u ON s.user_id = u.id WHERE s.id IN ($placeholders) AND s.tenant_id = ? AND u.email IS NOT NULL AND u.email != '' AND s.deleted_at IS NULL");
             $stmt->execute(array_merge($studentIds, [$tenantId]));
             $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -624,7 +626,7 @@ try {
                 $emailStatus = 'no_email';
                 try {
                     $stmtGetEmail = $db->prepare("
-                        SELECT u.name as full_name, COALESCE(NULLIF(s.email, ''), u.email) as email 
+                        SELECT u.name as full_name, u.email as email 
                         FROM students s 
                         LEFT JOIN users u ON s.user_id = u.id 
                         WHERE s.id = :sid AND s.tenant_id = :tid

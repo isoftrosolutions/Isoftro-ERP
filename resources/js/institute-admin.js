@@ -311,9 +311,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         ${students.map(s => `
                             <tr>
                                 <td>${s.roll_no}</td>
-                                <td>${s.full_name}</td>
+                                <td>${s.name}</td>
                                 <td>${s.batch_name || 'N/A'}</td>
-                                <td>${s.phone || '-'}</td>
+                                <td>${u.phone || '-'}</td>
                                 <td><span class="tag ${s.status === 'active' ? 'bg-t' : 'bg-b'}">${s.status}</span></td>
                             </tr>
                         `).join('')}

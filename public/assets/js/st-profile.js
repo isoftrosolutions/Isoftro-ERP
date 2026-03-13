@@ -87,7 +87,7 @@ function renderProfileWithTabs(mc) {
         { id: 'attendance', icon: 'fa-calendar-check', label: 'Attendance' }
     ];
     const activeTab = window._ST_Profile.activeTab;
-    const initials = (s.full_name || 'S').split(' ').filter(n => n).map(n => n[0] || '').join('').toUpperCase().substring(0, 2) || 'ST';
+    const initials = (s.name || 'S').split(' ').filter(n => n).map(n => n[0] || '').join('').toUpperCase().substring(0, 2) || 'ST';
     const formatDate = (d) => d ? new Date(d).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : '-';
 
     mc.innerHTML = `
@@ -104,7 +104,7 @@ function renderProfileWithTabs(mc) {
                         </div>
                         <div class="col">
                             <div class="d-flex align-items-center gap-2 flex-wrap mb-2">
-                                <h2 class="mb-0 fs-4 fw-bold text-dark">${s.full_name || 'N/A'}</h2>
+                                <h2 class="mb-0 fs-4 fw-bold text-dark">${s.name || 'N/A'}</h2>
                                 <span class="badge rounded-pill bg-success-soft text-success px-3 py-2 border border-success" style="font-size:11px;">
                                     <i class="fa-solid fa-check me-1"></i> ${(s.registration_status || 'Active').toUpperCase()}
                                 </span>
@@ -208,7 +208,7 @@ function renderPersonalTab(s, formatDate) {
                     <div class="card-body">
                         <div class="mb-3 d-flex justify-content-between align-items-center">
                             <span class="text-muted small fw-semibold">Full Name</span>
-                            <span class="text-dark fw-medium">${s.full_name || '-'}</span>
+                            <span class="text-dark fw-medium">${s.name || '-'}</span>
                         </div>
                         <div class="mb-3 d-flex justify-content-between align-items-center">
                             <span class="text-muted small fw-semibold">Date of Birth</span>
@@ -725,7 +725,7 @@ window.editStudentProfile = async function() {
                                 <div class="row g-3">
                                     <div class="col-12 col-md-6">
                                         <label class="form-label small fw-bold">Full Name</label>
-                                        <input type="text" name="full_name" class="form-control rounded-3" value="${s.full_name || ''}" required />
+                                        <input type="text" name="full_name" class="form-control rounded-3" value="${s.name || ''}" required />
                                     </div>
                                     <div class="col-12 col-md-6">
                                         <label class="form-label small fw-bold">Email Address</label>

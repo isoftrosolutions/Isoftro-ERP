@@ -110,13 +110,14 @@ function processEmailReceipt($db, $tenantId, $payload) {
 
     // Fetch details with JOINS to ensure placeholders like course_name, amount_due, etc. are available
     $query = "
-        SELECT pt.*, s.full_name as name, COALESCE(NULLIF(s.email, ''), u.email) as email,
+        SELECT pt.*, u.name as name, u.email as email,
                c.name as course_name, b.name as batch_name,
                fr.amount_due, fr.amount_paid as fr_amount_paid, fr.fine_applied
         FROM payment_transactions pt
         JOIN students s ON pt.student_id = s.id
-        LEFT JOIN users u ON s.user_id = u.id
-        LEFT JOIN batches b ON s.batch_id = b.id
+        JOIN users u ON s.user_id = u.id
+        LEFT JOIN enrollments en ON s.id = en.student_id AND en.status = 'active'
+        LEFT JOIN batches b ON en.batch_id = b.id
         LEFT JOIN courses c ON b.course_id = c.id
         LEFT JOIN fee_records fr ON pt.fee_record_id = fr.id
         WHERE ";

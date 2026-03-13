@@ -456,9 +456,9 @@ window.loadAlumni = async (page) => {
         document.getElementById('paginationBar').style.display = 'flex';
 
         tbody.innerHTML = students.map(s => {
-            const safeName = (s.full_name || '').replace(/'/g, "\\'");
+            const safeName = (u.name || '').replace(/'/g, "\\'");
             const photoUrl = s.photo_url || '';
-            const initials = (s.full_name || 'S').charAt(0).toUpperCase();
+            const initials = (u.name || 'S').charAt(0).toUpperCase();
             const photoHtml = photoUrl 
                 ? `<img src="${photoUrl}" class="std-img" alt="${safeName}">`
                 : `<div class="std-img initials">${initials}</div>`;
@@ -469,7 +469,7 @@ window.loadAlumni = async (page) => {
                         <div class="std-card">
                             ${photoHtml}
                             <div class="std-info">
-                                <div class="name">${s.full_name || '-'}</div>
+                                <div class="name">${u.name || '-'}</div>
                                 <div class="id">ID: ${s.student_id || s.roll_no || '-'}</div>
                             </div>
                         </div>
@@ -481,8 +481,8 @@ window.loadAlumni = async (page) => {
                         </div>
                     </td>
                     <td>
-                        <div style="font-size: 13px; font-weight: 600; color: #1e293b;">${s.phone || '-'}</div>
-                        <div style="font-size: 11px; color: #64748b;">${s.email || '-'}</div>
+                        <div style="font-size: 13px; font-weight: 600; color: #1e293b;">${u.phone || '-'}</div>
+                        <div style="font-size: 11px; color: #64748b;">${u.email || '-'}</div>
                     </td>
                     <td>
                         <div style="font-size: 13px; font-weight: 700; color: #0f172a;">
@@ -561,11 +561,11 @@ window.exportAlumniCSV = async () => {
             ['Roll No', 'Name', 'Batch', 'Course', 'Phone', 'Email', 'Status'].join(','),
             ...students.map(s => [
                 s.roll_no || s.student_id || '',
-                '"' + (s.full_name || '') + '"',
+                '"' + (u.name || '') + '"',
                 '"' + (s.batch_name || '') + '"',
                 '"' + (s.course_name || '') + '"',
-                s.phone || '',
-                s.email || '',
+                u.phone || '',
+                u.email || '',
                 s.status || ''
             ].join(','))
         ].join('\n');
@@ -1124,9 +1124,9 @@ async function _loadStudentDataForEdit(id) {
             const s = result.data;
             
             // Basic Info
-            document.getElementById('edit_std_name').value = s.full_name || '';
-            document.getElementById('edit_std_phone').value = s.phone || '';
-            document.getElementById('edit_std_email').value = s.email || '';
+            document.getElementById('edit_std_name').value = u.name || '';
+            document.getElementById('edit_std_phone').value = u.phone || '';
+            document.getElementById('edit_std_email').value = u.email || '';
             document.getElementById('edit_std_roll').value = s.roll_no || '';
             document.getElementById('edit_std_status').value = s.status || 'active';
             
@@ -1438,8 +1438,12 @@ window.loadStudents = async (page) => {
     const tbody = document.getElementById('studentsBody');
     if (!tbody) return;
 
-    document.getElementById('emptyState').style.display = 'none';
-    document.getElementById('paginationBar').style.display = 'none';
+    const emptyState = document.getElementById('emptyState');
+    const paginationBar = document.getElementById('paginationBar');
+
+    if (emptyState) emptyState.style.display = 'none';
+    if (paginationBar) paginationBar.style.display = 'none';
+
     tbody.innerHTML = `<tr><td colspan="6" class="empty-state"><i class="fa-solid fa-circle-notch fa-spin"></i> Fetching students...</td></tr>`;
 
     try {
@@ -1469,7 +1473,8 @@ window.loadStudents = async (page) => {
 
         if (students.length === 0) {
             tbody.innerHTML = '';
-            document.getElementById('emptyState').style.display = 'block';
+            const emptyState = document.getElementById('emptyState');
+            if (emptyState) emptyState.style.display = 'block';
             return;
         }
 
@@ -1481,7 +1486,7 @@ window.loadStudents = async (page) => {
 
         tbody.innerHTML = students.map(s => {
             const isSelected = _StudentState.selectedIds.has(s.id);
-            const safeName = (s.full_name || '').replace(/'/g, "\\'");
+            const safeName = (u.name || '').replace(/'/g, "\\'");
             
             // Premium Fee Pill
             const feeStatus = s.fee_status || 'no_fees';
@@ -1512,9 +1517,9 @@ window.loadStudents = async (page) => {
               </td>
               <td>
                 <div class="premium-s-info">
-                  <div class="s-av ${getAvatarColor(s.id)}">${initials(s.full_name)}</div>
+                  <div class="s-av ${getAvatarColor(s.id)}">${initials(u.name)}</div>
                   <div class="s-details">
-                    <div class="s-name">${s.full_name || 'N/A'}</div>
+                    <div class="s-name">${u.name || 'N/A'}</div>
                     <div class="s-meta">${s.roll_no || 'No roll'} &bull; ${gender}</div>
                   </div>
                 </div>
@@ -1540,7 +1545,7 @@ window.loadStudents = async (page) => {
                   <button class="act-btn act-pay btn btn-sm btn-warning" title="Collect Fee" onclick="window.renderQuickPayment(${s.id})">
                     <i class="fa-solid fa-hand-holding-dollar"></i>
                   </button>
-                  <button class="act-btn act-email btn btn-sm btn-info" title="Send Email" onclick="sendEmailToStudent(${s.id}, '${safeName}', '${s.email || ''}')">
+                  <button class="act-btn act-email btn btn-sm btn-info" title="Send Email" onclick="sendEmailToStudent(${s.id}, '${safeName}', '${u.email || ''}')">
                     <i class="fa-solid fa-envelope"></i>
                   </button>
                   <button class="act-btn act-delete btn btn-sm btn-danger" title="Delete Student" onclick="deleteStudent(${s.id}, '${safeName}')">
@@ -1551,7 +1556,8 @@ window.loadStudents = async (page) => {
             </tr>`;
         }).join('');
 
-        document.getElementById('paginationBar').style.display = 'flex';
+        const paginationBar = document.getElementById('paginationBar');
+        if (paginationBar) paginationBar.style.display = 'flex';
         renderPaginationUI(start + 1, end);
         updateBulkBar();
         updateMasterCheck();
@@ -1887,7 +1893,7 @@ window.renderStudentProfile = async (id, activeTab = 'personal') => {
 
         const s = result.data;
         const photoSrc = s.photo_url ? (s.photo_url.startsWith('http') ? s.photo_url : window.APP_URL + s.photo_url) : null;
-        const initials = s.full_name ? s.full_name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2) : 'ST';
+        const initials = u.name ? u.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2) : 'ST';
 
         const statusCls = s.status === 'active' ? 'sp-status-active' : 'sp-status-inactive';
         const statusIcon = s.status === 'active' ? 'fa-circle' : 'fa-circle-xmark';
@@ -1927,7 +1933,7 @@ window.renderStudentProfile = async (id, activeTab = 'personal') => {
                         <!-- Photo -->
                         <div class="sp-photo-box">
                             <div class="sp-photo">
-                                ${photoSrc ? `<img src="${photoSrc}" alt="${s.full_name}">` : `<span>${initials}</span>`}
+                                ${photoSrc ? `<img src="${photoSrc}" alt="${s.name}">` : `<span>${initials}</span>`}
                             </div>
                             <span class="sp-status-badge ${statusCls}">
                                 <i class="fas ${statusIcon}"></i>
@@ -1942,7 +1948,7 @@ window.renderStudentProfile = async (id, activeTab = 'personal') => {
                         <!-- Info -->
                         <div class="sp-info">
                             <div class="sp-name-row">
-                                <h2 class="sp-name">${s.full_name}</h2>
+                                <h2 class="sp-name">${s.name}</h2>
                                 <div class="sp-roll"><i class="fas fa-id-card"></i> ${s.roll_no || 'N/A'}</div>
                             </div>
                             <div class="sp-meta-grid">
@@ -1950,14 +1956,14 @@ window.renderStudentProfile = async (id, activeTab = 'personal') => {
                                     <div class="sp-meta-icon teal"><i class="fas fa-envelope"></i></div>
                                     <div class="sp-meta-content">
                                         <span class="sp-meta-label">Email</span>
-                                        <span class="sp-meta-value">${s.email || 'N/A'}</span>
+                                        <span class="sp-meta-value">${u.email || 'N/A'}</span>
                                     </div>
                                 </div>
                                 <div class="sp-meta-item">
                                     <div class="sp-meta-icon blue"><i class="fas fa-phone"></i></div>
                                     <div class="sp-meta-content">
                                         <span class="sp-meta-label">Contact</span>
-                                        <span class="sp-meta-value">${s.phone || 'N/A'}</span>
+                                        <span class="sp-meta-value">${u.phone || 'N/A'}</span>
                                     </div>
                                 </div>
                                 <div class="sp-meta-item">
@@ -2082,7 +2088,7 @@ function _spPersonalTab(s) {
     return `
         ${_spSectionTitle('fa-user-circle', 'Personal Information')}
         <div class="sp-info-grid">
-            ${_spInfoCard('fa-user',        'Full Name',      s.full_name)}
+            ${_spInfoCard('fa-user',        'Full Name',      u.name)}
             ${_spInfoCard('fa-male',        "Father's Name",  s.father_name)}
             ${_spInfoCard('fa-id-card',     'Citizenship No.',s.citizenship_no)}
             ${_spInfoCard('fa-fingerprint', 'National ID',    s.national_id)}
@@ -2176,7 +2182,7 @@ function _spPaymentTab(s) {
 
         <div style="display:flex; justify-content:space-between; align-items:center;">
             ${_spSectionTitle('fa-history', 'Payment Records')}
-            <button class="btn bt" onclick="openRecordPaymentModal(${s.id}, '${s.full_name}')" style="margin-bottom: 20px;">
+            <button class="btn bt" onclick="openRecordPaymentModal(${s.id}, '${s.name}')" style="margin-bottom: 20px;">
                 <i class="fa-solid fa-money-bill-wave"></i> Record Payment
             </button>
         </div>
@@ -2515,7 +2521,7 @@ window.renderCompleteProfileForm = async (id) => {
                                 <div class="cr-header-icon"><i class="fas fa-user-graduate"></i></div>
                                 <div class="cr-header-text">
                                     <h1>Complete Profile</h1>
-                                    <p>Finalize student records for ${s.full_name}</p>
+                                    <p>Finalize student records for ${s.name}</p>
                                 </div>
                             </div>
                             <div style="background:rgba(255,255,255,0.2); padding:8px 16px; border-radius:10px; font-size:13px; font-weight:700;">
@@ -2563,11 +2569,11 @@ window.renderCompleteProfileForm = async (id) => {
                                 <div class="cr-form-grid">
                                     <div class="form-group">
                                         <label class="form-label">Full Name <span class="required">*</span></label>
-                                        <input type="text" name="full_name" class="form-control" value="${s.full_name}" required>
+                                        <input type="text" name="full_name" class="form-control" value="${s.name}" required>
                                     </div>
                                     <div class="form-group">
                                         <label class="form-label">Phone <span class="required">*</span></label>
-                                        <input type="text" name="phone" class="form-control" value="${s.phone || s.contact_number || ''}" required>
+                                        <input type="text" name="phone" class="form-control" value="${u.phone || s.contact_number || ''}" required>
                                     </div>
                                 </div>
 
@@ -2891,7 +2897,7 @@ window.renderDocumentVault = async (page = 1, search = '') => {
                         <div style="display:flex; align-items:center; gap:15px; margin-bottom:15px;">
                             <img src="${photo}" style="width:50px; height:50px; border-radius:10px; object-fit:cover; border:2px solid #e2e8f0;">
                             <div>
-                                <h4 style="margin:0; font-size:15px; color:#1e293b; font-weight:700;">${s.full_name}</h4>
+                                <h4 style="margin:0; font-size:15px; color:#1e293b; font-weight:700;">${s.name}</h4>
                                 <div style="font-size:12px; color:#64748b; margin-top:3px;">
                                     <span><i class="fas fa-hashtag"></i> ${s.roll_no || '-'}</span>
                                     <span style="margin:0 5px;">|</span>

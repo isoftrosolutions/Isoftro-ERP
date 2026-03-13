@@ -55,11 +55,11 @@ class OnlineClassService
     public function getClassAttendance(\PDO $db, int $tenantId, int $classId): array
     {
         $stmt = $db->prepare("
-            SELECT oca.*, s.full_name as student_name, s.roll_no
+            SELECT oca.*, u.name as student_name, s.roll_no
             FROM online_class_attendance oca
             JOIN students s ON oca.student_id = s.id
             WHERE oca.online_class_id = :cid AND oca.tenant_id = :tid
-            ORDER BY s.full_name ASC
+            ORDER BY u.name ASC
         ");
         $stmt->execute(['cid' => $classId, 'tid' => $tenantId]);
         return $stmt->fetchAll();

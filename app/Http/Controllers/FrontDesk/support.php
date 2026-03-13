@@ -18,7 +18,7 @@ try {
 
     if ($action === 'list') {
         $stmt = $db->prepare("
-            SELECT st.*, u.full_name as created_by
+            SELECT st.*, u.name as created_by
             FROM support_tickets st
             LEFT JOIN users u ON st.user_id = u.id
             WHERE st.tenant_id = :tid
@@ -31,7 +31,7 @@ try {
     } else if ($action === 'view') {
         $id = intval($_GET['id'] ?? 0);
         $stmt = $db->prepare("
-            SELECT st.*, u.full_name as created_by
+            SELECT st.*, u.name as created_by
             FROM support_tickets st
             LEFT JOIN users u ON st.user_id = u.id
             WHERE st.id = :id AND st.tenant_id = :tid

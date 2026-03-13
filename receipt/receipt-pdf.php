@@ -102,9 +102,9 @@ function fetchReceiptData(PDO $db, int $tenantId, string $receiptNo, string $txn
             -- Student
             s.id             AS student_db_id,
             s.roll_no        AS student_id,
-            s.full_name      AS student_name,
-            s.phone          AS contact_number,
-            s.email          AS student_email,
+            u_std.name      AS student_name,
+            u.phone          AS contact_number,
+            u_std.email          AS student_email,
             s.temporary_address AS address,
 
             -- Batch / Enrollment
@@ -127,7 +127,7 @@ function fetchReceiptData(PDO $db, int $tenantId, string $receiptNo, string $txn
         FROM payment_transactions pt
         LEFT JOIN fee_records fr     ON fr.id = pt.fee_record_id
         LEFT JOIN fee_items fi       ON fi.id = fr.fee_item_id
-        LEFT JOIN students s         ON s.id  = pt.student_id AND s.tenant_id = pt.tenant_id
+        LEFT JOIN students s ON s.id = pt.student_id AND s.tenant_id = pt.tenant_id JOIN users u_std ON s.user_id = u_std.id
         LEFT JOIN enrollments e      ON e.student_id = s.id AND e.tenant_id = pt.tenant_id
         LEFT JOIN batches b          ON b.id  = e.batch_id
         LEFT JOIN courses c          ON c.id  = e.course_id

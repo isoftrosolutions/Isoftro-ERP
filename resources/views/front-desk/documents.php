@@ -112,9 +112,9 @@ async function searchStudents() {
         if (result.success && result.data.length > 0) {
             res.innerHTML = result.data.map(s => `
                 <div class="search-item" onclick="selectStudent(${JSON.stringify(s).replace(/"/g, '&quot;')})">
-                    <div style="width:32px; height:32px; background:#64748b; color:#fff; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:12px;">${s.full_name[0]}</div>
+                    <div style="width:32px; height:32px; background:#64748b; color:#fff; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:12px;">${u.name[0]}</div>
                     <div>
-                        <div style="font-weight:600; font-size:13px;">${s.full_name}</div>
+                        <div style="font-weight:600; font-size:13px;">${s.name}</div>
                         <div style="font-size:11px; color:#64748b;">${s.roll_no} • ${s.batch_name || 'N/A'}</div>
                     </div>
                 </div>
@@ -129,8 +129,8 @@ function selectStudent(s) {
     document.getElementById('searchResults').style.display = 'none';
     document.getElementById('stuSearch').value = '';
     
-    document.getElementById('stuAvatar').textContent = s.full_name[0].toUpperCase();
-    document.getElementById('stuName').textContent = s.full_name;
+    document.getElementById('stuAvatar').textContent = u.name[0].toUpperCase();
+    document.getElementById('stuName').textContent = u.name;
     document.getElementById('stuMeta').textContent = `${s.roll_no} | ${s.batch_name || 'N/A'}`;
     
     document.getElementById('selectedStudentInfo').style.display = 'block';

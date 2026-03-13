@@ -76,16 +76,16 @@ try {
             $trend = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             // 3) Top absentees — students with most absences
-            $absSql = "SELECT a.student_id, s.full_name, s.roll_no, s.photo_url, b.name as batch_name,
+            $absSql = "SELECT a.student_id, u.name, s.roll_no, s.photo_url, b.name as batch_name,
                     SUM(CASE WHEN a.status='absent' THEN 1 ELSE 0 END) as absent_days,
                     COUNT(*) as total_days
                 FROM attendance a
-                JOIN students s ON s.id = a.student_id
+                JOIN students s ON s.id = a.student_id JOIN users u ON s.user_id = u.id
                 LEFT JOIN batches b ON b.id = a.batch_id
                 WHERE a.tenant_id = :tid AND a.attendance_date BETWEEN :sd AND :ed";
             $absParams = ['tid' => $tenantId, 'sd' => $startDate, 'ed' => $endDate];
             if ($batchId) { $absSql .= " AND a.batch_id = :bid"; $absParams['bid'] = $batchId; }
-            $absSql .= " GROUP BY a.student_id, s.full_name, s.roll_no, s.photo_url, b.name
+            $absSql .= " GROUP BY a.student_id, u.name, s.roll_no, s.photo_url, b.name
                          HAVING absent_days > 0
                          ORDER BY absent_days DESC LIMIT 10";
             $stmt = $db->prepare($absSql);
@@ -134,14 +134,14 @@ try {
             $startDate = $_GET['start_date'] ?? date('Y-m-01');
             $endDate = $_GET['end_date'] ?? date('Y-m-d');
 
-            $sql = "SELECT a.attendance_date, s.full_name, s.roll_no, b.name as batch_name, a.status
+            $sql = "SELECT a.attendance_date, u.name, s.roll_no, b.name as batch_name, a.status
                 FROM attendance a
-                JOIN students s ON s.id = a.student_id
+                JOIN students s ON s.id = a.student_id JOIN users u ON s.user_id = u.id
                 LEFT JOIN batches b ON b.id = a.batch_id
                 WHERE a.tenant_id = :tid AND a.attendance_date BETWEEN :sd AND :ed";
             $params = ['tid' => $tenantId, 'sd' => $startDate, 'ed' => $endDate];
             if ($batchId) { $sql .= " AND a.batch_id = :bid"; $params['bid'] = $batchId; }
-            $sql .= " ORDER BY a.attendance_date DESC, s.full_name ASC";
+            $sql .= " ORDER BY a.attendance_date DESC, u.name ASC";
             $stmt = $db->prepare($sql);
             $stmt->execute($params);
             $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -189,7 +189,7 @@ try {
                 $result[] = [
                     'student_id' => $student['id'],
                     'roll_no' => $student['roll_no'],
-                    'full_name' => $student['full_name'],
+                    'name' => $student['name'],
                     'photo_url' => $student['photo_url'],
                     'percentage' => $perc,
                     'on_leave' => $onLeave,

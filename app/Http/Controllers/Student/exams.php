@@ -156,7 +156,7 @@ try {
                     SELECT 
                         er.marks_obtained,
                         er.rank_position,
-                        s.full_name as student_name,
+                        u.name as student_name,
                         s.roll_no,
                         e.total_marks
                     FROM exam_results er
@@ -172,7 +172,7 @@ try {
                 // Overall batch leaderboard (based on average)
                 $stmt = $db->prepare("
                     SELECT 
-                        s.full_name as student_name,
+                        u.name as student_name,
                         s.roll_no,
                         AVG((er.marks_obtained / e.total_marks) * 100) as average_percentage
                     FROM exam_results er

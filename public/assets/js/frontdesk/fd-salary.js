@@ -137,14 +137,14 @@ async function loadStaffListForForm() {
         if (dataT.success) dataT.data.forEach(s => {
             const opt = document.createElement('option');
             opt.value = s.user_id; 
-            opt.textContent = `${s.full_name} (Teacher)`;
+            opt.textContent = `${s.name} (Teacher)`;
             opt.setAttribute('data-salary', s.monthly_salary || 0);
             staffSelect.appendChild(opt);
         });
         if (dataF.success) dataF.data.forEach(s => {
             const opt = document.createElement('option');
             opt.value = s.user_id; 
-            opt.textContent = `${s.name || s.full_name} (Front Desk)`;
+            opt.textContent = `${s.name || u.name} (Front Desk)`;
             opt.setAttribute('data-salary', s.monthly_salary || 0);
             staffSelect.appendChild(opt);
         });

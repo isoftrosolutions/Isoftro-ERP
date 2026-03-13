@@ -145,16 +145,17 @@ try {
             $params[':status'] = $status;
         }
         if ($search) {
-            $whereSql .= " AND (b.title LIKE :search OR s.full_name LIKE :search OR t.full_name LIKE :search)";
+            $whereSql .= " AND (b.title LIKE :search OR u.name LIKE :search OR t.full_name LIKE :search)";
             $params[':search'] = "%$search%";
         }
         
         $query = "
             SELECT li.*, b.title as book_title, b.author as book_author,
-                   COALESCE(s.full_name, t.full_name, 'Unknown') as user_name
+                   COALESCE(u.name, t.full_name, 'Unknown') as user_name
             FROM library_issues li
             JOIN library_books b ON li.book_id = b.id
             LEFT JOIN students s ON li.user_id = s.id AND li.user_type = 'student'
+            LEFT JOIN users u ON s.user_id = u.id
             LEFT JOIN teachers t ON li.user_id = t.id AND li.user_type IN ('teacher', 'staff')
             WHERE $whereSql
             ORDER BY li.issue_date DESC

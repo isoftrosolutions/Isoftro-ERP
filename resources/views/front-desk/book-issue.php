@@ -142,9 +142,9 @@ async function searchStudents() {
         if (result.success && result.data.length > 0) {
             res.innerHTML = result.data.map(s => `
                 <div class="search-item" onclick="selectStudent(${JSON.stringify(s).replace(/"/g, '&quot;')})">
-                    <div style="width:32px; height:32px; background:#6366F1; color:#fff; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:12px;">${s.full_name[0]}</div>
+                    <div style="width:32px; height:32px; background:#6366F1; color:#fff; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:12px;">${(s.name || 'S')[0]}</div>
                     <div style="flex:1;">
-                        <div style="font-weight:600; font-size:13px;">${s.full_name}</div>
+                        <div style="font-weight:600; font-size:13px;">${s.name || 'N/A'}</div>
                         <div style="font-size:11px; color:#64748b;">${s.roll_no} • ${s.batch_name || 'N/A'}</div>
                     </div>
                 </div>
@@ -182,8 +182,8 @@ function selectStudent(s) {
     selStu = s;
     document.getElementById('stuResults').style.display = 'none';
     document.getElementById('stuSearch').value = '';
-    document.getElementById('sAvatar').textContent = s.full_name[0].toUpperCase();
-    document.getElementById('sName').textContent = s.full_name;
+    document.getElementById('sAvatar').textContent = (s.name || 'S')[0].toUpperCase();
+    document.getElementById('sName').textContent = s.name || 'N/A';
     document.getElementById('sMeta').textContent = `${s.roll_no} | ${s.batch_name || 'N/A'}`;
     document.getElementById('selectedStu').style.display = 'flex';
     checkReady();
@@ -205,7 +205,7 @@ function checkReady() {
 
 function handleIssue(e) {
     e.preventDefault();
-    alert('Issuing "' + selBook.title + '" to ' + selStu.full_name);
+    alert('Issuing "' + selBook.title + '" to ' + (selStu.name || 'Student'));
     // In real app, call API
     window.location.reload();
 }

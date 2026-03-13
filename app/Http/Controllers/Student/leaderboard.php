@@ -61,7 +61,7 @@ try {
             $stmt = $db->prepare("
                 SELECT
                     s.id AS student_id,
-                    s.full_name,
+                    u.name,
                     s.photo_url,
                     s.roll_no,
                     COUNT(ea.id)           AS exams_taken,
@@ -80,7 +80,7 @@ try {
                 WHERE e.batch_id = :bid AND s.tenant_id = :tid
                   AND (s.status = 'active' OR s.status IS NULL)
                   AND s.deleted_at IS NULL
-                GROUP BY s.id, s.full_name, s.photo_url, s.roll_no
+                GROUP BY s.id, u.name, s.photo_url, s.roll_no
                 ORDER BY avg_score DESC, attendance_pct DESC
                 LIMIT 50
             ");
@@ -145,7 +145,7 @@ try {
             $stmt = $db->prepare("
                 SELECT
                     s.id AS student_id,
-                    s.full_name,
+                    u.name,
                     s.photo_url,
                     s.roll_no,
                     COUNT(a.id)             AS total_days,
@@ -157,7 +157,7 @@ try {
                     ON a.student_id = s.id AND a.tenant_id = s.tenant_id
                 WHERE e.batch_id = :bid AND s.tenant_id = :tid
                   AND s.deleted_at IS NULL
-                GROUP BY s.id, s.full_name, s.photo_url, s.roll_no
+                GROUP BY s.id, u.name, s.photo_url, s.roll_no
                 ORDER BY attendance_pct DESC, present_days DESC
                 LIMIT 50
             ");
