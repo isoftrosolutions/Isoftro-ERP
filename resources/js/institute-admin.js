@@ -100,7 +100,6 @@ document.addEventListener('DOMContentLoaded', () => {
             { id: "fee-rep", l: "Fee Reports", icon: "fa-file-invoice-dollar" },
             { id: "att-rep", l: "Attendance Reports", icon: "fa-clipboard-user" },
             { id: "ex-rep", l: "Exam Reports", icon: "fa-square-poll-vertical" },
-            { id: "custom", l: "Custom Report Builder", icon: "fa-wand-magic-sparkles" }
         ], sec: "ANALYTICS" },
         { id: "settings", icon: "fa-gear", label: "Settings", sub: [
             { id: "prof", l: "Institute Profile", icon: "fa-building" },

@@ -208,87 +208,97 @@ window.renderEmailSettings = async function() {
         <div class="pg-head">
             <div class="pg-left">
                 <div class="pg-ico" style="background:linear-gradient(135deg,#4F46E5,#6366F1);"><i class="fa-solid fa-envelope-circle-check"></i></div>
-                <div><div class="pg-title">Email Notifications</div><div class="pg-sub">Configure how students receive their welcome emails</div></div>
+                <div><div class="pg-title">Email Configuration</div><div class="pg-sub">Configure how students receive their welcome emails and notifications</div></div>
             </div>
         </div>
 
-        <div style="max-width:680px;margin:0 auto;">
+        <div style="max-width:800px;margin:0 auto;">
 
-            <!-- System Managed Banner -->
-            <div style="background:linear-gradient(135deg,#EFF6FF,#EDE9FE);border:1px solid #C7D2FE;border-radius:14px;padding:20px 24px;margin-bottom:24px;display:flex;gap:16px;align-items:center;">
-                <div style="width:48px;height:48px;background:linear-gradient(135deg,#4F46E5,#6366F1);border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                    <i class="fa-solid fa-shield-halved" style="color:#fff;font-size:18px;"></i>
+            <!-- Decoupled/Tenant-SMTP Banner -->
+            <div id="smtpBanner" style="background:linear-gradient(135deg,#F0F9FF,#E0F2FE);border:1px solid #BAE6FD;border-radius:14px;padding:24px;margin-bottom:24px;display:flex;gap:20px;align-items:center;box-shadow:0 4px 6px -1px rgba(0,0,0,0.05);">
+                <div style="width:56px;height:56px;background:linear-gradient(135deg,#0284C7,#0369A1);border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <i class="fa-solid fa-server" style="color:#fff;font-size:22px;"></i>
                 </div>
-                <div>
-                    <div style="font-size:14px;font-weight:700;color:#3730A3;margin-bottom:4px;">Powered by Hamro ERP Mail System</div>
-                    <div style="font-size:12px;color:#4F46E5;line-height:1.5;">Emails are sent securely through our platform. You don't need to configure any SMTP settings — just enter your sender name and the email address where students can reply to you.</div>
+                <div style="flex:1;">
+                    <div style="font-size:15px;font-weight:700;color:#0369A1;margin-bottom:4px;">Institute-Branded Delivery</div>
+                    <div style="font-size:12.5px;color:#0C4A6E;line-height:1.6;opacity:0.9;">
+                        Configure your own Gmail account to send emails directly from your institute's address. This improves trust and delivery rates.
+                        <a href="https://support.google.com/accounts/answer/185833" target="_blank" style="color:#0369A1;font-weight:700;text-decoration:underline;">How to get App Password?</a>
+                    </div>
                 </div>
             </div>
 
-            <div class="card" style="padding:32px;">
-                <div id="emailFormLoading" style="text-align:center;padding:30px;"><i class="fa-solid fa-circle-notch fa-spin" style="font-size:2rem;color:#4F46E5"></i><p style="margin-top:10px;color:#64748b;">Loading settings...</p></div>
-
-                <form id="emailSettingsForm" style="display:none;">
-
-                    <div class="form-group" style="margin-bottom:24px;">
-                        <label class="form-label" style="font-size:14px;font-weight:700;color:#1e293b;">
-                            <i class="fa-solid fa-user-tie" style="color:#4F46E5;margin-right:6px;"></i>
-                            Sender Display Name <span style="color:#ef4444">*</span>
-                        </label>
-                        <input type="text" name="sender_name" id="emSenderName" class="form-control"
-                               placeholder="e.g. Hamro Loksewa Institute" required
-                               style="font-size:15px;padding:12px 16px;">
-                        <div style="font-size:12px;color:#64748b;margin-top:6px;">
-                            This name will appear in the <strong>"From"</strong> field of every student email.
+            <form id="emailSettingsForm" style="display:none;">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px;">
+                    <div class="card" style="padding:28px;">
+                        <div style="font-size:12px;text-transform:uppercase;letter-spacing:1px;font-weight:700;color:#64748b;margin-bottom:20px;">Basic Branding</div>
+                        <div class="form-group" style="margin-bottom:20px;">
+                            <label class="form-label">Sender Display Name *</label>
+                            <input type="text" name="sender_name" id="emSenderName" class="form-control" placeholder="e.g. Bright Future Academy" required>
+                        </div>
+                        <div class="form-group" style="margin-bottom:20px;">
+                            <label class="form-label">Reply-To Email</label>
+                            <input type="email" name="reply_to_email" id="emReplyTo" class="form-control" placeholder="e.g. help@bfa.edu.np">
+                        </div>
+                        <div style="background:#F8FAFF;border:1.5px solid #C7D2FE;border-radius:12px;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;">
+                            <div style="font-size:12.5px;font-weight:700;color:#1e293b;">Enable Status</div>
+                            <label class="toggle">
+                                <input type="checkbox" name="is_active" id="emActive" value="1">
+                                <span class="slider"></span>
+                            </label>
                         </div>
                     </div>
 
-                    <div class="form-group" style="margin-bottom:24px;">
-                        <label class="form-label" style="font-size:14px;font-weight:700;color:#1e293b;">
-                            <i class="fa-solid fa-reply" style="color:#4F46E5;margin-right:6px;"></i>
-                            Your Institute Email <span style="font-size:11px;color:#94a3b8;">(Optional — for replies)</span>
-                        </label>
-                        <input type="email" name="reply_to_email" id="emReplyTo" class="form-control"
-                               placeholder="e.g. info@mymyinstitute.com"
-                               style="font-size:15px;padding:12px 16px;">
-                        <div style="font-size:12px;color:#64748b;margin-top:6px;">
-                            When a student replies to their welcome email, it will go to this address.
+                    <div class="card" style="padding:28px;">
+                        <div style="font-size:12px;text-transform:uppercase;letter-spacing:1px;font-weight:700;color:#64748b;margin-bottom:20px;">SMTP Configuration</div>
+                        <div class="form-group" style="margin-bottom:15px;">
+                            <label class="form-label">Gmail/SMTP Username</label>
+                            <input type="text" name="smtp_username" id="emSmtpUser" class="form-control" placeholder="e.g. bfa.nepal@gmail.com">
                         </div>
-                    </div>
-
-                    <!-- Enable toggle -->
-                    <div style="background:#F8FAFF;border:1.5px solid #C7D2FE;border-radius:12px;padding:16px 20px;margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;">
-                        <div>
-                            <div style="font-size:13px;font-weight:700;color:#1e293b;">Enable Student Email Notifications</div>
-                            <div style="font-size:12px;color:#64748b;margin-top:2px;">Send login credentials automatically when a student is registered</div>
+                        <div class="form-group" style="margin-bottom:15px;">
+                            <label class="form-label">Gmail App Password</label>
+                            <div style="position:relative;">
+                                <input type="password" name="smtp_password" id="emSmtpPass" class="form-control" placeholder="16-character code">
+                                <i class="fa-solid fa-eye" style="position:absolute;right:12px;top:13px;color:#94a3b8;cursor:pointer;" onclick="const p=this.previousElementSibling; p.type=p.type==='password'?'text':'password'; this.classList.toggle('fa-eye-slash');"></i>
+                            </div>
                         </div>
-                        <label style="position:relative;display:inline-block;width:48px;height:26px;cursor:pointer;">
-                            <input type="checkbox" name="is_active" id="emActive" value="1" style="opacity:0;width:0;height:0;">
-                            <span id="emToggleTrack" style="position:absolute;inset:0;background:#e2e8f0;border-radius:13px;transition:0.3s;"></span>
-                            <span id="emToggleThumb" style="position:absolute;left:3px;top:3px;width:20px;height:20px;background:#fff;border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,0.2);transition:0.3s;"></span>
-                        </label>
-                    </div>
-
-                    <!-- Preview card -->
-                    <div id="emailPreviewCard" style="background:#f8fafc;border:1px dashed #cbd5e1;border-radius:12px;padding:16px 20px;margin-bottom:24px;">
-                        <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:#94a3b8;letter-spacing:1px;margin-bottom:10px;">Email Preview</div>
-                        <div style="font-size:12px;color:#374151;">
-                            <div style="margin-bottom:4px;"><span style="color:#94a3b8;width:60px;display:inline-block;">From:</span> <strong id="pvFromName">Your Institute Name</strong> &lt;noreply@hamroerp.com&gt;</div>
-                            <div style="margin-bottom:4px;"><span style="color:#94a3b8;width:60px;display:inline-block;">Reply-To:</span> <span id="pvReplyTo" style="color:#4F46E5;">—</span></div>
-                            <div><span style="color:#94a3b8;width:60px;display:inline-block;">Subject:</span> Welcome to <span id="pvSubjectInst">Your Institute Name</span> — Your Student Account Details</div>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                            <div class="form-group">
+                                <label class="form-label">Port</label>
+                                <input type="number" name="smtp_port" id="emSmtpPort" class="form-control" value="587">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Encryption</label>
+                                <select name="smtp_encryption" id="emSmtpEnc" class="form-control">
+                                    <option value="tls" selected>TLS</option>
+                                    <option value="ssl">SSL</option>
+                                    <option value="none">None</option>
+                                </select>
+                            </div>
                         </div>
+                        <input type="hidden" name="smtp_host" value="smtp.gmail.com">
                     </div>
+                </div>
 
+                <!-- Preview & Actions -->
+                <div class="card" style="padding:24px;background:#fff;border:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center;gap:20px;">
+                    <div id="emailPreviewCard" style="flex:1;font-size:12px;color:#374151;">
+                        <div style="margin-bottom:4px;"><span style="color:#94a3b8;width:60px;display:inline-block;">From:</span> <strong id="pvFromName">Your Institute</strong> &lt;<span id="pvFromEmail">noreply@hamrolabs.com</span>&gt;</div>
+                        <div style="margin-bottom:4px;"><span style="color:#94a3b8;width:60px;display:inline-block;">Reply-To:</span> <span id="pvReplyTo" style="color:#4F46E5;">Default</span></div>
+                        <div><span style="color:#94a3b8;width:60px;display:inline-block;">Subject:</span> Welcome to <span id="pvSubjectInst">Your Institute</span> — Student Credentials</div>
+                    </div>
                     <div style="display:flex;gap:12px;">
-                        <button type="button" class="btn bs" onclick="testEmailSend()" style="flex:1;">
-                            <i class="fa-solid fa-paper-plane"></i> Send Test Email
+                        <button type="button" class="btn bs" onclick="testEmailSend()" style="padding:10px 20px;">
+                            <i class="fa-solid fa-paper-plane" style="margin-right:6px;"></i> Test
                         </button>
-                        <button type="submit" class="btn bt" style="flex:2;background:linear-gradient(135deg,#4F46E5,#6366F1);color:#fff;border:none;">
-                            <i class="fa-solid fa-save"></i> Save Settings
+                        <button type="submit" class="btn bt" style="background:linear-gradient(135deg,#4F46E5,#6366F1);color:#fff;border:none;padding:10px 30px;min-width:140px;">
+                            <i class="fa-solid fa-save" style="margin-right:6px;"></i> Save Changes
                         </button>
                     </div>
-                </form>
-            </div>
+                </div>
+            </form>
+            
+            <div id="emailFormLoading" style="text-align:center;padding:100px;"><i class="fa-solid fa-circle-notch fa-spin" style="font-size:3rem;color:#4F46E5"></i><p style="margin-top:15px;color:#64748b">Syncing mail settings...</p></div>
         </div>
     </div>`;
 
@@ -300,61 +310,42 @@ window.renderEmailSettings = async function() {
     // Live preview sync
     const nameInput    = document.getElementById('emSenderName');
     const replyInput   = document.getElementById('emReplyTo');
+    const userInput    = document.getElementById('emSmtpUser');
     const pvFrom       = document.getElementById('pvFromName');
+    const pvFromEmail  = document.getElementById('pvFromEmail');
     const pvReply      = document.getElementById('pvReplyTo');
     const pvSubjInst   = document.getElementById('pvSubjectInst');
-    const toggle       = document.getElementById('emActive');
-    const track        = document.getElementById('emToggleTrack');
-    const thumb        = document.getElementById('emToggleThumb');
 
-    if (nameInput && replyInput) {
-        const syncToggle = () => {
-            if (!track || !thumb) return;
-            track.style.background = toggle.checked ? '#4F46E5' : '#e2e8f0';
-            thumb.style.left       = toggle.checked ? '25px'   : '3px';
-        };
-        toggle.addEventListener('change', syncToggle);
-        syncToggle();
-
+    if (nameInput) {
         nameInput.addEventListener('input', () => {
-            const v = nameInput.value || 'Your Institute Name';
+            const v = nameInput.value || 'Your Institute';
             if (pvFrom) pvFrom.textContent = v;
             if (pvSubjInst) pvSubjInst.textContent = v;
         });
-        replyInput.addEventListener('input', () => {
-            if (pvReply) pvReply.textContent = replyInput.value || '—';
-        });
+        replyInput.addEventListener('input', () => { if (pvReply) pvReply.textContent = replyInput.value || 'Default'; });
+        userInput.addEventListener('input', () => { if (pvFromEmail) pvFromEmail.textContent = userInput.value || 'noreply@hamrolabs.com'; });
     }
 };
 
 async function _loadEmailSettings() {
     try {
         const res = await fetch(APP_URL + '/api/admin/email-settings');
-        const data = await res.json();
-        if (data.success && data.data) {
-            const e = data.data;
-            const sn = document.getElementById('emSenderName');
-            const rt = document.getElementById('emReplyTo');
-            const ac = document.getElementById('emActive');
-            const track = document.getElementById('emToggleTrack');
-            const thumb = document.getElementById('emToggleThumb');
+        const r = await res.json();
+        if (r.success && r.data) {
+            const e = r.data;
+            if (document.getElementById('emSenderName')) document.getElementById('emSenderName').value = e.sender_name || '';
+            if (document.getElementById('emReplyTo'))    document.getElementById('emReplyTo').value    = e.reply_to_email || '';
+            if (document.getElementById('emActive'))      document.getElementById('emActive').checked    = e.is_active == 1;
             
-            if (sn) sn.value = e.sender_name || e.from_name || '';
-            if (rt) rt.value = e.reply_to_email || e.from_email || '';
-            if (ac) { 
-                ac.checked = e.is_active == 1; 
-                if (track && thumb) {
-                    track.style.background = ac.checked ? '#4F46E5' : '#e2e8f0'; 
-                    thumb.style.left = ac.checked ? '25px' : '3px'; 
-                }
-            }
+            if (document.getElementById('emSmtpUser'))   document.getElementById('emSmtpUser').value   = e.smtp_username || '';
+            if (document.getElementById('emSmtpPass'))   document.getElementById('emSmtpPass').value   = e.smtp_password || '';
+            if (document.getElementById('emSmtpPort'))   document.getElementById('emSmtpPort').value   = e.smtp_port || 587;
+            if (document.getElementById('emSmtpEnc'))    document.getElementById('emSmtpEnc').value    = e.smtp_encryption || 'tls';
+
             // Sync preview
-            const pv = document.getElementById('pvFromName');
-            const pr = document.getElementById('pvReplyTo');
-            const ps = document.getElementById('pvSubjectInst');
-            if (pv && sn?.value) pv.textContent = sn.value;
-            if (pr && rt?.value) pr.textContent = rt.value;
-            if (ps && sn?.value) ps.textContent = sn.value;
+            document.getElementById('emSenderName')?.dispatchEvent(new Event('input'));
+            document.getElementById('emReplyTo')?.dispatchEvent(new Event('input'));
+            document.getElementById('emSmtpUser')?.dispatchEvent(new Event('input'));
         }
     } catch(err) { console.warn('Email config load failed', err); }
     finally {
@@ -372,8 +363,7 @@ async function _saveEmailSettings(ev) {
     if (!btn) return;
     const orig = btn.innerHTML;
     
-    btn.disabled = true; 
-    btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Saving...';
+    btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Saving...';
 
     const fd = new FormData(form);
     if (!fd.has('is_active')) fd.append('is_active', '0');
@@ -384,10 +374,13 @@ async function _saveEmailSettings(ev) {
         if (result.success) {
             Swal.fire({
                 icon: 'success',
-                title: 'Saved!',
-                text: 'Email notification settings updated. Students will now receive login credentials automatically.',
-                confirmButtonColor: '#4F46E5'
+                title: 'Configuration Saved',
+                text: 'Your email SMTP and branding settings have been updated successfully.',
+                confirmButtonColor: '#4F46E5',
+                timer: 3000
             });
+            // Refresh to mask password
+            _loadEmailSettings();
         } else throw new Error(result.message);
     } catch(e) { Swal.fire('Error', e.message, 'error'); }
     finally { btn.disabled = false; btn.innerHTML = orig; }
@@ -396,31 +389,38 @@ async function _saveEmailSettings(ev) {
 window.testEmailSend = async function() {
     const { value: testEmail } = await Swal.fire({
         title: 'Send Test Email',
-        html: '<p style="font-size:13px;color:#64748b;margin-bottom:12px;">We will send a sample student welcome email to this address so you can preview exactly what your students will receive.</p>',
+        text: 'We will send a welcome email preview using your current SMTP configuration.',
         input: 'email',
-        inputPlaceholder: 'Enter your email address',
+        inputPlaceholder: 'Recipient email address',
         showCancelButton: true,
-        confirmButtonText: '<i class="fa-solid fa-paper-plane"></i> Send',
+        confirmButtonText: 'Send Test',
         confirmButtonColor: '#4F46E5'
     });
 
     if (testEmail) {
-        Swal.fire({ title: 'Sending...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+        Swal.fire({ title: 'Connecting to SMTP...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
         try {
-            const fd = new FormData();
+            const form = document.getElementById('emailSettingsForm');
+            const fd = new FormData(form);
             fd.append('test_email', testEmail);
-            fd.append('sender_name', document.getElementById('emSenderName')?.value || 'Hamro ERP');
+            
             const res = await fetch(APP_URL + '/api/admin/email-settings/test', { method: 'POST', body: fd });
             const result = await res.json();
             if (result.success) {
                 Swal.fire({
                     icon: 'success',
-                    title: 'Test Email Sent!',
-                    html: `<p>Check <strong>${testEmail}</strong> for your welcome email preview.<br><small style="color:#94a3b8;">Check your spam folder if it doesn't appear within a minute.</small></p>`,
+                    title: 'SMTP Success!',
+                    text: `Test email was delivered to ${testEmail}. Your configuration is valid.`,
                     confirmButtonColor: '#4F46E5'
                 });
             } else throw new Error(result.message);
-        } catch(e) { Swal.fire('Failed to Send', e.message, 'error'); }
+        } catch(e) { 
+            Swal.fire({
+                title: 'SMTP Connection Failed',
+                html: `<div style="text-align:left;font-size:13px;color:#dc2626;background:#fef2f2;padding:15px;border-radius:10px;border:1px solid #fecaca;">${e.message}</div>`,
+                icon: 'error'
+            }); 
+        }
     }
 };
 

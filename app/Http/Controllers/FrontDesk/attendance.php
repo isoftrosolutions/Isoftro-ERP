@@ -150,49 +150,44 @@ try {
 
             echo json_encode(['success' => true, 'data' => $rows]);
         } elseif ($action === 'stats') {
-            $attendanceModel = new \App\Models\Attendance();
-            $stats = $attendanceModel->getTodayStats($tenantId);
+            $stats = \App\Models\Attendance::getTodayStats();
             echo json_encode(['success' => true, 'data' => $stats]);
         } elseif (!empty($_GET['batch_id']) && !empty($_GET['date'])) {
             $batchId = $_GET['batch_id'];
             $date = $_GET['date'];
-            $attendanceModel = new \App\Models\Attendance();
-            $records = $attendanceModel->getByBatch($batchId, $date, $tenantId);
             
-            // Also fetch students in this batch if attendance is marked and combine
-            $studentModel = new \App\Models\Student();
-            $students = $studentModel->getByBatch($batchId, $tenantId);
-            
-            // Fetch all-time stats for percentages
-            $allStats = $attendanceModel->getBatchStudentsStats($batchId, $tenantId);
-            
-            // Fetch approved leaves for this date
-            $leaveModel = new \App\Models\LeaveRequest();
-            $leaves = $leaveModel->getApprovedForDate($date, $tenantId);
+            $records = \App\Models\Attendance::getByBatch($batchId, $date)->toArray();
+            $students = \App\Models\Student::getByBatch($batchId);
+            $allStats = \App\Models\Attendance::getBatchStudentsStats($batchId)->toArray();
+            $leaves = \App\Models\LeaveRequest::getApprovedForDate($date)->toArray();
             
             $result = [];
             foreach ($students as $student) {
-                $statusRow = array_filter($records, fn($r) => $r['student_id'] == $student['id']);
+                // Ensure student is treated as array if it's a model
+                $sData = is_array($student) ? $student : $student->toArray();
+                $sId = $sData['id'];
+
+                $statusRow = array_filter($records, fn($r) => $r['student_id'] == $sId);
                 $statusRec = reset($statusRow);
                 
-                $statsRow = array_filter($allStats, fn($s) => $s['student_id'] == $student['id']);
+                $statsRow = array_filter($allStats, fn($s) => $s['student_id'] == $sId);
                 $stats = reset($statsRow);
                 
-                $onLeave = !empty(array_filter($leaves, fn($l) => $l['student_id'] == $student['id']));
+                $onLeave = !empty(array_filter($leaves, fn($l) => $l['student_id'] == $sId));
                 
                 $perc = 0;
                 if ($stats && $stats['total_days'] > 0) {
                     $total = $stats['total_days'];
-                    // Logic similar to service: treat late as present
                     $present = $stats['present_days'] + $stats['late_days'];
                     $perc = round(($present / $total) * 100, 1);
                 }
 
                 $result[] = [
-                    'student_id' => $student['id'],
-                    'roll_no' => $student['roll_no'],
-                    'full_name' => $student['full_name'],
-                    'photo_url' => $student['photo_url'],
+                    'student_id' => $sId,
+                    'roll_no' => $sData['roll_no'],
+                    'name' => $sData['full_name'] ?? ($sData['user']['name'] ?? 'N/A'),
+                    'full_name' => $sData['full_name'] ?? ($sData['user']['name'] ?? 'N/A'),
+                    'photo_url' => $sData['photo_url'],
                     'percentage' => $perc,
                     'on_leave' => $onLeave,
                     'attendance' => $statusRec ? [
@@ -253,6 +248,6 @@ try {
         echo json_encode(['success' => true, 'data' => $record, 'message' => 'Attendance updated']);
     }
 
-} catch (\Exception $e) {
+} catch (\Throwable $e) {
     echo json_encode(['success' => false, 'message' => $e->getMessage()]);
 }

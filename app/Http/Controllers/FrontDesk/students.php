@@ -251,8 +251,8 @@ try {
         $total = (int)$stmtCount->fetchColumn();
 
         // Data query
-        $query = "SELECT s.*, u.name as name, u.email, u.phone, s.registration_mode, s.registration_status, s.admission_date,
-                         b.name as batch_name, b.course_id as course_id, c.name as course_name,
+        $query = "SELECT s.*, u.name as name, u.name as full_name, u.email, u.phone, s.registration_mode, s.registration_status, s.admission_date,
+                         b.name as batch_name, e.batch_id as batch_id, b.course_id as course_id, c.name as course_name,
                          COALESCE(sfs.fee_status, 'no_fees') as fee_status,
                          COALESCE(sfs.total_fee, 0) as total_fee,
                          COALESCE(sfs.paid_amount, 0) as paid_amount,

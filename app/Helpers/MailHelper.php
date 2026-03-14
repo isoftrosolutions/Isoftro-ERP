@@ -28,18 +28,21 @@ class MailHelper
         return $cfg;
     }
 
-    // ── Fetch institute branding for this tenant ─────────────
+    // ── Fetch institute configuration for this tenant ─────────────
     public static function getTenantBranding(\PDO $db, int $tenantId): array
     {
         $row = null;
         try {
             $stmt = $db->prepare(
-                "SELECT sender_name AS from_name, reply_to_email AS from_email, is_active
-                 FROM   tenant_email_settings
-                 WHERE  tenant_id = :tid LIMIT 1"
+                "SELECT * FROM tenant_email_settings WHERE tenant_id = :tid LIMIT 1"
             );
             $stmt->execute(['tid' => $tenantId]);
             $row = $stmt->fetch(\PDO::FETCH_ASSOC);
+            
+            // Decrypt password if it exists
+            if (!empty($row['smtp_password'])) {
+                $row['smtp_password'] = EncryptionHelper::decrypt($row['smtp_password']);
+            }
         } catch (\Throwable $e) {
             $row = null;
         }
@@ -56,14 +59,14 @@ class MailHelper
             if (!empty($t['email'])) $instituteEmail = $t['email'];
         } catch (\Throwable $e) {}
 
-        return [
-            'sender_name'      => $row['from_name']   ?? $instituteName,
-            'reply_to_email'   => $row['from_email']  ?? null,
-            'is_active'        => ($row['is_active'] ?? 1) ? true : false,
+        return array_merge($row ?: [], [
+            'sender_name'      => $row['sender_name'] ?? $row['from_name'] ?? $instituteName,
+            'reply_to_email'   => $row['reply_to_email'] ?? $row['from_email'] ?? null,
+            'is_active'        => (int)($row['is_active'] ?? 1),
             'institute_name'   => $instituteName,
             'institute_phone'  => $institutePhone,
             'institute_email'  => $instituteEmail,
-        ];
+        ]);
     }
 
     // ── Log Email Activity ──────────────────────────────────
@@ -75,12 +78,14 @@ class MailHelper
         string $email,
         string $status,
         ?string $error = null,
-        int $campaignId = 0
+        int $campaignId = 0,
+        string $sentVia = 'system_smtp'
     ): void {
         try {
+            // Ensure table has sent_via column (handled by auto-migration later)
             $stmt = $db->prepare("
-                INSERT INTO email_logs (tenant_id, student_id, campaign_id, email, subject, status, error_message)
-                VALUES (:tid, :sid, :cid, :email, :subj, :status, :err)
+                INSERT INTO email_logs (tenant_id, student_id, campaign_id, email, subject, status, error_message, sent_via)
+                VALUES (:tid, :sid, :cid, :email, :subj, :status, :err, :via)
             ");
             $stmt->execute([
                 'tid' => $tenantId,
@@ -89,7 +94,8 @@ class MailHelper
                 'email' => $email,
                 'subj' => $subject,
                 'status' => $status,
-                'err' => $error
+                'err' => $error,
+                'via' => $sentVia
             ]);
         } catch (\Throwable $e) {
             error_log("[MailHelper] Logging Error: " . $e->getMessage());
@@ -97,18 +103,36 @@ class MailHelper
     }
 
     // ── Build a configured PHPMailer instance ────────────────
-    public static function buildMailer(array $branding): PHPMailer
+    public static function buildMailer(array $branding, bool $forceSystem = false): PHPMailer
     {
         $sys = self::systemConfig();
+        
+        // Determine whether to use Tenant SMTP or System SMTP
+        // Use tenant SMTP only if credentials exist, it's active, and not forced to system
+        $useTenantSMTP = !$forceSystem && 
+                         !empty($branding['smtp_username']) && 
+                         !empty($branding['smtp_password']) && 
+                         ($branding['is_active'] ?? 0);
 
         $mail = new PHPMailer(true);
         $mail->isSMTP();
-        $mail->Host     = $sys['smtp_host']  ?? 'smtp.gmail.com';
-        $mail->Port     = (int)($sys['smtp_port'] ?? 587);
+        
+        if ($useTenantSMTP) {
+            $mail->Host     = $branding['smtp_host'] ?? 'smtp.gmail.com';
+            $mail->Port     = (int)($branding['smtp_port'] ?? 587);
+            $mail->Username = $branding['smtp_username'];
+            $mail->Password = $branding['smtp_password'];
+            $enc = strtolower($branding['smtp_encryption'] ?? 'tls');
+        } else {
+            $mail->Host     = $sys['smtp_host']  ?? 'smtp.gmail.com';
+            $mail->Port     = (int)($sys['smtp_port'] ?? 587);
+            $mail->Username = $sys['smtp_user']  ?? '';
+            $mail->Password = $sys['smtp_pass']  ?? '';
+            $enc = strtolower($sys['smtp_encryption'] ?? 'tls');
+        }
+
         $mail->SMTPAuth = true;
-        $mail->Username = $sys['smtp_user']  ?? '';
-        $mail->Password = $sys['smtp_pass']  ?? '';
-        $mail->Timeout  = (int)($sys['timeout'] ?? 5);
+        $mail->Timeout  = (int)($sys['timeout'] ?? 10);
         
         $debugLevel = (int)($sys['debug'] ?? 0); 
         $mail->SMTPDebug = $debugLevel;
@@ -124,21 +148,30 @@ class MailHelper
             ]
         ];
 
-        $enc = strtolower($sys['smtp_encryption'] ?? 'tls');
         $mail->SMTPSecure = ($enc === 'ssl')
             ? PHPMailer::ENCRYPTION_SMTPS
             : PHPMailer::ENCRYPTION_STARTTLS;
 
-        $fromEmail = $sys['system_from_email'] ?? $sys['smtp_user'] ?? '';
-        $fromName  = $branding['sender_name'];
+        // Set From Address
+        // If tenant SMTP: use from_email (or smtp_username if missing)
+        // If system SMTP: use system_from_email (or smtp_user if missing)
+        $fromEmail = $useTenantSMTP 
+            ? ($branding['from_email'] ?? $branding['smtp_username']) 
+            : ($sys['system_from_email'] ?? $sys['smtp_user'] ?? '');
+            
+        $fromName  = $branding['sender_name'] ?? $branding['institute_name'] ?? 'Hamro ERP';
+        
         $mail->setFrom($fromEmail, $fromName);
 
-        if (!empty($branding['reply_to_email'])) {
+        if ($useTenantSMTP && !empty($branding['reply_to_email'])) {
             $mail->addReplyTo($branding['reply_to_email'], $fromName);
         }
 
         $mail->isHTML(true);
         $mail->CharSet = 'UTF-8';
+
+        // Add metadata to PHPMailer object (custom property) for logging later
+        $mail->sent_via = $useTenantSMTP ? 'tenant_smtp' : 'system_smtp';
 
         return $mail;
     }
@@ -213,6 +246,10 @@ class MailHelper
             return false;
         }
 
+        // --- System Only Jobs (Always use Hamro Labs SMTP) ---
+        $systemJobs = ['password_reset', 'password_reset_request', 'account_verification', 'student_account_verification', '2fa_code'];
+        $forceSystem = in_array($jobType, $systemJobs);
+
         if ($jobType === 'student_welcome' || $jobType === 'student_registration_success') {
             // Specialized logic for credentials
             $branding = self::getTenantBranding($db, $tenantId);
@@ -270,7 +307,7 @@ class MailHelper
 
         $tpl = self::getStaticTemplate($templateKey, $tplData);
         if ($tpl) {
-            return self::sendDirect($db, $tenantId, $toEmail, $toName, $tpl['subject'], $tpl['body'], $payload['pdf_path'] ?? '');
+            return self::sendDirect($db, $tenantId, $toEmail, $toName, $tpl['subject'], $tpl['body'], $payload['pdf_path'] ?? '', 0, $forceSystem);
         }
 
         error_log("[MailHelper] Error: No template found for {$templateKey}");
@@ -281,14 +318,18 @@ class MailHelper
      * Shared send logic (for internal use by specialized helpers)
      */
 
-    public static function sendDirect(\PDO $db, int $tenantId, string $toEmail, string $toName, string $subject, string $htmlBody, string $attachmentPath = '', int $campaignId = 0): bool
+    public static function sendDirect(\PDO $db, int $tenantId, string $toEmail, string $toName, string $subject, string $htmlBody, string $attachmentPath = '', int $campaignId = 0, bool $forceSystem = false): bool
     {
         $branding = self::getTenantBranding($db, $tenantId);
         $sys = self::systemConfig();
         if (empty($sys['smtp_pass'])) return false;
 
+        $sentVia = 'system_smtp'; // Default
+
         try {
-            $mail = self::buildMailer($branding);
+            $mail = self::buildMailer($branding, $forceSystem);
+            $sentVia = $mail->sent_via ?? 'system_smtp';
+
             $mail->addAddress($toEmail, $toName);
             $mail->Subject = $subject;
             $mail->Body    = $htmlBody;
@@ -299,10 +340,10 @@ class MailHelper
             }
 
             $success = $mail->send();
-            self::logEmail($db, $tenantId, 0, $subject, $toEmail, $success ? 'sent' : 'failed', null, $campaignId);
+            self::logEmail($db, $tenantId, 0, $subject, $toEmail, $success ? 'sent' : 'failed', null, $campaignId, $sentVia);
             return $success;
         } catch (\Throwable $e) {
-            self::logEmail($db, $tenantId, 0, $subject, $toEmail, 'failed', $e->getMessage(), $campaignId);
+            self::logEmail($db, $tenantId, 0, $subject, $toEmail, 'failed', $e->getMessage(), $campaignId, $sentVia);
             error_log("[MailHelper] Send Direct Error: " . $e->getMessage());
             return false;
         }

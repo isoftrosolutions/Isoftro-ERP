@@ -73,7 +73,7 @@ function getExternalResources() {
             'type' => 'stylesheet'
         ],
         'chartjs' => [
-            'url'  => 'https://cdn.jsdelivr.net/npm/chart.js',
+            'url'  => 'https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js',
             'type' => 'script'
         ],
     ];
@@ -298,9 +298,6 @@ if (isset($_GET['partial']) && $_GET['partial'] == 'true') {
 
     <!-- Super Admin CSS -->
     <?php renderSuperAdminCSS(); ?>
-
-    <!-- Super Admin JS -->
-    <?php renderSuperAdminJS(); ?>
 
 
     <!-- PWA Settings -->

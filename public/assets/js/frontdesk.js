@@ -95,7 +95,17 @@ document.addEventListener('DOMContentLoaded', () => {
     if (sbOverlay) sbOverlay.addEventListener('click', closeSidebar);
 
     // ── NAVIGATION TREE ──
-    const NAV = [
+    // Use the config injected from PHP if available (Premium Mode)
+    const NAV = window._IA_NAV_CONFIG ? window._IA_NAV_CONFIG.map(section => ({
+        sec: section.section,
+        items: section.items.map(item => ({
+            id: item.id,
+            icon: item.icon,
+            l: item.label,
+            badge: item.badge_key ? { val: '?', c: item.badge_key.includes('amber') ? 'amber' : '' } : null,
+            sub: item.sub || null
+        }))
+    })) : [
         { sec: "Overview", items: [
             { id: "dashboard", icon: "fa-th-large", l: "Dashboard" },
             { id: "attendance", icon: "fa-calendar-check", l: "Today's Attendance", badge: { val: 12, c: "amber" } }
@@ -118,7 +128,7 @@ document.addEventListener('DOMContentLoaded', () => {
             { id: "announcements", icon: "fa-bullhorn", l: "Announcements", badge: { val: 2, c: "green" } },
             { id: "qbank", icon: "fa-database", l: "Question Bank" }
         ]},
-        { sec: "System", divider: true, items: [
+        { sec: "System", items: [
             { id: "support", icon: "fa-headset", l: "Support Tickets" },
             { id: "audit-log", icon: "fa-shield-alt", l: "Activity Log" }
         ]}
@@ -173,14 +183,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let html = '';
         NAV.forEach(section => {
-            if (section.divider) html += '<div class="sb-divider"></div>';
-            if (section.sec) html += `<div class="sb-sec-lbl">${section.sec}</div>`;
+            html += `<div class="sb-lbl">${section.sec}</div>`;
             
             section.items.forEach(item => {
-                const isActive = activeNav === item.id;
-                // Parse IDs like 'admissions-adm-all' back into goNav calls
+                const isActive = activeNav === item.id || activeNav.startsWith(item.id + '-');
+                const hasSub = !!(item.sub && item.sub.length);
+                const isExp = expanded[item.id];
+                
                 let onclick = '';
-                if (item.id.includes('-')) {
+                if (hasSub) {
+                    onclick = `toggleExp('${item.id}')`;
+                } else if (item.id.includes('-')) {
                     const parts = item.id.split('-');
                     onclick = `goNav('${parts[0]}', '${parts.slice(1).join('-')}')`;
                 } else {
@@ -188,11 +201,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 html += `
-                <button class="sb-btn ${isActive ? 'active' : ''}" onclick="${onclick}">
-                    <i class="fa ${item.icon}"></i>
-                    <span class="sb-lbl">${item.l}</span>
-                    ${item.badge ? `<span class="sb-badge ${item.badge.c || ''}">${item.badge.val}</span>` : ''}
+                <button class="nb-btn ${isActive ? 'active' : ''}" onclick="${onclick}">
+                    <i class="fa-solid ${item.icon} nbi"></i>
+                    <span class="nbl">${item.l}</span>
+                    ${item.badge ? `<span class="sb-badge" style="margin-left:auto; background:var(--red); color:#fff; font-size:10px; font-weight:800; padding:2px 6px; border-radius:10px;">${item.badge.val}</span>` : ''}
+                    ${hasSub ? `<i class="fa fa-chevron-right nbc ${isExp ? 'open' : ''}" style="font-size:10px; margin-left:8px;"></i>` : ''}
                 </button>`;
+
+                if (hasSub) {
+                    html += `<div class="sub-menu ${isExp ? 'open' : ''}" id="sub-${item.id}" style="${isExp ? '' : 'display:none;'}">`;
+                    item.sub.forEach(s => {
+                        const isSubActive = activeNav === s.id || activeNav === `${item.id}-${s.id}`;
+                        const subAction = `goNav('${item.id}', '${s.id}')`;
+                        html += `
+                            <button class="sub-btn ${isSubActive ? 'active' : ''}" onclick="${subAction}">
+                                <i class="fa-solid ${s.icon || 'fa-circle'} smi" style="font-size:11px; margin-right:8px; opacity:0.6;"></i>
+                                ${s.l}
+                            </button>
+                        `;
+                    });
+                    html += `</div>`;
+                }
             });
         });
 
@@ -227,6 +256,49 @@ document.addEventListener('DOMContentLoaded', () => {
         bNav.innerHTML = html;
     }
 
+    // ── PARTIAL MODULE LOADER ──
+    window.renderPartialModule = async function(endpoint, extraParams = '') {
+        const mc = document.getElementById('mainContent');
+        if (!mc) return;
+
+        mc.innerHTML = '<div class="pg fu"><div class="pg-loading"><i class="fa-solid fa-circle-notch fa-spin"></i><span>Loading Module...</span></div></div>';
+
+        try {
+            const url = `${window.APP_URL}/dash/front-desk/${endpoint}?partial=true${extraParams}`;
+            const res = await fetch(url, { credentials: 'same-origin' });
+            
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            
+            const html = await res.text();
+            mc.innerHTML = html;
+
+            // Execute scripts
+            const scripts = mc.querySelectorAll('script');
+            scripts.forEach(s => {
+                try {
+                    if (s.src) {
+                        const newScript = document.createElement('script');
+                        newScript.src = s.src;
+                        document.head.appendChild(newScript);
+                    } else {
+                        eval(s.innerHTML);
+                    }
+                } catch(ex) { console.warn(`[renderPartialModule] Script error in ${endpoint}:`, ex); }
+            });
+        } catch (err) {
+            console.error(`[renderPartialModule] Error loading ${endpoint}:`, err);
+            mc.innerHTML = `
+                <div class="pg fu" style="text-align:center; padding:100px;">
+                    <i class="fa-solid fa-circle-exclamation" style="font-size:48px; color:#ef4444; margin-bottom:20px;"></i>
+                    <h2 style="color:#1e293b;">Oops! Something went wrong</h2>
+                    <p style="color:#64748b;">${err.message}</p>
+                    <button class="btn bt" style="margin-top:20px;" onclick="window.renderPartialModule('${endpoint}', '${extraParams}')">
+                        <i class="fa-solid fa-rotate"></i> Try Again
+                    </button>
+                </div>`;
+        }
+    };
+
     // ── PAGE RENDERING ──
     function renderPage() {
         window.scrollTo(0, 0);
@@ -255,9 +327,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         // ── ATTENDANCE MODULES ──
         else if (activeNav === 'attendance') {
-            if (window.renderAttendanceTake) window.renderAttendanceTake();
+            window.renderPartialModule('attendance-mark');
         } else if (activeNav === 'attendance-report') {
-            if (window.renderAttendanceReport) window.renderAttendanceReport();
+            window.renderPartialModule('attendance-report');
         } else if (activeNav === 'leave-requests') {
             if (window.renderLeaveRequests) window.renderLeaveRequests();
         }
@@ -267,7 +339,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (activeNav === 'fee-fee-sum' || activeNav === 'fee-sum') {
             if (window.renderFeeSummary) window.renderFeeSummary();
         } else if (activeNav === 'pending-dues' || activeNav === 'finance-fee-outstanding' || activeNav === 'outstanding') {
-            if (window.renderFeeOutstanding) window.renderFeeOutstanding();
+            window.renderPartialModule('fee-outstanding');
         } else if (activeNav === 'receipts' || activeNav === 'transactions' || activeNav === 'fee-record') {
             if (window.renderFeeRecord) window.renderFeeRecord();
         } else if (activeNav === 'fee-details' || activeNav.includes('fee-details')) {
@@ -279,7 +351,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         // ── ACADEMIC MODULES ──
         else if (activeNav === 'academic-courses' || activeNav === 'courses') {
-            if (window.renderCourseList) window.renderCourseList();
+            window.renderPartialModule('courses');
         } else if (activeNav === 'academic-batches' || activeNav === 'batches') {
             if (window.renderBatchList) window.renderBatchList();
         } else if (activeNav === 'academic-subjects' || activeNav === 'subjects') {
@@ -289,11 +361,11 @@ document.addEventListener('DOMContentLoaded', () => {
         else if (activeNav === 'inquiries' || activeNav === 'operations-inq-list') {
             if (window.renderInquiryList) window.renderInquiryList();
         } else if (activeNav === 'reception-visitor' || activeNav === 'visitor-log') {
-            renderVisitorLog();
+            window.renderPartialModule('visitor-log');
         } else if (activeNav === 'reception-appointment' || activeNav === 'appointments') {
             renderAppointmentSchedule();
         } else if (activeNav === 'reception-call' || activeNav === 'call-logs') {
-            renderCallLog();
+            window.renderPartialModule('call-log');
         } else if (activeNav === 'reception-complaint' || activeNav === 'complaints') {
             renderComplaints();
         } else if (activeNav === 'timetable') {

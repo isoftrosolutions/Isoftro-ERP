@@ -66,7 +66,7 @@ class AuthController {
 
         // Verify password
         if (!password_verify($password, $user['password_hash'])) {
-            $this->logLoginAttempt($email, $user['id'], 'failed', 'Invalid password');
+            $this->logAuthEvent('LOGIN_FAILURE', $user['id'], $user['tenant_id'], $email, 'failed', 'Invalid password');
             return ['success' => false, 'message' => 'Invalid email or password.'];
         }
         
@@ -77,7 +77,7 @@ class AuthController {
             }
             
             if (!$this->verifyOTP($user['id'], $otp)) {
-                $this->logLoginAttempt($email, $user['id'], 'failed', 'Invalid OTP');
+                $this->logAuthEvent('LOGIN_FAILURE', $user['id'], $user['tenant_id'], $email, 'failed', 'Invalid OTP');
                 return ['success' => false, 'message' => 'Invalid verification code.'];
             }
         }
@@ -318,14 +318,18 @@ class AuthController {
      * 00
      */
     private function findUserByEmail($email) {
-        return \App\Models\User::where('email', $email)->first();
+        $stmt = $this->db->prepare("SELECT * FROM users WHERE email = ? LIMIT 1");
+        $stmt->execute([$email]);
+        return $stmt->fetch(\PDO::FETCH_ASSOC) ?: null;
     }
     
     /**
-     * Find user by ID (Eloquent)
+     * Find user by ID (PDO)
      */
     private function findUserById($userId) {
-        return \App\Models\User::find($userId);
+        $stmt = $this->db->prepare("SELECT * FROM users WHERE id = ? LIMIT 1");
+        $stmt->execute([$userId]);
+        return $stmt->fetch(\PDO::FETCH_ASSOC) ?: null;
     }
     
     /**

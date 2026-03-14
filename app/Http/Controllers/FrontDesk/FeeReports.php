@@ -19,7 +19,7 @@ $userRole = $auth['role'];
 $action = $_GET['action'] ?? 'summary';
 
 try {
-    $db = \App\Support\Database::getInstance()->getConnection();
+    $db = \DB::connection()->getPdo();
 
     if ($action === 'summary') {
         $stats = [];
@@ -336,6 +336,6 @@ try {
         throw new Exception("Invalid report action: " . $action);
     }
 
-} catch (Exception $e) {
+} catch (\Throwable $e) {
     echo json_encode(['success' => false, 'message' => $e->getMessage()]);
 }

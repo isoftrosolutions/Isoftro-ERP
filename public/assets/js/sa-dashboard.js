@@ -1,17 +1,17 @@
 /**
  * Hamro ERP — Super Admin Dashboard Module
  */
-(function(SuperAdmin) {
-    "use strict";
+(function (SuperAdmin) {
+  "use strict";
 
-    SuperAdmin.renderDashboard = async function() {
-        const mainContent = document.getElementById('mainContent');
-        if (!mainContent) return;
+  SuperAdmin.renderDashboard = async function () {
+    const mainContent = document.getElementById("mainContent");
+    if (!mainContent) return;
 
-        try {
-            const stats = await fetchSuperAdminStats();
-            
-            mainContent.innerHTML = `
+    try {
+      const stats = await fetchSuperAdminStats();
+
+      mainContent.innerHTML = `
                 <div class="pg">
                     <div class="pg-head">
                         <div class="pg-left">
@@ -97,11 +97,11 @@
                             <div style="margin-top:12px;">
                                 <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
                                     <span style="font-size:11px; font-weight:600;">Uptime</span>
-                                    <span style="font-size:11px; font-weight:700; color:var(--success);">${stats.health?.uptime || '99.9%'}</span>
+                                    <span style="font-size:11px; font-weight:700; color:var(--success);">${stats.health?.uptime || "99.9%"}</span>
                                 </div>
                                 <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
                                     <span style="font-size:11px; font-weight:600;">API Latency</span>
-                                    <span style="font-size:11px; font-weight:700;">${stats.health?.latency || '45ms'}</span>
+                                    <span style="font-size:11px; font-weight:700;">${stats.health?.latency || "45ms"}</span>
                                 </div>
                             </div>
                         </div>
@@ -114,7 +114,7 @@
                                     <h3 style="font-size:16px; font-weight:800; color:var(--td);">Monthly Recurring Revenue (MRR)</h3>
                                 </div>
                                 <div style="text-align:right;">
-                                    <div style="font-size:22px; font-weight:800; color:var(--td);">${stats.mrrFormatted || 'रू 0'}</div>
+                                    <div style="font-size:22px; font-weight:800; color:var(--td);">${stats.mrrFormatted || "रू 0"}</div>
                                     <div style="font-size:11px; color:var(--success); font-weight:700;"><i class="fa-solid fa-arrow-trend-up"></i> ${stats.yoyGrowth || 0}% YoY</div>
                                 </div>
                             </div>
@@ -152,7 +152,10 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        ${(stats.recentSignups || []).map(s => `
+                                        ${
+                                          (stats.recentSignups || [])
+                                            .map(
+                                              (s) => `
                                             <tr>
                                                 <td style="padding:14px 0;">
                                                     <div style="font-size:13px; font-weight:700; color:var(--td);">${s.name}</div>
@@ -161,7 +164,11 @@
                                                 <td style="padding:14px 0;"><span class="tag bg-p">${s.plan}</span></td>
                                                 <td style="padding:14px 0;"><span class="tag bg-g">${s.status}</span></td>
                                             </tr>
-                                        `).join('') || '<tr><td colspan="3" style="text-align:center;padding:20px;">No recent signups</td></tr>'}
+                                        `,
+                                            )
+                                            .join("") ||
+                                          '<tr><td colspan="3" style="text-align:center;padding:20px;">No recent signups</td></tr>'
+                                        }
                                     </tbody>
                                 </table>
                             </div>
@@ -180,51 +187,70 @@
                     </div>
                 </div>
             `;
-            initDashboardCharts(stats.mrrTrend);
-        } catch (err) {
-            console.error("[SuperAdmin] Dashboard Error:", err);
-            mainContent.innerHTML = `<div class="pg fu"><div class="card">Error loading dashboard: ${err.message}</div></div>`;
-        }
+      initDashboardCharts(stats.mrrTrend);
+    } catch (err) {
+      console.error("[SuperAdmin] Dashboard Error:", err);
+      mainContent.innerHTML = `<div class="pg fu"><div class="card">Error loading dashboard: ${err.message}</div></div>`;
+    }
+  };
+
+  async function fetchSuperAdminStats() {
+    return SuperAdmin.fetchAPI("/api/super_admin_stats.php");
+  }
+
+  function initDashboardCharts(trendData = []) {
+    // Wait for Chart.js to be available
+    const waitForChart = (retries = 10) => {
+      if (typeof Chart !== "undefined") {
+        createChart(trendData);
+        return;
+      }
+      if (retries > 0) {
+        setTimeout(() => waitForChart(retries - 1), 100);
+      } else {
+        console.warn(
+          "[SuperAdmin] Chart.js not loaded, skipping chart initialization",
+        );
+      }
     };
+    waitForChart();
+  }
 
-    async function fetchSuperAdminStats() {
-        return SuperAdmin.fetchAPI('/api/super_admin_stats.php');
-    }
+  function createChart(trendData = []) {
+    const canvas = document.getElementById("mrrChart");
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
 
-    function initDashboardCharts(trendData = []) {
-        const canvas = document.getElementById('mrrChart');
-        if (!canvas) return;
-        const ctx = canvas.getContext('2d');
-        
-        const labels = trendData.map(d => d.month);
-        const data   = trendData.map(d => d.mrrK);
+    const labels = trendData.map((d) => d.month);
+    const data = trendData.map((d) => d.mrrK);
 
-        const gradient = ctx.createLinearGradient(0, 0, 0, 300);
-        gradient.addColorStop(0, 'rgba(0, 158, 126, 0.3)');
-        gradient.addColorStop(1, 'rgba(0, 158, 126, 0.0)');
+    const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+    gradient.addColorStop(0, "rgba(0, 158, 126, 0.3)");
+    gradient.addColorStop(1, "rgba(0, 158, 126, 0.0)");
 
-        SuperAdmin.charts['mrrChart'] = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Revenue (In K)',
-                    data: data,
-                    borderColor: '#009E7E',
-                    borderWidth: 3,
-                    fill: true,
-                    backgroundColor: gradient,
-                    tension: 0.4
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: { beginAtZero: true, ticks: { callback: v => 'रू ' + v + 'K' } }
-                }
-            }
-        });
-    }
-
+    SuperAdmin.charts["mrrChart"] = new Chart(ctx, {
+      type: "line",
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: "Revenue (In K)",
+            data: data,
+            borderColor: "#009E7E",
+            borderWidth: 3,
+            fill: true,
+            backgroundColor: gradient,
+            tension: 0.4,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: { beginAtZero: true, ticks: { callback: (v) => "रू " + v + "K" } },
+        },
+      },
+    });
+  }
 })(window.SuperAdmin);

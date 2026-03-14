@@ -1316,8 +1316,10 @@ window.loadStudents = async (page) => {
     const tbody = document.getElementById('studentsBody');
     if (!tbody) return;
 
-    document.getElementById('emptyState').style.display = 'none';
-    document.getElementById('paginationBar').style.display = 'none';
+    const emptyState = document.getElementById('emptyState');
+    const paginationBar = document.getElementById('paginationBar');
+    if (emptyState) emptyState.style.display = 'none';
+    if (paginationBar) paginationBar.style.display = 'none';
     tbody.innerHTML = `<tr><td colspan="6" class="empty-state"><i class="fa-solid fa-circle-notch fa-spin"></i> Fetching students...</td></tr>`;
 
     try {
@@ -1347,7 +1349,7 @@ window.loadStudents = async (page) => {
 
         if (students.length === 0) {
             tbody.innerHTML = '';
-            document.getElementById('emptyState').style.display = 'block';
+            if (emptyState) emptyState.style.display = 'block';
             return;
         }
 
@@ -1363,7 +1365,7 @@ window.loadStudents = async (page) => {
 
         tbody.innerHTML = students.map(s => {
             const isSelected = _StudentState.selectedIds.has(s.id);
-            const safeName = (u.name || '').replace(/'/g, "\\'");
+            const safeName = (s.full_name || s.name || '').replace(/'/g, "\\'");
             
             // Premium Fee Pill
             const feeStatus = s.fee_status || 'no_fees';
@@ -1422,7 +1424,7 @@ window.loadStudents = async (page) => {
                   <button class="act-btn act-pay btn btn-sm btn-warning" title="Collect Fee" onclick="window.renderQuickPayment(${s.id})">
                     <i class="fa-solid fa-hand-holding-dollar"></i>
                   </button>
-                  <button class="act-btn act-email btn btn-sm btn-info" title="Send Email" onclick="sendEmailToStudent(${s.id}, '${safeName}', '${u.email || ''}')">
+                  <button class="act-btn act-email btn btn-sm btn-info" title="Send Email" onclick="sendEmailToStudent(${s.id}, '${safeName}', '${s.email || ''}')">
                     <i class="fa-solid fa-envelope"></i>
                   </button>
                   <button class="act-btn act-delete btn btn-sm btn-danger" title="Delete Student" onclick="deleteStudent(${s.id}, '${safeName}')">
@@ -1433,7 +1435,8 @@ window.loadStudents = async (page) => {
             </tr>`;
         }).join('');
 
-        document.getElementById('paginationBar').style.display = 'flex';
+        const paginationBar = document.getElementById('paginationBar');
+        if (paginationBar) paginationBar.style.display = 'flex';
         renderPaginationUI(start + 1, end);
         updateBulkBar();
         updateMasterCheck();

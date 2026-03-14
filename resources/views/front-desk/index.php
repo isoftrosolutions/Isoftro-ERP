@@ -9,25 +9,58 @@ if (!defined('APP_NAME')) {
 }
 
 $pageTitle = 'Front Desk Dashboard';
+$roleCSS = "ia-dashboard-new.css";
+$wrapperClass = "app-layout"; 
 include VIEWS_PATH . '/layouts/header.php';
-require_once __DIR__ . '/sidebar.php';
 
-// Render base layout
-renderFrontDeskHeader();
-renderFrontDeskSidebar('index');
+// Load Sidebar Config & Badges
+require_once APP_ROOT . '/app/Helpers/fd-sidebar-config.php';
+$sidebarConfig = getFDSidebarConfig();
+$badges = []; // We can add a function to fetch badges later
+
+// Internal Front Desk Components
 ?>
 
-<link rel="stylesheet" href="<?php echo APP_URL; ?>/public/assets/css/frontdesk.css?v=1.1">
+<!-- ── PREMIUM SIDEBAR ── -->
+<nav class="sb" id="sidebar">
+    <div class="sb-body" id="sbBody">
+        <!-- Navigation (rendered by JS from config) -->
+    </div>
+    
+    <div class="sb-footer">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="width: 32px; height: 32px; background: rgba(0, 184, 148, 0.08); color: var(--green); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 12px;">
+                FD
+            </div>
+            <div style="flex: 1; min-width: 0;">
+                <div style="font-size: 12px; font-weight: 700; color: var(--text-dark); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Front Desk</div>
+                <div style="font-size: 10px; color: var(--text-light);">Operations</div>
+            </div>
+        </div>
+    </div>
+</nav>
 
-<!-- ── MAIN CONTENT Shell ── -->
-<main class="main" id="mainContent">
-    <div class="pg fu">
+<div class="main">
+    <?php 
+    // Top Navigation (Premium Admin Header)
+    include __DIR__ . '/../admin/layouts/header.php'; 
+    ?>
+
+    <!-- ── MAIN CONTENT (AJAX TARGET) ── -->
+    <main class="content" id="mainContent">
         <div class="pg-loading">
             <i class="fa-solid fa-circle-notch fa-spin"></i>
             <span>Initializing Operations...</span>
         </div>
-    </div>
-</main>
+    </main>
+</div>
+
+<!-- Inject Sidebar Config -->
+<script>
+    window._IA_NAV_CONFIG = <?php echo json_encode($sidebarConfig, JSON_UNESCAPED_UNICODE); ?>;
+    // Overriding the default NAV in frontdesk.js if it uses it differently
+</script>
+
 
 <script src="<?php echo APP_URL; ?>/public/assets/js/nepal-data.js?v=1.1"></script>
 <script src="<?php echo APP_URL; ?>/public/assets/js/nexus-data-loader.js?v=1.1"></script>

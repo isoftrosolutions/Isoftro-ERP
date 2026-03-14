@@ -10,7 +10,7 @@ $pageTitle    = "Hamro ERP — Select Role";
 $wrapperClass = "role-portal";
 
 // Absolute paths for organized assets
-$ASSETS = APP_URL . '/assets';
+$ASSETS = APP_URL . '/public/assets';
 
 // Include header from organized layouts
 include VIEWS_PATH . '/layouts/header.php';

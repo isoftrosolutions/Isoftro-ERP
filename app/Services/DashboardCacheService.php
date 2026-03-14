@@ -259,8 +259,25 @@ class DashboardCacheService {
         // --- SECTION I: ACTIVITY LOG ---
         try {
             $stmt = $db->prepare("
-                SELECT al.description, 
-                       COALESCE(u.name, 'System') as user_name, al.created_at, NULL as related_entity_name 
+                SELECT 
+                    COALESCE(al.description, 
+                        CASE al.action
+                            WHEN 'LOGIN_SUCCESS' THEN 'Logged in successfully'
+                            WHEN 'LOGIN_FAILURE' THEN 'Failed login attempt'
+                            WHEN 'LOGOUT' THEN 'Logged out'
+                            WHEN 'CREATE' THEN 'Created a new record'
+                            WHEN 'UPDATE' THEN 'Updated a record'
+                            WHEN 'DELETE' THEN 'Deleted a record'
+                            WHEN 'PASSWORD_CHANGE' THEN 'Changed password'
+                            WHEN 'PROFILE_UPDATE' THEN 'Updated profile'
+                            WHEN 'STUDENT_ADDED' THEN 'Added a new student'
+                            WHEN 'FEE_PAYMENT' THEN 'Recorded a fee payment'
+                            WHEN 'ATTENDANCE_MARKED' THEN 'Marked attendance'
+                            ELSE REPLACE(REPLACE(al.action, '_', ' '), '-', ' ')
+                        END
+                    ) as description,
+                    COALESCE(u.name, 'System') as user_name, 
+                    al.created_at
                 FROM audit_logs al
                 LEFT JOIN users u ON al.user_id = u.id
                 WHERE al.tenant_id = :tid 
@@ -271,6 +288,7 @@ class DashboardCacheService {
         } catch (Exception $e) {
             $stats['activity_log'] = [];
         }
+
 
         // --- SECTION J: UPCOMING EXAMS ---
         $stmt = $db->prepare("

@@ -71,14 +71,38 @@ try {
         $instituteName = $senderName ?: ($tenant['name'] ?? 'Your Institute');
         $loginUrl = (defined('APP_URL') ? APP_URL : 'http://localhost/erp') . '/login';
 
-        // Override branding with form values for the test
-        $sent = MailHelper::send(
+        // Create a temporary branding array for testing
+        $branding = [
+            'sender_name'     => $senderName,
+            'reply_to_email'  => $_POST['reply_to_email'] ?? null,
+            'smtp_host'       => $_POST['smtp_host'] ?? 'smtp.gmail.com',
+            'smtp_port'       => $_POST['smtp_port'] ?? 587,
+            'smtp_encryption' => $_POST['smtp_encryption'] ?? 'tls',
+            'smtp_username'   => $_POST['smtp_username'] ?? '',
+            'smtp_password'   => $_POST['smtp_password'] ?? '',
+            'is_active'       => 1
+        ];
+
+        // If password is masked, fetch it from DB
+        if ($branding['smtp_password'] === '********') {
+            $s = $db->prepare("SELECT smtp_password FROM tenant_email_settings WHERE tenant_id = :tid");
+            $s->execute(['tid' => $tenantId]);
+            $pRow = $s->fetch();
+            if ($pRow) {
+                $branding['smtp_password'] = \App\Helpers\EncryptionHelper::decrypt($pRow['smtp_password']);
+            }
+        }
+
+        $sent = MailHelper::sendDirect(
             $db,
             (int)$tenantId,
             $testEmail,
             'Test Recipient',
             "Test: Welcome to {$instituteName} – Your Student Account Details",
-            buildTestHtml($instituteName, $testEmail, 'Demo@1234', $loginUrl)
+            buildTestHtml($instituteName, $testEmail, 'Demo@1234', $loginUrl),
+            '',
+            0,
+            false // Don't force system, use these branding credentials
         );
 
         if ($sent) {
@@ -91,15 +115,15 @@ try {
 
     // ── GET settings ─────────────────────────────────────────────
     if ($method === 'GET') {
-        $stmt = $db->prepare("SELECT sender_name, reply_to_email, is_active FROM tenant_email_settings WHERE tenant_id = :tid");
+        $stmt = $db->prepare("SELECT * FROM tenant_email_settings WHERE tenant_id = :tid");
         $stmt->execute(['tid' => $tenantId]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        // Also try to backfill from old fields if new ones are empty
-        if ($row && empty($row['sender_name'])) {
-            $stmt2 = $db->prepare("SELECT from_name AS sender_name, from_email AS reply_to_email, is_active FROM tenant_email_settings WHERE tenant_id = :tid");
-            $stmt2->execute(['tid' => $tenantId]);
-            $row = $stmt2->fetch(PDO::FETCH_ASSOC);
+        if ($row) {
+            // Mask password for security
+            if (!empty($row['smtp_password'])) {
+                $row['smtp_password'] = '********';
+            }
         }
 
         echo json_encode(['success' => true, 'data' => $row ?: null]);
@@ -111,28 +135,55 @@ try {
         $senderName   = trim($_POST['sender_name']    ?? '');
         $replyToEmail = trim($_POST['reply_to_email'] ?? '');
         $isActive     = isset($_POST['is_active']) ? 1 : 0;
+        
+        $smtpHost     = trim($_POST['smtp_host']       ?? 'smtp.gmail.com');
+        $smtpPort     = (int)($_POST['smtp_port']      ?? 587);
+        $smtpEnc      = trim($_POST['smtp_encryption'] ?? 'tls');
+        $smtpUser     = trim($_POST['smtp_username']   ?? '');
+        $smtpPass     = trim($_POST['smtp_password']   ?? '');
 
         if (!$senderName) throw new Exception('Sender name is required.');
 
+        // Encrypt password if provided (ignore stars from GET)
+        $encPass = null;
+        if (!empty($smtpPass) && $smtpPass !== '********') {
+            $encPass = \App\Helpers\EncryptionHelper::encrypt($smtpPass);
+        }
+
         // Upsert
-        $stmt = $db->prepare("SELECT id FROM tenant_email_settings WHERE tenant_id = :tid");
+        $stmt = $db->prepare("SELECT id, smtp_password FROM tenant_email_settings WHERE tenant_id = :tid");
         $stmt->execute(['tid' => $tenantId]);
         $exists = $stmt->fetch();
 
         if ($exists) {
-            $db->prepare("
-                UPDATE tenant_email_settings
-                SET sender_name = :sn, reply_to_email = :rt, is_active = :act, updated_at = NOW()
-                WHERE tenant_id = :tid
-            ")->execute(['sn' => $senderName, 'rt' => $replyToEmail ?: null, 'act' => $isActive, 'tid' => $tenantId]);
+            $sql = "UPDATE tenant_email_settings 
+                    SET sender_name = :sn, reply_to_email = :rt, is_active = :act,
+                        smtp_host = :sh, smtp_port = :sp, smtp_encryption = :se, smtp_username = :su";
+            
+            $params = [
+                'sn' => $senderName, 'rt' => $replyToEmail ?: null, 'act' => $isActive,
+                'sh' => $smtpHost, 'sp' => $smtpPort, 'se' => $smtpEnc, 'su' => $smtpUser,
+                'tid' => $tenantId
+            ];
+
+            if ($encPass) {
+                $sql .= ", smtp_password = :pass";
+                $params['pass'] = $encPass;
+            }
+
+            $sql .= ", updated_at = NOW() WHERE tenant_id = :tid";
+            $db->prepare($sql)->execute($params);
         } else {
             $db->prepare("
-                INSERT INTO tenant_email_settings (tenant_id, sender_name, reply_to_email, is_active)
-                VALUES (:tid, :sn, :rt, :act)
-            ")->execute(['tid' => $tenantId, 'sn' => $senderName, 'rt' => $replyToEmail ?: null, 'act' => $isActive]);
+                INSERT INTO tenant_email_settings (tenant_id, sender_name, reply_to_email, is_active, smtp_host, smtp_port, smtp_encryption, smtp_username, smtp_password)
+                VALUES (:tid, :sn, :rt, :act, :sh, :sp, :se, :su, :pass)
+            ")->execute([
+                'tid' => $tenantId, 'sn' => $senderName, 'rt' => $replyToEmail ?: null, 'act' => $isActive,
+                'sh' => $smtpHost, 'sp' => $smtpPort, 'se' => $smtpEnc, 'su' => $smtpUser, 'pass' => $encPass
+            ]);
         }
 
-        echo json_encode(['success' => true, 'message' => 'Email notification settings saved successfully.']);
+        echo json_encode(['success' => true, 'message' => 'Email SMTP settings saved successfully.']);
         exit;
     }
 
@@ -150,16 +201,29 @@ function self_migrate(PDO $db): void {
         reply_to_email VARCHAR(255) NULL,
         from_name VARCHAR(255) NULL,
         from_email VARCHAR(255) NULL,
+        
+        -- New SMTP Columns
+        smtp_host VARCHAR(255) DEFAULT 'smtp.gmail.com',
+        smtp_port INT DEFAULT 587,
+        smtp_encryption ENUM('tls', 'ssl', 'none') DEFAULT 'tls',
+        smtp_username VARCHAR(255) NULL,
+        smtp_password TEXT NULL,
+        
         is_active TINYINT(1) DEFAULT 1,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         UNIQUE KEY unique_tenant (tenant_id)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
 
-    // 2. Backwards compatibility: add columns if table existed but was old
+    // 2. Add columns if table existed but was old
     $columns = [
-        'sender_name'    => 'ALTER TABLE tenant_email_settings ADD COLUMN sender_name VARCHAR(255) NULL AFTER from_name',
-        'reply_to_email' => 'ALTER TABLE tenant_email_settings ADD COLUMN reply_to_email VARCHAR(255) NULL AFTER sender_name'
+        'smtp_host'       => "ALTER TABLE tenant_email_settings ADD COLUMN smtp_host VARCHAR(255) DEFAULT 'smtp.gmail.com' AFTER from_email",
+        'smtp_port'       => "ALTER TABLE tenant_email_settings ADD COLUMN smtp_port INT DEFAULT 587 AFTER smtp_host",
+        'smtp_encryption' => "ALTER TABLE tenant_email_settings ADD COLUMN smtp_encryption ENUM('tls', 'ssl', 'none') DEFAULT 'tls' AFTER smtp_port",
+        'smtp_username'   => "ALTER TABLE tenant_email_settings ADD COLUMN smtp_username VARCHAR(255) NULL AFTER smtp_encryption",
+        'smtp_password'   => "ALTER TABLE tenant_email_settings ADD COLUMN smtp_password TEXT NULL AFTER smtp_username",
+        'sender_name'     => "ALTER TABLE tenant_email_settings ADD COLUMN sender_name VARCHAR(255) NULL AFTER from_name",
+        'reply_to_email'  => "ALTER TABLE tenant_email_settings ADD COLUMN reply_to_email VARCHAR(255) NULL AFTER sender_name"
     ];
 
     foreach ($columns as $col => $sql) {
@@ -168,6 +232,15 @@ function self_migrate(PDO $db): void {
         } catch (\Throwable $e) {
             try { $db->exec($sql); } catch (\Throwable $ex) {}
         }
+    }
+
+    // 3. Update email_logs table
+    try {
+        $db->query("SELECT sent_via FROM email_logs LIMIT 1");
+    } catch (\Throwable $e) {
+        try {
+            $db->exec("ALTER TABLE email_logs ADD COLUMN sent_via ENUM('tenant_smtp', 'system_smtp') DEFAULT 'system_smtp' AFTER status");
+        } catch (\Throwable $ex) {}
     }
 }
 

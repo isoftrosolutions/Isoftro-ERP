@@ -10,7 +10,8 @@
  * Each item can have: id, label, icon, permission, badge_key, sub (array), onclick
  */
 
-function getIASidebarConfig() {
+function getIASidebarConfig()
+{
     return [
         // ─── 1. DASHBOARD ───
         [
@@ -36,10 +37,10 @@ function getIASidebarConfig() {
                     'permission' => 'students.view',
                     'badge_key' => 'total_students',
                     'sub' => [
-                        ['id' => 'all',      'l' => 'All Students',     'icon' => 'fa-list'],
-                        ['id' => 'add',      'l' => 'Add Student',      'icon' => 'fa-user-plus'],
-                        ['id' => 'alumni',   'l' => 'Alumni Records',  'icon' => 'fa-user-tag'],
-                        ['id' => 'vault',    'l' => 'Document Vault',  'icon' => 'fa-vault'],
+                        ['id' => 'all', 'l' => 'All Students', 'icon' => 'fa-list'],
+                        ['id' => 'add', 'l' => 'Add Student', 'icon' => 'fa-user-plus'],
+                        ['id' => 'alumni', 'l' => 'Alumni Records', 'icon' => 'fa-user-tag'],
+                        ['id' => 'vault', 'l' => 'Document Vault', 'icon' => 'fa-vault'],
                     ],
                 ],
                 [
@@ -48,10 +49,10 @@ function getIASidebarConfig() {
                     'icon' => 'fa-user-tie',
                     'permission' => 'teachers.view',
                     'sub' => [
-                        ['id' => 'profiles',    'l' => 'Teacher List',         'icon' => 'fa-id-badge'],
-                        ['id' => 'add',         'l' => 'Add Teacher',          'icon' => 'fa-user-plus'],
-                        ['id' => 'allocation',  'l' => 'Subject Allocation',   'icon' => 'fa-book-open-reader'],
-                        ['id' => 'performance', 'l' => 'Performance Analytics','icon' => 'fa-chart-simple'],
+                        ['id' => 'profiles', 'l' => 'Teacher List', 'icon' => 'fa-id-badge'],
+                        ['id' => 'add', 'l' => 'Add Teacher', 'icon' => 'fa-user-plus'],
+                        ['id' => 'allocation', 'l' => 'Subject Allocation', 'icon' => 'fa-book-open-reader'],
+                        ['id' => 'performance', 'l' => 'Performance Analytics', 'icon' => 'fa-chart-simple'],
                     ],
                 ],
                 [
@@ -60,14 +61,13 @@ function getIASidebarConfig() {
                     'icon' => 'fa-book',
                     'permission' => 'courses.view',
                     'sub' => [
-                        ['id' => 'courses',   'l' => 'Courses',           'icon' => 'fa-book-bookmark'],
-                        ['id' => 'course-categories',   'l' => 'Course Categories', 'icon' => 'fa-folder-tree'],
-                        ['id' => 'batches',   'l' => 'Batches',           'icon' => 'fa-layer-group'],
-                        ['id' => 'subjects',  'l' => 'Subjects',          'icon' => 'fa-book'],
-                        ['id' => 'allocation','l' => 'Subject Allocation','icon' => 'fa-users-rectangle'],
+                        ['id' => 'courses', 'l' => 'Courses', 'icon' => 'fa-book-bookmark'],
+                        ['id' => 'course-categories', 'l' => 'Course Categories', 'icon' => 'fa-folder-tree'],
+                        ['id' => 'batches', 'l' => 'Batches', 'icon' => 'fa-layer-group'],
+                        ['id' => 'subjects', 'l' => 'Subjects', 'icon' => 'fa-book'],
+                        ['id' => 'allocation', 'l' => 'Subject Allocation', 'icon' => 'fa-users-rectangle'],
                         ['id' => 'timetable', 'l' => 'Timetable Builder', 'icon' => 'fa-calendar-plus'],
-                        ['id' => 'calendar',  'l' => 'Academic Calendar', 'icon' => 'fa-calendar-days'],
-                        ['id' => 'lessons',   'l' => 'Lesson Plans',      'icon' => 'fa-chalkboard-user'],
+                        ['id' => 'calendar', 'l' => 'Academic Calendar', 'icon' => 'fa-calendar-days'],
                     ],
                 ],
                 [
@@ -76,9 +76,9 @@ function getIASidebarConfig() {
                     'icon' => 'fa-calendar-check',
                     'permission' => 'attendance.view',
                     'sub' => [
-                        ['id' => 'take',   'l' => 'Mark Attendance',  'icon' => 'fa-user-check'],
-                        ['id' => 'leave',  'l' => 'Leave Requests',   'icon' => 'fa-envelope-open-text'],
-                        ['id' => 'report', 'l' => 'Reports',          'icon' => 'fa-chart-pie'],
+                        ['id' => 'take', 'l' => 'Mark Attendance', 'icon' => 'fa-user-check'],
+                        ['id' => 'leave', 'l' => 'Leave Requests', 'icon' => 'fa-envelope-open-text'],
+                        ['id' => 'report', 'l' => 'Reports', 'icon' => 'fa-chart-pie'],
                     ],
                 ],
                 [
@@ -87,10 +87,10 @@ function getIASidebarConfig() {
                     'icon' => 'fa-file-signature',
                     'permission' => 'exams.view',
                     'sub' => [
-                        ['id' => 'qbank',     'l' => 'Question Bank',      'icon' => 'fa-database'],
-                        ['id' => 'create-ex', 'l' => 'Create Exam',        'icon' => 'fa-circle-plus'],
-                        ['id' => 'schedule',  'l' => 'Exam Schedule',      'icon' => 'fa-calendar-week'],
-                        ['id' => 'results',   'l' => 'Results & Rankings', 'icon' => 'fa-trophy'],
+                        ['id' => 'qbank', 'l' => 'Question Bank', 'icon' => 'fa-database'],
+                        ['id' => 'create-ex', 'l' => 'Create Exam', 'icon' => 'fa-circle-plus'],
+                        ['id' => 'schedule', 'l' => 'Exam Schedule', 'icon' => 'fa-calendar-week'],
+                        ['id' => 'results', 'l' => 'Results & Rankings', 'icon' => 'fa-trophy'],
                     ],
                 ],
                 [
@@ -99,7 +99,7 @@ function getIASidebarConfig() {
                     'icon' => 'fa-clipboard-list',
                     'permission' => 'exams.view',
                     'sub' => [
-                        ['id' => 'list',   'l' => 'All Homework', 'icon' => 'fa-list'],
+                        ['id' => 'list', 'l' => 'All Homework', 'icon' => 'fa-list'],
                         ['id' => 'create', 'l' => 'Assign Homework', 'icon' => 'fa-plus'],
                     ],
                 ],
@@ -117,10 +117,10 @@ function getIASidebarConfig() {
                     'permission' => 'students.view',
                     'badge_key' => 'new_inquiries',
                     'sub' => [
-                        ['id' => 'list',          'l' => 'Inquiry List',         'icon' => 'fa-clipboard-list'],
-                        ['id' => 'add-inq',       'l' => 'Add Inquiry',          'icon' => 'fa-user-plus'],
+                        ['id' => 'list', 'l' => 'Inquiry List', 'icon' => 'fa-clipboard-list'],
+                        ['id' => 'add-inq', 'l' => 'Add Inquiry', 'icon' => 'fa-user-plus'],
                         ['id' => 'inq-analytics', 'l' => 'Conversion Analytics', 'icon' => 'fa-chart-pie'],
-                        ['id' => 'adm-form',      'l' => 'Admission Form',       'icon' => 'fa-id-card'],
+                        ['id' => 'adm-form', 'l' => 'Admission Form', 'icon' => 'fa-id-card'],
                     ],
                 ],
             ],
@@ -137,11 +137,11 @@ function getIASidebarConfig() {
                     'permission' => 'dashboard.view',
                     'badge_key' => 'outstanding_count',
                     'sub' => [
-                        ['id' => 'setup',       'l' => 'Fee Items Setup',   'icon' => 'fa-sliders'],
-                        ['id' => 'plans',       'l' => 'Installment Plans', 'icon' => 'fa-calendar-check'],
-                        ['id' => 'record',      'l' => 'Record Payment',   'icon' => 'fa-money-bill-wave'],
-                        ['id' => 'outstanding', 'l' => 'Outstanding Dues', 'icon' => 'fa-clock',          'badge_key' => 'outstanding_count'],
-                        ['id' => 'fin-reports', 'l' => 'Fee Reports',      'icon' => 'fa-receipt'],
+                        ['id' => 'setup', 'l' => 'Fee Items Setup', 'icon' => 'fa-sliders'],
+                        ['id' => 'plans', 'l' => 'Installment Plans', 'icon' => 'fa-calendar-check'],
+                        ['id' => 'record', 'l' => 'Record Payment', 'icon' => 'fa-money-bill-wave'],
+                        ['id' => 'outstanding', 'l' => 'Outstanding Dues', 'icon' => 'fa-clock', 'badge_key' => 'outstanding_count'],
+                        ['id' => 'fin-reports', 'l' => 'Fee Reports', 'icon' => 'fa-receipt'],
                     ],
                 ],
                 [
@@ -164,7 +164,7 @@ function getIASidebarConfig() {
                     'permission' => 'dashboard.view',
                     'sub' => [
                         ['id' => 'list', 'l' => 'Front Desk List', 'icon' => 'fa-list'],
-                        ['id' => 'add',  'l' => 'Add Front Desk',  'icon' => 'fa-user-plus'],
+                        ['id' => 'add', 'l' => 'Add Front Desk', 'icon' => 'fa-user-plus'],
                     ],
                 ],
             ],
@@ -181,13 +181,13 @@ function getIASidebarConfig() {
                     'permission' => 'dashboard.view',
                     'badge_key' => 'total_materials',
                     'sub' => [
-                        ['id' => 'overview',    'l' => 'Materials Dashboard',   'icon' => 'fa-chart-pie'],
-                        ['id' => 'materials',   'l' => 'All Materials',         'icon' => 'fa-layer-group'],
-                        ['id' => 'upload',      'l' => 'Upload Material',       'icon' => 'fa-cloud-arrow-up'],
-                        ['id' => 'categories',  'l' => 'Categories',            'icon' => 'fa-folder-tree'],
-                        ['id' => 'videos',      'l' => 'Video Lectures',        'icon' => 'fa-video'],
-                        ['id' => 'assignments', 'l' => 'Assignments',           'icon' => 'fa-list-check'],
-                        ['id' => 'analytics',   'l' => 'Analytics & Reports',   'icon' => 'fa-chart-line'],
+                        ['id' => 'overview', 'l' => 'Materials Dashboard', 'icon' => 'fa-chart-pie'],
+                        ['id' => 'materials', 'l' => 'All Materials', 'icon' => 'fa-layer-group'],
+                        ['id' => 'upload', 'l' => 'Upload Material', 'icon' => 'fa-cloud-arrow-up'],
+                        ['id' => 'categories', 'l' => 'Categories', 'icon' => 'fa-folder-tree'],
+                        ['id' => 'videos', 'l' => 'Video Lectures', 'icon' => 'fa-video'],
+                        ['id' => 'assignments', 'l' => 'Assignments', 'icon' => 'fa-list-check'],
+                        ['id' => 'analytics', 'l' => 'Analytics & Reports', 'icon' => 'fa-chart-line'],
                     ],
                 ],
                 [
@@ -196,10 +196,10 @@ function getIASidebarConfig() {
                     'icon' => 'fa-bell',
                     'permission' => 'dashboard.view',
                     'sub' => [
-                        ['id' => 'sms',       'l' => 'SMS Broadcast',   'icon' => 'fa-message'],
-                        ['id' => 'email',     'l' => 'Email Campaigns', 'icon' => 'fa-envelope-open-text'],
-                        ['id' => 'templates', 'l' => 'SMS Templates',   'icon' => 'fa-comment-dots'],
-                        ['id' => 'msg-log',   'l' => 'Message Log',     'icon' => 'fa-clock-rotate-left'],
+                        ['id' => 'sms', 'l' => 'SMS Broadcast', 'icon' => 'fa-message'],
+                        ['id' => 'email', 'l' => 'Email Campaigns', 'icon' => 'fa-envelope-open-text'],
+                        ['id' => 'templates', 'l' => 'SMS Templates', 'icon' => 'fa-comment-dots'],
+                        ['id' => 'msg-log', 'l' => 'Message Log', 'icon' => 'fa-clock-rotate-left'],
                     ],
                 ],
                 [
@@ -208,10 +208,10 @@ function getIASidebarConfig() {
                     'icon' => 'fa-book',
                     'permission' => 'dashboard.view',
                     'sub' => [
-                        ['id' => 'catalog', 'l' => 'Book Catalog',     'icon' => 'fa-rectangle-list'],
-                        ['id' => 'issue',   'l' => 'Issue / Return',   'icon' => 'fa-right-left'],
+                        ['id' => 'catalog', 'l' => 'Book Catalog', 'icon' => 'fa-rectangle-list'],
+                        ['id' => 'issue', 'l' => 'Issue / Return', 'icon' => 'fa-right-left'],
                         ['id' => 'overdue', 'l' => 'Overdue Tracking', 'icon' => 'fa-triangle-exclamation'],
-                        ['id' => 'stock',   'l' => 'Stock Report',     'icon' => 'fa-boxes-stacked'],
+                        ['id' => 'stock', 'l' => 'Stock Report', 'icon' => 'fa-boxes-stacked'],
                     ],
                 ],
             ],
@@ -227,12 +227,12 @@ function getIASidebarConfig() {
                     'icon' => 'fa-chart-column',
                     'permission' => 'reports.view',
                     'sub' => [
-                        ['id' => 'fee-rep', 'l' => 'Fee Reports',           'icon' => 'fa-file-invoice-dollar'],
-                        ['id' => 'att-rep', 'l' => 'Attendance Reports',    'icon' => 'fa-clipboard-user'],
-                        ['id' => 'ex-rep',  'l' => 'Exam Reports',          'icon' => 'fa-square-poll-vertical'],
-                        ['id' => 'inq-rep', 'l' => 'Inquiry Reports',       'icon' => 'fa-magnifying-glass-chart'],
-                        ['id' => 'lms-rep', 'l' => 'LMS Analytics',         'icon' => 'fa-book-open-reader'],
-                        ['id' => 'custom',  'l' => 'Custom Report Builder', 'icon' => 'fa-wand-magic-sparkles'],
+                        ['id' => 'fee-rep', 'l' => 'Fee Reports', 'icon' => 'fa-file-invoice-dollar'],
+                        ['id' => 'att-rep', 'l' => 'Attendance Reports', 'icon' => 'fa-clipboard-user'],
+                        ['id' => 'ex-rep', 'l' => 'Exam Reports', 'icon' => 'fa-square-poll-vertical'],
+                        ['id' => 'inq-rep', 'l' => 'Inquiry Reports', 'icon' => 'fa-magnifying-glass-chart'],
+                        ['id' => 'lms-rep', 'l' => 'LMS Analytics', 'icon' => 'fa-book-open-reader'],
+                       
                     ],
                 ],
             ],
@@ -248,12 +248,12 @@ function getIASidebarConfig() {
                     'icon' => 'fa-gear',
                     'permission' => 'settings.view',
                     'sub' => [
-                        ['id' => 'prof',  'l' => 'Institute Profile',   'icon' => 'fa-building'],
+                        ['id' => 'prof', 'l' => 'Institute Profile', 'icon' => 'fa-building'],
                         ['id' => 'email', 'l' => 'Email Configuration', 'icon' => 'fa-envelope-circle-check'],
-                        ['id' => 'brand', 'l' => 'Branding',            'icon' => 'fa-palette'],
-                        ['id' => 'rbac',  'l' => 'RBAC Config',         'icon' => 'fa-user-shield'],
-                        ['id' => 'notif', 'l' => 'Notification Rules',  'icon' => 'fa-bell-concierge'],
-                        ['id' => 'year',  'l' => 'Academic Year',       'icon' => 'fa-calendar-check'],
+                        ['id' => 'brand', 'l' => 'Branding', 'icon' => 'fa-palette'],
+                        ['id' => 'rbac', 'l' => 'RBAC Config', 'icon' => 'fa-user-shield'],
+                        ['id' => 'notif', 'l' => 'Notification Rules', 'icon' => 'fa-bell-concierge'],
+                        ['id' => 'year', 'l' => 'Academic Year', 'icon' => 'fa-calendar-check'],
                     ],
                 ],
                 [
@@ -278,7 +278,8 @@ function getIASidebarConfig() {
  * Filter sidebar config by user permissions.
  * Returns only sections/items the current user is allowed to see.
  */
-function filterIASidebarByPermission($config) {
+function filterIASidebarByPermission($config)
+{
     $filtered = [];
     foreach ($config as $section) {
         $allowedItems = [];

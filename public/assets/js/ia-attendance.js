@@ -213,7 +213,7 @@ window.loadAttendanceRecords = async function() {
                     <div class="att-stu-top">
                         <img src="${r.photo_url || defaultAvatar}" onerror="this.src='${defaultAvatar}'" class="att-stu-avatar">
                         <div class="att-stu-info">
-                            <div class="att-stu-name">${r.full_name}</div>
+                            <div class="att-stu-name">${r.full_name || r.name || 'N/A'}</div>
                             <div class="att-stu-roll">#${r.roll_no} ${r.on_leave ? '<span class="att-leave-badge">LEAVE</span>' : ''}</div>
                         </div>
                         <div style="text-align:right;">

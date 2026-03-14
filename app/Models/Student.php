@@ -62,9 +62,10 @@ class Student extends Model {
      */
     public static function getByBatch($batchId) {
         return self::join('enrollments', 'students.id', '=', 'enrollments.student_id')
+            ->join('users', 'students.user_id', '=', 'users.id')
             ->where('enrollments.batch_id', $batchId)
             ->where('enrollments.status', 'active')
-            ->select('students.*')
+            ->select('students.*', 'users.name as full_name', 'users.name as name')
             ->orderBy('roll_no')
             ->get();
     }
