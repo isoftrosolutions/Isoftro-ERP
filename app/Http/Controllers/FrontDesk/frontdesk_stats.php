@@ -214,7 +214,7 @@ try {
 
     // ── 10. ACTIVITY LOG ──
     $stmt = $db->prepare("
-        SELECT CONCAT(al.action, ' on ', al.table_name) as msg, 
+        SELECT al.description as msg, 
                DATE_FORMAT(al.created_at, '%h:%i %p') as time,
                COALESCE(u.name, 'System') as user
         FROM audit_logs al

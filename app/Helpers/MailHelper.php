@@ -205,8 +205,8 @@ class MailHelper
     {
         error_log("[MailHelper] Processing Job: {$jobType} for tenant {$tenantId}");
         
-        $toEmail = $payload['email'] ?? $payload['student_email'] ?? $payload['recipient_email'] ?? '';
-        $toName  = $payload['name']  ?? $payload['student_name']  ?? $payload['recipient_name']  ?? 'User';
+        $toEmail = $payload['email'] ?? $payload['student_email'] ?? $payload['staff_email'] ?? $payload['recipient_email'] ?? '';
+        $toName  = $payload['name']  ?? $payload['student_name']  ?? $payload['staff_name']  ?? $payload['recipient_name']  ?? 'User';
         
         if (!$toEmail) {
             error_log("[MailHelper] Error: No recipient email in payload.");
@@ -217,9 +217,11 @@ class MailHelper
             // Specialized logic for credentials
             $branding = self::getTenantBranding($db, $tenantId);
             $tplData = array_merge($payload, [
-                'institute_name' => $branding['institute_name'],
+                'institute_name'  => $branding['institute_name'],
                 'institute_phone' => $branding['institute_phone'],
-                'institute_email' => $branding['institute_email']
+                'institute_email' => $branding['institute_email'],
+                'student_name'    => $payload['student_name'] ?? $toName,
+                'name'            => $payload['name'] ?? $toName
             ]);
             $tpl = self::getStaticTemplate('student_registration_success', $tplData);
             if (!$tpl) return false;
@@ -230,7 +232,11 @@ class MailHelper
             // Use FinanceEmailHelper templates or generic logic
             $templateKey = $payload['template_key'] ?? (($payload['amount_due'] ?? 0) > 0 ? 'payment_success_partial' : 'payment_success_full');
             $branding = self::getTenantBranding($db, $tenantId);
-            $tplData = array_merge($payload, ['institute_name' => $branding['institute_name']]);
+            $tplData = array_merge($payload, [
+                'institute_name' => $branding['institute_name'],
+                'student_name'    => $payload['student_name'] ?? $toName,
+                'name'            => $payload['name'] ?? $toName
+            ]);
             $tpl = self::getStaticTemplate($templateKey, $tplData);
             if ($tpl) {
                 return self::sendDirect($db, $tenantId, $toEmail, $toName, $tpl['subject'], $tpl['body'], $payload['pdf_path'] ?? '');
@@ -255,7 +261,11 @@ class MailHelper
 
         $branding = self::getTenantBranding($db, $tenantId);
         $tplData = array_merge($payload, [
-            'institute_name' => $branding['institute_name']
+            'institute_name' => $branding['institute_name'],
+            'student_name'   => $payload['student_name'] ?? $toName,
+            'staff_name'     => $payload['staff_name'] ?? $toName,
+            'name'           => $payload['name'] ?? $toName,
+            'recipient_name' => $payload['recipient_name'] ?? $toName
         ]);
 
         $tpl = self::getStaticTemplate($templateKey, $tplData);

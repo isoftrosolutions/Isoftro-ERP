@@ -196,6 +196,7 @@ function _iaRenderPage() {
     if (nav==='students') { if(sub==='add') window.renderAddStudentFormV2?.(); else if(sub==='edit' || sub==='complete') window.renderEditStudentForm?.(urlParams.get('id')); else if(sub==='view') window.renderStudentProfile?.(urlParams.get('id')); else if(sub==='vault') window.renderDocumentVault?.(); else if(sub==='alumni') window.renderAlumniList?.(); else window.renderStudentList?.(); return; }
     if (nav==='academic') {
         if (sub==='courses') { if(urlParams.get('id')) window.renderEditCourseForm?.(urlParams.get('id')); else if(urlParams.get('action')==='add') window.renderAddCourseForm?.(); else window.renderCourseList?.(); return; }
+        if (sub==='course-categories') { window.renderCourseCategoryList?.(); return; }
         if (sub==='batches') { if(urlParams.get('id')) window.renderEditBatchForm?.(urlParams.get('id')); else if(urlParams.get('action')==='add') window.renderAddBatchForm?.(); else window.renderBatchList?.(); return; }
         if (sub==='subjects') { if(urlParams.get('id')) window.renderEditSubjectForm?.(urlParams.get('id')); else if(urlParams.get('action')==='add') window.renderAddSubjectForm?.(); else window.renderSubjectList?.(); return; }
         if (sub==='allocation') { window.renderSubjectAllocation?.(); return; }
@@ -867,7 +868,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const sbToggle = document.getElementById('sbToggle');
     const sbClose = document.getElementById('sbClose');
     const sbOverlay = document.getElementById('sbOverlay');
-    const sbSearch = document.getElementById('sbSearch');
+    const sbSearch = document.getElementById('globalSearch');
 
     const toggleSB = () => {
         if (window.innerWidth >= 768) {
@@ -894,8 +895,8 @@ document.addEventListener('DOMContentLoaded', () => {
         let searchTimeout = null;
         let searchResultsDropdown = null;
         
-        // Create search results dropdown
-        const createSearchDropdown = () => {
+        // Create/Get search results dropdown
+        const getSearchDropdown = () => {
             if (searchResultsDropdown) return searchResultsDropdown;
             searchResultsDropdown = document.createElement('div');
             searchResultsDropdown.id = 'global-search-results';
@@ -922,7 +923,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Perform global search
         const performSearch = async (query) => {
             if (query.length < 2) {
-                const dropdown = createSearchDropdown();
+                const dropdown = getSearchDropdown();
                 dropdown.style.display = 'none';
                 return;
             }
@@ -943,14 +944,14 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Display search results
         const displaySearchResults = (data) => {
-            const dropdown = createSearchDropdown();
+            const dropdown = getSearchDropdown();
             let html = '';
             
             // Students section
             if (data.students && data.students.length > 0) {
                 html += `<div class="gs-section"><div class="gs-section-title">Students</div>`;
                 data.students.forEach(s => {
-                    const meta = s.roll_no ? `Roll: ${s.roll_no}` : (u.email || '');
+                    const meta = s.roll_no ? `Roll: ${s.roll_no}` : (s.email || '');
                     html += `<a href="#" class="gs-item" data-type="student" data-id="${s.id}">
                         <span class="gs-icon">🎓</span>
                         <span class="gs-name">${s.name}</span>
@@ -1018,11 +1019,14 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Handle search result click - navigate to relevant page
         const handleSearchResultClick = (type, id) => {
-            const dropdown = createSearchDropdown();
+            const dropdown = getSearchDropdown();
             dropdown.style.display = 'none';
             sbSearch.value = '';
             
             switch(type) {
+                case 'student':
+                    goNav('students', 'view', { id: id });
+                    break;
                 case 'teacher':
                     goNav('staff', null, { id: id, action: 'view' });
                     break;
@@ -1043,7 +1047,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (searchTimeout) clearTimeout(searchTimeout);
             
             if (query.length === 0) {
-                const dropdown = createSearchDropdown();
+                const dropdown = getSearchDropdown();
                 dropdown.style.display = 'none';
                 return;
             }

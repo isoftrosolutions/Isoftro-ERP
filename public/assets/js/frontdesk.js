@@ -5,6 +5,9 @@
 
 console.log('Front Desk Operator Loaded');
 
+// Current user reference (operator)
+var u = window.currentUser || {};
+
 // ── GLOBAL UTILITIES ──
 window.getCurrencySymbol = window.getCurrencySymbol || function() {
     return window._INSTITUTE_CONFIG?.currency_symbol || window.INSTITUTE_CONFIG?.currency_symbol || '₹';
@@ -1358,7 +1361,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (searchInput) searchInput.classList.add('loading');
 
         try {
-            const res = await fetch(`${APP_URL}/api/frontdesk/students?action=search&query=${encodeURIComponent(query)}`, getHeaders());
+            const res = await fetch(`${APP_URL}/api/frontdesk/students?action=search&search=${encodeURIComponent(query)}`, getHeaders());
             const data = await res.json();
             
             if (data.success && data.data && data.data.length > 0) {
@@ -1393,7 +1396,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
-            const res = await fetch(`${APP_URL}/api/frontdesk/students?action=search&query=${encodeURIComponent(query)}`, getHeaders());
+            const res = await fetch(`${APP_URL}/api/frontdesk/students?action=search&search=${encodeURIComponent(query)}`, getHeaders());
             const data = await res.json();
             
             if (!data.success) return;
@@ -1406,7 +1409,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 data.data.forEach(s => {
                     html += `
                     <div class="search-res-item" onclick="goNav('students', 'view', {id: ${s.id}}); closeSearch();">
-                        <div class="res-avatar">${(u.name || 'S').charAt(0)}</div>
+                        <div class="res-avatar">${(s.name || 'S').charAt(0)}</div>
                         <div style="flex:1;">
                             <div class="res-main">${s.name}</div>
                             <div class="res-sub">${s.roll_no || 'No ID'} • ${s.batch_name || 'No Batch'}</div>

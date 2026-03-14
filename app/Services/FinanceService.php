@@ -82,7 +82,8 @@ class FinanceService {
                 'status' => $status
             ]);
 
-            // 5. Sync with student_fee_summary
+            // 5. Sync with student_fee_summary 
+            // V3.1 Update: Ensure we update the specific enrollment associated with this fee record
             $query = "UPDATE student_fee_summary SET 
                       paid_amount = paid_amount + ?,
                       due_amount = due_amount - ?,
@@ -91,13 +92,32 @@ class FinanceService {
                           WHEN (paid_amount + ?) > 0 THEN 'partial'
                           ELSE 'unpaid'
                       END
-                      WHERE student_id = ? AND tenant_id = ?";
+                      WHERE student_id = ? AND tenant_id = ? 
+                      AND (enrollment_id = ? OR enrollment_id IS NULL)";
             $stmt = $this->db->prepare($query);
             $stmt->execute([
                 $amountPaid, $amountPaid, 
                 $amountPaid, $amountPaid, 
-                $feeRecord['student_id'], $tenantId
+                $feeRecord['student_id'], $tenantId,
+                ($feeRecord['enrollment_id'] ?? $feeRecord['batch_id'] ?? null) // Fallback for safety
             ]);
+
+            // If fee_records don't have enrollment_id directly, we might need to find it from batch_id
+            if ($stmt->rowCount() == 0) {
+                 // Try finding by mapping batch to enrollment
+                 $stmtMap = $this->db->prepare("SELECT id FROM enrollments WHERE student_id = ? AND batch_id = ? LIMIT 1");
+                 $stmtMap->execute([$feeRecord['student_id'], $feeRecord['batch_id']]);
+                 $actualEnrollmentId = $stmtMap->fetchColumn();
+                 
+                 if ($actualEnrollmentId) {
+                     $stmt->execute([
+                        $amountPaid, $amountPaid, 
+                        $amountPaid, $amountPaid, 
+                        $feeRecord['student_id'], $tenantId,
+                        $actualEnrollmentId
+                    ]);
+                 }
+            }
 
             // 6. Log Transaction (Audit logged inside Model)
             $transactionId = $this->transactionModel->create([
@@ -163,7 +183,7 @@ class FinanceService {
             $records = $prefetchedRecords;
             if ($records === null) {
                 $stmt = $this->db->prepare("
-                    SELECT id, amount_due, amount_paid 
+                    SELECT id, amount_due, amount_paid, batch_id 
                     FROM fee_records 
                     WHERE student_id = :sid AND tenant_id = :tid 
                     AND amount_due > amount_paid
@@ -274,24 +294,38 @@ class FinanceService {
 
                 $remainingAmount -= $paymentForThisRecord;
                 $processedRecords[] = $record['id'];
+
+                // V3.1: Accumulate updates per enrollment/batch
+                $batchId = $record['batch_id'] ?? null;
+                if (!isset($enrollmentPayments[$batchId])) $enrollmentPayments[$batchId] = 0;
+                $enrollmentPayments[$batchId] += $paymentForThisRecord;
             }
 
-            // 3. Update Student Summary once for the total amount
-            $query = "UPDATE student_fee_summary SET 
-                      paid_amount = paid_amount + ?,
-                      due_amount = due_amount - ?,
-                      fee_status = CASE 
-                          WHEN (due_amount - ?) <= 0 THEN 'paid'
-                          WHEN (paid_amount + ?) > 0 THEN 'partial'
-                          ELSE 'unpaid'
-                      END
-                      WHERE student_id = ? AND tenant_id = ?";
-            $stmtSum = $this->db->prepare($query);
-            $stmtSum->execute([
-                $totalAmountPaid, $totalAmountPaid, 
-                $totalAmountPaid, $totalAmountPaid, 
-                $studentId, $tenantId
-            ]);
+            // 3. Update Student Summary per enrollment affected
+            foreach ($enrollmentPayments as $batchId => $paidAmt) {
+                // Find enrollment_id for this batch
+                $stmtE = $this->db->prepare("SELECT id FROM enrollments WHERE student_id = ? AND batch_id = ? LIMIT 1");
+                $stmtE->execute([$studentId, $batchId]);
+                $eid = $stmtE->fetchColumn();
+
+                if ($eid) {
+                    $query = "UPDATE student_fee_summary SET 
+                              paid_amount = paid_amount + ?,
+                              due_amount = due_amount - ?,
+                              fee_status = CASE 
+                                  WHEN (due_amount - ?) <= 0 THEN 'paid'
+                                  WHEN (paid_amount + ?) > 0 THEN 'partial'
+                                  ELSE 'unpaid'
+                              END
+                              WHERE student_id = ? AND enrollment_id = ?";
+                    $stmtSum = $this->db->prepare($query);
+                    $stmtSum->execute([
+                        $paidAmt, $paidAmt, 
+                        $paidAmt, $paidAmt, 
+                        $studentId, $eid
+                    ]);
+                }
+            }
 
             $this->db->commit();
             return [

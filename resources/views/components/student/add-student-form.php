@@ -123,12 +123,57 @@ $scCardId    = 'scCard_' . $componentId;
 .btn-p:hover { transform: translateY(-3px); box-shadow: 0 20px 35px -5px rgba(0, 184, 148, 0.5); }
 .btn-p:active { transform: translateY(0); }
 
-/* Success Modal Modern */
-.m-overlay { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(10px); z-index: 10000; align-items: center; justify-content: center; padding: 1rem; }
-.m-card { background: #fff; border-radius: 32px; padding: 3rem; max-width: 480px; width: 100%; text-align: center; box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.5); transform: translateY(20px); opacity: 0; transition: var(--trans); }
-.m-card.active { transform: translateY(0); opacity: 1; }
-.m-ico { width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 1.5rem; display: flex; align-items: center; justify-content: center; font-size: 32px; color: #fff; }
+/* Mode Selection Overlay */
+.mode-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(15px); z-index: 20000; display: flex; align-items: center; justify-content: center; padding: 2rem; }
+.mode-card { background: #fff; border-radius: 32px; padding: clamp(2rem, 5vw, 4rem); max-width: 800px; width: 100%; box-shadow: 0 40px 100px -20px rgba(0,0,0,0.5); text-align: center; }
+.mode-grid { display: grid; grid-template-columns: 1fr; gap: 2rem; margin-top: 3rem; }
+@media (min-width: 640px) { .mode-grid { grid-template-columns: 1fr 1fr; } }
+.mode-opt { padding: 2rem; border: 3px solid #f1f5f9; border-radius: 24px; cursor: pointer; transition: var(--trans); position: relative; overflow: hidden; }
+.mode-opt:hover { border-color: var(--p); background: var(--p-lt); transform: translateY(-5px); }
+.mode-opt i { font-size: 40px; color: var(--p); margin-bottom: 1.5rem; }
+.mode-opt h3 { font-size: 20px; font-weight: 800; color: #1e293b; margin-bottom: 0.5rem; }
+.mode-opt p { font-size: 14px; color: #64748b; font-weight: 500; }
+.mode-opt.active { border-color: var(--p); background: var(--p-lt); }
+
+/* Search Results for Existing Student */
+.search-results { position: absolute; top: 100%; left: 0; right: 0; background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; margin-top: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); z-index: 100; max-height: 250px; overflow-y: auto; display: none; }
+.search-item { padding: 12px 16px; cursor: pointer; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid #f1f5f9; }
+.search-item:last-child { border-bottom: none; }
+.search-item:hover { background: #f8fafc; }
+.search-item img { width: 40px; height: 40px; border-radius: 8px; object-fit: cover; }
+.search-item .name { font-weight: 700; color: #1e293b; font-size: 14px; }
+.search-item .meta { font-size: 11px; color: #94a3b8; }
+
+/* Batch Multi-Select Chips */
+.batch-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.chip { background: var(--p); color: #fff; padding: 6px 14px; border-radius: 50px; font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 8px; animation: scaleIn 0.2s ease-out; }
+.chip i { cursor: pointer; opacity: 0.8; }
+.chip i:hover { opacity: 1; }
+@keyframes scaleIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+.hidden-section { display: none; }
 </style>
+
+<!-- Admission Mode Selection -->
+<div class="mode-overlay" id="modeOverlay_<?= $componentId ?>">
+    <div class="mode-card">
+        <h2 style="font-size: clamp(24px, 5vw, 32px); font-weight: 900; color: #0f172a;">Welcome to Admission Portal</h2>
+        <p style="color: #64748b; font-weight: 500; margin-top: 0.5rem;">How would you like to proceed today?</p>
+        
+        <div class="mode-grid">
+            <div class="mode-opt" onclick="setAdmissionMode_<?= $componentId ?>('new')">
+                <i class="fas fa-user-plus"></i>
+                <h3>New Registration</h3>
+                <p>Register a completely new student profile</p>
+            </div>
+            <div class="mode-opt" onclick="setAdmissionMode_<?= $componentId ?>('existing')">
+                <i class="fas fa-user-graduate"></i>
+                <h3>Existing Student</h3>
+                <p>Add new course enrollment for current student</p>
+            </div>
+        </div>
+    </div>
+</div>
 
 <div class="pg">
 
@@ -148,6 +193,29 @@ $scCardId    = 'scCard_' . $componentId;
 
 
 
+        <!-- Mode Indicator & Student Selection Dropdown -->
+        <div id="existingStudentSearch_<?= $componentId ?>" class="sc-adm hidden-section" style="border: 2px solid var(--p);">
+            <h3 class="sc-title"><i class="fas fa-user-graduate"></i> Select Student</h3>
+            <div class="f-grp">
+                <label class="f-lbl req">Student Name / Roll No</label>
+                <div class="ipt-box">
+                    <i class="fas fa-search"></i>
+                    <select id="stuSelect_<?= $componentId ?>" class="fi fi-sel" onchange="window['onStudentDropdownChange_' + CID](this.value)">
+                        <option value="">-- Loading students... --</option>
+                    </select>
+                </div>
+                <input type="hidden" name="existing_student_id" id="valStuId_<?= $componentId ?>">
+            </div>
+            <div id="selStuCard_<?= $componentId ?>" style="margin-top: 1.5rem; display: none; padding: 1rem; background: #f8fafc; border-radius: 12px; align-items: center; gap: 15px;">
+                <img id="selStuImg_<?= $componentId ?>" src="" style="width: 50px; height: 50px; border-radius: 10px; object-fit: cover;">
+                <div>
+                    <div id="selStuName_<?= $componentId ?>" style="font-weight: 800; color: #1e293b;">-</div>
+                    <div id="selStuMeta_<?= $componentId ?>" style="font-size: 12px; color: #64748b;">-</div>
+                </div>
+                <button type="button" class="btn bt" style="margin-left: auto; padding: 8px 16px; font-size: 12px;" onclick="clearStuSelection_<?= $componentId ?>()">Change</button>
+            </div>
+        </div>
+
         <!-- Section 1: Academic High Priority -->
         <div class="sc-adm callout-p">
             <h3 class="sc-title"><i class="fas fa-book-reader"></i> Academic Placement</h3>
@@ -156,7 +224,7 @@ $scCardId    = 'scCard_' . $componentId;
                     <label class="f-lbl req">Target Course</label>
                     <div class="ipt-box">
                         <i class="fas fa-award"></i>
-                        <select name="course_id" id="<?= $selCourseId ?>" class="fi fi-sel" required
+                        <select id="<?= $selCourseId ?>" class="fi fi-sel" 
                                 data-fallback='<?= $coursesFallbackJson ?>'>
                             <option value="" disabled selected>⏳ Loading courses...</option>
                         </select>
@@ -166,16 +234,22 @@ $scCardId    = 'scCard_' . $componentId;
                     <label class="f-lbl req">Assigned Batch</label>
                     <div class="ipt-box">
                         <i class="fas fa-clock"></i>
-                        <select name="batch_id" id="<?= $selBatchId ?>" class="fi fi-sel" required disabled>
+                        <select id="<?= $selBatchId ?>" class="fi fi-sel" disabled>
                             <option value="">— Select course first —</option>
                         </select>
                     </div>
+                    <button type="button" class="btn bt" style="margin-top: 10px; width: auto; font-size: 12px; padding: 8px 15px;" onclick="addBatchChip_<?= $componentId ?>()">
+                        <i class="fas fa-plus"></i> Add Batch
+                    </button>
+                    <div id="batchChips_<?= $componentId ?>" class="batch-chips"></div>
+                    <input type="hidden" name="batch_id" id="hiddenSingleBatch_<?= $componentId ?>"> 
                 </div>
             </div>
         </div>
 
-        <!-- Section 2: Primary Identity -->
-        <div class="sc-adm">
+        <div id="studentProfileSections_<?= $componentId ?>">
+            <!-- Section 2: Primary Identity -->
+            <div class="sc-adm">
             <h3 class="sc-title"><i class="fas fa-id-card"></i> Student Identity</h3>
             <div class="grid-box grid-2">
                 <div class="f-grp">
@@ -290,6 +364,8 @@ $scCardId    = 'scCard_' . $componentId;
     const CID          = '<?= $componentId ?>';
     const API_ENDPOINT = '<?= addslashes($apiEndpoint) ?>';
     const REDIRECT_URL = '<?= addslashes($successRedirectUrl) ?>';
+    let admissionMode  = 'new'; // 'new' or 'existing'
+    let selectedBatches = [];
 
     <?php
     $user     = $_SESSION['userData'] ?? [];
@@ -299,6 +375,127 @@ $scCardId    = 'scCard_' . $componentId;
     // Set _userRole so NexusDataLoader._getApiBase() picks the right API path
     echo "window._userRole   = window._userRole   || '" . addslashes($userRole) . "';\n";
     ?>
+
+    // ── Mode Selection ──
+    window['setAdmissionMode_' + CID] = function(mode) {
+        admissionMode = mode;
+        const overlay = document.getElementById('modeOverlay_' + CID);
+        const searchSec = document.getElementById('existingStudentSearch_' + CID);
+        const profileSecs = document.getElementById('studentProfileSections_' + CID);
+        
+        overlay.style.display = 'none';
+        
+        if (mode === 'existing') {
+            searchSec.classList.remove('hidden-section');
+            profileSecs.classList.add('hidden-section');
+            // Remove required from profile fields
+            profileSecs.querySelectorAll('[required]').forEach(el => {
+                el.dataset.wasRequired = 'true';
+                el.removeAttribute('required');
+            });
+
+            // Populate students dropdown
+            window['populateStudentsDropdown_' + CID]();
+        } else {
+            searchSec.classList.add('hidden-section');
+            profileSecs.classList.remove('hidden-section');
+            // Re-add required
+            profileSecs.querySelectorAll('[data-was-required="true"]').forEach(el => {
+                el.setAttribute('required', '');
+            });
+        }
+    };
+
+    // ── Student Selection Logic (Dropdown) ──
+    let allStudentsData = [];
+    window['populateStudentsDropdown_' + CID] = async function() {
+        const sel = document.getElementById('stuSelect_' + CID);
+        if (!sel) return;
+        sel.innerHTML = '<option value="">⏳ Loading students...</option>';
+        try {
+            const res = await fetch(`${window.APP_URL}/api/admin/students?per_page=1000`);
+            const result = await res.json();
+            if (result.success && result.data) {
+                allStudentsData = result.data;
+                sel.innerHTML = '<option value="">-- Choose Student --</option>' + 
+                    result.data.map(s => `<option value="${s.id}">${s.full_name} (${s.roll_no || 'No Roll'})</option>`).join('');
+            } else {
+                sel.innerHTML = '<option value="">Failed to load students</option>';
+            }
+        } catch (e) {
+            console.error('Fetch students error', e);
+            sel.innerHTML = '<option value="">Error loading list</option>';
+        }
+    };
+
+    window['onStudentDropdownChange_' + CID] = function(id) {
+        if (!id) {
+            window['clearStuSelection_' + CID]();
+            return;
+        }
+        const s = allStudentsData.find(stu => stu.id == id);
+        if (s) {
+            window['selectExistingStudent_' + CID](s.id, s.full_name, s.roll_no, s.photo_url);
+        }
+    };
+
+    window['selectExistingStudent_' + CID] = function(id, name, roll, photo) {
+        document.getElementById('valStuId_' + CID).value = id;
+        document.getElementById('selStuName_' + CID).textContent = name;
+        document.getElementById('selStuMeta_' + CID).textContent = roll;
+        document.getElementById('selStuCard_' + CID).style.display = 'flex';
+        // Hide the select box once selected to match the premium card look
+        document.getElementById('stuSelect_' + CID).parentElement.style.display = 'none';
+        
+        if (photo) {
+            document.getElementById('selStuImg_' + CID).src = photo;
+            document.getElementById('selStuImg_' + CID).style.display = 'block';
+        } else {
+            document.getElementById('selStuImg_' + CID).style.display = 'none';
+        }
+    };
+    
+    window['clearStuSelection_' + CID] = function() {
+        document.getElementById('valStuId_' + CID).value = '';
+        document.getElementById('selStuCard_' + CID).style.display = 'none';
+        document.getElementById('stuSelect_' + CID).parentElement.style.display = 'block';
+        document.getElementById('stuSelect_' + CID).value = '';
+    };
+
+    // ── Batch Multi-Enrollment Logic ──
+    window['addBatchChip_' + CID] = function() {
+        const sel = document.getElementById('<?= $selBatchId ?>');
+        const courseSel = document.getElementById('<?= $selCourseId ?>');
+        if (!sel.value) return;
+        
+        if (selectedBatches.some(b => b.id == sel.value)) return;
+        
+        const batchName = sel.options[sel.selectedIndex].text;
+        const courseName = courseSel.options[courseSel.selectedIndex].text;
+        
+        selectedBatches.push({ id: sel.value, name: batchName, course: courseName });
+        renderBatchChips();
+        sel.selectedIndex = 0;
+    };
+    
+    function renderBatchChips() {
+        const container = document.getElementById('batchChips_' + CID);
+        container.innerHTML = selectedBatches.map((b, idx) => `
+            <div class="chip">
+                <span>${b.course} › ${b.name}</span>
+                <i class="fas fa-times-circle" onclick="removeBatchChip_${CID}(${idx})"></i>
+            </div>
+        `).join('');
+    }
+    
+    window['removeBatchChip_' + CID] = function(idx) {
+        selectedBatches.splice(idx, 1);
+        renderBatchChips();
+    };
+
+    function escJsAdm(str) {
+        return (str || '').replace(/'/g, "\\'");
+    }
 
     // ── Course & Batch Loading ──
     const courseEl = document.getElementById('<?= $selCourseId ?>');
@@ -428,20 +625,35 @@ $scCardId    = 'scCard_' . $componentId;
         if (btn) btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing Admission...';
 
         const payload = {
-            full_name:              (form.full_name?.value     || '').trim(),
-            contact_number:         (form.contact_number?.value || '').trim(),
-            email:                  (form.email?.value          || '').trim(),
-            password:               form.password?.value        || '',
-            course_id:              form.course_id?.value       || null,
-            batch_id:               form.batch_id?.value        || null,
-            dob_bs:                 form.dob_bs?.value          || '',
-            gender:                 form.gender?.value          || '',
-            father_name:            (form.father_name?.value    || '').trim(),
-            permanent_address:      form.permanent_address?.value.trim()
+            student_id:             admissionMode === 'existing' ? (document.getElementById('valStuId_' + CID).value) : null,
+            full_name:              admissionMode === 'new' ? (form.full_name?.value     || '').trim() : null,
+            contact_number:         admissionMode === 'new' ? (form.contact_number?.value || '').trim() : null,
+            email:                  admissionMode === 'new' ? (form.email?.value          || '').trim() : null,
+            password:               admissionMode === 'new' ? (form.password?.value        || '') : null,
+            batch_ids:              selectedBatches.map(b => b.id),
+            batch_id:               selectedBatches.length > 0 ? selectedBatches[0].id : (form.batch_id?.value || null),
+            dob_bs:                 admissionMode === 'new' ? (form.dob_bs?.value          || '') : null,
+            gender:                 admissionMode === 'new' ? (form.gender?.value          || '') : null,
+            father_name:            admissionMode === 'new' ? (form.father_name?.value    || '').trim() : null,
+            permanent_address:      (admissionMode === 'new' && form.permanent_address?.value.trim())
                                     ? JSON.stringify({ address: form.permanent_address.value.trim() })
                                     : null,
             registration_status:    'fully_registered'
         };
+
+        if (payload.batch_ids.length === 0 && !payload.batch_id) {
+            Swal.fire('Selection Required', 'Please add at least one course/batch for enrollment.', 'warning');
+            if (btn) btn.disabled = false;
+            if (btn) btn.innerHTML = oldBtnHTML;
+            return;
+        }
+
+        if (admissionMode === 'existing' && !payload.student_id) {
+            Swal.fire('Selection Required', 'Please select an existing student.', 'warning');
+            if (btn) btn.disabled = false;
+            if (btn) btn.innerHTML = oldBtnHTML;
+            return;
+        }
 
         try {
             const res    = await fetch(API_ENDPOINT, {
@@ -463,8 +675,8 @@ $scCardId    = 'scCard_' . $componentId;
                         <div style="font-size:14px;"><span style="opacity:0.6;width:90px;display:inline-block;">Password:</span> <span style="font-family:monospace;background:#fff;padding:2px 8px;border-radius:6px;border:1px solid #ddd;">${escHtmlAdm(payload.password)}</span></div>
                     </div>`,
                     [
-                        { label: 'View Students', click: `window.location.href='${REDIRECT_URL}'`, style: 'background:linear-gradient(135deg,#00b894,#009e7e);color:#fff;' },
-                        { label: 'New Registration', click: `closeAdmModal_CID();document.getElementById('${form.id}').reset();initSelectsAdm_${CID}();`, style: 'background:#f1f5f9;color:#1e293b;box-shadow:none;' }
+                        { label: 'View Records', click: `window.location.href='${REDIRECT_URL}'`, style: 'background:linear-gradient(135deg,#00b894,#009e7e);color:#fff;' },
+                        { label: 'Add Another', click: `location.reload()`, style: 'background:#f1f5f9;color:#1e293b;box-shadow:none;' }
                     ]
                 );
             } else {

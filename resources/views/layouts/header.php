@@ -40,7 +40,7 @@ $roleCSS = $roleCSS ?? null;
     <?php endif; ?>
     <link rel="stylesheet" href="<?php echo APP_URL; ?>/public/assets/css/components.css">
     <link rel="stylesheet" href="<?php echo APP_URL; ?>/public/assets/css/utilities.css">
-    <link rel="stylesheet" href="<?php echo APP_URL; ?>/public/assets/css/pwa-install.css">
+
     
     <!-- Nexus Design System -->
     <link rel="stylesheet" href="<?php echo APP_URL; ?>/public/assets/css/ia-form-components.css">

@@ -236,37 +236,51 @@
 }
 
 /* Responsive adjustments */
+@media (max-width: 991px) {
+    .lp-left {
+        display: none;
+    }
+    .lp-right {
+        padding: 20px;
+    }
+}
+
 @media (max-width: 480px) {
-    .login-container {
-        padding: 10px;
+    .lp-right {
+        padding: 15px;
     }
-
-    .login-form {
-        padding: 24px 16px;
+    .lp-form-box {
+        padding: 0 5px;
     }
-
-    .login-title {
-        font-size: 1.5rem;
+    .lp-logo {
+        margin-bottom: 30px;
     }
-
-    .form-options {
+    .lt-top {
+        font-size: 26px;
+    }
+    .lp-title {
+        font-size: 28px;
+    }
+    .lp-options {
         flex-direction: column;
-        gap: 12px;
+        gap: 15px;
         align-items: flex-start;
+    }
+    .lp-btn {
+        width: 100%;
     }
 }
 
 /* Animation */
-.login-card {
-    animation: slideUp 0.5s ease-out;
+.lp-form-box {
+    animation: slideUp 0.6s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 @keyframes slideUp {
     from {
         opacity: 0;
-        transform: translateY(30px);
+        transform: translateY(20px);
     }
-
     to {
         opacity: 1;
         transform: translateY(0);

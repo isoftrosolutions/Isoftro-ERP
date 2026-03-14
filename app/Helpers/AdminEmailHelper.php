@@ -37,4 +37,13 @@ class AdminEmailHelper extends MailHelper
         $payload = array_merge($leaveData, ['template_key' => 'leave_request_status']);
         return self::processJob($db, $tenantId, 'admin_notice', $payload);
     }
+
+    /**
+     * Send staff welcome email (synchronous).
+     */
+    public static function sendStaffWelcome(\PDO $db, int $tenantId, array $staffData): bool
+    {
+        $payload = array_merge($staffData, ['template_key' => 'staff_welcome']);
+        return self::processJob($db, $tenantId, 'staff_welcome', $payload);
+    }
 }

@@ -79,31 +79,39 @@ function getExternalResources() {
     ];
 }
 
-function renderExternalStyles() {
-    foreach (getExternalResources() as $r) {
-        if ($r['type'] === 'stylesheet') {
-            echo '<link rel="stylesheet" href="' . $r['url'] . '">' . "\n";
+if (!function_exists('renderExternalStyles')) {
+    function renderExternalStyles() {
+        foreach (getExternalResources() as $r) {
+            if ($r['type'] === 'stylesheet') {
+                echo '<link rel="stylesheet" href="' . $r['url'] . '">' . "\n";
+            }
         }
     }
 }
 
-function renderExternalScripts() {
-    foreach (getExternalResources() as $r) {
-        if ($r['type'] === 'script') {
-            echo '<script src="' . $r['url'] . '"></script>' . "\n";
+if (!function_exists('renderExternalScripts')) {
+    function renderExternalScripts() {
+        foreach (getExternalResources() as $r) {
+            if ($r['type'] === 'script') {
+                echo '<script src="' . $r['url'] . '"></script>' . "\n";
+            }
         }
     }
 }
 
-function renderSuperAdminCSS() {
-    foreach (getSuperAdminCSS() as $name => $path) {
-        echo '<link rel="stylesheet" href="' . $path . '?v=' . SUPERADMIN_ASSETS_VERSION . '">' . "\n";
+if (!function_exists('renderSuperAdminCSS')) {
+    function renderSuperAdminCSS() {
+        foreach (getSuperAdminCSS() as $name => $path) {
+            echo '<link rel="stylesheet" href="' . $path . '?v=' . SUPERADMIN_ASSETS_VERSION . '">' . "\n";
+        }
     }
 }
 
-function renderSuperAdminJS() {
-    foreach (getSuperAdminJS() as $name => $path) {
-        echo '<script src="' . $path . '?v=' . SUPERADMIN_ASSETS_VERSION . '"></script>' . "\n";
+if (!function_exists('renderSuperAdminJS')) {
+    function renderSuperAdminJS() {
+        foreach (getSuperAdminJS() as $name => $path) {
+            echo '<script src="' . $path . '?v=' . SUPERADMIN_ASSETS_VERSION . '"></script>' . "\n";
+        }
     }
 }
 

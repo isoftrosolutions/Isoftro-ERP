@@ -61,6 +61,7 @@ function getIASidebarConfig() {
                     'permission' => 'courses.view',
                     'sub' => [
                         ['id' => 'courses',   'l' => 'Courses',           'icon' => 'fa-book-bookmark'],
+                        ['id' => 'course-categories',   'l' => 'Course Categories', 'icon' => 'fa-folder-tree'],
                         ['id' => 'batches',   'l' => 'Batches',           'icon' => 'fa-layer-group'],
                         ['id' => 'subjects',  'l' => 'Subjects',          'icon' => 'fa-book'],
                         ['id' => 'allocation','l' => 'Subject Allocation','icon' => 'fa-users-rectangle'],

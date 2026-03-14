@@ -13,6 +13,14 @@
   <?= \App\Helpers\CsrfHelper::csrfMetaTag() ?>
   <?php $BASE = defined('APP_URL') ? APP_URL : '/erp'; ?>
   <link rel="stylesheet" href="<?= $BASE ?>/public/assets/css/login.css">
+  
+  <!-- PWA Settings -->
+  <link rel="manifest" href="<?= $BASE ?>/public/manifest.json">
+  <meta name="theme-color" content="#006D44">
+  <link rel="apple-touch-icon" href="<?= $BASE ?>/public/assets/images/logo.png">
+  <link rel="icon" type="image/svg+xml" href="<?= $BASE ?>/public/assets/images/favicon.svg">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <style>
     :root {
       --green: #006D44;
@@ -56,15 +64,15 @@
     <div class="lp-left">
       <div class="lp-illus-wrap">
         <div style="text-align:center;">
-          <div style="width:320px;height:320px;margin:0 auto;background:linear-gradient(135deg,#006D44,#8CC63F);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 30px 60px rgba(0,109,68,0.25);">
-            <div style="text-align:center;color:#fff;">
-              <img src="<?= $BASE ?>/public/assets/images/logo.png" alt="Hamro Labs" style="width:120px; height:auto; margin-bottom:16px; filter: brightness(0) invert(1);">
-              <div style="font-size:28px;font-weight:800;letter-spacing:-0.5px;">Hamro Labs</div>
-              <div style="font-size:13px;font-weight:500;opacity:0.8;letter-spacing:2px;">ACADEMIC ERP</div>
+          <div style="width:min(320px, 80vw); height:min(320px, 80vw); margin:0 auto; background:linear-gradient(135deg,#006D44,#8CC63F); border-radius:50%; display:flex; align-items:center; justify-content:center; box-shadow:0 30px 60px rgba(0,109,68,0.25);">
+            <div style="text-align:center; color:#fff; padding: 20px;">
+              <img src="<?= $BASE ?>/public/assets/images/logo.png" alt="Hamro Labs" style="width:100%; max-width:120px; height:auto; margin-bottom:16px; filter: brightness(0) invert(1);">
+              <div style="font-size:clamp(18px, 4vw, 28px); font-weight:800; letter-spacing:-0.5px;">Hamro Labs</div>
+              <div style="font-size:11px; font-weight:500; opacity:0.8; letter-spacing:2px;">ACADEMIC ERP</div>
             </div>
           </div>
-          <p style="margin-top:40px;font-size:18px;font-weight:700;color:#004D30;">Manage Your Institute Smartly</p>
-          <p style="margin-top:8px;font-size:14px;color:#4A6355;max-width:360px;margin-left:auto;margin-right:auto;">Cloud-based academic management for schools, colleges, and coaching centers across Nepal.</p>
+          <p style="margin-top:40px; font-size:clamp(16px, 2vw, 18px); font-weight:700; color:#004D30; padding:0 20px;">Manage Your Institute Smartly</p>
+          <p style="margin-top:8px; font-size:14px; color:#4A6355; max-width:360px; margin-left:auto; margin-right:auto; padding:0 20px;">Cloud-based academic management for schools, colleges, and coaching centers across Nepal.</p>
         </div>
       </div>
     </div>
@@ -122,13 +130,102 @@
           </a>
         </div>
       </div>
+
+      <!-- PWA Install Banner -->
+      <div id="pwaInstallBanner" class="pwa-install-banner" style="display: none;">
+        <div class="pwa-content">
+          <div class="pwa-icon-box">
+            <img src="<?= $BASE ?>/public/assets/images/logo.png" alt="App Icon">
+          </div>
+          <div class="pwa-text">
+            <h3>Install Hamro ERP</h3>
+            <p>Install our app on your home screen for a faster, better experience.</p>
+          </div>
+          <button type="button" class="pwa-install-btn" onclick="triggerPwaInstall()">
+            Install Now
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 
+  <style>
+    /* PWA Install Banner Styling */
+    .pwa-install-banner {
+      margin-top: 24px;
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 10px 30px rgba(0, 109, 68, 0.1);
+      border: 1px solid rgba(0, 109, 68, 0.1);
+      animation: slideUp 0.5s ease-out;
+    }
+    .pwa-content {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .pwa-icon-box {
+      width: 48px;
+      height: 48px;
+      background: #F0FDF4;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .pwa-icon-box img {
+      width: 28px;
+      height: auto;
+    }
+    .pwa-text {
+      flex: 1;
+    }
+    .pwa-text h3 {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-dark);
+      margin-bottom: 2px;
+    }
+    .pwa-text p {
+      font-size: 12px;
+      color: var(--text-body);
+      line-height: 1.4;
+    }
+    .pwa-install-btn {
+      background: var(--green);
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .pwa-install-btn:hover {
+      background: var(--green-d);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 109, 68, 0.2);
+    }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @media (max-width: 480px) {
+      .pwa-content { flex-direction: column; text-align: center; }
+      .pwa-install-btn { width: 100%; }
+    }
+  </style>
+
   <script>
-  const APP_URL = '<?= $BASE ?>';
+  window.APP_URL = '<?= $BASE ?>';
+  const APP_URL = window.APP_URL;
   </script>
   <?= \App\Helpers\CsrfHelper::csrfJsHeader() ?>
+  <script src="<?= $BASE ?>/public/assets/js/pwa-handler.js"></script>
   <script src="<?= $BASE ?>/public/assets/js/login.js"></script>
 </body>
 </html>

@@ -126,17 +126,12 @@ try {
         // Fire-and-forget: queue login credentials email to the new staff member
         try {
             $roleLabel = $role === 'teacher' ? 'Teacher' : 'Front Desk Staff';
-            \App\Helpers\AdminEmailHelper::sendAnnouncement($db, (int)$tenantId, [
-                'email' => $email,
-                'name' => $name,
-                'subject' => "Your {$roleLabel} Account at " . ($_SESSION['userData']['institute_name'] ?? 'the Institute'),
-                'body' => MailHelper::buildStaffWelcomeHtml(
-                    $name,
-                    $roleLabel,
-                    $email,
-                    $password,
-                    (defined('APP_URL') ? APP_URL : 'http://localhost/erp') . '/login'
-                )
+            \App\Helpers\AdminEmailHelper::sendStaffWelcome($db, (int)$tenantId, [
+                'staff_email' => $email,
+                'staff_name' => $name,
+                'role_label' => $roleLabel,
+                'temp_password' => $password,
+                'login_url' => (defined('APP_URL') ? APP_URL : 'http://localhost/erp') . '/login'
             ]);
         } catch (\Throwable $mailErr) {
             error_log("[MailHelper] Staff credential email failed for {$email}: " . $mailErr->getMessage());

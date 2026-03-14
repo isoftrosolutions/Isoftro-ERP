@@ -14,7 +14,6 @@ const ASSETS_TO_CACHE = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      // Use map to catch individual failures if needed, but addAll is safer if all exist
       return cache.addAll(ASSETS_TO_CACHE);
     }).catch(err => {
         console.error('PWA Cache Install Error:', err);
@@ -39,10 +38,7 @@ self.addEventListener('activate', (event) => {
 
 // Fetch Event (Stale-While-Revalidate Strategy)
 self.addEventListener('fetch', (event) => {
-  // Only handle GET requests for caching
   if (event.request.method !== 'GET') return;
-  
-  // Skip caching for API calls to ensure fresh data
   if (event.request.url.includes('/api/')) return;
 
   event.respondWith(

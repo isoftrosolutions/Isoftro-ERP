@@ -1,1 +1,0 @@
-alter  the table tenants add institute_type (loksewa preparation/computer training/bridge course/tuition/)

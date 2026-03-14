@@ -56,8 +56,8 @@ try {
         }
         
         if (!empty($_GET['table_name'])) {
-            $whereClause .= " AND al.table_name = :table_name";
-            $params['table_name'] = $_GET['table_name'];
+            $whereClause .= " AND al.description LIKE :table_name";
+            $params['table_name'] = '%' . $_GET['table_name'] . '%';
         }
         
         if (!empty($_GET['user_id'])) {
@@ -139,8 +139,8 @@ try {
             }
             
             if (!empty($input['table_name'])) {
-                $whereClause .= " AND al.table_name = :table_name";
-                $params['table_name'] = $input['table_name'];
+                $whereClause .= " AND al.description LIKE :table_name";
+                $params['table_name'] = '%' . $input['table_name'] . '%';
             }
             
             if (!empty($input['date_from'])) {

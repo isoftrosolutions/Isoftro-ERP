@@ -42,10 +42,11 @@ try {
 
     if ($method === 'GET') {
         // List courses
-        $query = "SELECT c.*, 
+        $query = "SELECT c.*, cat.name as category_name,
                   (SELECT COUNT(*) FROM batches b WHERE b.course_id = c.id AND b.deleted_at IS NULL) as total_batches,
                   (SELECT COUNT(*) FROM students s JOIN enrollments e ON s.id = e.student_id AND e.status = 'active' JOIN batches b ON e.batch_id = b.id WHERE b.course_id = c.id AND s.deleted_at IS NULL) as total_students
                   FROM courses c 
+                  LEFT JOIN course_categories cat ON c.course_category_id = cat.id
                   WHERE c.tenant_id = :tid AND c.deleted_at IS NULL AND c.is_active = 1 AND c.status = 'active'";
         // ISSUE-C2 FIX: Filter by both is_active AND status for consistency
         
@@ -78,7 +79,7 @@ try {
 
         $name = $input['name'] ?? '';
         $code = $input['code'] ?? '';
-        $category = $input['category'] ?? 'general';
+        $course_category_id = $input['course_category_id'] ?? null;
         $fee = floatval($input['fee'] ?? 0);
 
         if (empty($name) || empty($code)) {
@@ -86,15 +87,15 @@ try {
         }
 
         $stmt = $db->prepare("
-            INSERT INTO courses (tenant_id, code, name, category, description, duration_weeks, seats, fee, is_active) 
-            VALUES (:tid, :code, :name, :category, :desc, :dur, :seats, :fee, 1)
+            INSERT INTO courses (tenant_id, code, name, course_category_id, description, duration_weeks, seats, fee, is_active) 
+            VALUES (:tid, :code, :name, :cat_id, :desc, :dur, :seats, :fee, 1)
         ");
 
         $stmt->execute([
             'tid' => $tenantId,
             'code' => $code,
             'name' => $name,
-            'category' => $category,
+            'cat_id' => $course_category_id,
             'desc' => $input['description'] ?? null,
             'dur' => $input['duration_weeks'] ?? null,
             'seats' => $input['seats'] ?? null,
@@ -135,7 +136,7 @@ try {
 
         $fields = [];
         $params = ['id' => $id, 'tid' => $tenantId];
-        $allowed = ['code', 'name', 'category', 'description', 'duration_weeks', 'seats', 'is_active', 'fee'];
+        $allowed = ['code', 'name', 'category', 'course_category_id', 'description', 'duration_weeks', 'seats', 'is_active', 'fee'];
 
         foreach ($allowed as $f) {
             if (isset($input[$f])) {

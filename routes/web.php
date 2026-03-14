@@ -123,12 +123,11 @@ Route::post('/auth/verify-otp', function () {
 
 // Logout
 Route::match(['get', 'post'], '/auth/logout', function () {
-    $_GET['api'] = 1;
-    $_POST['action'] = 'logout';
     require_once app_path('Http/Controllers/AuthController.php');
+    $auth = new \App\Http\Controllers\AuthController();
+    $auth->logout();
     
-    header('Location: ' . APP_URL . '/auth/login');
-    exit;
+    return redirect('/auth/login');
 });
 
 // Legacy logout redirect
@@ -283,6 +282,10 @@ Route::post('/api/admin/students/email', function() {
 
 Route::any('/api/admin/courses', function() {
     require_once app_path('Http/Controllers/Admin/courses.php');
+});
+
+Route::any('/api/admin/course-categories', function() {
+    require_once app_path('Http/Controllers/Admin/course_categories.php');
 });
 
 Route::any('/api/admin/batches', function() {

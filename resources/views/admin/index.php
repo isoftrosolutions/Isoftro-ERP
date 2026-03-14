@@ -22,7 +22,7 @@ include __DIR__ . '/layouts/sidebar.php';   // Side Navigation
 
 <!-- Custom Scripts — Modular IA v3.1 -->
 <?php $v = time(); ?>
-<script src="<?php echo APP_URL; ?>/public/assets/js/pwa-handler.js?v=<?php echo $v; ?>"></script>
+
 <script src="<?php echo APP_URL; ?>/public/assets/js/nepal-data.js?v=<?php echo $v; ?>"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 

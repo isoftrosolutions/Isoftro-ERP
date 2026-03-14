@@ -414,3 +414,16 @@ if (APP_ENV === 'development') {
 
 // Start output buffering
 if (ob_get_level() == 0) ob_start();
+
+// UI Rendering Fallbacks (for roles/pages that call these without including super-admin header)
+if (!function_exists('renderSuperAdminCSS')) {
+    function renderSuperAdminCSS() {
+        // Fallback: core styles are typically already loaded by layouts/header.php
+    }
+}
+
+if (!function_exists('renderExternalScripts')) {
+    function renderExternalScripts() {
+        // Fallback: common scripts like SweetAlert2 are typically already loaded
+    }
+}

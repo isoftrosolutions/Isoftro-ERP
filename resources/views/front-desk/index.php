@@ -9,7 +9,7 @@ if (!defined('APP_NAME')) {
 }
 
 $pageTitle = 'Front Desk Dashboard';
-require_once VIEWS_PATH . '/layouts/header_1.php';
+include VIEWS_PATH . '/layouts/header.php';
 require_once __DIR__ . '/sidebar.php';
 
 // Render base layout
@@ -59,10 +59,6 @@ renderFrontDeskSidebar('index');
 }
 .pg-loading i { font-size: 32px; color: var(--green); }
 </style>
-<?php
-// Include necessary CSS/JS from layout
-renderSuperAdminCSS();
-renderExternalScripts();
 ?>
 </body>
 </html>

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Hamro ERP — ia-academic.js
  * Courses & Batches: List, Add, Edit, Delete
  */
@@ -28,7 +28,7 @@ async function _loadCourses() {
             html += `<tr>
                 <td><span style="font-weight:700">${c2.code}</span></td>
                 <td><div style="font-weight:600">${c2.name}</div></td>
-                <td><span class="tag bg-b">${c2.category.toUpperCase()}</span></td>
+                <td><span class="tag bg-b">${(c2.category_name || c2.category || 'General').toUpperCase()}</span></td>
                 <td><span style="font-weight:600;color:var(--primary)">RS ${parseFloat(c2.fee||0).toLocaleString()}</span></td>
                 <td>${c2.total_batches||0}</td><td>${c2.total_students||0}</td>
                 <td style="text-align:right;white-space:nowrap">
@@ -53,7 +53,7 @@ window.renderAddCourseForm = function() {
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
                     <div class="form-group"><label class="form-label">Course Name *</label><input type="text" name="name" class="form-control" required placeholder="e.g. Civil Engineering License"></div>
                     <div class="form-group"><label class="form-label">Course Code *</label><input type="text" name="code" class="form-control" required placeholder="e.g. CEL-2081"></div>
-                    <div class="form-group"><label class="form-label">Category</label><select name="category" class="form-control"><option value="general">General</option><option value="loksewa">Loksewa</option><option value="health">Health</option><option value="banking">Banking</option><option value="tsc">TSC</option><option value="engineering">Engineering</option></select></div>
+                    <div class="form-group"><label class="form-label">Category *</label><select name="course_category_id" id="courseCategorySelect" class="form-control" required><option value="">Loading...</option></select></div>
                     <div class="form-group"><label class="form-label">Course Fee (RS) *</label><input type="number" name="fee" class="form-control" required placeholder="5000"></div>
                     <div class="form-group"><label class="form-label">Duration (Weeks)</label><input type="number" name="duration_weeks" class="form-control" placeholder="12"></div>
                     <div class="form-group"><label class="form-label">Total Seats</label><input type="number" name="seats" class="form-control" placeholder="100"></div>
@@ -66,6 +66,7 @@ window.renderAddCourseForm = function() {
             </form>
         </div>
     </div>`;
+    _populateCategories('courseCategorySelect');
     document.getElementById('courseAddForm').onsubmit = e => _submitCourseForm(e,'POST');
 };
 
@@ -80,7 +81,7 @@ window.renderEditCourseForm = async function(id) {
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
                     <div class="form-group"><label class="form-label">Course Name *</label><input type="text" name="name" id="editCourseName" class="form-control" required></div>
                     <div class="form-group"><label class="form-label">Course Code *</label><input type="text" name="code" id="editCourseCode" class="form-control" required></div>
-                    <div class="form-group"><label class="form-label">Category</label><select name="category" id="editCourseCategory" class="form-control"><option value="general">General</option><option value="loksewa">Loksewa</option><option value="health">Health</option><option value="banking">Banking</option><option value="tsc">TSC</option><option value="engineering">Engineering</option></select></div>
+                    <div class="form-group"><label class="form-label">Category *</label><select name="course_category_id" id="editCourseCategory" class="form-control" required><option value="">Loading...</option></select></div>
                     <div class="form-group"><label class="form-label">Course Fee (RS) *</label><input type="number" name="fee" id="editCourseFee" class="form-control" required></div>
                     <div class="form-group"><label class="form-label">Duration (Weeks)</label><input type="number" name="duration_weeks" id="editCourseDur" class="form-control"></div>
                     <div class="form-group"><label class="form-label">Total Seats</label><input type="number" name="seats" id="editCourseSeats" class="form-control"></div>
@@ -106,7 +107,7 @@ async function _loadCourseData(id) {
             const c = data.data[0];
             document.getElementById('editCourseName').value = c.name;
             document.getElementById('editCourseCode').value = c.code;
-            document.getElementById('editCourseCategory').value = c.category;
+            _populateCategories('editCourseCategory', c.course_category_id);
             document.getElementById('editCourseFee').value = c.fee||0;
             document.getElementById('editCourseDur').value = c.duration_weeks||'';
             document.getElementById('editCourseSeats').value = c.seats||'';
@@ -291,4 +292,160 @@ async function _populateCourses(selectId) {
         const data = await res.json();
         if (data.success) data.data.forEach(c => { const o=document.createElement('option'); o.value=c.id; o.textContent=`${c.name} (${c.code})`; sel.appendChild(o); });
     } catch(e) { console.error('Failed to load courses',e); }
+}
+
+/* ══════════════ COURSE CATEGORIES ══════════════════════════ */
+window.renderCourseCategoryList = async function() {
+    const mc = document.getElementById('mainContent');
+    mc.innerHTML = `<div class="pg fu">
+        <div class="bc"><a href="#" onclick="goNav('overview')">Dashboard</a> <span class="bc-sep">&rsaquo;</span> <span class="bc-cur">Course Categories</span></div>
+        <div class="pg-head">
+            <div class="pg-left"><div class="pg-ico"><i class="fa-solid fa-folder-tree"></i></div><div><div class="pg-title">Course Categories</div><div class="pg-sub">Manage dynamic categories for your programs</div></div></div>
+            <div class="pg-acts"><button class="btn bt" onclick="openCategoryModal()"><i class="fa-solid fa-plus"></i> Add Category</button></div>
+        </div>
+        <div class="card" id="categoryListContainer"><div class="pg-loading"><i class="fa-solid fa-circle-notch fa-spin"></i><span>Loading categories...</span></div></div>
+    </div>
+    
+    <!-- Modal for Add/Edit Category -->
+    <div id="categoryModal" class="modal-root">
+        <div class="modal-card" style="max-width:500px;">
+            <div class="modal-head">
+                <h2 id="catModalTitle">Add New Category</h2>
+                <button class="modal-close" onclick="closeCatModal()">&times;</button>
+            </div>
+            <form id="categoryForm">
+                <input type="hidden" name="id" id="cat_id">
+                <div class="modal-body">
+                    <div class="form-group mb-3">
+                        <label class="form-label">Category Name *</label>
+                        <input type="text" name="name" id="cat_name" class="form-control" required placeholder="e.g. Web Development">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Description</label>
+                        <textarea name="description" id="cat_desc" class="form-control" rows="3" placeholder="Optional description..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-foot">
+                    <button type="button" class="btn bs" onclick="closeCatModal()">Cancel</button>
+                    <button type="submit" class="btn bt" id="catSaveBtn">Save Category</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <style>
+        .modal-root { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 2000; visibility: hidden; opacity: 0; transition: 0.3s; }
+        .modal-root.active { visibility: visible; opacity: 1; }
+        .modal-card { background: #fff; width: 100%; border-radius: 20px; overflow: hidden; transform: translateY(20px); transition: 0.3s; }
+        .modal-root.active .modal-card { transform: translateY(0); }
+    </style>
+    `;
+    
+    document.getElementById('categoryForm').onsubmit = _submitCategoryForm;
+    await _loadCourseCategories();
+};
+
+async function _loadCourseCategories() {
+    const c = document.getElementById('categoryListContainer'); if (!c) return;
+    try {
+        const res = await fetch(APP_URL + '/api/admin/course-categories');
+        const result = await res.json();
+        if (!result.success) throw new Error(result.message);
+        
+        let html = `<div class="table-responsive"><table class="table"><thead><tr><th>Name</th><th>Slug</th><th>Description</th><th style="text-align:right">Actions</th></tr></thead><tbody>`;
+        result.data.forEach(cat => {
+            html += `<tr>
+                <td><div style="font-weight:700">${cat.name}</div></td>
+                <td><code>${cat.slug}</code></td>
+                <td><span style="font-size:12px;color:var(--tl);">${cat.description || '-'}</span></td>
+                <td style="text-align:right;">
+                    <button class="btn-icon" onclick='openCategoryModal(${JSON.stringify(cat).replace(/'/g, "&#39;")})'><i class="fa-solid fa-pen"></i></button>
+                    <button class="btn-icon text-danger" onclick="deleteCategory(${cat.id}, '${cat.name.replace(/'/g,"\\'")}')"><i class="fa-solid fa-trash"></i></button>
+                </td>
+            </tr>`;
+        });
+        html += `</tbody></table></div>`;
+        c.innerHTML = html;
+    } catch(e) { c.innerHTML = `<div class="pg-error">${e.message}</div>`; }
+}
+
+window.openCategoryModal = function(cat = null) {
+    const modal = document.getElementById('categoryModal');
+    const form = document.getElementById('categoryForm');
+    form.reset();
+    if (cat) {
+        document.getElementById('cat_id').value = cat.id;
+        document.getElementById('cat_name').value = cat.name;
+        document.getElementById('cat_desc').value = cat.description || '';
+        document.getElementById('catModalTitle').textContent = 'Edit Category';
+    } else {
+        document.getElementById('cat_id').value = '';
+        document.getElementById('catModalTitle').textContent = 'Add New Category';
+    }
+    modal.classList.add('active');
+};
+
+window.closeCatModal = function() {
+    document.getElementById('categoryModal').classList.remove('active');
+};
+
+async function _submitCategoryForm(e) {
+    e.preventDefault();
+    const btn = document.getElementById('catSaveBtn');
+    const id = document.getElementById('cat_id').value;
+    const formData = Object.fromEntries(new FormData(e.target).entries());
+    
+    btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Saving...';
+    const method = id ? 'PUT' : 'POST';
+    
+    try {
+        const res = await fetch(APP_URL + '/api/admin/course-categories', {
+            method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
+        });
+        const result = await res.json();
+        if (result.success) {
+            Swal.fire('Success', result.message, 'success');
+            closeCatModal();
+            _loadCourseCategories();
+        } else throw new Error(result.message);
+    } catch(err) { Swal.fire('Error', err.message, 'error'); }
+    finally { btn.disabled = false; btn.innerHTML = 'Save Category'; }
+}
+
+window.deleteCategory = async function(id, name) {
+    const r = await Swal.fire({ title: 'Delete Category?', text: `Delete "${name}"? Only categories not linked to courses can be deleted.`, icon: 'warning', showCancelButton: true, confirmButtonColor: '#e74c3c' });
+    if (!r.isConfirmed) return;
+    
+    try {
+        const res = await fetch(APP_URL + '/api/admin/course-categories', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id })
+        });
+        const result = await res.json();
+        if (result.success) {
+            Swal.fire('Deleted!', result.message, 'success');
+            _loadCourseCategories();
+        } else throw new Error(result.message);
+    } catch(err) { Swal.fire('Error', err.message, 'error'); }
+};
+
+async function _populateCategories(selectId, selectedId = null) {
+    const sel = document.getElementById(selectId); if (!sel) return;
+    try {
+        const res = await fetch(APP_URL + '/api/admin/course-categories');
+        const data = await res.json();
+        if (data.success) {
+            sel.innerHTML = '<option value="">Select Category</option>';
+            data.data.forEach(c => {
+                const o = document.createElement('option');
+                o.value = c.id;
+                o.textContent = c.name;
+                if (selectedId && c.id == selectedId) o.selected = true;
+                sel.appendChild(o);
+            });
+        }
+    } catch(e) { console.error('Failed to load categories', e); }
 }

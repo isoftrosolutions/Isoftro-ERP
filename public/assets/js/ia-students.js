@@ -456,9 +456,9 @@ window.loadAlumni = async (page) => {
         document.getElementById('paginationBar').style.display = 'flex';
 
         tbody.innerHTML = students.map(s => {
-            const safeName = (u.name || '').replace(/'/g, "\\'");
+            const safeName = (s.full_name || '').replace(/'/g, "\\'");
             const photoUrl = s.photo_url || '';
-            const initials = (u.name || 'S').charAt(0).toUpperCase();
+            const initials = (s.full_name || 'S').charAt(0).toUpperCase();
             const photoHtml = photoUrl 
                 ? `<img src="${photoUrl}" class="std-img" alt="${safeName}">`
                 : `<div class="std-img initials">${initials}</div>`;
@@ -469,7 +469,7 @@ window.loadAlumni = async (page) => {
                         <div class="std-card">
                             ${photoHtml}
                             <div class="std-info">
-                                <div class="name">${u.name || '-'}</div>
+                                <div class="name">${s.full_name || '-'}</div>
                                 <div class="id">ID: ${s.student_id || s.roll_no || '-'}</div>
                             </div>
                         </div>
@@ -481,8 +481,8 @@ window.loadAlumni = async (page) => {
                         </div>
                     </td>
                     <td>
-                        <div style="font-size: 13px; font-weight: 600; color: #1e293b;">${u.phone || '-'}</div>
-                        <div style="font-size: 11px; color: #64748b;">${u.email || '-'}</div>
+                        <div style="font-size: 13px; font-weight: 600; color: #1e293b;">${s.phone || '-'}</div>
+                        <div style="font-size: 11px; color: #64748b;">${s.email || '-'}</div>
                     </td>
                     <td>
                         <div style="font-size: 13px; font-weight: 700; color: #0f172a;">
@@ -598,12 +598,41 @@ window.renderAddStudentForm = async () => {
             <div class="pg-head">
                 <div class="pg-left">
                     <div class="pg-ico"><i class="fa-solid fa-user-plus"></i></div>
-                    <div>
-                        <div class="pg-title">New Admission</div>
-                        <div class="pg-sub">Register a new student into the system</div>
-                    </div>
+                </div>
+                <div class="pg-acts" id="admissionModeToggle" style="display:flex; gap:10px;">
+                    <button class="btn bt" onclick="setAdmissionMode('new')" id="btnNewMode" style="background:var(--primary); color:#fff; border:none;">New Student</button>
+                    <button class="btn bt" onclick="setAdmissionMode('existing')" id="btnExistingMode">Existing Student</button>
                 </div>
             </div>
+
+            <!-- Existing Student Search row -->
+            <div id="existingSearchRow" class="card" style="display:none; margin: 0 auto 30px; max-width:1000px; padding:20px; border:2px solid var(--primary);">
+                <div class="form-group">
+                    <label class="form-label">Select Student *</label>
+                    <select id="stuSelectDropdown" class="form-control" onchange="window._onStudentSelectChange(this.value)">
+                        <option value="">Select Student...</option>
+                    </select>
+                </div>
+                <div id="selectedStuInfo" style="display:none; margin-top:15px; padding:12px; background:#f8fafc; border-radius:10px; align-items:center; gap:15px; border:1px solid #e2e8f0;">
+                    <div style="width:45px; height:45px; background:#e2e8f0; border-radius:8px; display:flex; align-items:center; justify-content:center; overflow:hidden;">
+                        <img id="selStuImg" src="" style="width:100%; height:100%; object-fit:cover; display:none;">
+                        <i id="selStuIcon" class="fa-solid fa-user" style="color:#94a3b8;"></i>
+                    </div>
+                    <div style="flex:1;">
+                        <div id="selStuName" style="font-weight:700; color:#1e293b;">-</div>
+                        <div id="selStuDetail" style="font-size:12px; color:#64748b;">-</div>
+                    </div>
+                    <input type="hidden" name="existing_student_id" id="valExistingStuId">
+                </div>
+            </div>
+
+            <style>
+                .search-item { padding:12px 15px; cursor:pointer; display:flex; gap:12px; align-items:center; border-bottom:1px solid #f1f5f9; }
+                .search-item:hover { background:#f8fafc; }
+                .chip-container { display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
+                .batch-chip { background:var(--primary); color:#fff; padding:5px 12px; border-radius:20px; font-size:12px; font-weight:600; display:flex; align-items:center; gap:8px; }
+                .batch-chip i { cursor:pointer; }
+            </style>
 
             <div class="card fu" style="max-width:1000px; margin:0 auto; padding:30px;">
                 <form id="studentAddForm" enctype="multipart/form-data">
@@ -621,9 +650,9 @@ window.renderAddStudentForm = async () => {
                             <p style="font-size:10px; color:#64748b; margin-top:6px;">JPG, PNG max 2MB</p>
                         </div>
 
-                        <div style="flex-grow:1;">
+                        <div style="flex-grow:1;" id="studentFormSections">
                             <!-- Section: Personal Information -->
-                            <div class="form-section">
+                            <div id="sectionPersonal" class="form-section">
                                 <h4 style="margin-bottom:20px; color:var(--primary); display:flex; align-items:center;">
                                     <i class="fa-solid fa-user" style="margin-right:10px;"></i> Personal Information
                                 </h4>
@@ -687,33 +716,44 @@ window.renderAddStudentForm = async () => {
                                 </div>
                             </div>
                         </div>
-                    <!-- Section: Academic Details -->
-                    <div class="form-section" style="margin-top:30px;">
-                        <h4 style="margin-bottom:20px; color:var(--primary); display:flex; align-items:center;">
-                            <i class="fa-solid fa-graduation-cap" style="margin-right:10px;"></i> Academic Selection
-                        </h4>
-                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
-                            <div class="form-group">
-                                <label class="form-label">Course *</label>
-                                <select name="course_id" id="std_course_select" class="form-control" required onchange="window._loadBatchesForForm(this.value)">
-                                    <option value="">Select Course</option>
-                                </select>
+                            <!-- Section: Academic Selection -->
+                            <div class="form-section" style="margin-top:30px;">
+                                <h4 style="margin-bottom:20px; color:var(--primary); display:flex; align-items:center;">
+                                    <i class="fa-solid fa-graduation-cap" style="margin-right:10px;"></i> Academic Placement
+                                </h4>
+                                <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+                                    <div class="form-group">
+                                        <label class="form-label">Course *</label>
+                                        <select id="std_course_select" class="form-control" onchange="window._loadBatchesForForm(this.value, 'std_batch_select')">
+                                            <option value="">Select Course</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Batch *</label>
+                                        <div style="display:flex; gap:10px;">
+                                            <select id="std_batch_select" class="form-control" disabled style="flex:1;">
+                                                <option value="">Select Course First</option>
+                                            </select>
+                                            <button type="button" class="btn bs" onclick="_addBatchEnrollment()" style="padding:0 15px;"><i class="fa-solid fa-plus"></i></button>
+                                        </div>
+                                        <div id="batchEnrollmentsContainer" class="chip-container"></div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Admission Date</label>
+                                        <input type="date" name="admission_date" class="form-control" value="${new Date().toISOString().split('T')[0]}">
+                                    </div>
+                                    <div id="loginPasswordGroup" class="form-group">
+                                        <label class="form-label">Password (Login)</label>
+                                        <input type="text" name="password" class="form-control" value="Student@123">
+                                        <small style="color:#64748b;">Default is Student@123. Credentials will be emailed.</small>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="form-group">
-                                <label class="form-label">Batch *</label>
-                                <select name="batch_id" id="std_batch_select" class="form-control" required disabled>
-                                    <option value="">Select Course First</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Admission Date</label>
-                                <input type="date" name="admission_date" class="form-control" value="${new Date().toISOString().split('T')[0]}">
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Password (Login)</label>
-                                <input type="text" name="password" class="form-control" value="Student@123">
-                                <small style="color:#64748b;">Default is Student@123. Credentials will be emailed.</small>
-                            </div>
+                        </div>
+
+                        <div id="extraSections">
+                            <!-- Other sections like identity/address could go here -->
+                        </div>
                         </div>
                     </div>
 
@@ -782,6 +822,148 @@ window.renderAddStudentForm = async () => {
     }
     
     document.getElementById('studentAddForm').onsubmit = (e) => _submitStudentForm(e, 'POST');
+
+    // Prompt user for mode immediately
+    if (typeof Swal !== 'undefined') {
+        Swal.fire({
+            title: 'Choose Admission Type',
+            text: 'Would you like to register a NEW student or add enrollment for an EXISTING one?',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'New Student',
+            cancelButtonText: 'Existing Student',
+            confirmButtonColor: '#009E7E',
+            cancelButtonColor: '#6C5CE7',
+            reverseButtons: true
+        }).then((result) => {
+            if (result.dismiss === Swal.DismissReason.cancel) {
+                window.setAdmissionMode('existing');
+            } else {
+                window.setAdmissionMode('new');
+            }
+        });
+    }
+
+    // ── Internal Helpers for the Form ──
+    window.currentAdmissionMode = 'new';
+    window.selectedAdmissionBatches = [];
+
+    window.setAdmissionMode = (mode) => {
+        window.currentAdmissionMode = mode;
+        const form = document.getElementById('studentAddForm');
+        const personalSec = document.getElementById('sectionPersonal');
+        // const extraSecs = document.getElementById('extraSections'); // Might be empty/non-existent now
+        const searchRow = document.getElementById('existingSearchRow');
+        const passGrp = document.getElementById('loginPasswordGroup');
+        const btnNew = document.getElementById('btnNewMode');
+        const btnExt = document.getElementById('btnExistingMode');
+
+        if (mode === 'existing') {
+            searchRow.style.display = 'block';
+            personalSec.style.display = 'none';
+            if (passGrp) passGrp.style.display = 'none';
+            btnExt.style.background = 'var(--primary)'; btnExt.style.color = '#fff'; btnExt.style.border = 'none';
+            btnNew.style.background = '#fff'; btnNew.style.color = '#374151'; btnNew.style.border = '1px solid #e2e8f0';
+            // Disable required
+            form.querySelectorAll('[required]').forEach(el => { el.dataset.wasRequired = 'true'; el.removeAttribute('required'); });
+            
+            // Populate students dropdown
+            window._populateStudentsDropdown();
+        } else {
+            searchRow.style.display = 'none';
+            personalSec.style.display = 'block';
+            if (passGrp) passGrp.style.display = 'block';
+            btnNew.style.background = 'var(--primary)'; btnNew.style.color = '#fff'; btnNew.style.border = 'none';
+            btnExt.style.background = '#fff'; btnExt.style.color = '#374151'; btnExt.style.border = '1px solid #e2e8f0';
+            // Re-enable required
+            form.querySelectorAll('[data-was-required="true"]').forEach(el => { el.setAttribute('required', ''); });
+        }
+    };
+
+    window._addBatchEnrollment = () => {
+        const batchSel = document.getElementById('std_batch_select');
+        const courseSel = document.getElementById('std_course_select');
+        if (!batchSel.value) return;
+        if (window.selectedAdmissionBatches.find(b => b.id == batchSel.value)) return;
+
+        const batchName = batchSel.options[batchSel.selectedIndex].text;
+        const courseName = courseSel.options[courseSel.selectedIndex].text;
+        window.selectedAdmissionBatches.push({ id: batchSel.value, name: batchName, course: courseName });
+        
+        renderBatchChips();
+        batchSel.selectedIndex = 0;
+    };
+
+    window._populateStudentsDropdown = async () => {
+        const sel = document.getElementById('stuSelectDropdown');
+        if (!sel) return;
+        sel.innerHTML = '<option value="">Loading students...</option>';
+        try {
+            const res = await fetch(`${window.APP_URL}/api/admin/students?per_page=1000`);
+            const result = await res.json();
+            if (result.success && result.data) {
+                window._allStudentsData = result.data; // Cache for details
+                sel.innerHTML = '<option value="">-- Choose Student --</option>' + 
+                    result.data.map(s => `<option value="${s.id}">${s.full_name} (${s.roll_no || 'No Roll'})</option>`).join('');
+            } else {
+                sel.innerHTML = '<option value="">Failed to load students</option>';
+            }
+        } catch (e) {
+            console.error(e);
+            sel.innerHTML = '<option value="">Error loading students</option>';
+        }
+    };
+
+    window._onStudentSelectChange = (id) => {
+        const studentIdVal = document.getElementById('valExistingStuId');
+        const info = document.getElementById('selectedStuInfo');
+        if (!id) {
+            studentIdVal.value = '';
+            info.style.display = 'none';
+            return;
+        }
+
+        const s = window._allStudentsData.find(stu => stu.id == id);
+        if (s) {
+            studentIdVal.value = s.id;
+            document.getElementById('selStuName').innerText = s.full_name;
+            document.getElementById('selStuDetail').innerText = s.roll_no || 'Existing Student';
+            info.style.display = 'flex';
+            
+            const imgEl = document.getElementById('selStuImg');
+            const iconEl = document.getElementById('selStuIcon');
+            if (s.photo_url) {
+                imgEl.src = s.photo_url;
+                imgEl.style.display = 'block';
+                iconEl.style.display = 'none';
+            } else {
+                imgEl.style.display = 'none';
+                iconEl.style.display = 'block';
+            }
+        }
+    };
+
+    window._selectStuForAdmission = (id, name, roll, photo) => {
+        // Keep for compatibility if needed, but primarily use dropdown now
+        document.getElementById('stuSelectDropdown').value = id;
+        window._onStudentSelectChange(id);
+    };
+    
+    function renderBatchChips() {
+        const container = document.getElementById('batchEnrollmentsContainer');
+        if (!container) return;
+        container.innerHTML = window.selectedAdmissionBatches.map((b, i) => `
+            <div class="batch-chip">
+                <span>${b.course} › ${b.name}</span>
+                <i class="fa-solid fa-circle-xmark" onclick="_removeBatchEnrollment(${i})"></i>
+            </div>
+        `).join('');
+    }
+
+    window._removeBatchEnrollment = (i) => {
+        window.selectedAdmissionBatches.splice(i, 1);
+        renderBatchChips();
+    };
 };
 
 /* ── RENDER EDIT STUDENT FORM ──────────────────────────────────── */
@@ -1124,9 +1306,9 @@ async function _loadStudentDataForEdit(id) {
             const s = result.data;
             
             // Basic Info
-            document.getElementById('edit_std_name').value = u.name || '';
-            document.getElementById('edit_std_phone').value = u.phone || '';
-            document.getElementById('edit_std_email').value = u.email || '';
+            document.getElementById('edit_std_name').value = s.full_name || '';
+            document.getElementById('edit_std_phone').value = s.phone || '';
+            document.getElementById('edit_std_email').value = s.email || '';
             document.getElementById('edit_std_roll').value = s.roll_no || '';
             document.getElementById('edit_std_status').value = s.status || 'active';
             
@@ -1403,6 +1585,17 @@ async function _submitStudentForm(e, method) {
         formData.append('_method', method);
     }
 
+    // ── Payload Modification for Existing Student and Multiple Batches ──
+    const studentId = formData.get('existing_student_id');
+    
+    if (window.selectedAdmissionBatches && window.selectedAdmissionBatches.length > 0) {
+        window.selectedAdmissionBatches.forEach(b => formData.append('batch_ids[]', b.id));
+    }
+
+    if (studentId) {
+        formData.set('student_id', studentId);
+    }
+
     try {
         // We always use POST if files might be involved, or ensure headers are correct.
         // PHP only parses multipart/form-data for POST requests natively.
@@ -1486,7 +1679,7 @@ window.loadStudents = async (page) => {
 
         tbody.innerHTML = students.map(s => {
             const isSelected = _StudentState.selectedIds.has(s.id);
-            const safeName = (u.name || '').replace(/'/g, "\\'");
+            const safeName = (s.full_name || '').replace(/'/g, "\\'");
             
             // Premium Fee Pill
             const feeStatus = s.fee_status || 'no_fees';
@@ -1517,9 +1710,9 @@ window.loadStudents = async (page) => {
               </td>
               <td>
                 <div class="premium-s-info">
-                  <div class="s-av ${getAvatarColor(s.id)}">${initials(u.name)}</div>
+                  <div class="s-av ${getAvatarColor(s.id)}">${initials(s.full_name)}</div>
                   <div class="s-details">
-                    <div class="s-name">${u.name || 'N/A'}</div>
+                    <div class="s-name">${s.full_name || 'N/A'}</div>
                     <div class="s-meta">${s.roll_no || 'No roll'} &bull; ${gender}</div>
                   </div>
                 </div>
@@ -1545,7 +1738,7 @@ window.loadStudents = async (page) => {
                   <button class="act-btn act-pay btn btn-sm btn-warning" title="Collect Fee" onclick="window.renderQuickPayment(${s.id})">
                     <i class="fa-solid fa-hand-holding-dollar"></i>
                   </button>
-                  <button class="act-btn act-email btn btn-sm btn-info" title="Send Email" onclick="sendEmailToStudent(${s.id}, '${safeName}', '${u.email || ''}')">
+                  <button class="act-btn act-email btn btn-sm btn-info" title="Send Email" onclick="sendEmailToStudent(${s.id}, '${safeName}', '${s.email || ''}')">
                     <i class="fa-solid fa-envelope"></i>
                   </button>
                   <button class="act-btn act-delete btn btn-sm btn-danger" title="Delete Student" onclick="deleteStudent(${s.id}, '${safeName}')">
@@ -1893,7 +2086,7 @@ window.renderStudentProfile = async (id, activeTab = 'personal') => {
 
         const s = result.data;
         const photoSrc = s.photo_url ? (s.photo_url.startsWith('http') ? s.photo_url : window.APP_URL + s.photo_url) : null;
-        const initials = u.name ? u.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2) : 'ST';
+        const initials = s.name ? s.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2) : 'ST';
 
         const statusCls = s.status === 'active' ? 'sp-status-active' : 'sp-status-inactive';
         const statusIcon = s.status === 'active' ? 'fa-circle' : 'fa-circle-xmark';
@@ -1956,14 +2149,14 @@ window.renderStudentProfile = async (id, activeTab = 'personal') => {
                                     <div class="sp-meta-icon teal"><i class="fas fa-envelope"></i></div>
                                     <div class="sp-meta-content">
                                         <span class="sp-meta-label">Email</span>
-                                        <span class="sp-meta-value">${u.email || 'N/A'}</span>
+                                        <span class="sp-meta-value">${s.email || 'N/A'}</span>
                                     </div>
                                 </div>
                                 <div class="sp-meta-item">
                                     <div class="sp-meta-icon blue"><i class="fas fa-phone"></i></div>
                                     <div class="sp-meta-content">
                                         <span class="sp-meta-label">Contact</span>
-                                        <span class="sp-meta-value">${u.phone || 'N/A'}</span>
+                                        <span class="sp-meta-value">${s.phone || 'N/A'}</span>
                                     </div>
                                 </div>
                                 <div class="sp-meta-item">
@@ -2088,7 +2281,7 @@ function _spPersonalTab(s) {
     return `
         ${_spSectionTitle('fa-user-circle', 'Personal Information')}
         <div class="sp-info-grid">
-            ${_spInfoCard('fa-user',        'Full Name',      u.name)}
+            ${_spInfoCard('fa-user',        'Full Name',      s.name)}
             ${_spInfoCard('fa-male',        "Father's Name",  s.father_name)}
             ${_spInfoCard('fa-id-card',     'Citizenship No.',s.citizenship_no)}
             ${_spInfoCard('fa-fingerprint', 'National ID',    s.national_id)}
@@ -2573,7 +2766,7 @@ window.renderCompleteProfileForm = async (id) => {
                                     </div>
                                     <div class="form-group">
                                         <label class="form-label">Phone <span class="required">*</span></label>
-                                        <input type="text" name="phone" class="form-control" value="${u.phone || s.contact_number || ''}" required>
+                                        <input type="text" name="phone" class="form-control" value="${s.phone || ''}" required>
                                     </div>
                                 </div>
 

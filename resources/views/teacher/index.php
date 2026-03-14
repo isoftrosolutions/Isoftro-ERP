@@ -82,7 +82,7 @@ include VIEWS_PATH . '/layouts/header.php';
 
     </div>
     <!-- Custom Scripts -->
-    <script src="<?php echo APP_URL; ?>/public/assets/js/pwa-handler.js"></script>
+
     <script src="<?php echo APP_URL; ?>/public/assets/js/ia-study-materials.js"></script>
     <script src="<?php echo APP_URL; ?>/public/assets/js/ia-qbank.js"></script>
     <script src="<?php echo APP_URL; ?>/public/assets/js/ia-lms.js"></script>

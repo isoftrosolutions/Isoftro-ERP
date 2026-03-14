@@ -46,7 +46,7 @@ function renderInlineConfig() {
     <?php renderExternalScripts(); ?>
 
     <!-- App JS -->
-    <script src="<?php echo SUPERADMIN_JS_PATH; ?>/pwa-handler.js?v=<?php echo SUPERADMIN_ASSETS_VERSION; ?>"></script>
+
     <script src="<?php echo SUPERADMIN_JS_PATH; ?>/breadcrumb.js?v=<?php echo SUPERADMIN_ASSETS_VERSION; ?>"></script>
 
     <?php renderInlineConfig(); ?>

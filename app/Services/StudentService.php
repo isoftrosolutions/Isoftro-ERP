@@ -110,165 +110,30 @@ class StudentService {
             }
             
             // 4. Create Student Record (Audit logged inside Model)
-            $student = $this->studentModel->create($studentData);
-            $studentId = $student['id'];
+            $studentId = $input['student_id'] ?? null;
+            $student = null;
+
+            if (!$studentId) {
+                $student = $this->studentModel->create($studentData);
+                $studentId = $student['id'];
+            } else {
+                // Fetch existing student for the result array
+                if ($this->db instanceof \PDO) {
+                    $stmt = $this->db->prepare("SELECT * FROM students WHERE id = ? AND tenant_id = ?");
+                    $stmt->execute([$studentId, $tenantId]);
+                    $student = (array) $stmt->fetch(\PDO::FETCH_ASSOC);
+                } else {
+                    $student = (array) DB::table('students')->where('id', $studentId)->where('tenant_id', $tenantId)->first();
+                }
+            }
 
             // 5. Handle Course Enrollment & Fees
-            $batchId = $input['batch_id'] ?? null;
-            $enrollmentId = null;
+            $batchIds = $input['batch_ids'] ?? (isset($input['batch_id']) ? [$input['batch_id']] : []);
+            $enrollmentIds = [];
 
-            if ($batchId) {
-                if ($this->db instanceof \PDO) {
-                    $stmt = $this->db->prepare("
-                        SELECT b.name as batch_name, b.shift as batch_shift, c.id as course_id, c.name as course_name, c.fee 
-                        FROM batches as b
-                        JOIN courses as c ON b.course_id = c.id
-                        WHERE b.id = ? AND b.tenant_id = ?
-                    ");
-                    $stmt->execute([$batchId, $tenantId]);
-                    $courseData = $stmt->fetch(\PDO::FETCH_OBJ);
-                } elseif (class_exists('Illuminate\Support\Facades\DB')) {
-                    $courseData = \Illuminate\Support\Facades\DB::table('batches as b')
-                        ->join('courses as c', 'b.course_id', '=', 'c.id')
-                        ->select('b.name as batch_name', 'b.shift as batch_shift', 'c.id as course_id', 'c.name as course_name', 'c.fee')
-                        ->where('b.id', $batchId)
-                        ->where('b.tenant_id', $tenantId)
-                        ->first();
-                }
-
-                if ($courseData) {
-                    // ISSUE-V1 FIX: Generate human-readable enrollment_id
-                    $enrollmentCode = 'ENR-' . $tenantId . '-' . date('Y') . '-' . str_pad($studentId, 5, '0', STR_PAD_LEFT);
-
-                    if ($this->db instanceof \PDO) {
-                        $stmt = $this->db->prepare("
-                            INSERT INTO enrollments (tenant_id, student_id, batch_id, enrollment_id, enrollment_date, status)
-                            VALUES (?, ?, ?, ?, ?, 'active')
-                        ");
-                        $stmt->execute([$tenantId, $studentId, $batchId, $enrollmentCode, date('Y-m-d')]);
-                        $enrollmentId = $this->db->lastInsertId();
-                    } elseif (class_exists('Illuminate\Support\Facades\DB')) {
-                        $enrollmentId = \Illuminate\Support\Facades\DB::table('enrollments')->insertGetId([
-                            'tenant_id'       => $tenantId,
-                            'student_id'      => $studentId,
-                            'batch_id'        => $batchId,
-                            'enrollment_id'   => $enrollmentCode,
-                            'enrollment_date' => date('Y-m-d'),
-                            'status'          => 'active'
-                        ]);
-                    }
-
-                    // 5b. Fee Summary
-                    $totalFee = (float)$courseData->fee;
-                    $feeStatus = ($totalFee > 0) ? 'unpaid' : 'no_fees';
-                    
-                    if ($this->db instanceof \PDO) {
-                        $stmt = $this->db->prepare("
-                            INSERT INTO student_fee_summary (tenant_id, student_id, enrollment_id, total_fee, paid_amount, due_amount, fee_status)
-                            VALUES (?, ?, ?, ?, 0, ?, ?)
-                        ");
-                        $stmt->execute([$tenantId, $studentId, $enrollmentId, $totalFee, $totalFee, $feeStatus]);
-                    } elseif (class_exists('Illuminate\Support\Facades\DB')) {
-                        \Illuminate\Support\Facades\DB::table('student_fee_summary')->insert([
-                            'tenant_id' => $tenantId,
-                            'student_id' => $studentId,
-                            'enrollment_id' => $enrollmentId,
-                            'total_fee' => $totalFee,
-                            'paid_amount' => 0,
-                            'due_amount' => $totalFee,
-                            'fee_status' => $feeStatus
-                        ]);
-                    }
-
-                    // 5c. Detailed Fee Records
-                    $feeItems = [];
-                    if ($this->db instanceof \PDO) {
-                        $stmt = $this->db->prepare("
-                            SELECT id, name, amount, installments FROM fee_items 
-                            WHERE course_id = ? AND tenant_id = ? AND is_active = 1 AND deleted_at IS NULL
-                        ");
-                        $stmt->execute([$courseData->course_id, $tenantId]);
-                        $feeItems = $stmt->fetchAll(\PDO::FETCH_OBJ);
-                    } elseif (class_exists('Illuminate\Support\Facades\DB')) {
-                        $feeItems = \Illuminate\Support\Facades\DB::table('fee_items')
-                            ->select('id', 'name', 'amount', 'installments')
-                            ->where('course_id', $courseData->course_id)
-                            ->where('tenant_id', $tenantId)
-                            ->where('is_active', 1)
-                            ->whereNull('deleted_at')
-                            ->get();
-                    }
-
-                    if (count($feeItems) > 0) {
-                        foreach ($feeItems as $item) {
-                            $instCount = max(1, (int)$item->installments);
-                            $instAmount = round($item->amount / $instCount, 2);
-                            
-                            $recordInsterts = [];
-                            for ($i = 1; $i <= $instCount; $i++) {
-                                $dueDate = date('Y-m-d', strtotime("+" . ($i - 1) . " month"));
-                                $recordInsterts[] = [
-                                    'tenant_id' => $tenantId,
-                                    'student_id' => $studentId,
-                                    'batch_id' => $batchId,
-                                    'fee_item_id' => $item->id,
-                                    'installment_no' => $i,
-                                    'amount_due' => $instAmount,
-                                    'due_date' => $dueDate,
-                                    'status' => 'pending',
-                                    'academic_year' => date('Y') . '-' . (date('Y') + 1)
-                                ];
-                            }
-                            if ($this->db instanceof \PDO) {
-                                $stmt = $this->db->prepare("
-                                    INSERT INTO fee_records (tenant_id, student_id, batch_id, fee_item_id, installment_no, amount_due, due_date, status, academic_year)
-                                    VALUES " . implode(', ', array_fill(0, count($recordInsterts), '(?, ?, ?, ?, ?, ?, ?, ?, ?)'))
-                                );
-                                $flat = [];
-                                foreach($recordInsterts as $r) {
-                                    $flat = array_merge($flat, array_values($r));
-                                }
-                                $stmt->execute($flat);
-                            } elseif (class_exists('Illuminate\Support\Facades\DB')) {
-                                \Illuminate\Support\Facades\DB::table('fee_records')->insert($recordInsterts);
-                            }
-                        }
-                    } else if ($totalFee > 0) {
-                        // Fallback: Total fee is > 0 but no fee items exist. Create a dummy base fee item and record.
-                        $dummyItem = DB::table('fee_items')
-                            ->select('id')
-                            ->where('tenant_id', $tenantId)
-                            ->where('name', 'Generic Course Fee')
-                            ->first();
-                            
-                        $dummyItemId = null;
-                        if ($dummyItem) {
-                            $dummyItemId = $dummyItem->id;
-                        } else {
-                            $dummyItemId = DB::table('fee_items')->insertGetId([
-                                'tenant_id' => $tenantId,
-                                'course_id' => $courseData->course_id,
-                                'name' => 'Generic Course Fee',
-                                'type' => 'other',
-                                'amount' => 0,
-                                'installments' => 1,
-                                'is_active' => 1
-                            ]);
-                        }
-                        
-                        DB::table('fee_records')->insert([
-                            'tenant_id' => $tenantId,
-                            'student_id' => $studentId,
-                            'batch_id' => $batchId,
-                            'fee_item_id' => $dummyItemId,
-                            'installment_no' => 1,
-                            'amount_due' => $totalFee,
-                            'due_date' => DB::raw('CURDATE()'),
-                            'status' => 'pending',
-                            'academic_year' => date('Y') . '-' . (date('Y') + 1)
-                        ]);
-                    }
-                }
+            foreach ($batchIds as $batchId) {
+                $enrollmentId = $this->enrollInBatch($studentId, $batchId, $tenantId);
+                if ($enrollmentId) $enrollmentIds[] = $enrollmentId;
             }
 
             if ($this->db instanceof \PDO) {
@@ -277,21 +142,30 @@ class StudentService {
                 \Illuminate\Support\Facades\DB::commit();
             }
 
-            // Post-commit: Audit log (safe to read from DB now)
-            if (class_exists('\App\Helpers\AuditLogger')) {
-                $auditStudent = $this->studentModel->find($studentId);
-                \App\Helpers\AuditLogger::log('CREATE', 'students', $studentId, null, $auditStudent);
+            // Post-commit: Audit log (only for NEW student creation)
+            if (!$input['student_id'] && class_exists('\App\Helpers\AuditLogger')) {
+                \App\Helpers\AuditLogger::log('CREATE', 'students', $studentId, null, $student);
             }
 
-            // 6. Post-Registration: Send Welcome Email
-            if (!empty($email) && !empty($password)) {
-                 $this->sendWelcomeEmail($tenantId, $studentId, $fullName, $email, $password, isset($courseData) ? (array) $courseData : null, $student['roll_no'] ?? 'N/A');
+            // 6. Post-Registration: Send Welcome Email (only if new student or explicitly requested)
+            if (empty($input['student_id']) && !empty($email) && !empty($password)) {
+                 // For now just using the first batch's course data for the email
+                 $firstBatchId = $batchIds[0] ?? null;
+                 $courseData = null;
+                 if ($firstBatchId) {
+                    $stmt = $this->db->prepare("SELECT b.name as batch_name, b.shift as batch_shift, c.name as course_name FROM batches b JOIN courses c ON b.course_id = c.id WHERE b.id = ?");
+                    $stmt->execute([$firstBatchId]);
+                    $courseData = $stmt->fetch(\PDO::FETCH_ASSOC);
+                 }
+                 $this->sendWelcomeEmail($tenantId, $studentId, $fullName, $email, $password, $courseData, $student['roll_no'] ?? 'N/A');
             }
 
             return [
                 'student' => $student,
-                'enrollment_id' => $enrollmentId
-            ];
+                'enrollment_ids' => $enrollmentIds,
+                'enrollment_id' => $enrollmentIds[0] ?? null // for backward compatibility
+            ]; 
+
 
         } catch (Exception $e) {
             error_log("StudentService ERROR: " . $e->getMessage());
@@ -305,6 +179,190 @@ class StudentService {
             }
             throw $e;
         }
+    }
+
+    /**
+     * Enroll a student into a batch and set up fees
+     */
+    public function enrollInBatch($studentId, $batchId, $tenantId) {
+        if (!$batchId) return null;
+
+        $enrollmentId = null;
+
+        if ($this->db instanceof \PDO) {
+            $stmt = $this->db->prepare("
+                SELECT b.name as batch_name, b.shift as batch_shift, c.id as course_id, c.name as course_name, c.fee 
+                FROM batches as b
+                JOIN courses as c ON b.course_id = c.id
+                WHERE b.id = ? AND b.tenant_id = ?
+            ");
+            $stmt->execute([$batchId, $tenantId]);
+            $courseData = $stmt->fetch(\PDO::FETCH_OBJ);
+        } else {
+            $courseData = DB::table('batches as b')
+                ->join('courses as c', 'b.course_id', '=', 'c.id')
+                ->select('b.name as batch_name', 'b.shift as batch_shift', 'c.id as course_id', 'c.name as course_name', 'c.fee')
+                ->where('b.id', $batchId)
+                ->where('b.tenant_id', $tenantId)
+                ->first();
+        }
+
+        if (!$courseData) return null;
+
+        // Check if already enrolled in this batch to avoid duplicates
+        if ($this->db instanceof \PDO) {
+            $stmt = $this->db->prepare("SELECT id FROM enrollments WHERE student_id = ? AND batch_id = ? AND status = 'active' AND tenant_id = ?");
+            $stmt->execute([$studentId, $batchId, $tenantId]);
+            if ($stmt->fetch()) return null; 
+        } else {
+            if (DB::table('enrollments')->where('student_id', $studentId)->where('batch_id', $batchId)->where('status', 'active')->where('tenant_id', $tenantId)->exists()) {
+                return null;
+            }
+        }
+
+        // Generate human-readable enrollment_id
+        $enrollmentCode = 'ENR-' . $tenantId . '-' . date('Y') . '-' . str_pad($studentId, 5, '0', STR_PAD_LEFT) . '-' . mt_rand(10, 99);
+
+        if ($this->db instanceof \PDO) {
+            $stmt = $this->db->prepare("
+                INSERT INTO enrollments (tenant_id, student_id, batch_id, enrollment_id, enrollment_date, status)
+                VALUES (?, ?, ?, ?, ?, 'active')
+            ");
+            $stmt->execute([$tenantId, $studentId, $batchId, $enrollmentCode, date('Y-m-d')]);
+            $enrollmentId = $this->db->lastInsertId();
+        } else {
+            $enrollmentId = DB::table('enrollments')->insertGetId([
+                'tenant_id'       => $tenantId,
+                'student_id'      => $studentId,
+                'batch_id'        => $batchId,
+                'enrollment_id'   => $enrollmentCode,
+                'enrollment_date' => date('Y-m-d'),
+                'status'          => 'active'
+            ]);
+        }
+
+        // 5b. Fee Summary
+        $totalFee = (float)$courseData->fee;
+        $feeStatus = ($totalFee > 0) ? 'unpaid' : 'no_fees';
+        
+        if ($this->db instanceof \PDO) {
+            $stmt = $this->db->prepare("
+                INSERT INTO student_fee_summary (tenant_id, student_id, enrollment_id, total_fee, paid_amount, due_amount, fee_status)
+                VALUES (?, ?, ?, ?, 0, ?, ?)
+            ");
+            $stmt->execute([$tenantId, $studentId, $enrollmentId, $totalFee, $totalFee, $feeStatus]);
+        } else {
+            DB::table('student_fee_summary')->insert([
+                'tenant_id' => $tenantId,
+                'student_id' => $studentId,
+                'enrollment_id' => $enrollmentId,
+                'total_fee' => $totalFee,
+                'paid_amount' => 0,
+                'due_amount' => $totalFee,
+                'fee_status' => $feeStatus
+            ]);
+        }
+
+        // 5c. Detailed Fee Records
+        $feeItems = [];
+        if ($this->db instanceof \PDO) {
+            $stmt = $this->db->prepare("
+                SELECT id, name, amount, installments FROM fee_items 
+                WHERE course_id = ? AND tenant_id = ? AND is_active = 1 AND deleted_at IS NULL
+            ");
+            $stmt->execute([$courseData->course_id, $tenantId]);
+            $feeItems = $stmt->fetchAll(\PDO::FETCH_OBJ);
+        } else {
+            $feeItems = DB::table('fee_items')
+                ->select('id', 'name', 'amount', 'installments')
+                ->where('course_id', $courseData->course_id)
+                ->where('tenant_id', $tenantId)
+                ->where('is_active', 1)
+                ->whereNull('deleted_at')
+                ->get();
+        }
+
+        if (count($feeItems) > 0) {
+            $recordInserts = [];
+            foreach ($feeItems as $item) {
+                $instCount = max(1, (int)$item->installments);
+                $instAmount = round($item->amount / $instCount, 2);
+                
+                for ($i = 1; $i <= $instCount; $i++) {
+                    $dueDate = date('Y-m-d', strtotime("+" . ($i - 1) . " month"));
+                    $recordInserts[] = [
+                        'tenant_id' => $tenantId,
+                        'student_id' => $studentId,
+                        'batch_id' => $batchId,
+                        'fee_item_id' => $item->id,
+                        'installment_no' => $i,
+                        'amount_due' => $instAmount,
+                        'due_date' => $dueDate,
+                        'status' => 'pending',
+                        'academic_year' => date('Y') . '-' . (date('Y') + 1)
+                    ];
+                }
+            }
+            if (!empty($recordInserts)) {
+                if ($this->db instanceof \PDO) {
+                    $placeholders = implode(', ', array_fill(0, count($recordInserts), '(?, ?, ?, ?, ?, ?, ?, ?, ?)'));
+                    $stmt = $this->db->prepare("
+                        INSERT INTO fee_records (tenant_id, student_id, batch_id, fee_item_id, installment_no, amount_due, due_date, status, academic_year)
+                        VALUES $placeholders
+                    ");
+                    $flat = [];
+                    foreach($recordInserts as $r) {
+                        $flat = array_merge($flat, array_values($r));
+                    }
+                    $stmt->execute($flat);
+                } else {
+                    DB::table('fee_records')->insert($recordInserts);
+                }
+            }
+        } else if ($totalFee > 0) {
+            if ($this->db instanceof \PDO) {
+                $stmt = $this->db->prepare("SELECT id FROM fee_items WHERE tenant_id = ? AND name = 'Generic Course Fee' LIMIT 1");
+                $stmt->execute([$tenantId]);
+                $dummyItem = $stmt->fetch(\PDO::FETCH_OBJ);
+                if (!is_object($dummyItem)) {
+                    $stmt = $this->db->prepare("INSERT INTO fee_items (tenant_id, course_id, name, type, amount, installments, is_active) VALUES (?, ?, ?, 'other', 0, 1, 1)");
+                    $stmt->execute([$tenantId, $courseData->course_id, 'Generic Course Fee']);
+                    $dummyItemId = $this->db->lastInsertId();
+                } else {
+                    $dummyItemId = $dummyItem->id;
+                }
+
+                $stmt = $this->db->prepare("INSERT INTO fee_records (tenant_id, student_id, batch_id, fee_item_id, installment_no, amount_due, due_date, status, academic_year) VALUES (?, ?, ?, ?, 1, ?, CURDATE(), 'pending', ?)");
+                $stmt->execute([$tenantId, $studentId, $batchId, $dummyItemId, $totalFee, date('Y') . '-' . (date('Y') + 1)]);
+            } else {
+                $dummyItem = DB::table('fee_items')->where('tenant_id', $tenantId)->where('name', 'Generic Course Fee')->first();
+                if (!is_object($dummyItem)) {
+                    $dummyItemId = DB::table('fee_items')->insertGetId([
+                        'tenant_id' => $tenantId,
+                        'course_id' => $courseData->course_id,
+                        'name' => 'Generic Course Fee',
+                        'type' => 'other',
+                        'amount' => 0,
+                        'installments' => 1,
+                        'is_active' => 1
+                    ]);
+                } else {
+                    $dummyItemId = $dummyItem->id;
+                }
+                DB::table('fee_records')->insert([
+                    'tenant_id' => $tenantId,
+                    'student_id' => $studentId,
+                    'batch_id' => $batchId,
+                    'fee_item_id' => $dummyItemId,
+                    'installment_no' => 1,
+                    'amount_due' => $totalFee,
+                    'due_date' => DB::raw('CURDATE()'),
+                    'status' => 'pending',
+                    'academic_year' => date('Y') . '-' . (date('Y') + 1)
+                ]);
+            }
+        }
+        return $enrollmentId;
     }
 
     private function sendWelcomeEmail($tenantId, $studentId, $fullName, $email, $password, $courseData, $rollNo = 'N/A') {

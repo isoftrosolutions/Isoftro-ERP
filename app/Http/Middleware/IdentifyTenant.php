@@ -43,8 +43,15 @@ class IdentifyTenant {
         // For API requests or direct access, check tenant_id in session
         if (isset($_SESSION['tenant_id'])) {
             $tenant = $this->getTenantById($_SESSION['tenant_id']);
-            // Ensure logo is in session (with /public prefix fix)
-            if ($tenant && !isset($_SESSION['tenant_logo'])) {
+            if ($tenant) {
+                // Set all session variables for the tenant
+                $_SESSION['tenant_id'] = $tenant['id'];
+                $_SESSION['tenant_name'] = $tenant['name'];
+                $_SESSION['tenant_subdomain'] = $tenant['subdomain'];
+                $_SESSION['tenant_plan'] = $tenant['plan'];
+                $_SESSION['tenant_status'] = $tenant['status'];
+
+                // Ensure logo is in session (with /public prefix fix)
                 $logoPath = $tenant['logo_path'];
                 if (!empty($logoPath) && strpos($logoPath, '/uploads/') === 0 && strpos($logoPath, '/public/') !== 0) {
                     $logoPath = '/public' . $logoPath;
@@ -99,7 +106,7 @@ class IdentifyTenant {
             $result = $stmt->fetch();
             
             return $result ?: null;
-        } catch (PDOException $e) {
+        } catch (\PDOException $e) {
             error_log("Tenant lookup failed: " . $e->getMessage());
             return null;
         }
@@ -120,7 +127,7 @@ class IdentifyTenant {
             ");
             $stmt->execute(['id' => $tenantId]);
             return $stmt->fetch();
-        } catch (PDOException $e) {
+        } catch (\PDOException $e) {
             error_log("Tenant lookup by ID failed: " . $e->getMessage());
             return null;
         }

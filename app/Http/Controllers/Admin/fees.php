@@ -204,6 +204,7 @@ try {
                               GROUP BY student_id
                           ) fr_stats ON s.id = fr_stats.student_id
                           WHERE sfs.due_amount > 0 AND sfs.tenant_id = :tid
+                          AND s.deleted_at IS NULL AND s.status = 'active'
                           ORDER BY sfs.due_amount DESC 
                           LIMIT 1000";
                 $stmt = $db->prepare($query);

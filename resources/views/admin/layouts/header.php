@@ -18,8 +18,8 @@ if($user && isset($user['name'])) {
 $logoUrl = null;
 $tenantLogo = $_SESSION['institute_logo'] ?? $_SESSION['tenant_logo'] ?? null;
 
-// If we have a tenant ID but are missing logo or name, hydrate from DB
-if ($tenantId && (empty($tenantLogo) || $tenantName === 'Dashboard')) {
+// If we have a tenant ID but are missing logo or name (or have default names), hydrate from DB
+if ($tenantId && (empty($tenantLogo) || in_array($tenantName, ['Dashboard', 'Institute', 'Hamro ERP']))) {
     try {
         $db = getDBConnection();
         $stmt = $db->prepare("SELECT name, logo_path FROM tenants WHERE id = :id LIMIT 1");
@@ -32,8 +32,8 @@ if ($tenantId && (empty($tenantLogo) || $tenantName === 'Dashboard')) {
                 $_SESSION['tenant_logo'] = $tenantLogo;
                 $_SESSION['institute_logo'] = $tenantLogo;
             }
-            // Institute name (fallback when session not set)
-            if ($tenantName === 'Dashboard' && !empty($tenant['name'])) {
+            // Institute name (fallback when session not set or default)
+            if (in_array($tenantName, ['Dashboard', 'Institute', 'Hamro ERP']) && !empty($tenant['name'])) {
                 $tenantName = $tenant['name'];
                 $_SESSION['tenant_name'] = $tenantName;
             }
@@ -108,6 +108,16 @@ $currentPage = basename($_SERVER['PHP_SELF'], '.php');
             box-shadow: var(--shadow);
         }
 
+        /* Prevent breadcrumb from pushing items in the flex container */
+        .header .breadcrumb {
+            position: absolute;
+            bottom: -22px;
+            left: 16px;
+            margin: 0;
+            z-index: -1;
+            pointer-events: auto;
+        }
+
         /* Left Section */
         .header-left {
             display: flex;
@@ -159,16 +169,17 @@ $currentPage = basename($_SERVER['PHP_SELF'], '.php');
 
         /* Institute Name */
         .institute-name {
-            font-size: clamp(14px, 4vw, 18px);
+            font-size: clamp(12px, 3.5vw, 16px);
             font-weight: 700;
             color: #ffffff;
             background: var(--primary);
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            max-width: 150px;
-            padding: 4px 10px;
+            max-width: 140px;
+            padding: 6px 12px;
             border-radius: 9999px;
+            flex-shrink: 0; /* Important: don't let it be squashed */
         }
 
         @media (min-width: 768px) {
@@ -1011,7 +1022,7 @@ $currentPage = basename($_SERVER['PHP_SELF'], '.php');
                     data.students.forEach(s => {
                         const name = s.name || '';
                         const roll = s.roll_no ? 'Roll: ' + s.roll_no : '';
-                        const meta = [roll, u.phone, u.email].filter(Boolean).join(' • ');
+                        const meta = [roll, s.phone, s.email].filter(Boolean).join(' • ');
                         
                         // Avatar logic
                         const initials = name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();

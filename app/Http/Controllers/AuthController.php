@@ -91,11 +91,15 @@ class AuthController {
         // Fetch tenant branding
         $tenantLogo = null;
         if (!empty($user['tenant_id'])) {
-            $stmt = $this->db->prepare("SELECT logo_path FROM tenants WHERE id = ? LIMIT 1");
+            $stmt = $this->db->prepare("SELECT name, logo_path FROM tenants WHERE id = ? LIMIT 1");
             $stmt->execute([$user['tenant_id']]);
-            $tenantLogo = $stmt->fetchColumn();
-            if ($tenantLogo && strpos($tenantLogo, '/uploads/') === 0 && strpos($tenantLogo, '/public/') !== 0) {
-                $tenantLogo = '/public' . $tenantLogo;
+            $tenant = $stmt->fetch(\PDO::FETCH_ASSOC);
+            if ($tenant) {
+                $_SESSION['tenant_name'] = $tenant['name'];
+                $tenantLogo = $tenant['logo_path'];
+                if ($tenantLogo && strpos($tenantLogo, '/uploads/') === 0 && strpos($tenantLogo, '/public/') !== 0) {
+                    $tenantLogo = '/public' . $tenantLogo;
+                }
             }
         }
 

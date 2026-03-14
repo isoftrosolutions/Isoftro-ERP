@@ -69,9 +69,9 @@ window.loadStaff = async function(role) {
 
 window.filterStaff = function(search='', role, status='') {
     const filtered = (window.currentStaffData||[]).filter(s => {
-        const n = (u.name||s.name||'').toLowerCase();
-        const em = (u.email||'').toLowerCase();
-        const ph = (u.phone||'').toLowerCase();
+        const n = (s.name||'').toLowerCase();
+        const em = (s.email||'').toLowerCase();
+        const ph = (s.phone||'').toLowerCase();
         const matchSearch = !search || n.includes(search.toLowerCase()) || em.includes(search.toLowerCase()) || ph.includes(search.toLowerCase());
         const matchStatus = !status || s.status===status;
         return matchSearch && matchStatus;
@@ -111,7 +111,7 @@ function _renderStaffTable(staff, role) {
         
     staff.forEach(s => {
         const isActive = s.status==='active';
-        const n = u.name||s.name||'N/A';
+        const n = s.name||'N/A';
         const initials = n.charAt(0).toUpperCase();
         
         html += `<tr>
@@ -127,8 +127,8 @@ function _renderStaffTable(staff, role) {
                 </div>
             </td>
             <td>
-                <div style="font-size: 13px; font-weight: 600; color: #1e293b;">${u.email||'-'}</div>
-                <div style="font-size: 11px; color: #64748b;">${u.phone||'-'}</div>
+                <div style="font-size: 13px; font-weight: 600; color: #1e293b;">${s.email||'-'}</div>
+                <div style="font-size: 11px; color: #64748b;">${s.phone||'-'}</div>
             </td>
             ${role==='teacher'?`
                 <td><span class="badge" style="background: #eff6ff; color: #1d4ed8; font-size: 10px; padding: 4px 10px;">${s.employee_id||'N/A'}</span></td>

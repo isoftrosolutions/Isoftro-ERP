@@ -145,7 +145,7 @@ async function loadStaffListForForm() {
         if (dataF.success) dataF.data.forEach(s => {
             const opt = document.createElement('option');
             opt.value = s.user_id; 
-            opt.textContent = `${s.name || u.name} (Front Desk)`;
+            opt.textContent = `${s.name || 'Staff Member'} (Front Desk)`;
             opt.setAttribute('data-salary', s.monthly_salary || 0);
             staffSelect.appendChild(opt);
         });

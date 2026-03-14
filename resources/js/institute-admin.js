@@ -182,7 +182,8 @@ document.addEventListener('DOMContentLoaded', () => {
             html += `</div>`;
         });
 
-        // Append Install App Button
+        // PWA Install button removed
+        /*
         html += `
             <div class="sb-install-box">
                 <button class="install-btn-trigger" onclick="openPwaModal()">
@@ -191,6 +192,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </button>
             </div>
         `;
+        */
 
         sbBody.innerHTML = html;
         renderBottomNav();

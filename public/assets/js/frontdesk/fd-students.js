@@ -4,6 +4,9 @@
  * Loaded BEFORE ia-core.js so window.* render functions are available.
  */
 
+// Current user reference (operator)
+var u = window.currentUser || {};
+
 /* ── STUDENT STATE ─────────────────────────────────────────────── */
 window._StudentState = {
     students: [],
@@ -456,20 +459,19 @@ window.loadAlumni = async (page) => {
         document.getElementById('paginationBar').style.display = 'flex';
 
         tbody.innerHTML = students.map(s => {
-            const safeName = (u.name || '').replace(/'/g, "\\'");
+            const safeName = (s.full_name || '').replace(/'/g, "\\'");
             const photoUrl = s.photo_url || '';
-            const initials = (u.name || 'S').charAt(0).toUpperCase();
+            const initials = (s.full_name || 'S').charAt(0).toUpperCase();
             const photoHtml = photoUrl 
                 ? `<img src="${photoUrl}" class="std-img" alt="${safeName}">`
                 : `<div class="std-img initials">${initials}</div>`;
             
             return `
-                <tr>
                     <td>
                         <div class="std-card">
                             ${photoHtml}
                             <div class="std-info">
-                                <div class="name">${u.name || '-'}</div>
+                                <div class="name">${s.full_name || '-'}</div>
                                 <div class="id">ID: ${s.student_id || s.roll_no || '-'}</div>
                             </div>
                         </div>
@@ -481,8 +483,8 @@ window.loadAlumni = async (page) => {
                         </div>
                     </td>
                     <td>
-                        <div style="font-size: 13px; font-weight: 600; color: #1e293b;">${u.phone || '-'}</div>
-                        <div style="font-size: 11px; color: #64748b;">${u.email || '-'}</div>
+                        <div style="font-size: 13px; font-weight: 600; color: #1e293b;">${s.phone || '-'}</div>
+                        <div style="font-size: 11px; color: #64748b;">${s.email || '-'}</div>
                     </td>
                     <td>
                         <div style="font-size: 13px; font-weight: 700; color: #0f172a;">
@@ -1392,9 +1394,9 @@ window.loadStudents = async (page) => {
               </td>
               <td>
                 <div class="premium-s-info">
-                  <div class="s-av ${getAvatarColor(s.id)}">${initials(u.name)}</div>
+                  <div class="s-av ${getAvatarColor(s.id)}">${initials(s.full_name)}</div>
                   <div class="s-details">
-                    <div class="s-name">${u.name || 'N/A'}</div>
+                    <div class="s-name">${s.full_name || 'N/A'}</div>
                     <div class="s-meta">${s.roll_no || 'No roll'} &bull; ${gender}</div>
                   </div>
                 </div>
@@ -1767,7 +1769,7 @@ window.renderStudentProfile = async (id, activeTab = 'personal') => {
 
         const s = result.data;
         const photoSrc = s.photo_url ? (s.photo_url.startsWith('http') ? s.photo_url : window.APP_URL + s.photo_url) : null;
-        const initials = u.name ? u.name.split(' ').filter(n => n).map(n => n[0] || '').join('').toUpperCase().substring(0, 2) : 'ST';
+        const initials = s.name ? s.name.split(' ').filter(n => n).map(n => n[0] || '').join('').toUpperCase().substring(0, 2) : 'ST';
 
         const statusCls = s.status === 'active' ? 'sp-status-active' : 'sp-status-inactive';
         const statusIcon = s.status === 'active' ? 'fa-circle' : 'fa-circle-xmark';
@@ -1830,14 +1832,14 @@ window.renderStudentProfile = async (id, activeTab = 'personal') => {
                                     <div class="sp-meta-icon teal"><i class="fas fa-envelope"></i></div>
                                     <div class="sp-meta-content">
                                         <span class="sp-meta-label">Email</span>
-                                        <span class="sp-meta-value">${u.email || 'N/A'}</span>
+                                        <span class="sp-meta-value">${s.email || 'N/A'}</span>
                                     </div>
                                 </div>
                                 <div class="sp-meta-item">
                                     <div class="sp-meta-icon blue"><i class="fas fa-phone"></i></div>
                                     <div class="sp-meta-content">
                                         <span class="sp-meta-label">Contact</span>
-                                        <span class="sp-meta-value">${u.phone || 'N/A'}</span>
+                                        <span class="sp-meta-value">${s.phone || 'N/A'}</span>
                                     </div>
                                 </div>
                                 <div class="sp-meta-item">
@@ -1962,7 +1964,7 @@ function _spPersonalTab(s) {
     return `
         ${_spSectionTitle('fa-user-circle', 'Personal Information')}
         <div class="sp-info-grid">
-            ${_spInfoCard('fa-user',        'Full Name',      u.name)}
+            ${_spInfoCard('fa-user',        'Full Name',      s.name)}
             ${_spInfoCard('fa-male',        "Father's Name",  s.father_name)}
             ${_spInfoCard('fa-id-card',     'Citizenship No.',s.citizenship_no)}
             ${_spInfoCard('fa-fingerprint', 'National ID',    s.national_id)}

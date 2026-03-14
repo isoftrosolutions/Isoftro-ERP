@@ -26,20 +26,118 @@
             ],
             'student_account_verification' => [
                 'subject' => 'Verify Your Email - {{institute_name}}',
-                'body' => '<div style="font-family:sans-serif;color:#333;"><p>Dear {{student_name}},</p><p>Thank you for registering at {{institute_name}}!</p><p>To complete your registration and access your student portal, please verify your email address by clicking the link below:</p><p>🔗 {{verification_link}}</p><p>This verification link will expire in 24 hours.</p><p>Your account details:<br>• Roll Number: {{roll_no}}<br>• Email: {{student_email}}<br>• Course: {{course_name}}</p><p>If you did not create this account, please ignore this email or contact us at {{institute_email}}.</p><p>After verification, you\'ll be able to:<br>✓ Access your personalized dashboard<br>✓ View class schedules<br>✓ Download study materials<br>✓ Track your attendance and exam results<br>✓ Make fee payments online</p><p>Need assistance? Contact us at {{institute_phone}}.</p><p>Best regards,<br>{{institute_name}}</p></div>'
+                'body' => '<div style="font-family:\'Plus Jakarta Sans\',\'Helvetica Neue\',sans-serif;max-width:600px;margin:20px auto;padding:40px;border:1px solid #eef2f6;border-radius:24px;color:#2d3436;background:#ffffff;box-shadow:0 10px 30px rgba(0,0,0,0.02);">
+                    <div style="text-align:center;margin-bottom:32px;">
+                        <h2 style="color:#009E7E;font-size:28px;font-weight:800;margin:0;letter-spacing:-0.5px;">Verify Your Email</h2>
+                        <p style="color:#636e72;margin-top:8px;">One last step to complete your registration.</p>
+                    </div>
+                    
+                    <p style="font-size:16px;margin-bottom:24px;line-height:1.6;">Hello <strong style="color:#111;">{{student_name}}</strong>,</p>
+                    
+                    <p style="font-size:15px;margin-bottom:28px;line-height:1.6;color:#636e72;">Welcome to {{institute_name}}! To access your student portal and start your journey, please verify your email address by clicking the button below.</p>
+                    
+                    <div style="text-align:center;margin-bottom:32px;">
+                        <a href="{{verification_link}}" style="display:inline-block;padding:16px 36px;background:#009E7E;color:#ffffff;text-decoration:none;border-radius:12px;font-weight:700;box-shadow:0 4px 15px rgba(0,158,126,0.2);">Verify My Email</a>
+                    </div>
+
+                    <div style="background:#f8fafc;padding:24px;border-radius:16px;margin-bottom:32px;border:1px solid #f1f5f9;">
+                        <h3 style="font-size:14px;text-transform:uppercase;letter-spacing:1px;color:#94a3b8;margin-top:0;margin-bottom:16px;">Account Preview</h3>
+                        <p style="margin:8px 0;font-size:14px;"><strong>Roll Number :-</strong> {{roll_no}}</p>
+                        <p style="margin:8px 0;font-size:14px;"><strong>Email :-</strong> {{student_email}}</p>
+                        <p style="margin:8px 0;font-size:14px;"><strong>Course :-</strong> {{course_name}}</p>
+                    </div>
+
+                    <p style="font-size:14px;color:#636e72;margin-bottom:32px;text-align:center;">Link expires in 24 hours. If you didn\'t create this account, please ignore this email.</p>
+
+                    <div style="text-align:right;margin-top:40px;">
+                        <p style="margin:0;font-size:16px;color:#2d3436;">Best wishes,</p>
+                        <p style="margin:4px 0 0;font-size:18px;font-weight:800;color:#009E7E;">{{institute_name}}</p>
+                    </div>
+                </div>'
             ],
             'student_profile_updated' => [
                 'subject' => 'Profile Updated Successfully - {{institute_name}}',
-                'body' => '<div style="font-family:sans-serif;color:#333;"><p>Dear {{student_name}},</p><p>Your profile information has been updated successfully on {{current_date}}.</p><p>Updated Details:<br>• Name: {{student_name}}<br>• Roll Number: {{roll_no}}<br>• Phone: {{phone}}<br>• Email: {{student_email}}</p><p>If you did not make these changes, please contact the administration office immediately at {{institute_phone}}.</p><p>You can review your complete profile by logging into your student portal: {{login_url}}</p><p>Thank you,<br>{{institute_name}}</p></div>'
+                'body' => '<div style="font-family:\'Plus Jakarta Sans\',\'Helvetica Neue\',sans-serif;max-width:600px;margin:20px auto;padding:40px;border:1px solid #eef2f6;border-radius:24px;color:#2d3436;background:#ffffff;box-shadow:0 10px 30px rgba(0,0,0,0.02);">
+                    <div style="text-align:center;margin-bottom:32px;">
+                        <h2 style="color:#009E7E;font-size:28px;font-weight:800;margin:0;letter-spacing:-0.5px;">Profile Updated</h2>
+                        <p style="color:#636e72;margin-top:8px;">Your changes have been saved successfully.</p>
+                    </div>
+                    
+                    <p style="font-size:16px;margin-bottom:24px;line-height:1.6;">Hello <strong style="color:#111;">{{student_name}}</strong>,</p>
+                    
+                    <p style="font-size:15px;margin-bottom:28px;line-height:1.6;color:#636e72;">This is to confirm that your profile information was updated on {{current_date}}. Please review the details below.</p>
+                    
+                    <div style="background:#f8fafc;padding:24px;border-radius:16px;margin-bottom:32px;border:1px solid #f1f5f9;">
+                        <h3 style="font-size:14px;text-transform:uppercase;letter-spacing:1px;color:#94a3b8;margin-top:0;margin-bottom:16px;">Updated details</h3>
+                        <p style="margin:8px 0;font-size:14px;"><strong>Name :-</strong> {{student_name}}</p>
+                        <p style="margin:8px 0;font-size:14px;"><strong>Roll No :-</strong> {{roll_no}}</p>
+                        <p style="margin:8px 0;font-size:14px;"><strong>Phone :-</strong> {{phone}}</p>
+                        <p style="margin:8px 0;font-size:14px;"><strong>Email :-</strong> {{student_email}}</p>
+                    </div>
+
+                    <p style="font-size:14px;color:#636e72;margin-bottom:32px;">If you did not make these changes, please contact the administration office immediately at {{institute_phone}}.</p>
+
+                    <div style="text-align:right;margin-top:40px;">
+                        <p style="margin:0;font-size:16px;color:#2d3436;">Best wishes,</p>
+                        <p style="margin:4px 0 0;font-size:18px;font-weight:800;color:#009E7E;">{{institute_name}}</p>
+                    </div>
+                </div>'
             ],
             'password_reset_request' => [
                 'subject' => 'Password Reset Request - {{institute_name}}',
-                'body' => '<div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;padding:30px 20px;color:#333;"><h2 style="text-align:center;color:#004D30;font-size:24px;font-weight:bold;margin-bottom:24px;">Password Reset Request</h2><p style="font-size:15px;line-height:1.6;">Hello <strong>{{student_name}}</strong>,</p><p style="font-size:15px;line-height:1.6;">We received a request to reset your password. Use the verification code below to proceed with the reset process. This code is valid for <strong>30 minutes</strong>.</p><div style="text-align:center;margin:28px 0;"><div style="display:inline-block;border:3px dashed #006D44;border-radius:14px;padding:20px 40px;background:#f0faf5;"><span style="font-size:36px;font-weight:bold;letter-spacing:12px;color:#004D30;">{{reset_token}}</span></div></div><p style="text-align:center;font-size:14px;color:#666;margin-bottom:20px;">Alternatively, you can click the button below:</p><div style="text-align:center;margin-bottom:28px;"><a href="{{reset_link}}" style="display:inline-block;padding:14px 36px;background:#006D44;color:#ffffff;font-size:15px;font-weight:bold;font-style:italic;text-decoration:none;border-radius:8px;">Reset Password Now</a></div><hr style="border:none;border-top:1px solid #e5e5e5;margin:24px 0;"><p style="font-size:12px;color:#999;line-height:1.5;">If you did not request a password reset, please ignore this email. Your password will remain unchanged.</p><p style="font-size:12px;color:#999;">Security Team — {{institute_name}}</p></div>'
+                'body' => '<div style="font-family:\'Plus Jakarta Sans\',\'Helvetica Neue\',sans-serif;max-width:600px;margin:20px auto;padding:40px;border:1px solid #eef2f6;border-radius:24px;color:#2d3436;background:#ffffff;box-shadow:0 10px 30px rgba(0,0,0,0.02);">
+                    <div style="text-align:center;margin-bottom:32px;">
+                        <h2 style="color:#009E7E;font-size:28px;font-weight:800;margin:0;letter-spacing:-0.5px;">Password Reset</h2>
+                        <p style="color:#636e72;margin-top:8px;">We received a request to reset your password.</p>
+                    </div>
+                    
+                    <p style="font-size:16px;margin-bottom:24px;line-height:1.6;">Hello <strong style="color:#111;">{{student_name}}</strong>,</p>
+                    
+                    <p style="font-size:15px;margin-bottom:28px;line-height:1.6;color:#636e72;">Use the verification code below to proceed with the reset process. This code is valid for <strong>30 minutes</strong>.</p>
+                    
+                    <div style="text-align:center;margin:32px 0;">
+                        <div style="display:inline-block;border:2px dashed #009E7E;border-radius:16px;padding:20px 40px;background:#f0faf5;">
+                            <span style="font-size:36px;font-weight:900;letter-spacing:8px;color:#009e7e;">{{reset_token}}</span>
+                        </div>
+                    </div>
+
+                    <p style="text-align:center;font-size:14px;color:#636e72;margin-bottom:20px;">Alternatively, you can click the button below:</p>
+                    <div style="text-align:center;margin-bottom:32px;">
+                        <a href="{{reset_link}}" style="display:inline-block;padding:16px 36px;background:#009E7E;color:#ffffff;text-decoration:none;border-radius:12px;font-weight:700;box-shadow:0 4px 15px rgba(0,158,126,0.2);">Reset Password Now</a>
+                    </div>
+
+                    <p style="font-size:12px;color:#94a3b8;line-height:1.5;text-align:center;">If you did not request a password reset, please ignore this email. Your password will remain unchanged.</p>
+
+                    <div style="text-align:right;margin-top:40px;">
+                        <p style="margin:0;font-size:16px;color:#2d3436;">Security Team,</p>
+                        <p style="margin:4px 0 0;font-size:18px;font-weight:800;color:#009E7E;">{{institute_name}}</p>
+                    </div>
+                </div>'
             ],
 
             'password_changed_success' => [
                 'subject' => 'Password Changed Successfully - {{institute_name}}',
-                'body' => '<div style="font-family:sans-serif;color:#333;"><p>Dear {{student_name}},</p><p>Your password has been changed successfully on {{current_date}}.</p><p>If you made this change, no further action is required.</p><p>⚠️ If you did NOT change your password:<br>1. Reset your password immediately: {{login_url}}<br>2. Contact our security team at {{institute_phone}}</p><p>Security Reminder:<br>• Never share your password<br>• Use a unique password for your student account<br>• Enable two-factor authentication if available</p><p>Stay secure!</p><p>{{institute_name}}<br>Security Team</p></div>'
+                'body' => '<div style="font-family:\'Plus Jakarta Sans\',\'Helvetica Neue\',sans-serif;max-width:600px;margin:20px auto;padding:40px;border:1px solid #eef2f6;border-radius:24px;color:#2d3436;background:#ffffff;box-shadow:0 10px 30px rgba(0,0,0,0.02);">
+                    <div style="text-align:center;margin-bottom:32px;">
+                        <h2 style="color:#009E7E;font-size:28px;font-weight:800;margin:0;letter-spacing:-0.5px;">Password Changed</h2>
+                        <p style="color:#636e72;margin-top:8px;">Your account security has been updated.</p>
+                    </div>
+                    
+                    <p style="font-size:16px;margin-bottom:24px;line-height:1.6;">Hello <strong style="color:#111;">{{student_name}}</strong>,</p>
+                    
+                    <p style="font-size:15px;margin-bottom:28px;line-height:1.6;color:#636e72;">Your password has been changed successfully on {{current_date}}. If you made this change, no further action is required.</p>
+                    
+                    <div style="background:#fff9f9;padding:24px;border-radius:16px;margin-bottom:32px;border:1px solid #ffecec;">
+                        <h3 style="font-size:14px;text-transform:uppercase;letter-spacing:1px;color:#e74c3c;margin-top:0;margin-bottom:16px;">⚠️ Security Alert</h3>
+                        <p style="margin:8px 0;font-size:14px;line-height:1.5;">If you did <strong>NOT</strong> change your password, please reset it immediately or contact our security team.</p>
+                        <p style="margin:16px 0 0;font-size:14px;"><strong>Contact :-</strong> {{institute_phone}}</p>
+                    </div>
+
+                    <div style="text-align:right;margin-top:40px;">
+                        <p style="margin:0;font-size:16px;color:#2d3436;">Best wishes,</p>
+                        <p style="margin:4px 0 0;font-size:18px;font-weight:800;color:#009E7E;">{{institute_name}}</p>
+                    </div>
+                </div>'
             ],
             'payment_success_full' => [
                 'subject' => 'Payment Successful - Receipt #{{receipt_no}}',
@@ -93,78 +191,593 @@
             ],
             'payment_failed' => [
                 'subject' => 'Payment Failed - Action Required',
-                'body' => '<div style="font-family:sans-serif;color:#333;"><p>Dear {{student_name}},</p><p>❌ PAYMENT TRANSACTION FAILED</p><p>We\'re sorry, but your recent payment attempt was unsuccessful.</p><p>📄 TRANSACTION DETAILS:<br>• Date: {{current_date}}<br>• Amount: NPR {{amount}}<br>• Payment Method: {{payment_mode}}<br>• Transaction ID: {{transaction_id}}<br>• Status: FAILED</p><p>🔍 POSSIBLE REASONS:<br>• Insufficient balance in payment account<br>• Network connectivity issues<br>• Bank/gateway timeout<br>• Incorrect payment credentials<br>• Transaction limit exceeded</p><p>💡 WHAT TO DO NEXT:<br>1. Check your account balance<br>2. Verify payment gateway credentials<br>3. Try again after a few minutes<br>4. Use an alternative payment method<br>5. Contact your bank if issue persists</p><p>📚 PENDING FEE:<br>• Course: {{course_name}}<br>• Amount Due: NPR {{amount_due}}<br>• Due Date: {{due_date}}</p><p>⚠️ Please complete your payment before {{due_date}} to avoid late fines.</p><p>RETRY PAYMENT: {{login_url}}</p><p>Need help? Contact us:<br>• Phone: {{institute_phone}}<br>• Email: {{institute_email}}<br>• Visit: Accounts Office</p><p>We\'re here to assist you!</p><p>Accounts Department<br>{{institute_name}}</p></div>'
+                'body' => '<div style="font-family:\'Plus Jakarta Sans\',\'Helvetica Neue\',sans-serif;max-width:600px;margin:20px auto;padding:40px;border:1px solid #eef2f6;border-radius:24px;color:#2d3436;background:#ffffff;box-shadow:0 10px 30px rgba(0,0,0,0.02);">
+                    <div style="text-align:center;margin-bottom:32px;">
+                        <h2 style="color:#e74c3c;font-size:28px;font-weight:800;margin:0;letter-spacing:-0.5px;">Payment Failed</h2>
+                        <p style="color:#636e72;margin-top:8px;">Your recent transaction could not be processed.</p>
+                    </div>
+                    
+                    <p style="font-size:16px;margin-bottom:24px;line-height:1.6;">Hello <strong style="color:#111;">{{student_name}}</strong>,</p>
+                    
+                    <p style="font-size:15px;margin-bottom:28px;line-height:1.6;color:#636e72;">We\'re sorry, but your recent payment attempt was unsuccessful. Please review the details below and try again.</p>
+                    
+                    <div style="background:#fff9f9;padding:24px;border-radius:16px;margin-bottom:32px;border:1px solid #ffecec;">
+                        <h3 style="font-size:14px;text-transform:uppercase;letter-spacing:1px;color:#e74c3c;margin-top:0;margin-bottom:16px;">Transaction details</h3>
+                        <p style="margin:8px 0;font-size:14px;"><strong>Date :-</strong> {{current_date}}</p>
+                        <p style="margin:8px 0;font-size:14px;"><strong>Amount :-</strong> NPR {{amount}}</p>
+                        <p style="margin:8px 0;font-size:14px;"><strong>Method :-</strong> {{payment_mode}}</p>
+                        <p style="margin:8px 0;font-size:14px;"><strong>Reference :-</strong> {{transaction_id}}</p>
+                    </div>
+
+                    <p style="text-align:center;font-size:14px;color:#636e72;margin-bottom:20px;">You can retry the payment by clicking the button below:</p>
+                    <div style="text-align:center;margin-bottom:32px;">
+                        <a href="{{login_url}}" style="display:inline-block;padding:16px 36px;background:#e74c3c;color:#ffffff;text-decoration:none;border-radius:12px;font-weight:700;box-shadow:0 4px 15px rgba(231,76,60,0.2);">Retry Payment</a>
+                    </div>
+
+                    <p style="font-size:14px;color:#636e72;margin-bottom:32px;text-align:center;">Need help? Contact our accounts team at {{institute_phone}}.</p>
+
+                    <div style="text-align:right;margin-top:40px;">
+                        <p style="margin:0;font-size:16px;color:#2d3436;">Accounts Department,</p>
+                        <p style="margin:4px 0 0;font-size:18px;font-weight:800;color:#009E7E;">{{institute_name}}</p>
+                    </div>
+                </div>'
             ],
             'payment_pending' => [
                 'subject' => 'Payment Under Verification - {{institute_name}}',
-                'body' => '<div style="font-family:sans-serif;color:#333;"><p>Dear {{student_name}},</p><p>⏳ PAYMENT VERIFICATION IN PROGRESS</p><p>We have received your payment submission and it is currently under verification.</p><p>📄 TRANSACTION DETAILS:<br>• Reference Number: {{transaction_id}}<br>• Date Submitted: {{current_date}}<br>• Amount: NPR {{amount}}<br>• Payment Method: {{payment_mode}}<br>• Status: PENDING VERIFICATION</p><p>🕒 VERIFICATION TIME:<br>• Bank Transfer: 1-2 business days<br>• Cheque: 3-5 business days<br>• Online Payment: Usually within 24 hours</p><p>📚 COURSE DETAILS:<br>• Course: {{course_name}}<br>• Roll Number: {{roll_no}}</p><p>✅ WHAT HAPPENS NEXT:<br>Our accounts team will verify your payment and update your account. You will receive a confirmation email with your official receipt once verification is complete.</p><p>📱 TRACK PAYMENT STATUS:<br>Log in to your student portal to track your payment status in real-time: {{login_url}}</p><p>⚠️ If verification takes longer than expected, please contact us with your transaction reference number.</p><p>CONTACT US:<br>• Phone: {{institute_phone}}<br>• Email: {{institute_email}}<br>• Portal: {{login_url}}</p><p>Thank you for your patience!</p><p>Accounts Department<br>{{institute_name}}</p></div>'
+                'body' => '<div style="font-family:\'Plus Jakarta Sans\',\'Helvetica Neue\',sans-serif;max-width:600px;margin:20px auto;padding:40px;border:1px solid #eef2f6;border-radius:24px;color:#2d3436;background:#ffffff;box-shadow:0 10px 30px rgba(0,0,0,0.02);">
+                    <div style="text-align:center;margin-bottom:32px;">
+                        <h2 style="color:#f39c12;font-size:28px;font-weight:800;margin:0;letter-spacing:-0.5px;">Payment Pending</h2>
+                        <p style="color:#636e72;margin-top:8px;">We are currently verifying your payment.</p>
+                    </div>
+                    
+                    <p style="font-size:16px;margin-bottom:24px;line-height:1.6;">Hello <strong style="color:#111;">{{student_name}}</strong>,</p>
+                    
+                    <p style="font-size:15px;margin-bottom:28px;line-height:1.6;color:#636e72;">We have received your payment submission and it is currently under manual verification. This process usually takes 1-2 business days.</p>
+                    
+                    <div style="background:#fcfaf2;padding:24px;border-radius:16px;margin-bottom:32px;border:1px solid #f9f1d8;">
+                        <h3 style="font-size:14px;text-transform:uppercase;letter-spacing:1px;color:#d68910;margin-top:0;margin-bottom:16px;">Transaction review</h3>
+                        <p style="margin:8px 0;font-size:14px;"><strong>Reference :-</strong> {{transaction_id}}</p>
+                        <p style="margin:8px 0;font-size:14px;"><strong>Amount :-</strong> NPR {{amount}}</p>
+                        <p style="margin:8px 0;font-size:14px;"><strong>Method :-</strong> {{payment_mode}}</p>
+                        <p style="margin:8px 0;font-size:14px;"><strong>Status :-</strong> PENDING VERIFICATION</p>
+                    </div>
+
+                    <p style="font-size:14px;color:#636e72;margin-bottom:32px;text-align:center;">You will receive an official receipt once the verification is complete.</p>
+
+                    <div style="text-align:right;margin-top:40px;">
+                        <p style="margin:0;font-size:16px;color:#2d3436;">Accounts Department,</p>
+                        <p style="margin:4px 0 0;font-size:18px;font-weight:800;color:#009E7E;">{{institute_name}}</p>
+                    </div>
+                </div>'
             ],
             'fee_reminder_7days' => [
                 'subject' => 'Fee Payment Reminder - Due in 7 Days',
-                'body' => '<div style="font-family:sans-serif;color:#333;"><p>Dear {{student_name}},</p><p>📅 UPCOMING PAYMENT DUE</p><p>This is a friendly reminder that your fee payment is due in 7 days.</p><p>💰 PAYMENT DETAILS:<br>• Amount Due: NPR {{amount_due}}<br>• Amount Paid: NPR {{amount_paid}}<br>• Balance: NPR {{balance}}<br>• Due Date: {{due_date}}<br>• Installment: {{installment_no}}</p><p>📚 COURSE INFORMATION:<br>• Course: {{course_name}}<br>• Roll Number: {{roll_no}}<br>• Batch: {{batch_name}}</p><p>⚠️ IMPORTANT NOTICE:<br>Please ensure timely payment to avoid:<br>• Late payment fines (charged per day after due date)<br>• Exam access restrictions<br>• Class attendance restrictions (if applicable)</p><p>💳 PAYMENT OPTIONS:<br>1. Online Portal: {{login_url}}<br>   • eSewa, Khalti, Bank Transfer<br>2. Institute Office: Visit our accounts desk<br>   • Cash, Cheque accepted<br>3. Bank Transfer:<br>   • Use your roll number as reference</p><p>📱 PAY NOW: {{login_url}}</p><p>Already paid? Please share your payment proof at {{institute_email}} or upload it on the portal.</p><p>For payment assistance or installment queries:<br>📞 {{institute_phone}}<br>✉️ {{institute_email}}</p><p>Thank you for your cooperation!</p><p>Accounts Team<br>{{institute_name}}</p></div>'
+                'body' => '<div style="font-family:\'Plus Jakarta Sans\',\'Helvetica Neue\',sans-serif;max-width:600px;margin:20px auto;padding:40px;border:1px solid #eef2f6;border-radius:24px;color:#2d3436;background:#ffffff;box-shadow:0 10px 30px rgba(0,0,0,0.02);">
+                    <div style="text-align:center;margin-bottom:32px;">
+                        <h2 style="color:#009e7e;font-size:28px;font-weight:800;margin:0;letter-spacing:-0.5px;">Upcoming Payment</h2>
+                        <p style="color:#636e72;margin-top:8px;">Friendly reminder: Your fee is due in 7 days.</p>
+                    </div>
+                    
+                    <p style="font-size:16px;margin-bottom:24px;line-height:1.6;">Hello <strong style="color:#111;">{{student_name}}</strong>,</p>
+                    
+                    <p style="font-size:15px;margin-bottom:28px;line-height:1.6;color:#636e72;">This is a friendly reminder regarding your upcoming fee payment. Please ensure timely payment to avoid any late fines.</p>
+                    
+                    <div style="background:#f8fafc;padding:24px;border-radius:16px;margin-bottom:32px;border:1px solid #f1f5f9;">
+                        <h3 style="font-size:14px;text-transform:uppercase;letter-spacing:1px;color:#94a3b8;margin-top:0;margin-bottom:16px;">Payment Summary</h3>
+                        <p style="margin:8px 0;font-size:14px;"><strong>Balance Due :-</strong> NPR {{balance}}</p>
+                        <p style="margin:8px 0;font-size:14px;"><strong>Due Date :-</strong> {{due_date}}</p>
+                        <p style="margin:8px 0;font-size:14px;"><strong>Installment :-</strong> {{installment_no}}</p>
+                    </div>
+
+                    <div style="text-align:center;margin-bottom:32px;">
+                        <a href="{{login_url}}" style="display:inline-block;padding:16px 36px;background:#009E7E;color:#ffffff;text-decoration:none;border-radius:12px;font-weight:700;box-shadow:0 4px 15px rgba(0,158,126,0.2);">Pay via Portal</a>
+                    </div>
+
+                    <p style="font-size:14px;color:#636e72;margin-bottom:32px;text-align:center;">Already paid? Please ignore this message or upload your proof on the portal.</p>
+
+                    <div style="text-align:right;margin-top:40px;">
+                        <p style="margin:0;font-size:16px;color:#2d3436;">Accounts Team,</p>
+                        <p style="margin:4px 0 0;font-size:18px;font-weight:800;color:#009E7E;">{{institute_name}}</p>
+                    </div>
+                </div>'
             ],
             'fee_reminder_3days' => [
                 'subject' => 'URGENT: Fee Payment Due in 3 Days ⚠️',
-                'body' => '<div style="font-family:sans-serif;color:#333;"><p>Dear {{student_name}},</p><p>⚠️ URGENT PAYMENT REMINDER</p><p>Your fee payment is due in just 3 DAYS. Please take immediate action to avoid penalties.</p><p>💰 OUTSTANDING AMOUNT:<br>• Total Due: NPR {{amount_due}}<br>• Paid to Date: NPR {{amount_paid}}<br>• BALANCE: NPR {{balance}}<br>• Due Date: {{due_date}} ⏰</p><p>📚 STUDENT DETAILS:<br>• Roll Number: {{roll_no}}<br>• Course: {{course_name}}<br>• Installment: {{installment_no}}</p><p>🚨 CONSEQUENCES OF LATE PAYMENT:<br>• Late Fine: Charged per day after {{due_date}}<br>• Exam Access: May be blocked if payment not received<br>• Class Restrictions: Possible attendance restrictions</p><p>💳 MAKE PAYMENT NOW:</p><p>OPTION 1 - Online Payment (Instant):<br>• Portal: {{login_url}}<br>• eSewa / Khalti / Bank Transfer</p><p>OPTION 2 - Office Payment:<br>• Visit: {{institute_address}}<br>• Timing: 10 AM - 5 PM (Mon-Fri)<br>• Payment Desk: Accounts Office</p><p>OPTION 3 - Bank Transfer:<br>(Share payment proof immediately)</p><p>✅ PAY IMMEDIATELY: {{login_url}}</p><p>Need help or facing payment issues?<br>📞 CALL NOW: {{institute_phone}}<br>✉️ EMAIL: {{institute_email}}</p><p>We\'re here to help you complete your payment smoothly.</p><p>URGENT ATTENTION REQUIRED</p><p>Accounts Department<br>{{institute_name}}</p></div>'
+                'body' => '<div style="font-family:\'Plus Jakarta Sans\',\'Helvetica Neue\',sans-serif;max-width:600px;margin:20px auto;padding:40px;border:1px solid #eef2f6;border-radius:24px;color:#2d3436;background:#ffffff;box-shadow:0 10px 30px rgba(0,0,0,0.02);">
+                    <div style="text-align:center;margin-bottom:32px;">
+                        <h2 style="color:#e67e22;font-size:28px;font-weight:800;margin:0;letter-spacing:-0.5px;">Urgent: Payment Due</h2>
+                        <p style="color:#636e72;margin-top:8px;">Action required: Your fee is due in 3 days.</p>
+                    </div>
+                    
+                    <p style="font-size:16px;margin-bottom:24px;line-height:1.6;">Hello <strong style="color:#111;">{{student_name}}</strong>,</p>
+                    
+                    <p style="font-size:15px;margin-bottom:28px;line-height:1.6;color:#636e72;">This is an urgent reminder that your outstanding balance is due in 3 days. Please settle it soon to avoid late payment penalties.</p>
+                    
+                    <div style="background:#fffaf4;padding:24px;border-radius:16px;margin-bottom:32px;border:1px solid #fdf2e9;">
+                        <h3 style="font-size:14px;text-transform:uppercase;letter-spacing:1px;color:#e67e22;margin-top:0;margin-bottom:16px;">Outstanding Amount</h3>
+                        <p style="margin:8px 0;font-size:14px;"><strong>Balance Due :-</strong> NPR {{balance}}</p>
+                        <p style="margin:8px 0;font-size:14px;"><strong>Due Date :-</strong> {{due_date}} ⏰</p>
+                        <p style="margin:8px 0;font-size:14px;"><strong>Course :-</strong> {{course_name}}</p>
+                    </div>
+
+                    <div style="text-align:center;margin-bottom:32px;">
+                        <a href="{{login_url}}" style="display:inline-block;padding:16px 36px;background:#e67e22;color:#ffffff;text-decoration:none;border-radius:12px;font-weight:700;box-shadow:0 4px 15px rgba(230,126,34,0.2);">Pay Immediately</a>
+                    </div>
+
+                    <p style="font-size:14px;color:#636e72;margin-bottom:32px;text-align:center;">Need more time? Please contact the accounts office at {{institute_phone}}.</p>
+
+                    <div style="text-align:right;margin-top:40px;">
+                        <p style="margin:0;font-size:16px;color:#2d3436;">Accounts Team,</p>
+                        <p style="margin:4px 0 0;font-size:18px;font-weight:800;color:#009E7E;">{{institute_name}}</p>
+                    </div>
+                </div>'
             ],
             'fee_overdue_notice' => [
                 'subject' => 'OVERDUE: Payment Required Immediately 🔴',
-                'body' => '<div style="font-family:sans-serif;color:#333;"><p>Dear {{student_name}},</p><p>🔴 PAYMENT OVERDUE - IMMEDIATE ACTION REQUIRED</p><p>Your fee payment deadline has passed. Please settle your outstanding balance immediately.</p><p>💰 OVERDUE PAYMENT:<br>• Original Amount: NPR {{amount_due}}<br>• Amount Paid: NPR {{amount_paid}}<br>• Outstanding: NPR {{balance}}<br>• Due Date: {{due_date}} (PASSED)<br>• Days Overdue: {{days_overdue}}<br>• Late Fine Applied: NPR {{fine_applied}}<br>• TOTAL PAYABLE NOW: NPR {{total_payable}}</p><p>📚 ACCOUNT DETAILS:<br>• Roll Number: {{roll_no}}<br>• Course: {{course_name}}<br>• Batch: {{batch_name}}</p><p>🚨 IMMEDIATE CONSEQUENCES:<br>• Late fine continues to accumulate daily<br>• Academic activities may be restricted<br>• Results and certificates will be withheld<br>• Eligibility for exams may be affected</p><p>💳 CLEAR DUES IMMEDIATELY:</p><p>1️⃣ ONLINE PAYMENT (Fastest):<br>   {{login_url}}</p><p>2️⃣ OFFICE PAYMENT:<br>   Visit: {{institute_address}}<br>   Timing: 10 AM - 5 PM (Mon-Fri)</p><p>3️⃣ BANK TRANSFER:<br>   ⚠️ Share proof immediately</p><p>📱 PAY NOW TO RESTORE ACCESS: {{login_url}}</p><p>FACING FINANCIAL DIFFICULTY?<br>If you\'re unable to pay the full amount, please contact our accounts office immediately to discuss:<br>• Installment arrangements<br>• Fine waiver requests<br>• Payment extensions</p><p>📞 CONTACT URGENTLY:<br>Phone: {{institute_phone}}<br>Email: {{institute_email}}<br>Visit: Accounts Office</p><p>⏰ Please resolve this within 24 hours to avoid further complications.</p><p>This is a system-generated notice. Your immediate attention is required.</p><p>Accounts Department<br>{{institute_name}}</p></div>'
+                'body' => '<div style="font-family:\'Plus Jakarta Sans\',\'Helvetica Neue\',sans-serif;max-width:600px;margin:20px auto;padding:40px;border:1px solid #eef2f6;border-radius:24px;color:#2d3436;background:#ffffff;box-shadow:0 10px 30px rgba(0,0,0,0.02);">
+                    <div style="text-align:center;margin-bottom:32px;">
+                        <h2 style="color:#e74c3c;font-size:28px;font-weight:800;margin:0;letter-spacing:-0.5px;">Payment Overdue</h2>
+                        <p style="color:#636e72;margin-top:8px;">Immediate action required: Your payment is past due.</p>
+                    </div>
+                    
+                    <p style="font-size:16px;margin-bottom:24px;line-height:1.6;">Hello <strong style="color:#111;">{{student_name}}</strong>,</p>
+                    
+                    <p style="font-size:15px;margin-bottom:28px;line-height:1.6;color:#636e72;">Your fee payment deadline has passed. To avoid further accumulation of fines and potential restriction of services, please clear your balance immediately.</p>
+                    
+                    <div style="background:#fff9f9;padding:24px;border-radius:16px;margin-bottom:32px;border:1px solid #ffecec;">
+                        <h3 style="font-size:14px;text-transform:uppercase;letter-spacing:1px;color:#e74c3c;margin-top:0;margin-bottom:16px;">Overdue Balance</h3>
+                        <p style="margin:8px 0;font-size:14px;"><strong>Pending Amount :-</strong> NPR {{balance}}</p>
+                        <p style="margin:8px 0;font-size:14px;"><strong>Late Fine :-</strong> NPR {{fine_applied}}</p>
+                        <p style="margin:8px 0;font-size:14px;color:#e74c3c;font-weight:700;"><strong>Total Payable :-</strong> NPR {{total_payable}}</p>
+                    </div>
+
+                    <div style="text-align:center;margin-bottom:32px;">
+                        <a href="{{login_url}}" style="display:inline-block;padding:16px 36px;background:#e74c3c;color:#ffffff;text-decoration:none;border-radius:12px;font-weight:700;box-shadow:0 4px 15px rgba(231,76,60,0.2);">Clear Dues Now</a>
+                    </div>
+
+                    <p style="font-size:14px;color:#636e72;margin-bottom:32px;text-align:center;">Facing financial difficulty? Meet with the accounts desk within 24 hours to discuss options.</p>
+
+                    <div style="text-align:right;margin-top:40px;">
+                        <p style="margin:0;font-size:16px;color:#2d3436;">Accounts Department,</p>
+                        <p style="margin:4px 0 0;font-size:18px;font-weight:800;color:#009E7E;">{{institute_name}}</p>
+                    </div>
+                </div>'
             ],
             'invoice_generated' => [
                 'subject' => 'New Invoice Generated - {{invoice_number}}',
-                'body' => '<div style="font-family:sans-serif;color:#333;"><p>Dear {{student_name}},</p><p>📄 NEW INVOICE ISSUED</p><p>A new fee invoice has been generated for your account.</p><p>INVOICE DETAILS:<br>• Invoice Number: {{invoice_number}}<br>• Issue Date: {{invoice_date}}<br>• Due Date: {{due_date}}<br>• Amount: NPR {{total_amount}}</p><p>STUDENT INFORMATION:<br>• Name: {{student_name}}<br>• Roll Number: {{roll_no}}<br>• Course: {{course_name}}<br>• Batch: {{batch_name}}</p><p>📥 DOWNLOAD INVOICE:<br>Log in to your student portal to download the official invoice: {{login_url}}</p><p>💳 PAYMENT OPTIONS:<br>• Online: eSewa, Khalti, Bank Transfer via student portal<br>• Office: Visit accounts desk (Cash/Cheque accepted)<br>• Bank Transfer: Use invoice number as reference</p><p>⏰ PAYMENT DEADLINE: {{due_date}}</p><p>Please ensure timely payment to avoid late fines.</p><p>Questions about this invoice?<br>📞 {{institute_phone}}<br>✉️ {{institute_email}}</p><p>Thank you,</p><p>Accounts Department<br>{{institute_name}}</p></div>'
+                'body' => '<div style="font-family:\'Plus Jakarta Sans\',\'Helvetica Neue\',sans-serif;max-width:600px;margin:20px auto;padding:40px;border:1px solid #eef2f6;border-radius:24px;color:#2d3436;background:#ffffff;box-shadow:0 10px 30px rgba(0,0,0,0.02);">
+                    <div style="text-align:center;margin-bottom:32px;">
+                        <h2 style="color:#009E7E;font-size:28px;font-weight:800;margin:0;letter-spacing:-0.5px;">Invoice Generated</h2>
+                        <p style="color:#636e72;margin-top:8px;">A new fee invoice is ready for review.</p>
+                    </div>
+                    
+                    <p style="font-size:16px;margin-bottom:24px;line-height:1.6;">Hello <strong style="color:#111;">{{student_name}}</strong>,</p>
+                    
+                    <p style="font-size:15px;margin-bottom:28px;line-height:1.6;color:#636e72;">A new fee invoice has been generated for your recent installment. You can download the official document and pay online via the student portal.</p>
+                    
+                    <div style="background:#f8fafc;padding:24px;border-radius:16px;margin-bottom:32px;border:1px solid #f1f5f9;">
+                        <h3 style="font-size:14px;text-transform:uppercase;letter-spacing:1px;color:#94a3b8;margin-top:0;margin-bottom:16px;">Invoice Summary</h3>
+                        <p style="margin:8px 0;font-size:14px;"><strong>Invoice No :-</strong> {{invoice_number}}</p>
+                        <p style="margin:8px 0;font-size:14px;"><strong>Amount :-</strong> NPR {{total_amount}}</p>
+                        <p style="margin:8px 0;font-size:14px;"><strong>Issue Date :-</strong> {{invoice_date}}</p>
+                        <p style="margin:8px 0;font-size:14px;"><strong>Due Date :-</strong> {{due_date}}</p>
+                    </div>
+
+                    <div style="text-align:center;margin-bottom:32px;">
+                        <a href="{{login_url}}" style="display:inline-block;padding:16px 36px;background:#009E7E;color:#ffffff;text-decoration:none;border-radius:12px;font-weight:700;box-shadow:0 4px 15px rgba(0,158,126,0.2);">View & Pay Invoice</a>
+                    </div>
+
+                    <div style="text-align:right;margin-top:40px;">
+                        <p style="margin:0;font-size:16px;color:#2d3436;">Accounts Department,</p>
+                        <p style="margin:4px 0 0;font-size:18px;font-weight:800;color:#009E7E;">{{institute_name}}</p>
+                    </div>
+                </div>'
             ],
             'payment_refund_processed' => [
                 'subject' => 'Refund Processed - {{receipt_no}}',
-                'body' => '<div style="font-family:sans-serif;color:#333;"><p>Dear {{student_name}},</p><p>✅ REFUND PROCESSED SUCCESSFULLY</p><p>Your refund request has been approved and processed.</p><p>REFUND DETAILS:<br>• Original Receipt: {{receipt_no}}<br>• Original Payment Date: {{original_payment_date}}<br>• Refund Amount: NPR {{amount}}<br>• Refund Date: {{refund_date}}<br>• Refund Method: {{refund_method}}<br>• Transaction ID: {{transaction_id}}</p><p>STUDENT DETAILS:<br>• Name: {{student_name}}<br>• Roll Number: {{roll_no}}<br>• Course: {{course_name}}</p><p>⏰ REFUND TIMELINE:<br>• Bank Transfer: 3-5 business days<br>• Cheque: Collect from office<br>• Original Payment Method: As per bank processing time</p><p>📱 TRACK REFUND:<br>You can track your refund status in the student portal: {{login_url}}</p><p>If you don\'t receive the refund within the expected timeline, please contact us with your transaction reference number.</p><p>QUESTIONS?<br>📞 {{institute_phone}}<br>✉️ {{institute_email}}</p><p>Thank you for your patience.</p><p>Accounts Department<br>{{institute_name}}</p></div>'
+                'body' => '<div style="font-family:\'Plus Jakarta Sans\',\'Helvetica Neue\',sans-serif;max-width:600px;margin:20px auto;padding:40px;border:1px solid #eef2f6;border-radius:24px;color:#2d3436;background:#ffffff;box-shadow:0 10px 30px rgba(0,0,0,0.02);">
+                    <div style="text-align:center;margin-bottom:32px;">
+                        <h2 style="color:#009E7E;font-size:28px;font-weight:800;margin:0;letter-spacing:-0.5px;">Refund Processed</h2>
+                        <p style="color:#636e72;margin-top:8px;">Your refund has been approved and completed.</p>
+                    </div>
+                    
+                    <p style="font-size:16px;margin-bottom:24px;line-height:1.6;">Hello <strong style="color:#111;">{{student_name}}</strong>,</p>
+                    
+                    <p style="font-size:15px;margin-bottom:28px;line-height:1.6;color:#636e72;">Good news! Your refund request for receipt #{{receipt_no}} has been processed. Please see the details below.</p>
+                    
+                    <div style="background:#f8fafc;padding:24px;border-radius:16px;margin-bottom:32px;border:1px solid #f1f5f9;">
+                        <h3 style="font-size:14px;text-transform:uppercase;letter-spacing:1px;color:#94a3b8;margin-top:0;margin-bottom:16px;">Refund details</h3>
+                        <p style="margin:8px 0;font-size:14px;"><strong>Amount :-</strong> NPR {{amount}}</p>
+                        <p style="margin:8px 0;font-size:14px;"><strong>Refund Date :-</strong> {{refund_date}}</p>
+                        <p style="margin:8px 0;font-size:14px;"><strong>Method :-</strong> {{refund_method}}</p>
+                        <p style="margin:8px 0;font-size:14px;"><strong>Transaction :-</strong> {{transaction_id}}</p>
+                    </div>
+
+                    <p style="font-size:14px;color:#636e72;margin-bottom:32px;text-align:center;">Depending on your bank, it may take 3-5 business days for the amount to reflect in your account.</p>
+
+                    <div style="text-align:right;margin-top:40px;">
+                        <p style="margin:0;font-size:16px;color:#2d3436;">Accounts Department,</p>
+                        <p style="margin:4px 0 0;font-size:18px;font-weight:800;color:#009E7E;">{{institute_name}}</p>
+                    </div>
+                </div>'
             ],
             'course_enrollment_success' => [
                 'subject' => 'Successfully Enrolled - {{course_name}}',
-                'body' => '<div style="font-family:sans-serif;color:#333;"><p>Dear {{student_name}},</p><p>🎓 ENROLLMENT CONFIRMED</p><p>Congratulations! You have been successfully enrolled in {{course_name}}.</p><p>ENROLLMENT DETAILS:<br>• Course: {{course_name}}<br>• Course Code: {{course_code}}<br>• Batch: {{batch_name}}<br>• Shift: {{batch_shift}}<br>• Roll Number: {{roll_no}}<br>• Start Date: {{batch_start_date}}</p><p>CLASS INFORMATION:<br>• Timetable: Available on student portal<br>• Class Timings: As per batch schedule<br>• Total Duration: {{course_duration}}</p><p>📚 WHAT\'S NEXT:<br>1. Log in to your portal: {{login_url}}<br>2. View your class schedule<br>3. Download study materials<br>4. Check exam calendar<br>5. Review fee payment schedule</p><p>📱 ACCESS YOUR PORTAL:<br>{{login_url}}</p><p>Welcome to {{course_name}}! We wish you success in your studies.</p><p>For any questions:<br>📞 {{institute_phone}}<br>✉️ {{institute_email}}</p><p>Best wishes!</p><p>Academic Department<br>{{institute_name}}</p></div>'
+                'body' => '<div style="font-family:\'Plus Jakarta Sans\',\'Helvetica Neue\',sans-serif;max-width:600px;margin:20px auto;padding:40px;border:1px solid #eef2f6;border-radius:24px;color:#2d3436;background:#ffffff;box-shadow:0 10px 30px rgba(0,0,0,0.02);">
+                    <div style="text-align:center;margin-bottom:32px;">
+                        <h2 style="color:#009E7E;font-size:28px;font-weight:800;margin:0;letter-spacing:-0.5px;">Enrollment Confirmed</h2>
+                        <p style="color:#636e72;margin-top:8px;">You are now officially enrolled in {{course_name}}.</p>
+                    </div>
+                    
+                    <p style="font-size:16px;margin-bottom:24px;line-height:1.6;">Hello <strong style="color:#111;">{{student_name}}</strong>,</p>
+                    
+                    <p style="font-size:15px;margin-bottom:28px;line-height:1.6;color:#636e72;">Congratulations! Your enrollment in the upcoming batch has been confirmed. We are excited to have you join us. Here are your course details.</p>
+                    
+                    <div style="background:#f8fafc;padding:24px;border-radius:16px;margin-bottom:32px;border:1px solid #f1f5f9;">
+                        <h3 style="font-size:14px;text-transform:uppercase;letter-spacing:1px;color:#94a3b8;margin-top:0;margin-bottom:16px;">Course Information</h3>
+                        <p style="margin:8px 0;font-size:14px;"><strong>Course :-</strong> {{course_name}}</p>
+                        <p style="margin:8px 0;font-size:14px;"><strong>Batch :-</strong> {{batch_name}}</p>
+                        <p style="margin:8px 0;font-size:14px;"><strong>Start Date :-</strong> {{batch_start_date}}</p>
+                        <p style="margin:8px 0;font-size:14px;"><strong>Roll Number :-</strong> {{roll_no}}</p>
+                    </div>
+
+                    <div style="text-align:center;margin-bottom:32px;">
+                        <a href="{{login_url}}" style="display:inline-block;padding:16px 36px;background:#009E7E;color:#ffffff;text-decoration:none;border-radius:12px;font-weight:700;box-shadow:0 4px 15px rgba(0,158,126,0.2);">Access Student Portal</a>
+                    </div>
+
+                    <div style="text-align:right;margin-top:40px;">
+                        <p style="margin:0;font-size:16px;color:#2d3436;">Academic Department,</p>
+                        <p style="margin:4px 0 0;font-size:18px;font-weight:800;color:#009E7E;">{{institute_name}}</p>
+                    </div>
+                </div>'
             ],
             'exam_schedule_published' => [
                 'subject' => 'Exam Schedule Announced - {{exam_name}}',
-                'body' => '<div style="font-family:sans-serif;color:#333;"><p>Dear {{student_name}},</p><p>📅 EXAM SCHEDULE PUBLISHED</p><p>The schedule for {{exam_name}} has been announced.</p><p>EXAM DETAILS:<br>• Exam Name: {{exam_name}}<br>• Date: {{exam_date}}<br>• Time: {{exam_time}}<br>• Duration: {{exam_duration}} minutes<br>• Total Marks: {{total_marks}}</p><p>YOUR ENROLLMENT:<br>• Roll Number: {{roll_no}}<br>• Course: {{course_name}}<br>• Batch: {{batch_name}}</p><p>EXAMINATION INSTRUCTIONS:<br>• Arrive 15 minutes before exam time<br>• Bring your ID card and admit card<br>• No entry after exam starts</p><p>📥 DOWNLOAD ADMIT CARD:<br>Your admit card is now available on the student portal: {{login_url}}</p><p>EXAM VENUE:<br>• Location: {{exam_venue}}<br>• Room Number: {{room_number}}<br>• Seating Plan: Check portal</p><p>⚠️ IMPORTANT:<br>• No entry after exam starts<br>• Late arrivals will not be permitted<br>• Fee clearance required for exam entry</p><p>Questions about the exam?<br>📞 {{institute_phone}}<br>✉️ {{institute_email}}</p><p>Best of luck with your preparation!</p><p>Examination Department<br>{{institute_name}}</p></div>'
+                'body' => '<div style="font-family:\'Plus Jakarta Sans\',\'Helvetica Neue\',sans-serif;max-width:600px;margin:20px auto;padding:40px;border:1px solid #eef2f6;border-radius:24px;color:#2d3436;background:#ffffff;box-shadow:0 10px 30px rgba(0,0,0,0.02);">
+                    <div style="text-align:center;margin-bottom:32px;">
+                        <h2 style="color:#009e7e;font-size:28px;font-weight:800;margin:0;letter-spacing:-0.5px;">Exam Schedule</h2>
+                        <p style="color:#636e72;margin-top:8px;">The schedule for <strong>{{exam_name}}</strong> is now available.</p>
+                    </div>
+                    
+                    <p style="font-size:16px;margin-bottom:24px;line-height:1.6;">Hello <strong style="color:#111;">{{student_name}}</strong>,</p>
+                    
+                    <p style="font-size:15px;margin-bottom:28px;line-height:1.6;color:#636e72;">The academic department has finalized the schedule for your upcoming examinations. Please prepare accordingly.</p>
+                    
+                    <div style="background:#f8fafc;padding:24px;border-radius:16px;margin-bottom:32px;border:1px solid #f1f5f9;">
+                        <h3 style="font-size:14px;text-transform:uppercase;letter-spacing:1px;color:#94a3b8;margin-top:0;margin-bottom:16px;">Exam Details</h3>
+                        <p style="margin:8px 0;font-size:14px;"><strong>Exam Name :-</strong> {{exam_name}}</p>
+                        <p style="margin:8px 0;font-size:14px;"><strong>Date :-</strong> {{exam_date}}</p>
+                        <p style="margin:8px 0;font-size:14px;"><strong>Time :-</strong> {{exam_time}}</p>
+                        <p style="margin:8px 0;font-size:14px;"><strong>Venue :-</strong> {{exam_venue}}</p>
+                    </div>
+
+                    <div style="text-align:center;margin-bottom:32px;">
+                        <a href="{{login_url}}" style="display:inline-block;padding:16px 36px;background:#009E7E;color:#ffffff;text-decoration:none;border-radius:12px;font-weight:700;box-shadow:0 4px 15px rgba(0,158,126,0.2);">Download Admit Card</a>
+                    </div>
+
+                    <div style="text-align:right;margin-top:40px;">
+                        <p style="margin:0;font-size:16px;color:#2d3436;">Examination Dept,</p>
+                        <p style="margin:4px 0 0;font-size:18px;font-weight:800;color:#009E7E;">{{institute_name}}</p>
+                    </div>
+                </div>'
             ],
             'exam_results_published' => [
                 'subject' => 'Exam Results Available - {{exam_name}}',
-                'body' => '<div style="font-family:sans-serif;color:#333;"><p>Dear {{student_name}},</p><p>📊 RESULTS PUBLISHED</p><p>Your results for {{exam_name}} are now available.</p><p>YOUR PERFORMANCE:<br>• Exam: {{exam_name}}<br>• Date: {{exam_date}}<br>• Marks Obtained: {{marks_obtained}} / {{total_marks}}<br>• Percentage: {{percentage}}%<br>• Grade: {{grade}}<br>• Result: {{result_status}}</p><p>CLASS PERFORMANCE:<br>• Class Average: {{class_average}}%<br>• Your Rank: {{rank}} / {{total_students}}<br>• Highest Score: {{highest_score}}</p><p>📱 VIEW DETAILED RESULTS:<br>Log in to your portal for:<br>• Subject-wise breakdown<br>• Answer sheet review (if available)<br>• Performance analysis</p><p>🔗 {{login_url}}</p><p>Questions about your results?<br>📞 {{institute_phone}}<br>✉️ {{institute_email}}</p><p>Keep up the great work!</p><p>Examination Department<br>{{institute_name}}</p></div>'
+                'body' => '<div style="font-family:\'Plus Jakarta Sans\',\'Helvetica Neue\',sans-serif;max-width:600px;margin:20px auto;padding:40px;border:1px solid #eef2f6;border-radius:24px;color:#2d3436;background:#ffffff;box-shadow:0 10px 30px rgba(0,0,0,0.02);">
+                    <div style="text-align:center;margin-bottom:32px;">
+                        <h2 style="color:#009E7E;font-size:28px;font-weight:800;margin:0;letter-spacing:-0.5px;">Results Published</h2>
+                        <p style="color:#636e72;margin-top:8px;">Your performance for {{exam_name}} is now live.</p>
+                    </div>
+                    
+                    <p style="font-size:16px;margin-bottom:24px;line-height:1.6;">Hello <strong style="color:#111;">{{student_name}}</strong>,</p>
+                    
+                    <p style="font-size:15px;margin-bottom:28px;line-height:1.6;color:#636e72;">The results for your recent examination have been published. Here is a quick summary of your performance.</p>
+                    
+                    <div style="background:#f0faf5;padding:24px;border-radius:16px;margin-bottom:32px;border:1px solid #dff2e8;">
+                        <h3 style="font-size:14px;text-transform:uppercase;letter-spacing:1px;color:#009E7E;margin-top:0;margin-bottom:16px;">Result Summary</h3>
+                        <p style="margin:8px 0;font-size:14px;"><strong>Marks :-</strong> {{marks_obtained}} / {{total_marks}}</p>
+                        <p style="margin:8px 0;font-size:14px;"><strong>Percentage :-</strong> {{percentage}}%</p>
+                        <p style="margin:8px 0;font-size:14px;"><strong>Grade :-</strong> {{grade}}</p>
+                        <p style="margin:8px 0;font-size:14px;"><strong>Status :-</strong> <span style="color:#009E7E;font-weight:700;">{{result_status}}</span></p>
+                    </div>
+
+                    <div style="text-align:center;margin-bottom:32px;">
+                        <a href="{{login_url}}" style="display:inline-block;padding:16px 36px;background:#009E7E;color:#ffffff;text-decoration:none;border-radius:12px;font-weight:700;box-shadow:0 4px 15px rgba(0,158,126,0.2);">View Detailed Marksheet</a>
+                    </div>
+
+                    <div style="text-align:right;margin-top:40px;">
+                        <p style="margin:0;font-size:16px;color:#2d3436;">Examination Dept,</p>
+                        <p style="margin:4px 0 0;font-size:18px;font-weight:800;color:#009E7E;">{{institute_name}}</p>
+                    </div>
+                </div>'
             ],
             'assignment_new' => [
                 'subject' => 'New Assignment: {{assignment_title}}',
-                'body' => '<div style="font-family:sans-serif;color:#333;"><p>Dear {{student_name}},</p><p>📝 NEW ASSIGNMENT POSTED</p><p>A new assignment has been posted for {{course_name}}.</p><p>ASSIGNMENT DETAILS:<br>• Title: {{assignment_title}}<br>• Subject: {{subject_name}}<br>• Posted On: {{posted_date}}<br>• Due Date: {{assignment_due_date}}<br>• Maximum Marks: {{max_marks}}</p><p>⚠️ IMPORTANT GUIDELINES:<br>• Late submissions may incur penalties<br>• Plagiarism will result in zero marks<br>• Follow all formatting instructions<br>• Submit before deadline</p><p>📱 ACCESS ASSIGNMENT:<br>View complete details and download resources: {{login_url}}</p><p>Questions about the assignment?<br>• Contact your teacher: {{teacher_email}}<br>• Office: {{institute_phone}}</p><p>Good luck!</p><p>Academic Department<br>{{institute_name}}</p></div>'
+                'body' => '<div style="font-family:\'Plus Jakarta Sans\',\'Helvetica Neue\',sans-serif;max-width:600px;margin:20px auto;padding:40px;border:1px solid #eef2f6;border-radius:24px;color:#2d3436;background:#ffffff;box-shadow:0 10px 30px rgba(0,0,0,0.02);">
+                    <div style="text-align:center;margin-bottom:32px;">
+                        <h2 style="color:#004D30;font-size:28px;font-weight:800;margin:0;letter-spacing:-0.5px;">New Assignment</h2>
+                        <p style="color:#636e72;margin-top:8px;">A new task has been assigned for <strong>{{course_name}}</strong>.</p>
+                    </div>
+                    
+                    <p style="font-size:16px;margin-bottom:24px;line-height:1.6;">Hello <strong style="color:#111;">{{student_name}}</strong>,</p>
+                    
+                    <p style="font-size:15px;margin-bottom:28px;line-height:1.6;color:#636e72;">Your instructor has posted a new assignment. Please review the requirements and ensure timely submission.</p>
+                    
+                    <div style="background:#f8fafc;padding:24px;border-radius:16px;margin-bottom:32px;border:1px solid #f1f5f9;">
+                        <h3 style="font-size:14px;text-transform:uppercase;letter-spacing:1px;color:#94a3b8;margin-top:0;margin-bottom:16px;">Task details</h3>
+                        <p style="margin:8px 0;font-size:14px;"><strong>Title :-</strong> {{assignment_title}}</p>
+                        <p style="margin:8px 0;font-size:14px;"><strong>Subject :-</strong> {{subject_name}}</p>
+                        <p style="margin:8px 0;font-size:14px;color:#e74c3c;"><strong>Due Date :-</strong> {{assignment_due_date}}</p>
+                    </div>
+
+                    <div style="text-align:center;margin-bottom:32px;">
+                        <a href="{{login_url}}" style="display:inline-block;padding:16px 36px;background:#004D30;color:#ffffff;text-decoration:none;border-radius:12px;font-weight:700;box-shadow:0 4px 15px rgba(0,77,48,0.2);">View Assignment</a>
+                    </div>
+
+                    <div style="text-align:right;margin-top:40px;">
+                        <p style="margin:0;font-size:16px;color:#2d3436;">Academic Department,</p>
+                        <p style="margin:4px 0 0;font-size:18px;font-weight:800;color:#009E7E;">{{institute_name}}</p>
+                    </div>
+                </div>'
             ],
             'assignment_submission_confirmed' => [
                 'subject' => 'Assignment Submitted Successfully - {{assignment_title}}',
-                'body' => '<div style="font-family:sans-serif;color:#333;"><p>Dear {{student_name}},</p><p>✅ SUBMISSION CONFIRMED</p><p>Your assignment has been submitted successfully.</p><p>SUBMISSION DETAILS:<br>• Assignment: {{assignment_title}}<br>• Submitted On: {{submitted_at}}<br>• Due Date: {{assignment_due_date}}<br>• Status: {{submission_status}}<br>• File: {{submission_filename}}</p><p>YOUR DETAILS:<br>• Roll Number: {{roll_no}}<br>• Course: {{course_name}}</p><p>📱 VIEW SUBMISSION:<br>You can view your submission and track evaluation status on the portal: {{login_url}}</p><p>WHAT\'S NEXT:<br>• Your teacher will evaluate the assignment<br>• You\'ll receive marks and feedback via portal<br>• Check portal regularly for updates</p><p>Questions or concerns?<br>📞 {{institute_phone}}<br>✉️ {{institute_email}}</p><p>Thank you for your submission!</p><p>Academic Department<br>{{institute_name}}</p></div>'
+                'body' => '<div style="font-family:\'Plus Jakarta Sans\',\'Helvetica Neue\',sans-serif;max-width:600px;margin:20px auto;padding:40px;border:1px solid #eef2f6;border-radius:24px;color:#2d3436;background:#ffffff;box-shadow:0 10px 30px rgba(0,0,0,0.02);">
+                    <div style="text-align:center;margin-bottom:32px;">
+                        <h2 style="color:#009E7E;font-size:28px;font-weight:800;margin:0;letter-spacing:-0.5px;">Submission Received</h2>
+                        <p style="color:#636e72;margin-top:8px;">Your assignment has been uploaded successfully.</p>
+                    </div>
+                    
+                    <p style="font-size:16px;margin-bottom:24px;line-height:1.6;">Hello <strong style="color:#111;">{{student_name}}</strong>,</p>
+                    
+                    <p style="font-size:15px;margin-bottom:28px;line-height:1.6;color:#636e72;">This is to confirm that we have received your assignment submission. Your instructor will evaluate it shortly.</p>
+                    
+                    <div style="background:#f8fafc;padding:24px;border-radius:16px;margin-bottom:32px;border:1px solid #f1f5f9;">
+                        <h3 style="font-size:14px;text-transform:uppercase;letter-spacing:1px;color:#94a3b8;margin-top:0;margin-bottom:16px;">Submission Summary</h3>
+                        <p style="margin:8px 0;font-size:14px;"><strong>Assignment :-</strong> {{assignment_title}}</p>
+                        <p style="margin:8px 0;font-size:14px;"><strong>Submitted On :-</strong> {{submitted_at}}</p>
+                        <p style="margin:8px 0;font-size:14px;"><strong>File :-</strong> {{submission_filename}}</p>
+                        <p style="margin:8px 0;font-size:14px;"><strong>Status :-</strong> <span style="color:#009E7E;font-weight:700;">{{submission_status}}</span></p>
+                    </div>
+
+                    <div style="text-align:right;margin-top:40px;">
+                        <p style="margin:0;font-size:16px;color:#2d3436;">Academic Department,</p>
+                        <p style="margin:4px 0 0;font-size:18px;font-weight:800;color:#009E7E;">{{institute_name}}</p>
+                    </div>
+                </div>'
             ],
             'assignment_graded' => [
                 'subject' => 'Assignment Evaluated - {{assignment_title}}',
-                'body' => '<div style="font-family:sans-serif;color:#333;"><p>Dear {{student_name}},</p><p>📊 ASSIGNMENT GRADED</p><p>Your assignment has been evaluated by your teacher.</p><p>EVALUATION RESULTS:<br>• Assignment: {{assignment_title}}<br>• Submitted On: {{submitted_at}}<br>• Evaluated On: {{graded_at}}<br>• Marks Obtained: {{marks_awarded}} / {{max_marks}}<br>• Percentage: {{assignment_percentage}}%<br>• Grade: {{assignment_grade}}</p><p>TEACHER FEEDBACK:<br>{{feedback}}</p><p>PERFORMANCE ANALYSIS:<br>• Class Average: {{class_average_marks}}<br>• Your Performance: {{performance_status}}</p><p>📱 VIEW DETAILED FEEDBACK:<br>Log in to your portal to view complete evaluation: {{login_url}}</p><p>Keep up the good work! If you have questions about the evaluation, please contact your teacher.</p><p>Teacher Contact: {{teacher_email}}<br>Office: {{institute_phone}}</p><p>Best regards,</p><p>Academic Department<br>{{institute_name}}</p></div>'
+                'body' => '<div style="font-family:\'Plus Jakarta Sans\',\'Helvetica Neue\',sans-serif;max-width:600px;margin:20px auto;padding:40px;border:1px solid #eef2f6;border-radius:24px;color:#2d3436;background:#ffffff;box-shadow:0 10px 30px rgba(0,0,0,0.02);">
+                    <div style="text-align:center;margin-bottom:32px;">
+                        <h2 style="color:#009E7E;font-size:28px;font-weight:800;margin:0;letter-spacing:-0.5px;">Assignment Graded</h2>
+                        <p style="color:#636e72;margin-top:8px;">Evaluation for <strong>{{assignment_title}}</strong> is complete.</p>
+                    </div>
+                    
+                    <p style="font-size:16px;margin-bottom:24px;line-height:1.6;">Hello <strong style="color:#111;">{{student_name}}</strong>,</p>
+                    
+                    <p style="font-size:15px;margin-bottom:28px;line-height:1.6;color:#636e72;">Your instructor has finished grading your submission. Here is a summary of your results and feedback.</p>
+                    
+                    <div style="background:#f0faf5;padding:24px;border-radius:16px;margin-bottom:32px;border:1px solid #dff2e8;">
+                        <h3 style="font-size:14px;text-transform:uppercase;letter-spacing:1px;color:#009E7E;margin-top:0;margin-bottom:16px;">Grading summary</h3>
+                        <p style="margin:8px 0;font-size:14px;"><strong>Marks :-</strong> {{marks_awarded}} / {{max_marks}}</p>
+                        <p style="margin:8px 0;font-size:14px;"><strong>Grade :-</strong> {{assignment_grade}}</p>
+                        <p style="margin:16px 0 8px;font-size:13px;color:#636e72;line-height:1.5;"><strong>Feedback :-</strong> {{feedback}}</p>
+                    </div>
+
+                    <div style="text-align:center;margin-bottom:32px;">
+                        <a href="{{login_url}}" style="display:inline-block;padding:16px 36px;background:#009E7E;color:#ffffff;text-decoration:none;border-radius:12px;font-weight:700;box-shadow:0 4px 15px rgba(0,158,126,0.2);">View Full Feedback</a>
+                    </div>
+
+                    <div style="text-align:right;margin-top:40px;">
+                        <p style="margin:0;font-size:16px;color:#2d3436;">Academic Department,</p>
+                        <p style="margin:4px 0 0;font-size:18px;font-weight:800;color:#009E7E;">{{institute_name}}</p>
+                    </div>
+                </div>'
             ],
             'attendance_warning' => [
                 'subject' => 'ATTENTION REQUIRED: Low Attendance Alert ⚠️',
-                'body' => '<div style="font-family:sans-serif;color:#333;"><p>Dear {{student_name}},</p><p>⚠️ ATTENDANCE WARNING</p><p>Our records indicate that your attendance has fallen below the required minimum.</p><p>ATTENDANCE SUMMARY:<br>• Current Attendance: {{attendance_percentage}}%<br>• Required Minimum: {{required_attendance}}%<br>• Total Classes: {{total_classes}}<br>• Classes Attended: {{classes_attended}}<br>• Classes Missed: {{classes_missed}}<br>• Period: {{attendance_period}}</p><p>COURSE DETAILS:<br>• Roll Number: {{roll_no}}<br>• Course: {{course_name}}<br>• Batch: {{batch_name}}</p><p>🚨 CONSEQUENCES OF LOW ATTENDANCE:<br>• You may not be eligible to appear in final exams<br>• Academic performance may be affected<br>• Disciplinary action as per institute policy</p><p>⚠️ IMMEDIATE ACTION REQUIRED:<br>• Attend all remaining classes<br>• Submit medical certificates for genuine absences<br>• Meet with your academic advisor</p><p>📱 VIEW DETAILED ATTENDANCE:<br>Check your day-wise attendance record: {{login_url}}</p><p>MEDICAL/EMERGENCY LEAVE:<br>If you\'ve been absent due to medical reasons:<br>• Submit medical certificate to office<br>• Email documents to: {{institute_email}}</p><p>NEED TO DISCUSS?<br>📞 {{institute_phone}}<br>✉️ {{institute_email}}<br>Visit: Academic Office</p><p>Please take immediate corrective action.</p><p>Academic Department<br>{{institute_name}}</p></div>'
+                'body' => '<div style="font-family:\'Plus Jakarta Sans\',\'Helvetica Neue\',sans-serif;max-width:600px;margin:20px auto;padding:40px;border:1px solid #eef2f6;border-radius:24px;color:#2d3436;background:#ffffff;box-shadow:0 10px 30px rgba(0,0,0,0.02);">
+                    <div style="text-align:center;margin-bottom:32px;">
+                        <h2 style="color:#e74c3c;font-size:28px;font-weight:800;margin:0;letter-spacing:-0.5px;">Attendance Warning</h2>
+                        <p style="color:#636e72;margin-top:8px;">Action required: Your attendance is below the minimum threshold.</p>
+                    </div>
+                    
+                    <p style="font-size:16px;margin-bottom:24px;line-height:1.6;">Hello <strong style="color:#111;">{{student_name}}</strong>,</p>
+                    
+                    <p style="font-size:15px;margin-bottom:28px;line-height:1.6;color:#636e72;">Our records indicate that your attendance for <strong>{{course_name}}</strong> has fallen below the required minimum. This may impact your eligibility for final examinations.</p>
+                    
+                    <div style="background:#fff9f9;padding:24px;border-radius:16px;margin-bottom:32px;border:1px solid #ffecec;">
+                        <h3 style="font-size:14px;text-transform:uppercase;letter-spacing:1px;color:#e74c3c;margin-top:0;margin-bottom:16px;">Attendance Summary</h3>
+                        <p style="margin:8px 0;font-size:14px;"><strong>Current Stat :-</strong> <span style="color:#e74c3c;font-weight:700;">{{attendance_percentage}}%</span></p>
+                        <p style="margin:8px 0;font-size:14px;"><strong>Required :-</strong> {{required_attendance}}%</p>
+                        <p style="margin:8px 0;font-size:14px;"><strong>Missed Classes :-</strong> {{classes_missed}}</p>
+                    </div>
+
+                    <p style="text-align:center;font-size:14px;color:#636e72;margin-bottom:20px;">Please meet with your academic advisor or review your history on the portal:</p>
+                    <div style="text-align:center;margin-bottom:32px;">
+                        <a href="{{login_url}}" style="display:inline-block;padding:16px 36px;background:#e74c3c;color:#ffffff;text-decoration:none;border-radius:12px;font-weight:700;box-shadow:0 4px 15px rgba(231,76,60,0.2);">Review Attendance</a>
+                    </div>
+
+                    <div style="text-align:right;margin-top:40px;">
+                        <p style="margin:0;font-size:16px;color:#2d3436;">Academic Department,</p>
+                        <p style="margin:4px 0 0;font-size:18px;font-weight:800;color:#009E7E;">{{institute_name}}</p>
+                    </div>
+                </div>'
             ],
             'general_announcement' => [
                 'subject' => 'Important Announcement - {{institute_name}}',
-                'body' => '<div style="font-family:sans-serif;color:#333;"><p>Dear {{student_name}},</p><p>📢 IMPORTANT ANNOUNCEMENT</p><p>{{announcement_title}}</p><p>{{announcement_content}}</p><p>DATE: {{announcement_date}}<br>PRIORITY: {{priority}}</p><p>For more information:<br>📱 {{login_url}}<br>📞 {{institute_phone}}<br>✉️ {{institute_email}}</p><p>This is an official announcement from {{institute_name}}.</p><p>Administration Office<br>{{institute_name}}</p></div>'
+                'body' => '<div style="font-family:\'Plus Jakarta Sans\',\'Helvetica Neue\',sans-serif;max-width:600px;margin:20px auto;padding:40px;border:1px solid #eef2f6;border-radius:24px;color:#2d3436;background:#ffffff;box-shadow:0 10px 30px rgba(0,0,0,0.02);">
+                    <div style="text-align:center;margin-bottom:32px;">
+                        <h2 style="color:#009E7E;font-size:28px;font-weight:800;margin:0;letter-spacing:-0.5px;">Announcement</h2>
+                        <p style="color:#636e72;margin-top:8px;">{{announcement_title}}</p>
+                    </div>
+                    
+                    <p style="font-size:16px;margin-bottom:24px;line-height:1.6;">Hello <strong style="color:#111;">{{student_name}}</strong>,</p>
+                    
+                    <div style="font-size:15px;margin-bottom:28px;line-height:1.6;color:#2d3436;">
+                        {{announcement_content}}
+                    </div>
+                    
+                    <div style="background:#f8fafc;padding:24px;border-radius:16px;margin-bottom:32px;border:1px solid #f1f5f9;">
+                        <p style="margin:0;font-size:14px;"><strong>Date :-</strong> {{announcement_date}}</p>
+                        <p style="margin:8px 0 0;font-size:14px;"><strong>Priority :-</strong> {{priority}}</p>
+                    </div>
+
+                    <div style="text-align:center;margin-bottom:32px;">
+                        <a href="{{login_url}}" style="display:inline-block;padding:16px 36px;background:#009E7E;color:#ffffff;text-decoration:none;border-radius:12px;font-weight:700;box-shadow:0 4px 15px rgba(0,158,126,0.2);">View on Portal</a>
+                    </div>
+
+                    <div style="text-align:right;margin-top:40px;">
+                        <p style="margin:0;font-size:16px;color:#2d3436;">Administration,</p>
+                        <p style="margin:4px 0 0;font-size:18px;font-weight:800;color:#009E7E;">{{institute_name}}</p>
+                    </div>
+                </div>'
             ],
             'account_suspended' => [
                 'subject' => 'Account Suspension Notice - {{institute_name}}',
-                'body' => '<div style="font-family:sans-serif;color:#333;"><p>Dear {{student_name}},</p><p>🔒 ACCOUNT SUSPENDED</p><p>Your student account at {{institute_name}} has been temporarily suspended.</p><p>SUSPENSION DETAILS:<br>• Account Status: SUSPENDED<br>• Date: {{suspension_date}}<br>• Roll Number: {{roll_no}}<br>• Reason: {{suspension_reason}}</p><p>⚠️ DURING SUSPENSION:<br>• Portal access is restricted<br>• You cannot attend classes<br>• You cannot appear for exams<br>• Library and facility access is blocked</p><p>🔓 TO RESTORE YOUR ACCOUNT:<br>{{restoration_instructions}}</p><p>📞 CONTACT ADMINISTRATION:<br>Phone: {{institute_phone}}<br>Email: {{institute_email}}<br>Visit: Administration Office<br>Timing: 10 AM - 5 PM (Mon-Fri)</p><p>⚠️ This is a serious matter. Please resolve this immediately to continue your education.</p><p>Administration Office<br>{{institute_name}}</p></div>'
+                'body' => '<div style="font-family:\'Plus Jakarta Sans\',\'Helvetica Neue\',sans-serif;max-width:600px;margin:20px auto;padding:40px;border:1px solid #eef2f6;border-radius:24px;color:#2d3436;background:#ffffff;box-shadow:0 10px 30px rgba(0,0,0,0.02);">
+                    <div style="text-align:center;margin-bottom:32px;">
+                        <h2 style="color:#e74c3c;font-size:28px;font-weight:800;margin:0;letter-spacing:-0.5px;">Account Suspended</h2>
+                        <p style="color:#636e72;margin-top:8px;">Access to your student portal has been restricted.</p>
+                    </div>
+                    
+                    <p style="font-size:16px;margin-bottom:24px;line-height:1.6;">Hello <strong style="color:#111;">{{student_name}}</strong>,</p>
+                    
+                    <p style="font-size:15px;margin-bottom:28px;line-height:1.6;color:#636e72;">This is to inform you that your student account at {{institute_name}} has been temporarily suspended due to administrative reasons.</p>
+                    
+                    <div style="background:#fff9f9;padding:24px;border-radius:16px;margin-bottom:32px;border:1px solid #ffecec;">
+                        <h3 style="font-size:14px;text-transform:uppercase;letter-spacing:1px;color:#e74c3c;margin-top:0;margin-bottom:16px;">Suspension details</h3>
+                        <p style="margin:8px 0;font-size:14px;"><strong>Reason :-</strong> {{suspension_reason}}</p>
+                        <p style="margin:8px 0;font-size:14px;"><strong>Date :-</strong> {{suspension_date}}</p>
+                        <p style="margin:8px 0;font-size:14px;"><strong>Roll No :-</strong> {{roll_no}}</p>
+                    </div>
+
+                    <p style="font-size:14px;color:#636e72;margin-bottom:32px;line-height:1.5;">To restore your account access, please follow the instructions below or visit the administration office.</p>
+                    
+                    <div style="background:#f8fafc;padding:20px;border-radius:12px;margin-bottom:32px;border:1px solid #f1f5f9;font-size:13px;color:#2d3436;">
+                        <strong>Instructions:</strong> {{restoration_instructions}}
+                    </div>
+
+                    <div style="text-align:right;margin-top:40px;">
+                        <p style="margin:0;font-size:16px;color:#2d3436;">Administration,</p>
+                        <p style="margin:4px 0 0;font-size:18px;font-weight:800;color:#009E7E;">{{institute_name}}</p>
+                    </div>
+                </div>'
             ],
             'account_reactivated' => [
                 'subject' => 'Account Reactivated - Welcome Back!',
-                'body' => '<div style="font-family:sans-serif;color:#333;"><p>Dear {{student_name}},</p><p>✅ ACCOUNT REACTIVATED</p><p>Great news! Your student account has been reactivated.</p><p>REACTIVATION DETAILS:<br>• Account Status: ACTIVE<br>• Reactivated On: {{reactivation_date}}<br>• Roll Number: {{roll_no}}</p><p>You now have full access to:<br>✓ Student Portal<br>✓ Class Attendance<br>✓ Exam Registration<br>✓ Library & Facilities<br>✓ All Institute Services</p><p>📱 LOG IN NOW:<br>{{login_url}}</p><p>Username: {{student_email}}</p><p>Welcome back! We\'re glad to have you back in our academic community.</p><p>Questions?<br>📞 {{institute_phone}}<br>✉️ {{institute_email}}</p><p>Best wishes for your continued success!</p><p>Administration Office<br>{{institute_name}}</p></div>'
+                'body' => '<div style="font-family:\'Plus Jakarta Sans\',\'Helvetica Neue\',sans-serif;max-width:600px;margin:20px auto;padding:40px;border:1px solid #eef2f6;border-radius:24px;color:#2d3436;background:#ffffff;box-shadow:0 10px 30px rgba(0,0,0,0.02);">
+                    <div style="text-align:center;margin-bottom:32px;">
+                        <h2 style="color:#009E7E;font-size:28px;font-weight:800;margin:0;letter-spacing:-0.5px;">Account Reactivated</h2>
+                        <p style="color:#636e72;margin-top:8px;">Welcome back! Your access has been restored.</p>
+                    </div>
+                    
+                    <p style="font-size:16px;margin-bottom:24px;line-height:1.6;">Hello <strong style="color:#111;">{{student_name}}</strong>,</p>
+                    
+                    <p style="font-size:15px;margin-bottom:28px;line-height:1.6;color:#636e72;">Good news! Your student account has been reactivated. You now have full access to all institute services and the student portal.</p>
+                    
+                    <div style="background:#f0faf5;padding:24px;border-radius:16px;margin-bottom:32px;border:1px solid #dff2e8;">
+                        <h3 style="font-size:14px;text-transform:uppercase;letter-spacing:1px;color:#009E7E;margin-top:0;margin-bottom:16px;">Account details</h3>
+                        <p style="margin:8px 0;font-size:14px;"><strong>Status :-</strong> <span style="color:#009E7E;font-weight:700;">ACTIVE</span></p>
+                        <p style="margin:8px 0;font-size:14px;"><strong>Reactivated On :-</strong> {{reactivation_date}}</p>
+                        <p style="margin:8px 0;font-size:14px;"><strong>Email :-</strong> {{student_email}}</p>
+                    </div>
+
+                    <div style="text-align:center;margin-bottom:32px;">
+                        <a href="{{login_url}}" style="display:inline-block;padding:16px 36px;background:#009E7E;color:#ffffff;text-decoration:none;border-radius:12px;font-weight:700;box-shadow:0 4px 15px rgba(0,158,126,0.2);">Back to Portal</a>
+                    </div>
+
+                    <div style="text-align:right;margin-top:40px;">
+                        <p style="margin:0;font-size:16px;color:#2d3436;">Administration,</p>
+                        <p style="margin:4px 0 0;font-size:18px;font-weight:800;color:#009E7E;">{{institute_name}}</p>
+                    </div>
+                </div>'
             ],
             'document_verification_required' => [
                 'subject' => 'Document Verification Required - {{institute_name}}',
-                'body' => '<div style="font-family:sans-serif;color:#333;"><p>Dear {{student_name}},</p><p>📄 DOCUMENT VERIFICATION REQUIRED</p><p>We need you to verify or resubmit certain documents for your student profile.</p><p>STUDENT DETAILS:<br>• Roll Number: {{roll_no}}<br>• Course: {{course_name}}</p><p>DOCUMENTS REQUIRED:<br>{{document_list}}</p><p>SUBMISSION DEADLINE: {{submission_deadline}}</p><p>📥 HOW TO SUBMIT:</p><p>OPTION 1 - Online Upload:<br>1. Log in to portal: {{login_url}}<br>2. Go to Profile → Documents<br>3. Upload required documents<br>4. Submit for verification</p><p>OPTION 2 - Office Submission:<br>• Visit: Administration Office<br>• Bring: Original + 2 photocopies<br>• Timing: 10 AM - 5 PM (Mon-Fri)</p><p>DOCUMENT SPECIFICATIONS:<br>• Format: PDF or JPG<br>• File Size: Maximum 5MB per file<br>• Quality: Clear and readable</p><p>Questions?<br>📞 {{institute_phone}}<br>✉️ {{institute_email}}</p><p>Please complete this at your earliest convenience.</p><p>Administration Office<br>{{institute_name}}</p></div>'
+                'body' => '<div style="font-family:\'Plus Jakarta Sans\',\'Helvetica Neue\',sans-serif;max-width:600px;margin:20px auto;padding:40px;border:1px solid #eef2f6;border-radius:24px;color:#2d3436;background:#ffffff;box-shadow:0 10px 30px rgba(0,0,0,0.02);">
+                    <div style="text-align:center;margin-bottom:32px;">
+                        <h2 style="color:#f39c12;font-size:28px;font-weight:800;margin:0;letter-spacing:-0.5px;">Verification Required</h2>
+                        <p style="color:#636e72;margin-top:8px;">Action required: Please provide the missing documents.</p>
+                    </div>
+                    
+                    <p style="font-size:16px;margin-bottom:24px;line-height:1.6;">Hello <strong style="color:#111;">{{student_name}}</strong>,</p>
+                    
+                    <p style="font-size:15px;margin-bottom:28px;line-height:1.6;color:#636e72;">We are currently verifying your student profile and noticed some documents are missing or require updated versions.</p>
+                    
+                    <div style="background:#fcfaf2;padding:24px;border-radius:16px;margin-bottom:32px;border:1px solid #f9f1d8;">
+                        <h3 style="font-size:14px;text-transform:uppercase;letter-spacing:1px;color:#d68910;margin-top:0;margin-bottom:16px;">Required documents</h3>
+                        <div style="font-size:14px;color:#2d3436;line-height:1.6;">
+                            {{document_list}}
+                        </div>
+                        <p style="margin:16px 0 0;font-size:13px;color:#e67e22;"><strong>Deadline :-</strong> {{submission_deadline}}</p>
+                    </div>
+
+                    <div style="text-align:center;margin-bottom:32px;">
+                        <a href="{{login_url}}" style="display:inline-block;padding:16px 36px;background:#f39c12;color:#ffffff;text-decoration:none;border-radius:12px;font-weight:700;box-shadow:0 4px 15px rgba(243,156,18,0.2);">Upload Documents</a>
+                    </div>
+
+                    <div style="text-align:right;margin-top:40px;">
+                        <p style="margin:0;font-size:16px;color:#2d3436;">Administration,</p>
+                        <p style="margin:4px 0 0;font-size:18px;font-weight:800;color:#009E7E;">{{institute_name}}</p>
+                    </div>
+                </div>'
             ],
             'leave_request_status' => [
                 'subject' => 'Leave Request {{status}} - {{institute_name}}',
-                'body' => '<div style="font-family:sans-serif;color:#333;"><p>Dear {{student_name}},</p><p>Your leave application has been reviewed.</p><p>LEAVE DETAILS:<br>• Application ID: {{leave_request_id}}<br>• From Date: {{from_date}}<br>• To Date: {{to_date}}<br>• Duration: {{leave_duration}} days<br>• Reason: {{leave_reason}}<br>• Status: {{leave_status}}</p><p>REVIEW DETAILS:<br>• Reviewed By: {{reviewed_by}}<br>• Review Date: {{review_date}}<br>• Remarks: {{leave_remarks}}</p><p>📱 VIEW LEAVE HISTORY:<br>{{login_url}}</p><p>Questions about your leave?<br>📞 {{institute_phone}}<br>✉️ {{institute_email}}</p><p>Administration Office<br>{{institute_name}}</p></div>'
+                'body' => '<div style="font-family:\'Plus Jakarta Sans\',\'Helvetica Neue\',sans-serif;max-width:600px;margin:20px auto;padding:40px;border:1px solid #eef2f6;border-radius:24px;color:#2d3436;background:#ffffff;box-shadow:0 10px 30px rgba(0,0,0,0.02);">
+                    <div style="text-align:center;margin-bottom:32px;">
+                        <h2 style="color:#009e7e;font-size:28px;font-weight:800;margin:0;letter-spacing:-0.5px;">Leave Request</h2>
+                        <p style="color:#636e72;margin-top:8px;">Your application has been reviewed.</p>
+                    </div>
+                    
+                    <p style="font-size:16px;margin-bottom:24px;line-height:1.6;">Hello <strong style="color:#111;">{{student_name}}</strong>,</p>
+                    
+                    <p style="font-size:15px;margin-bottom:28px;line-height:1.6;color:#636e72;">This is to inform you that your leave request has been processed. Please see the status and remarks below.</p>
+                    
+                    <div style="background:#f8fafc;padding:24px;border-radius:16px;margin-bottom:32px;border:1px solid #f1f5f9;">
+                        <h3 style="font-size:14px;text-transform:uppercase;letter-spacing:1px;color:#94a3b8;margin-top:0;margin-bottom:16px;">Request summary</h3>
+                        <p style="margin:8px 0;font-size:14px;"><strong>Status :-</strong> <span style="font-weight:700;">{{leave_status}}</span></p>
+                        <p style="margin:8px 0;font-size:14px;"><strong>Duration :-</strong> {{from_date}} to {{to_date}}</p>
+                        <p style="margin:8px 0;font-size:14px;"><strong>Remarks :-</strong> {{leave_remarks}}</p>
+                    </div>
+
+                    <div style="text-align:center;margin-bottom:32px;">
+                        <a href="{{login_url}}" style="display:inline-block;padding:16px 36px;background:#009E7E;color:#ffffff;text-decoration:none;border-radius:12px;font-weight:700;box-shadow:0 4px 15px rgba(0,158,126,0.2);">View History</a>
+                    </div>
+
+                    <div style="text-align:right;margin-top:40px;">
+                        <p style="margin:0;font-size:16px;color:#2d3436;">Administration,</p>
+                        <p style="margin:4px 0 0;font-size:18px;font-weight:800;color:#009E7E;">{{institute_name}}</p>
+                    </div>
+                </div>'
+            ],
+            'staff_welcome' => [
+                'subject' => 'Welcome to the Team! - {{institute_name}} 🏢',
+                'body' => '<div style="font-family:\'Plus Jakarta Sans\',\'Helvetica Neue\',sans-serif;max-width:600px;margin:20px auto;padding:40px;border:1px solid #eef2f6;border-radius:24px;color:#2d3436;background:#ffffff;box-shadow:0 10px 30px rgba(0,0,0,0.02);">
+                    <div style="text-align:center;margin-bottom:32px;">
+                        <h2 style="color:#009E7E;font-size:28px;font-weight:800;margin:0;letter-spacing:-0.5px;">Welcome to the Team!</h2>
+                        <p style="color:#636e72;margin-top:8px;">Your account as <strong>{{role_label}}</strong> has been created.</p>
+                    </div>
+                    
+                    <p style="font-size:16px;margin-bottom:24px;line-height:1.6;">Hello <strong style="color:#111;">{{staff_name}}</strong>,</p>
+                    
+                    <p style="font-size:15px;margin-bottom:28px;line-height:1.6;color:#636e72;">Welcome aboard! We are excited to have you with us. You can now log into the portal using the credentials below to manage your dashboard and activities.</p>
+                    
+                    <div style="background:#f8fafc;padding:24px;border-radius:16px;margin-bottom:32px;border:1px solid #f1f5f9;">
+                        <h3 style="font-size:14px;text-transform:uppercase;letter-spacing:1px;color:#94a3b8;margin-top:0;margin-bottom:16px;">Login details</h3>
+                        <p style="margin:8px 0;font-size:14px;"><strong>Portal :-</strong> <a href="{{login_url}}" style="color:#009E7E;text-decoration:none;">{{login_url}}</a></p>
+                        <p style="margin:8px 0;font-size:14px;"><strong>Email :-</strong> {{staff_email}}</p>
+                        <p style="margin:8px 0;font-size:14px;"><strong>Password :-</strong> {{temp_password}}</p>
+                    </div>
+
+                    <p style="font-size:14px;color:#636e72;margin-bottom:32px;">For security reasons, we recommend changing your password after your first login.</p>
+
+                    <div style="text-align:right;margin-top:40px;">
+                        <p style="margin:0;font-size:16px;color:#2d3436;">Best regards,</p>
+                        <p style="margin:4px 0 0;font-size:18px;font-weight:800;color:#009E7E;">{{institute_name}}</p>
+                    </div>
+                </div>'
             ],
         ];

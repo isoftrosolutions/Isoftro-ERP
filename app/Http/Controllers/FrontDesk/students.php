@@ -251,7 +251,7 @@ try {
         $total = (int)$stmtCount->fetchColumn();
 
         // Data query
-        $query = "SELECT s.*, u.name, u.email, u.phone, s.registration_mode, s.registration_status, s.admission_date,
+        $query = "SELECT s.*, u.name as name, u.email, u.phone, s.registration_mode, s.registration_status, s.admission_date,
                          b.name as batch_name, b.course_id as course_id, c.name as course_name,
                          COALESCE(sfs.fee_status, 'no_fees') as fee_status,
                          COALESCE(sfs.total_fee, 0) as total_fee,
@@ -324,9 +324,10 @@ try {
             $student['fee_summary'] = $feeSummaryStmt->fetchAll(PDO::FETCH_ASSOC);
 
             $paymentStmt = $db->prepare("
-                SELECT * FROM student_payments
-                WHERE student_id = :sid AND tenant_id = :tid
-                ORDER BY payment_date DESC, id DESC
+                SELECT pt.id, pt.amount, pt.payment_date, pt.payment_method as payment_mode, pt.receipt_number as reference, pt.receipt_number, 'transaction' as source
+                FROM payment_transactions pt
+                WHERE pt.student_id = :sid AND pt.tenant_id = :tid
+                ORDER BY pt.payment_date DESC, pt.id DESC
             ");
             $paymentStmt->execute(['sid' => $sid, 'tid' => $tenantId]);
             $student['payments'] = $paymentStmt->fetchAll(PDO::FETCH_ASSOC);
@@ -558,21 +559,7 @@ try {
                     throw new Exception("Payment amount exceeds due amount. Maximum allowed payment is " . $summary['due_amount']);
                 }
 
-                // 2. Insert into student_payments
-                $stmtPay = $db->prepare("
-                    INSERT INTO student_payments (tenant_id, student_id, enrollment_id, amount, payment_mode, reference, payment_date, collected_by)
-                    VALUES (:tid, :sid, :eid, :amt, :mode, :ref, :pdate, :cby)
-                ");
-                $stmtPay->execute([
-                    'tid' => $tenantId,
-                    'sid' => $studentId,
-                    'eid' => $summary['enrollment_id'],
-                    'amt' => $amount,
-                    'mode' => $paymentMode,
-                    'ref' => $reference,
-                    'pdate' => $paymentDate,
-                    'cby' => $userId
-                ]);
+                // student_payments insert removed (table non-existent)
 
                 // 3. Update student_fee_summary
                 $newPaidAmount = $summary['paid_amount'] + $amount;

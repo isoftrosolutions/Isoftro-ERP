@@ -87,10 +87,12 @@ class DashboardCacheService {
         // 2. Pending Dues
         $stmt = $db->prepare("
             SELECT 
-                COALESCE(SUM(CASE WHEN due_amount > 0 THEN due_amount ELSE 0 END), 0) as total_dues,
-                COUNT(CASE WHEN due_amount > 0 THEN 1 END) as student_count
-            FROM student_fee_summary 
-            WHERE tenant_id = :tid
+                COALESCE(SUM(sfs.due_amount), 0) as total_dues,
+                COUNT(DISTINCT sfs.student_id) as student_count
+            FROM student_fee_summary sfs 
+            JOIN students s ON sfs.student_id = s.id
+            WHERE sfs.tenant_id = :tid 
+            AND s.deleted_at IS NULL AND s.status = 'active'
         ");
         $stmt->execute(['tid' => $tenantId]);
         $pendingData = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -257,8 +259,8 @@ class DashboardCacheService {
         // --- SECTION I: ACTIVITY LOG ---
         try {
             $stmt = $db->prepare("
-                SELECT COALESCE(al.description, CONCAT(al.action, ' on ', al.table_name)) as description, 
-                       COALESCE(u.name, 'System') as user_name, al.created_at, al.table_name as related_entity_name 
+                SELECT al.description, 
+                       COALESCE(u.name, 'System') as user_name, al.created_at, NULL as related_entity_name 
                 FROM audit_logs al
                 LEFT JOIN users u ON al.user_id = u.id
                 WHERE al.tenant_id = :tid 
