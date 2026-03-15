@@ -216,13 +216,14 @@ class MailHelper
         }
 
         foreach ($data as $key => $val) {
-            if (is_scalar($val)) {
-                $search = '{{' . $key . '}}';
-                $valStr = (string)$val;
+            $search = '{{' . $key . '}}';
+            if (is_scalar($val) || is_null($val)) {
+                $valStr = (string)($val ?? '');
                 // Format numbers that look like money
                 if (in_array($key, ['amount', 'amount_due', 'amount_paid', 'balance', 'total_payable', 'fine_applied'])) {
-                    $valStr = number_format((float)$val, 2);
+                    $valStr = number_format((float)($val ?? 0), 2);
                 }
+                
                 $subject = str_ireplace($search, $valStr, $subject);
                 $body = str_ireplace($search, $valStr, $body);
             }

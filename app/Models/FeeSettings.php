@@ -29,9 +29,9 @@ class FeeSettings extends Model {
     /**
      * Create default settings for a tenant
      */
-    public static function createDefault() {
+    public static function createDefault($tenantId) {
         return self::create([
-            'tenant_id' => $_SESSION['userData']['tenant_id'] ?? null,
+            'tenant_id' => $tenantId,
             'invoice_prefix' => 'INV',
             'receipt_prefix' => 'RCP',
             'next_invoice_number' => 1,
@@ -42,9 +42,9 @@ class FeeSettings extends Model {
     /**
      * Increment next invoice/receipt number atomatically
      */
-    public static function incrementNumber($type = 'invoice') {
-        $settings = self::getSettings();
-        if (!$settings) $settings = self::createDefault();
+    public static function incrementNumber($tenantId, $type = 'invoice') {
+        $settings = self::getByTenant($tenantId);
+        if (!$settings) $settings = self::createDefault($tenantId);
 
         $column = $type === 'invoice' ? 'next_invoice_number' : 'next_receipt_number';
         $settings->increment($column);

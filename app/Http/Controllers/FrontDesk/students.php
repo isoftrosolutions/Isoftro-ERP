@@ -259,10 +259,12 @@ try {
                          COALESCE(sfs.due_amount, 0) as due_amount
                   FROM students s 
                   JOIN users u ON s.user_id = u.id
-                  LEFT JOIN enrollments e ON s.id = e.student_id AND e.status = 'active' LEFT JOIN batches b ON e.batch_id = b.id 
+                  LEFT JOIN enrollments e ON s.id = e.student_id AND e.status = 'active' 
+                  LEFT JOIN batches b ON e.batch_id = b.id 
                   LEFT JOIN courses c ON b.course_id = c.id
-                  LEFT JOIN student_fee_summary sfs ON s.id = sfs.student_id
+                  LEFT JOIN student_fee_summary sfs ON s.id = sfs.student_id AND (e.id = sfs.enrollment_id OR e.id IS NULL)
                   $whereSql
+                  GROUP BY s.id
                   ORDER BY s.created_at DESC
                   LIMIT :limit OFFSET :offset";
         

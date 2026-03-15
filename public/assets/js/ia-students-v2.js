@@ -217,6 +217,52 @@ window.renderAddStudentFormV2 = async () => {
   }
 };
 
+window.renderEnrollExistingFormV2 = async () => {
+  const mc = document.getElementById('mainContent');
+  if (!mc) return;
+
+  mc.innerHTML = `
+    <div style="display:flex; align-items:center; justify-content:center; min-height:300px; flex-direction:column; gap:16px;">
+      <i class="fas fa-spinner fa-spin" style="font-size:2.5rem; color:#00b894;"></i>
+      <p style="color:#475569; font-weight:600;">Loading Enrollment Form...</p>
+    </div>
+  `;
+
+  try {
+    const res = await fetch(`${window.APP_URL}/dash/admin/enroll-existing?partial=true`, {
+      credentials: 'same-origin'
+    });
+
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const html = await res.text();
+
+    mc.innerHTML = `
+      <div class="bc">
+        <a href="#" onclick="goNav('overview')">Dashboard</a>
+        <span class="bc-sep">&rsaquo;</span>
+        <a href="#" onclick="goNav('students')">Students</a>
+        <span class="bc-sep">&rsaquo;</span>
+        <span class="bc-cur">Enroll Existing Student</span>
+      </div>
+      ${html}
+    `;
+
+    mc.querySelectorAll('script').forEach(s => {
+      try { eval(s.innerHTML); } catch(ex) { console.warn('[renderEnrollExistingFormV2] Script eval error:', ex); }
+    });
+
+  } catch (err) {
+    console.error('[renderEnrollExistingFormV2] Failed:', err);
+    mc.innerHTML = `
+      <div style="text-align:center; padding:60px 20px;">
+        <i class="fas fa-exclamation-triangle" style="font-size:3rem; color:#ff7675; margin-bottom:20px;"></i>
+        <h3>Failed to Load Form</h3>
+        <button class="btn bt" onclick="window.renderEnrollExistingFormV2()">Retry</button>
+      </div>
+    `;
+  }
+};
+
 // Helper fetchers — direct inline fetch (no external dependency)
 async function _loadCourses(comp) {
     const url = `${window.APP_URL}/api/admin/courses`;

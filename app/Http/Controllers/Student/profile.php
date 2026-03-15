@@ -135,7 +135,8 @@ try {
                        u.name as name, u.email as login_email, u.phone as login_phone,
                        u.last_login_at
                 FROM students s
-                LEFT JOIN batches b ON s.batch_id = b.id
+                LEFT JOIN enrollments e ON s.id = e.student_id AND e.status = 'active'
+                LEFT JOIN batches b ON e.batch_id = b.id
                 LEFT JOIN courses c ON b.course_id = c.id
                 LEFT JOIN tenants t ON s.tenant_id = t.id
                 LEFT JOIN users u ON s.user_id = u.id
@@ -174,7 +175,8 @@ try {
             if (!$input) $input = $_POST;
             
             // Fields that students can update
-            $allowedFields = ['full_name', 'phone', 'email', 'date_of_birth', 'gender', 'blood_group', 'nationality', 'temporary_address', 'permanent_address', 'guardian_name', 'guardian_phone', 'guardian_relation', 'address'];
+            // Fields that students can update
+            $allowedFields = ['roll_no', 'dob_bs', 'gender', 'blood_group', 'citizenship_no', 'national_id', 'temporary_address', 'permanent_address', 'admission_date', 'status'];
             $updates = [];
             $params = ['sid' => $studentId, 'tid' => $tenantId];
             
@@ -222,13 +224,14 @@ try {
             // Get academic history (enrollments, results, etc.)
             $stmt = $db->prepare("
                 SELECT 
-                    sbe.*, b.name as batch_name, c.name as course_name,
-                    c.duration, c.fee as course_fee
-                FROM student_batch_enrollments sbe
-                JOIN batches b ON sbe.batch_id = b.id
+                    e.*, b.name as batch_name, c.name as course_name,
+                    COALESCE(CONCAT(c.duration_months, ' Months'), CONCAT(c.duration_weeks, ' Weeks'), 'N/A') as duration,
+                    c.fee as course_fee
+                FROM enrollments e
+                JOIN batches b ON e.batch_id = b.id
                 JOIN courses c ON b.course_id = c.id
-                WHERE sbe.student_id = :sid AND sbe.tenant_id = :tid
-                ORDER BY sbe.created_at DESC
+                WHERE e.student_id = :sid AND e.tenant_id = :tid
+                ORDER BY e.created_at DESC
             ");
             $stmt->execute(['sid' => $studentId, 'tid' => $tenantId]);
             $enrollments = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -496,18 +499,18 @@ try {
             }
             break;
             
-        case 'course':
             // Get course and batch details
             try {
                 $stmt = $db->prepare("
-                    SELECT s.*, b.name as batch_name, b.start_date as batch_start_date, 
+                    SELECT s.roll_no, b.name as batch_name, b.start_date as batch_start_date, 
                            b.end_date as batch_end_date, b.status as batch_status,
                            c.name as course_name, 
                            COALESCE(CONCAT(c.duration_months, ' Months'), CONCAT(c.duration_weeks, ' Weeks'), 'N/A') as duration,
                            c.fee as course_fee,
                            c.description as course_description
                     FROM students s
-                    LEFT JOIN batches b ON s.batch_id = b.id
+                    LEFT JOIN enrollments e ON s.id = e.student_id AND e.status = 'active'
+                    LEFT JOIN batches b ON e.batch_id = b.id
                     LEFT JOIN courses c ON b.course_id = c.id
                     WHERE s.id = :sid AND s.tenant_id = :tid
                     LIMIT 1

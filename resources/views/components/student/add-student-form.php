@@ -28,6 +28,7 @@ $selCourseId = 'selCourse_' . $componentId;
 $selBatchId  = 'selBatch_' . $componentId;
 $dialogId    = 'successDialog_' . $componentId;
 $scCardId    = 'scCard_' . $componentId;
+$initialMode = $initialMode ?? null; // 'new' or 'existing'
 ?>
 <style>
 /* ── PREMIUM DESIGN SYSTEM (Shared Admission Form) ── */
@@ -154,26 +155,8 @@ $scCardId    = 'scCard_' . $componentId;
 .hidden-section { display: none; }
 </style>
 
-<!-- Admission Mode Selection -->
-<div class="mode-overlay" id="modeOverlay_<?= $componentId ?>">
-    <div class="mode-card">
-        <h2 style="font-size: clamp(24px, 5vw, 32px); font-weight: 900; color: #0f172a;">Welcome to Admission Portal</h2>
-        <p style="color: #64748b; font-weight: 500; margin-top: 0.5rem;">How would you like to proceed today?</p>
-        
-        <div class="mode-grid">
-            <div class="mode-opt" onclick="setAdmissionMode_<?= $componentId ?>('new')">
-                <i class="fas fa-user-plus"></i>
-                <h3>New Registration</h3>
-                <p>Register a completely new student profile</p>
-            </div>
-            <div class="mode-opt" onclick="setAdmissionMode_<?= $componentId ?>('existing')">
-                <i class="fas fa-user-graduate"></i>
-                <h3>Existing Student</h3>
-                <p>Add new course enrollment for current student</p>
-            </div>
-        </div>
-    </div>
-</div>
+<!-- Main Admission Form Container -->
+<div class="sc-adm-box" id="scBox_<?= $componentId ?>">
 
 <div class="pg">
 
@@ -190,64 +173,38 @@ $scCardId    = 'scCard_' . $componentId;
     </div>
 
     <form id="<?= $formId ?>" onsubmit="handleAdmissionSubmit_<?= $componentId ?>(event)">
-
-
-
-        <!-- Mode Indicator & Student Selection Dropdown -->
-        <div id="existingStudentSearch_<?= $componentId ?>" class="sc-adm hidden-section" style="border: 2px solid var(--p);">
-            <h3 class="sc-title"><i class="fas fa-user-graduate"></i> Select Student</h3>
-            <div class="f-grp">
-                <label class="f-lbl req">Student Name / Roll No</label>
-                <div class="ipt-box">
-                    <i class="fas fa-search"></i>
-                    <select id="stuSelect_<?= $componentId ?>" class="fi fi-sel" onchange="window['onStudentDropdownChange_' + CID](this.value)">
-                        <option value="">-- Loading students... --</option>
-                    </select>
-                </div>
-                <input type="hidden" name="existing_student_id" id="valStuId_<?= $componentId ?>">
-            </div>
-            <div id="selStuCard_<?= $componentId ?>" style="margin-top: 1.5rem; display: none; padding: 1rem; background: #f8fafc; border-radius: 12px; align-items: center; gap: 15px;">
-                <img id="selStuImg_<?= $componentId ?>" src="" style="width: 50px; height: 50px; border-radius: 10px; object-fit: cover;">
-                <div>
-                    <div id="selStuName_<?= $componentId ?>" style="font-weight: 800; color: #1e293b;">-</div>
-                    <div id="selStuMeta_<?= $componentId ?>" style="font-size: 12px; color: #64748b;">-</div>
-                </div>
-                <button type="button" class="btn bt" style="margin-left: auto; padding: 8px 16px; font-size: 12px;" onclick="clearStuSelection_<?= $componentId ?>()">Change</button>
-            </div>
-        </div>
-
-        <!-- Section 1: Academic High Priority -->
-        <div class="sc-adm callout-p">
-            <h3 class="sc-title"><i class="fas fa-book-reader"></i> Academic Placement</h3>
-            <div class="grid-box grid-2">
-                <div class="f-grp">
-                    <label class="f-lbl req">Target Course</label>
-                    <div class="ipt-box">
-                        <i class="fas fa-award"></i>
-                        <select id="<?= $selCourseId ?>" class="fi fi-sel" 
-                                data-fallback='<?= $coursesFallbackJson ?>'>
-                            <option value="" disabled selected>⏳ Loading courses...</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="f-grp">
-                    <label class="f-lbl req">Assigned Batch</label>
-                    <div class="ipt-box">
-                        <i class="fas fa-clock"></i>
-                        <select id="<?= $selBatchId ?>" class="fi fi-sel" disabled>
-                            <option value="">— Select course first —</option>
-                        </select>
-                    </div>
-                    <button type="button" class="btn bt" style="margin-top: 10px; width: auto; font-size: 12px; padding: 8px 15px;" onclick="addBatchChip_<?= $componentId ?>()">
-                        <i class="fas fa-plus"></i> Add Batch
-                    </button>
-                    <div id="batchChips_<?= $componentId ?>" class="batch-chips"></div>
-                    <input type="hidden" name="batch_id" id="hiddenSingleBatch_<?= $componentId ?>"> 
-                </div>
-            </div>
-        </div>
-
         <div id="studentProfileSections_<?= $componentId ?>">
+            <!-- Section 1: Academic High Priority -->
+            <div class="sc-adm callout-p">
+                <h3 class="sc-title"><i class="fas fa-book-reader"></i> Academic Placement</h3>
+                <div class="grid-box grid-2">
+                    <div class="f-grp">
+                        <label class="f-lbl req">Target Course</label>
+                        <div class="ipt-box">
+                            <i class="fas fa-award"></i>
+                            <select id="<?= $selCourseId ?>" class="fi fi-sel" 
+                                    data-fallback='<?= $coursesFallbackJson ?>'>
+                                <option value="" disabled selected>⏳ Loading courses...</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="f-grp">
+                        <label class="f-lbl req">Assigned Batch</label>
+                        <div class="ipt-box">
+                            <i class="fas fa-clock"></i>
+                            <select id="<?= $selBatchId ?>" class="fi fi-sel" disabled>
+                                <option value="">— Select course first —</option>
+                            </select>
+                        </div>
+                        <button type="button" class="btn bt" style="margin-top: 10px; width: auto; font-size: 12px; padding: 8px 15px;" onclick="addBatchChip_<?= $componentId ?>()">
+                            <i class="fas fa-plus"></i> Add Batch
+                        </button>
+                        <div id="batchChips_<?= $componentId ?>" class="batch-chips"></div>
+                        <input type="hidden" name="batch_id" id="hiddenSingleBatch_<?= $componentId ?>"> 
+                    </div>
+                </div>
+            </div>
+
             <!-- Section 2: Primary Identity -->
             <div class="sc-adm">
             <h3 class="sc-title"><i class="fas fa-id-card"></i> Student Identity</h3>
@@ -314,8 +271,6 @@ $scCardId    = 'scCard_' . $componentId;
                     <textarea name="permanent_address" class="fi" style="padding-left: 16px; min-height: 100px;" placeholder="Full Address..." required></textarea>
                 </div>
             </div>
-
-
         </div>
 
         <!-- Section 4: Security Callout -->
@@ -335,18 +290,27 @@ $scCardId    = 'scCard_' . $componentId;
                 </div>
             </div>
         </div>
+    </div> <!-- End studentProfileSections -->
 
-        <!-- Final Submit -->
-        <div style="margin: 4rem 0;">
-            <button type="submit" id="<?= $btnId ?>" class="btn-p">
-                <i class="fas fa-rocket"></i> FINALISE &amp; SUBMIT ADMISSION
-            </button>
-            <p style="text-align: center; font-size: 12px; color: #64748b; margin-top: 1.5rem; font-weight: 600;">
-                <i class="fas fa-info-circle"></i> This will generate a unique Student Roll Number automatically.
+    <!-- Final Submit Actions (Always Visible) -->
+    <div id="submitActions_<?= $componentId ?>" class="sc-adm" style="margin-top: 2rem; border-top: 1px solid #e2e8f0; padding-top: 2rem; background: #fff;">
+            <div style="display: flex; gap: 1rem; align-items: center; justify-content: center; flex-wrap: wrap;">
+                <button type="submit" id="<?= $btnId ?>" class="btn-p" style="flex: 1; min-width: 280px; margin: 0; box-shadow: 0 4px 12px rgba(0, 184, 148, 0.25);">
+                    <i class="fas fa-check-circle"></i> <span id="btnText_<?= $componentId ?>">FINALISE &amp; SUBMIT ADMISSION</span>
+                </button>
+                
+                <button type="button" class="btn-p" style="flex: 0 1 200px; background: #fff; color: #64748b; border: 2px solid #e2e8f0; box-shadow: none; margin: 0;" onclick="window.history.back()">
+                    <i class="fas fa-times-circle"></i> CANCEL
+                </button>
+            </div>
+
+            <p id="infoTextContainer_<?= $componentId ?>" style="text-align: center; font-size: 11px; color: #64748b; margin-top: 1.5rem; font-weight: 600;">
+                <i class="fas fa-info-circle"></i> <span id="infoText_<?= $componentId ?>">This will generate a unique Student Roll Number automatically.</span>
             </p>
         </div>
     </form>
 </div>
+</div> <!-- Close sc-adm-box -->
 
 <!-- PREMIUM SUCCESS DIALOG -->
 <div class="m-overlay" id="<?= $dialogId ?>">
@@ -361,10 +325,11 @@ $scCardId    = 'scCard_' . $componentId;
 <script>
 /* ── ADMISSION FORM JS (Component: <?= $componentId ?>) ── */
 (function() {
+    // State management
+    let admissionMode = '<?= $initialMode ?? 'new' ?>';
     const CID          = '<?= $componentId ?>';
     const API_ENDPOINT = '<?= addslashes($apiEndpoint) ?>';
     const REDIRECT_URL = '<?= addslashes($successRedirectUrl) ?>';
-    let admissionMode  = 'new'; // 'new' or 'existing'
     let selectedBatches = [];
 
     <?php
@@ -383,7 +348,7 @@ $scCardId    = 'scCard_' . $componentId;
         const searchSec = document.getElementById('existingStudentSearch_' + CID);
         const profileSecs = document.getElementById('studentProfileSections_' + CID);
         
-        overlay.style.display = 'none';
+        if (overlay) overlay.style.display = 'none';
         
         if (mode === 'existing') {
             searchSec.classList.remove('hidden-section');
@@ -396,6 +361,13 @@ $scCardId    = 'scCard_' . $componentId;
 
             // Populate students dropdown
             window['populateStudentsDropdown_' + CID]();
+
+            // Update Submit Button Label
+            const btnText = document.getElementById('btnText_' + CID);
+            if (btnText) btnText.textContent = 'CONFIRM NEW ENROLLMENT';
+            
+            const infoText = document.getElementById('infoText_' + CID);
+            if (infoText) infoText.textContent = 'This enrollment will be added to the student profile records.';
         } else {
             searchSec.classList.add('hidden-section');
             profileSecs.classList.remove('hidden-section');
@@ -403,6 +375,13 @@ $scCardId    = 'scCard_' . $componentId;
             profileSecs.querySelectorAll('[data-was-required="true"]').forEach(el => {
                 el.setAttribute('required', '');
             });
+
+            // Update Submit Button Label
+            const btnText = document.getElementById('btnText_' + CID);
+            if (btnText) btnText.textContent = 'FINALISE & SUBMIT ADMISSION';
+
+            const infoText = document.getElementById('infoText_' + CID);
+            if (infoText) infoText.textContent = 'This will generate a unique Student Roll Number automatically.';
         }
     };
 
@@ -410,10 +389,10 @@ $scCardId    = 'scCard_' . $componentId;
     let allStudentsData = [];
     window['populateStudentsDropdown_' + CID] = async function() {
         const sel = document.getElementById('stuSelect_' + CID);
-        if (!sel) return;
-        sel.innerHTML = '<option value="">⏳ Loading students...</option>';
         try {
-            const res = await fetch(`${window.APP_URL}/api/admin/students?per_page=1000`);
+            // Determine student fetch endpoint based on the main API endpoint to maintain role-based access
+            const fetchPath = API_ENDPOINT.includes('/frontdesk/') ? '/api/frontdesk/students' : '/api/admin/students';
+            const res = await fetch(`${window.APP_URL}${fetchPath}?per_page=1000`);
             const result = await res.json();
             if (result.success && result.data) {
                 allStudentsData = result.data;
@@ -587,6 +566,31 @@ $scCardId    = 'scCard_' . $componentId;
     // Run immediately — works in both full-page and SPA (eval) contexts
     initCourseBatchSelects();
 
+    // ── Pre-set Initial Mode ──
+    const urlParams = new URLSearchParams(window.location.search);
+    const preSelectedStuId = urlParams.get('student_id');
+
+    if (admissionMode === 'existing') {
+        setTimeout(async () => {
+            await window['setAdmissionMode_' + CID]('existing');
+            if (preSelectedStuId) {
+                // Wait for dropdown to populate before selecting
+                let attempts = 0;
+                const checkAndSelect = setInterval(() => {
+                    const sel = document.getElementById('stuSelect_' + CID);
+                    if (sel && sel.options.length > 1) {
+                        sel.value = preSelectedStuId;
+                        window['onStudentDropdownChange_' + CID](preSelectedStuId);
+                        clearInterval(checkAndSelect);
+                    }
+                    if (++attempts > 50) clearInterval(checkAndSelect); // Timeout after 5s
+                }, 100);
+            }
+        }, 50);
+    } else {
+        setTimeout(() => window['setAdmissionMode_' + CID]('new'), 50);
+    }
+
     // ── DOB Sync (AD → BS) ──
     window['handleDobSync_' + CID] = async function(val) {
         if (!val || val.length < 10) return;
@@ -666,14 +670,25 @@ $scCardId    = 'scCard_' . $componentId;
             });
             const result = await res.json();
 
+            // Name for success message
+            const displayName = admissionMode === 'existing' 
+                ? document.getElementById('selStuName_' + CID).textContent 
+                : payload.full_name;
+
             if (result.success) {
-                showAdmModal_CID('success', 'Admission Complete!',
-                    `<p>Student <strong>${escHtmlAdm(payload.full_name)}</strong> has been registered successfully.</p>
+                let successHtml = `<p>Student <strong>${escHtmlAdm(displayName)}</strong> has been registered successfully.</p>`;
+                
+                if (admissionMode === 'new') {
+                    successHtml += `
                     <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:18px;padding:1.5rem;text-align:left;margin-top:1.5rem;">
                         <p style="font-size:11px;font-weight:700;color:var(--p);margin-bottom:8px;letter-spacing:0.05em;">PORTAL CREDENTIALS</p>
                         <div style="margin-bottom:6px;font-size:14px;"><span style="opacity:0.6;width:90px;display:inline-block;">Email:</span> <strong>${escHtmlAdm(payload.email)}</strong></div>
                         <div style="font-size:14px;"><span style="opacity:0.6;width:90px;display:inline-block;">Password:</span> <span style="font-family:monospace;background:#fff;padding:2px 8px;border-radius:6px;border:1px solid #ddd;">${escHtmlAdm(payload.password)}</span></div>
-                    </div>`,
+                    </div>`;
+                }
+
+                showAdmModal_CID('success', 'Admission Complete!',
+                    successHtml,
                     [
                         { label: 'View Records', click: `window.location.href='${REDIRECT_URL}'`, style: 'background:linear-gradient(135deg,#00b894,#009e7e);color:#fff;' },
                         { label: 'Add Another', click: `location.reload()`, style: 'background:#f1f5f9;color:#1e293b;box-shadow:none;' }

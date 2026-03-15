@@ -32,7 +32,7 @@ try {
     
     // Get student's batch info
     $stmt = $db->prepare("
-        SELECT batch_id FROM students WHERE id = :sid AND tenant_id = :tid LIMIT 1
+        SELECT batch_id FROM enrollments WHERE student_id = :sid AND tenant_id = :tid AND status = 'active' LIMIT 1
     ");
     $stmt->execute(['sid' => $studentId, 'tid' => $tenantId]);
     $student = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -132,13 +132,13 @@ try {
             $year = $_GET['year'] ?? date('Y');
             
             $stmt = $db->prepare("
-                SELECT * FROM academic_calendar 
+                SELECT *, start_date as event_date FROM academic_calendar 
                 WHERE tenant_id = :tid
-                  AND MONTH(event_date) = :month
-                  AND YEAR(event_date) = :year
-                  AND (target_type = 'all' OR target_type = 'batch' OR target_batch_id = :bid)
+                  AND MONTH(start_date) = :month
+                  AND YEAR(start_date) = :year
+                  AND (batch = 'all' OR batch = 'batch' OR batch = :bid)
                   AND deleted_at IS NULL
-                ORDER BY event_date ASC
+                ORDER BY start_date ASC
             ");
             $stmt->execute(['tid' => $tenantId, 'month' => $month, 'year' => $year, 'bid' => $batchId]);
             $events = $stmt->fetchAll(PDO::FETCH_ASSOC);

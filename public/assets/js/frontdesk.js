@@ -322,6 +322,8 @@ document.addEventListener('DOMContentLoaded', () => {
              }
         } else if (activeNav === 'new-admission' || activeNav === 'admissions-adm-form') {
             if (window.renderAddStudentForm) window.renderAddStudentForm();
+        } else if (activeNav === 'enroll-existing' || activeNav === 'admissions-enroll-existing') {
+            window.renderEnrollExistingForm();
         } else if (activeNav === 'alumni') {
             if (window.renderAlumniList) window.renderAlumniList();
         }
@@ -1499,6 +1501,19 @@ document.addEventListener('DOMContentLoaded', () => {
             searchResults.style.display = 'block';
         } catch (e) { console.error('Search error:', e); }
     }
+
+    window.renderAddStudentForm = () => {
+        window.renderPartialModule('admission-form');
+    };
+
+    window.renderEnrollExistingForm = () => {
+        window.renderPartialModule('enroll-existing');
+    };
+
+    window.renderStudentList = () => {
+        if (hdrSearch) hdrSearch.value = '';
+        if (searchResults) searchResults.style.display = 'none';
+    };
 
     window.focusSearch = () => {
         if (hdrSearch) hdrSearch.focus();

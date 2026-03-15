@@ -1801,6 +1801,9 @@ window.renderStudentProfile = async (id, activeTab = 'personal') => {
                         <h1>Student Profile</h1>
                     </div>
                     <div class="sp-pg-hdr-right">
+                        <button class="btn btn-success" style="background:#0F172A; color:#fff;" onclick="goNav('admissions', 'enroll-existing', { student_id: ${s.id} })">
+                            <i class="fas fa-user-graduate"></i> Enroll in New Course
+                        </button>
                         <button class="btn bs" onclick="window.print()"><i class="fas fa-print"></i> Print Profile</button>
                         <button class="btn bt" onclick="goNav('students','edit',{id:${s.id}})"><i class="fas fa-edit"></i> Edit Profile</button>
                     </div>
@@ -2001,7 +2004,12 @@ function _spCourseTab(s) {
     const enrollments = s.enrollments || [];
     
     return `
-        ${_spSectionTitle('fa-book-open', 'Enrollment History')}
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            ${_spSectionTitle('fa-book-open', 'Enrollment History')}
+            <button class="btn btn-sm bt" style="height:32px; font-size:12px; padding:0 12px; background:#0F172A; color:#fff;" onclick="goNav('admissions', 'enroll-existing', { student_id: ${s.id} })">
+                <i class="fas fa-plus"></i> New Enrollment
+            </button>
+        </div>
         <div class="table-responsive">
             <table class="sp-data-table">
                 <thead><tr>

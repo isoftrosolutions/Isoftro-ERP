@@ -113,7 +113,7 @@ window.renderSTLeaderboard = async function(batchId = null) {
                                                         style="width: 60px; height: 60px; object-fit: cover;">
                                                     <div class="position-absolute bottom-0 start-50 translate-middle-x bg-secondary text-white rounded-circle shadow-sm" style="width: 22px; height: 22px; font-size: 10px; line-height: 22px;">2</div>
                                                 </div>
-                                                <div class="small fw-bold truncate mb-1">${data[1].full_name.split(' ')[0]}</div>
+                                                <div class="small fw-bold truncate mb-1">${(data[1].full_name || 'Student').split(' ')[0]}</div>
                                                 <div class="bg-secondary bg-opacity-10 text-secondary rounded-top p-2" style="height: 60px;">
                                                     <div class="fw-bold fs-5">${data[1].composite_score}</div>
                                                 </div>
@@ -130,7 +130,7 @@ window.renderSTLeaderboard = async function(batchId = null) {
                                                         style="width: 85px; height: 85px; object-fit: cover;">
                                                     <div class="position-absolute bottom-0 start-50 translate-middle-x bg-warning text-dark rounded-circle shadow-sm border border-2 border-white" style="width: 28px; height: 28px; font-size: 13px; line-height: 24px; font-weight: 900;">1</div>
                                                 </div>
-                                                <div class="fw-bold truncate mb-1 text-dark">${data[0].full_name.split(' ')[0]}</div>
+                                                <div class="fw-bold truncate mb-1 text-dark">${(data[0].full_name || 'Student').split(' ')[0]}</div>
                                                 <div class="bg-warning text-dark rounded-top p-2 shadow-sm" style="height: 85px; background: linear-gradient(to bottom, #fcd34d, #f59e0b);">
                                                     <div class="fw-bold fs-4">${data[0].composite_score}</div>
                                                     <div class="smaller opacity-75 fw-bold text-uppercase">Score</div>
@@ -147,7 +147,7 @@ window.renderSTLeaderboard = async function(batchId = null) {
                                                         style="width: 60px; height: 60px; object-fit: cover;">
                                                     <div class="position-absolute bottom-0 start-50 translate-middle-x bg-danger bg-opacity-75 text-white rounded-circle shadow-sm" style="width: 22px; height: 22px; font-size: 10px; line-height: 22px;">3</div>
                                                 </div>
-                                                <div class="small fw-bold truncate mb-1">${data[2].full_name.split(' ')[0]}</div>
+                                                <div class="small fw-bold truncate mb-1">${(data[2].full_name || 'Student').split(' ')[0]}</div>
                                                 <div class="bg-danger bg-opacity-10 text-danger rounded-top p-2" style="height: 45px;">
                                                     <div class="fw-bold fs-5">${data[2].composite_score}</div>
                                                 </div>

@@ -24,7 +24,13 @@ $studentId = $_SESSION['userData']['student_id'] ?? null;
 if (!$studentId && $userId) {
     try {
         $db = getDBConnection();
-        $stmt = $db->prepare("SELECT id, batch_id FROM students WHERE user_id = :uid AND tenant_id = :tid LIMIT 1");
+        $stmt = $db->prepare("
+            SELECT s.id, e.batch_id 
+            FROM students s 
+            LEFT JOIN enrollments e ON s.id = e.student_id AND e.status = 'active'
+            WHERE s.user_id = :uid AND s.tenant_id = :tid 
+            LIMIT 1
+        ");
         $stmt->execute(['uid' => $userId, 'tid' => $tenantId]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         if ($row) {
@@ -47,7 +53,12 @@ try {
     $db = getDBConnection();
 
     // Get current student's batch
-    $stmt = $db->prepare("SELECT batch_id FROM students WHERE id = :sid AND tenant_id = :tid LIMIT 1");
+    $stmt = $db->prepare("
+        SELECT batch_id 
+        FROM enrollments 
+        WHERE student_id = :sid AND tenant_id = :tid AND status = 'active' 
+        LIMIT 1
+    ");
     $stmt->execute(['sid' => $studentId, 'tid' => $tenantId]);
     $me = $stmt->fetch(PDO::FETCH_ASSOC);
     $batchId = $_GET['batch_id'] ?? ($me['batch_id'] ?? null);
@@ -61,7 +72,7 @@ try {
             $stmt = $db->prepare("
                 SELECT
                     s.id AS student_id,
-                    u.name,
+                    u.name AS full_name,
                     s.photo_url,
                     s.roll_no,
                     COUNT(ea.id)           AS exams_taken,
@@ -73,6 +84,8 @@ try {
                         / NULLIF(COUNT(DISTINCT a_stats.id), 0)
                     , 1) AS attendance_pct
                 FROM students s
+                JOIN users u ON s.user_id = u.id
+                JOIN enrollments e ON s.id = e.student_id AND e.status = 'active'
                 LEFT JOIN exam_attempts ea
                     ON ea.student_id = s.id AND ea.tenant_id = s.tenant_id
                 LEFT JOIN attendance a_stats
@@ -112,9 +125,9 @@ try {
             // Get batch list for tab switching
             $batchesStmt = $db->prepare("
                 SELECT b.id, b.name, c.name as course_name,
-                       COUNT(DISTINCT s.id) as student_count
+                       COUNT(DISTINCT e.id) as student_count
                 FROM batches b
-                JOIN students s ON s.batch_id = b.id AND s.tenant_id = b.tenant_id
+                JOIN enrollments e ON e.batch_id = b.id AND e.tenant_id = b.tenant_id AND e.status = 'active'
                 LEFT JOIN courses c ON c.id = b.course_id
                 WHERE b.tenant_id = :tid AND b.deleted_at IS NULL
                 GROUP BY b.id, b.name, c.name
@@ -145,7 +158,7 @@ try {
             $stmt = $db->prepare("
                 SELECT
                     s.id AS student_id,
-                    u.name,
+                    u.name AS full_name,
                     s.photo_url,
                     s.roll_no,
                     COUNT(a.id)             AS total_days,
@@ -153,6 +166,8 @@ try {
                     ROUND(100.0 * SUM(CASE WHEN a.status = 'present' THEN 1 ELSE 0 END)
                           / NULLIF(COUNT(a.id), 0), 1) AS attendance_pct
                 FROM students s
+                JOIN users u ON s.user_id = u.id
+                JOIN enrollments e ON s.id = e.student_id AND e.status = 'active'
                 LEFT JOIN attendance a
                     ON a.student_id = s.id AND a.tenant_id = s.tenant_id
                 WHERE e.batch_id = :bid AND s.tenant_id = :tid

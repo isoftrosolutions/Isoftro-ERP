@@ -91,7 +91,7 @@ function processPaymentReceipt($db, $tenantId, $payload) {
         $stmt->execute(['path' => $relativePath, 'id' => $transactionId]);
 
         // 3. Trigger Email
-        processEmailReceipt($db, $tenantId, ['transaction_id' => $transactionId, 'pdf_path' => $pdfPath]);
+        processEmailReceipt($db, $tenantId, array_merge($payload, ['pdf_path' => $pdfPath]));
     }
 }
 

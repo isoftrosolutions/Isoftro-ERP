@@ -2192,6 +2192,9 @@ window.renderStudentProfile = async (id, activeTab = 'personal') => {
 
                         <!-- Actions -->
                         <div class="sp-actions">
+                            <button class="btn btn-success" style="background:#0F172A; color:#fff;" onclick="goNav('students', 'enroll-existing', { student_id: ${s.id} })">
+                                <i class="fas fa-user-graduate"></i> Enroll in New Course
+                            </button>
                             <button class="btn btn-success" style="background:#009e7e; color:#fff;" onclick="window.renderQuickPayment(${s.id})">
                                 <i class="fas fa-hand-holding-dollar"></i> Take Payment
                             </button>
@@ -2315,7 +2318,12 @@ function _spCourseTab(s) {
     const enrollments = s.enrollments || [];
     
     return `
-        ${_spSectionTitle('fa-book-open', 'Enrollment History')}
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            ${_spSectionTitle('fa-book-open', 'Enrollment History')}
+            <button class="btn btn-sm bt" style="height:32px; font-size:12px; padding:0 12px; background:#0F172A; color:#fff;" onclick="goNav('students', 'enroll-existing', { student_id: ${s.id} })">
+                <i class="fas fa-plus"></i> New Enrollment
+            </button>
+        </div>
         <div class="table-responsive">
             <table class="sp-data-table">
                 <thead><tr>

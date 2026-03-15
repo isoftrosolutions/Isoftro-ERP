@@ -165,6 +165,9 @@ function renderFrontDeskSidebar($activePage = null) {
         <button class="sb-btn" onclick="goNav('admissions', 'adm-form')">
           <i class="fa fa-user-plus"></i><span class="sb-lbl">New Admission</span>
         </button>
+        <button class="sb-btn" onclick="goNav('admissions', 'enroll-existing')">
+          <i class="fa fa-user-graduate"></i><span class="sb-lbl">Enroll Existing</span>
+        </button>
         <button class="sb-btn" onclick="goNav('operations', 'inq-list')">
           <i class="fa fa-comments"></i><span class="sb-lbl">Inquiries</span>
           <span class="sb-badge">7</span>

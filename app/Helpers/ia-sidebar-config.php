@@ -39,6 +39,7 @@ function getIASidebarConfig()
                     'sub' => [
                         ['id' => 'all', 'l' => 'All Students', 'icon' => 'fa-list'],
                         ['id' => 'add', 'l' => 'Add Student', 'icon' => 'fa-user-plus'],
+                        ['id' => 'enroll-existing', 'l' => 'Enroll Existing', 'icon' => 'fa-user-graduate'],
                         ['id' => 'alumni', 'l' => 'Alumni Records', 'icon' => 'fa-user-tag'],
                         ['id' => 'vault', 'l' => 'Document Vault', 'icon' => 'fa-vault'],
                     ],

@@ -45,10 +45,25 @@ try {
             if ($status === 'pending') {
                 $requests = $leaveModel->getPending($tenantId);
             } else {
-                // Get all - simplified for now
                 $requests = $leaveModel->getPending($tenantId);
             }
-            echo json_encode(['success' => true, 'data' => $requests]);
+
+            // Flatten data for frontend (JS expects full_name, roll_no, photo_url at top level)
+            $transformed = $requests->map(function($r) {
+                return [
+                    'id'         => $r->id,
+                    'student_id' => $r->student_id,
+                    'from_date'  => $r->from_date,
+                    'to_date'    => $r->to_date,
+                    'reason'     => $r->reason,
+                    'status'     => $r->status,
+                    'full_name'  => $r->student->user->name ?? 'Batch Student',
+                    'roll_no'    => $r->student->roll_no ?? 'N/A',
+                    'photo_url'  => $r->student->photo_url ?? ''
+                ];
+            });
+
+            echo json_encode(['success' => true, 'data' => $transformed]);
         }
     }
     elseif ($method === 'POST') {
@@ -78,7 +93,10 @@ try {
         if (!$id || !$action) throw new \Exception("ID and action required");
         
         if ($action === 'approve') {
-            $req = $leaveModel->approve($id, $userId);
+            $leaveReq = \App\Models\LeaveRequest::find($id);
+            if (!$leaveReq) throw new \Exception("Leave request not found");
+            
+            $req = $leaveReq->approve($userId);
             
             // Process the approved leave to mark attendance automatically
             $service = new \App\Services\AttendanceService();
@@ -86,7 +104,10 @@ try {
             
             echo json_encode(['success' => true, 'data' => $req, 'message' => 'Leave approved']);
         } elseif ($action === 'reject') {
-            $req = $leaveModel->reject($id, $userId);
+            $leaveReq = \App\Models\LeaveRequest::find($id);
+            if (!$leaveReq) throw new \Exception("Leave request not found");
+            
+            $req = $leaveReq->reject($userId);
             echo json_encode(['success' => true, 'data' => $req, 'message' => 'Leave rejected']);
         } else {
             throw new \Exception("Invalid action");

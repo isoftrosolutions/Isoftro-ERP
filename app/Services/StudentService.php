@@ -40,17 +40,19 @@ class StudentService {
 
         try {
             // 1. Prepare User Data
-            $fullName = $input['full_name'];
+            $fullName = $input['full_name'] ?? '';
             $email = $input['email'] ?? null;
             $phone = $input['contact_number'] ?? $input['phone'] ?? null;
             $password = $input['password'] ?? 'Student@123'; 
+            $studentId = $input['student_id'] ?? null;
 
-            if (empty($email)) {
+            if (empty($email) && !$studentId) {
                 throw new Exception("Email address is required for student registration.");
             }
 
             // 2. Create/Reuse User Account
             $existingUser = null;
+            if ($email) {
                 if ($this->db instanceof \PDO) {
                     $stmt = $this->db->prepare("SELECT * FROM users WHERE email = ? AND tenant_id = ? AND deleted_at IS NULL");
                     $stmt->execute([$email, $tenantId]);
@@ -62,9 +64,20 @@ class StudentService {
                         ->whereNull('deleted_at')
                         ->first();
                 }
+            }
 
             if ($existingUser) {
                 $userId = $existingUser->id;
+            } elseif ($studentId) {
+                // Fetch userId from existing student
+                if ($this->db instanceof \PDO) {
+                    $stmt = $this->db->prepare("SELECT user_id FROM students WHERE id = ? AND tenant_id = ?");
+                    $stmt->execute([$studentId, $tenantId]);
+                    $userId = $stmt->fetchColumn();
+                } else {
+                    $userId = DB::table('students')->where('id', $studentId)->where('tenant_id', $tenantId)->value('user_id');
+                }
+                if (!$userId) throw new Exception("Existing student profile has no associated user account.");
             } else {
                 $user = $this->userModel->createUser([
                     'tenant_id' => $tenantId,
@@ -132,8 +145,18 @@ class StudentService {
             $enrollmentIds = [];
 
             foreach ($batchIds as $batchId) {
-                $enrollmentId = $this->enrollInBatch($studentId, $batchId, $tenantId);
-                if ($enrollmentId) $enrollmentIds[] = $enrollmentId;
+                try {
+                    $enrollmentId = $this->enrollInBatch($studentId, $batchId, $tenantId);
+                    if ($enrollmentId) $enrollmentIds[] = $enrollmentId;
+                } catch (Exception $e) {
+                    // If multiple batches, we might want to continue, but for single batch requests (common), we should re-throw
+                    if (count($batchIds) === 1) throw $e;
+                    error_log("Enrollment skip for batch $batchId: " . $e->getMessage());
+                }
+            }
+
+            if ($studentId && empty($enrollmentIds)) {
+                throw new Exception("No new enrollments were created. The student might already be enrolled in all selected batches.");
             }
 
             if ($this->db instanceof \PDO) {
@@ -213,10 +236,12 @@ class StudentService {
         if ($this->db instanceof \PDO) {
             $stmt = $this->db->prepare("SELECT id FROM enrollments WHERE student_id = ? AND batch_id = ? AND status = 'active' AND tenant_id = ?");
             $stmt->execute([$studentId, $batchId, $tenantId]);
-            if ($stmt->fetch()) return null; 
+            if ($stmt->fetch()) {
+                throw new Exception("Student is already enrolled in " . ($courseData->batch_name ?? 'this batch') . ".");
+            }
         } else {
             if (DB::table('enrollments')->where('student_id', $studentId)->where('batch_id', $batchId)->where('status', 'active')->where('tenant_id', $tenantId)->exists()) {
-                return null;
+                throw new Exception("Student is already enrolled in " . ($courseData->batch_name ?? 'this batch') . ".");
             }
         }
 

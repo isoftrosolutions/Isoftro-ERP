@@ -132,8 +132,8 @@ try {
         }
 
         // Get all students for CSV (no pagination limit)
-        $query = "SELECT s.roll_no, u.name as full_name, u.email, u.phone, s.gender, s.dob_bs, s.dob_ad,
-                         s.citizenship_no, s.father_name, s.mother_name, s.guardian_name, s.guardian_relation,
+        $query = "SELECT s.roll_no, u.name as full_name, u.email, u.phone, s.gender, s.dob_bs,
+                         s.citizenship_no,
                          s.permanent_address, s.temporary_address,
                          b.name as batch_name, c.name as course_name,
                          s.status, s.registration_status, s.admission_date, s.created_at
@@ -153,7 +153,7 @@ try {
         $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         // Build CSV
-        $csv = "Roll No,Full Name,Email,Phone,Gender,DOB (BS),DOB (AD),Citizenship No,Father's Name,Mother's Name,Guardian Name,Guardian Relation,Permanent Address,Temporary Address,Batch,Course,Status,Registration Status,Admission Date,Joined Date\n";
+        $csv = "Roll No,Full Name,Email,Phone,Gender,DOB (BS),Citizenship No,Permanent Address,Temporary Address,Batch,Course,Status,Registration Status,Admission Date,Joined Date\n";
 
         foreach ($students as $s) {
             $addr = is_array($s['permanent_address']) ? json_encode($s['permanent_address']) : ($s['permanent_address'] ?: '');
@@ -164,12 +164,7 @@ try {
                     '"' . ($s['phone'] ?? '') . '",' .
                     '"' . ($s['gender'] ?? '') . '",' .
                     '"' . ($s['dob_bs'] ?? '') . '",' .
-                    '"' . ($s['dob_ad'] ?? '') . '",' .
                     '"' . ($s['citizenship_no'] ?? '') . '",' .
-                    '"' . ($s['father_name'] ?? '') . '",' .
-                    '"' . ($s['mother_name'] ?? '') . '",' .
-                    '"' . ($s['guardian_name'] ?? '') . '",' .
-                    '"' . ($s['guardian_relation'] ?? '') . '",' .
                     '"' . str_replace('"', '""', $addr) . '",' .
                     '"' . str_replace('"', '""', $taddr) . '",' .
                     '"' . ($s['batch_name'] ?? '') . '",' .
@@ -307,8 +302,9 @@ try {
                   LEFT JOIN enrollments e ON s.id = e.student_id AND e.status = 'active'
                   LEFT JOIN batches b ON e.batch_id = b.id 
                   LEFT JOIN courses c ON b.course_id = c.id
-                  LEFT JOIN student_fee_summary sfs ON s.id = sfs.student_id
+                  LEFT JOIN student_fee_summary sfs ON s.id = sfs.student_id AND (e.id = sfs.enrollment_id OR e.id IS NULL)
                   $whereSql
+                  GROUP BY s.id
                   ORDER BY s.created_at DESC
                   LIMIT :limit OFFSET :offset";
         

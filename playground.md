@@ -1,34 +1,66 @@
-like the add student page is made using the shared component  for the frontdesk and admin i want to make the same for the all the front desk pages  because the design is not looking premium and the design is not responsive as of now the admin page is looking premium and responsive and fully functional , so make the same for the all the front desk pages shared component by copying the same style and functionality from the admin page before any execution make a  plan and share it with me tell me what are the changes you are going to make and how you are going to make it also think about the performance and the user experience     
+when adding a new batch or course for an existing student there is submit or confirm btn and      it is not reflecting in the student profile page
 
+You are acting as a Senior ERP Product Auditor, Education Operations Analyst, and Software Architecture Reviewer.
 
+Your task is to perform a comprehensive audit of the currently implemented "Time Builder / Timetable Builder" functionality in the system.
 
+First, carefully read and analyze all relevant files related to this feature, including:
 
-locate the core sidebar file and remove the nav link of the custom report builder from the academic module it is not required for now 
+- Controllers
+- Models
+- Services
+- Database schema
+- Migration files
+- Views / UI components
+- Routes
+- API endpoints
+- Any scheduling or timetable related utilities
 
+After reviewing the implementation, perform the following analysis:
 
-why this error is coming nepal-data.js?v=1773454583:76 Nepal Data Script Loaded and Helpers Initialized
-nexus-data-loader.js?v=1773454583:189 📦 NexusDataLoader ready.
-ia-support.js?v=1773454583:670 [Support] Initializing Support Page...
-ia-support.js?v=1773454583:690 [Support] Support Page initialized successfully
-/erp/api/admin/attendance?batch_id=1&date=2026-03-14:1  Failed to load resource: the server responded with a status of 500 (Internal Server Error)
- what are the root causes first tell me that and then we will fix it from the mark attendance page of both portals admin and front desk 
+1. Understand the intended purpose of the Time Builder feature.
+2. Document the current workflow of how a timetable is created, edited, and managed.
+3. Identify all database tables and relationships used for scheduling.
+4. Analyze business logic used for:
+   - class scheduling
+   - teacher allocation
+   - room allocation
+   - batch/course timing
+5. Detect architectural or design issues.
+6. Identify missing validations, edge cases, or broken logic.
+7. Detect unused or partially implemented code.
+8. Identify performance risks or scalability limitations.
+9. Check if the feature supports:
+   - conflict detection (teacher/room/time)
+   - drag-and-drop timetable building
+   - recurring schedules
+   - batch/course specific timetables
+   - teacher availability
+   - room availability
+10. Identify gaps between current implementation and a robust institute-level timetable system.
 
+Then produce the following outputs:
 
+1. **TimeBuilder_Audit_Report.md**
+   - Current implementation overview
+   - Architecture analysis
+   - Database structure analysis
+   - Identified gaps
+   - Missing features
+   - UX limitations
+   - Technical risks
 
- at the teacher page N
-N/A
-Teacher this means the teacher's name is not
+2. **TimeBuilder_Gap_Analysis.md**
+   - Feature gaps
+   - Business workflow gaps
+   - Missing automation
+   - Missing constraints
+   - Missing UI capabilities
 
+3. **TimeBuilder_Improvement_Roadmap.md**
+   - Immediate fixes
+   - Structural improvements
+   - Feature upgrades
+   - Long-term scalability improvements
 
-
-Undefined array key "batch_id"
- while  opening student profile when frontdesk  portal we dicovered this error and had already directed to use the same component for the frontdesk portal but the issue is still persisting
-
-
- thoungh we have shared all the components but the header should be different for the frontdesk portal and admin portal the amdin header is good engousgh i want a similar header for the frontdesk portal where the user chip do have links like my profile , logout , support ,notification 
-
- why the css files of  the super admin pages are not loading and showing this console error  filler.17f3ba95.js:9 checkSupportDomain domain: localhost
-sa-dashboard.js?v=1.0.0:185 [SuperAdmin] Dashboard Error: ReferenceError: Chart is not defined
-    at initDashboardCharts (sa-dashboard.js?v=1.0.0:206:45)
-    at SuperAdmin.renderDashboard (sa-dashboard.js?v=1.0.0:183:13)
-SuperAdmin.renderDashboard @ sa-dashboard.js?v=1.0.0:185
+Before generating the final reports, ask clarification questions if any part of the implementation is unclear.

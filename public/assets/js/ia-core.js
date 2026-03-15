@@ -193,7 +193,16 @@ function _iaRenderPage() {
     const urlParams = new URLSearchParams(window.location.search);
     const nav = _IA.activeNav, sub = _IA.activeSub;
     if (nav==='overview') { _iaRenderDashboard(); return; }
-    if (nav==='students') { if(sub==='add') window.renderAddStudentFormV2?.(); else if(sub==='edit' || sub==='complete') window.renderEditStudentForm?.(urlParams.get('id')); else if(sub==='view') window.renderStudentProfile?.(urlParams.get('id')); else if(sub==='vault') window.renderDocumentVault?.(); else if(sub==='alumni') window.renderAlumniList?.(); else window.renderStudentList?.(); return; }
+    if (nav==='students') { 
+        if(sub==='add') window.renderAddStudentFormV2?.(); 
+        else if(sub==='enroll-existing') window.renderEnrollExistingFormV2?.(); 
+        else if(sub==='edit' || sub==='complete') window.renderEditStudentForm?.(urlParams.get('id')); 
+        else if(sub==='view') window.renderStudentProfile?.(urlParams.get('id')); 
+        else if(sub==='vault') window.renderDocumentVault?.(); 
+        else if(sub==='alumni') window.renderAlumniList?.(); 
+        else window.renderStudentList?.(); 
+        return; 
+    }
     if (nav==='academic') {
         if (sub==='courses') { if(urlParams.get('id')) window.renderEditCourseForm?.(urlParams.get('id')); else if(urlParams.get('action')==='add') window.renderAddCourseForm?.(); else window.renderCourseList?.(); return; }
         if (sub==='course-categories') { window.renderCourseCategoryList?.(); return; }

@@ -40,6 +40,7 @@ class Attendance extends Model {
                 ],
                 [
                     'status' => $rec['status'], 
+                    'course_id' => $rec['course_id'] ?? null,
                     'marked_by' => $rec['marked_by'] ?? null
                 ]
             );
