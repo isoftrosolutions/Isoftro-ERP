@@ -349,6 +349,10 @@ Route::any('/api/admin/timetable', function() {
     require_once app_path('Http/Controllers/Admin/timetable.php');
 });
 
+Route::any('/api/admin/rooms', function() {
+    require_once app_path('Http/Controllers/Admin/rooms.php');
+});
+
 Route::any('/api/admin/academic-calendar', function() {
     require_once app_path('Http/Controllers/Admin/academic_calendar.php');
 });

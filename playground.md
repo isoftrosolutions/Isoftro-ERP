@@ -64,3 +64,6 @@ Then produce the following outputs:
    - Long-term scalability improvements
 
 Before generating the final reports, ask clarification questions if any part of the implementation is unclear.
+
+
+why the academic time table builder page is not opening there is only showing a  loading spinner

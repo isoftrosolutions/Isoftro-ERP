@@ -61,6 +61,8 @@ $roleCSS = $roleCSS ?? null;
 
     <script>
         window.APP_URL = "<?php echo APP_URL; ?>";
+        window.baseUrl = "<?php echo APP_URL; ?>";
+        window.currentTenantId = "<?php echo $_SESSION['userData']['tenant_id'] ?? $_SESSION['tenant_id'] ?? ''; ?>";
     </script>
 </head>
 <body class="<?php echo $bodyClass ?? ''; ?>">

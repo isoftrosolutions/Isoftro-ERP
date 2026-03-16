@@ -73,15 +73,17 @@ try {
         $query = "SELECT ts.*, 
                   b.name as batch_name, 
                   t.full_name as teacher_name,
-                  s.name as subject_name,
-                  s.code as subject_code,
-                  c.name as course_name
-                  FROM timetable_slots ts
-                  JOIN batches b ON ts.batch_id = b.id
-                  LEFT JOIN teachers t ON ts.teacher_id = t.id
-                  LEFT JOIN subjects s ON ts.subject_id = s.id
-                  LEFT JOIN courses c ON b.course_id = c.id
-                  WHERE ts.tenant_id = :tid";
+                   s.name as subject_name,
+                   s.code as subject_code,
+                   c.name as course_name,
+                   r.name as room_name
+                   FROM timetable_slots ts
+                   JOIN batches b ON ts.batch_id = b.id
+                   LEFT JOIN teachers t ON ts.teacher_id = t.id
+                   LEFT JOIN subjects s ON ts.subject_id = s.id
+                   LEFT JOIN courses c ON b.course_id = c.id
+                   LEFT JOIN rooms r ON ts.room_id = r.id
+                   WHERE ts.tenant_id = :tid";
         
         $params = ['tid' => $tenantId];
         
@@ -136,12 +138,16 @@ try {
             $dayOfWeek = $input['day_of_week'] ?? null;
             $startTime = $input['start_time'] ?? null;
             $endTime = $input['end_time'] ?? null;
-            $room = $input['room'] ?? null;
+            $roomId = $input['room_id'] ?? null;
             $onlineLink = $input['online_link'] ?? null;
             $classType = $input['class_type'] ?? 'offline';
 
             if (empty($batchId) || empty($teacherId) || empty($subjectId) || empty($dayOfWeek) || empty($startTime) || empty($endTime)) {
                 throw new Exception("Batch, Teacher, Subject, Day, Start Time and End Time are required");
+            }
+
+            if ($startTime >= $endTime) {
+                throw new Exception("Start time must be before end time");
             }
 
             // Check for time conflicts
@@ -196,11 +202,39 @@ try {
                 throw new Exception("Teacher has a conflict at this time");
             }
 
+            // Check room conflict
+            if (!empty($roomId)) {
+                $stmt = $db->prepare("
+                    SELECT ts.*, b.name as batch_name
+                    FROM timetable_slots ts
+                    JOIN batches b ON ts.batch_id = b.id
+                    WHERE ts.room_id = :room_id
+                    AND ts.day_of_week = :day_of_week
+                    AND ((ts.start_time <= :s1 AND ts.end_time > :s2)
+                        OR (ts.start_time < :e1 AND ts.end_time >= :e2)
+                        OR (ts.start_time >= :s3 AND ts.end_time <= :e3))
+                ");
+                $stmt->execute([
+                    'room_id' => $roomId,
+                    'day_of_week' => $dayOfWeek,
+                    's1' => $startTime,
+                    's2' => $startTime,
+                    'e1' => $endTime,
+                    'e2' => $endTime,
+                    's3' => $startTime,
+                    'e3' => $endTime
+                ]);
+                
+                if ($stmt->fetch()) {
+                    throw new Exception("Room is already occupied at this time");
+                }
+            }
+
             $stmt = $db->prepare("
                 INSERT INTO timetable_slots 
-                (tenant_id, batch_id, teacher_id, subject_id, day_of_week, start_time, end_time, room, online_link, class_type, created_at, updated_at)
+                (tenant_id, batch_id, teacher_id, subject_id, day_of_week, start_time, end_time, room_id, online_link, class_type, created_at, updated_at)
                 VALUES 
-                (:tid, :batch_id, :teacher_id, :subject_id, :day_of_week, :start_time, :end_time, :room, :online_link, :class_type, NOW(), NOW())
+                (:tid, :batch_id, :teacher_id, :subject_id, :day_of_week, :start_time, :end_time, :room_id, :online_link, :class_type, NOW(), NOW())
             ");
 
             $stmt->execute([
@@ -211,7 +245,7 @@ try {
                 'day_of_week' => $dayOfWeek,
                 'start_time' => $startTime,
                 'end_time' => $endTime,
-                'room' => $room,
+                'room_id' => $roomId,
                 'online_link' => $onlineLink,
                 'class_type' => $classType
             ]);
@@ -233,7 +267,7 @@ try {
             $dayOfWeek = $input['day_of_week'] ?? null;
             $startTime = $input['start_time'] ?? null;
             $endTime = $input['end_time'] ?? null;
-            $room = $input['room'] ?? null;
+            $roomId = $input['room_id'] ?? null;
             $onlineLink = $input['online_link'] ?? null;
             $classType = $input['class_type'] ?? 'offline';
 
@@ -248,6 +282,90 @@ try {
                 throw new Exception("Timetable slot not found");
             }
 
+            if ($startTime >= $endTime) {
+                throw new Exception("Start time must be before end time");
+            }
+
+            // Check for time conflicts (Batch)
+            $stmt = $db->prepare("
+                SELECT ts.id 
+                FROM timetable_slots ts
+                WHERE ts.batch_id = :batch_id 
+                AND ts.day_of_week = :day_of_week
+                AND ts.id != :id
+                AND ((ts.start_time <= :s1 AND ts.end_time > :s2)
+                    OR (ts.start_time < :e1 AND ts.end_time >= :e2)
+                    OR (ts.start_time >= :s3 AND ts.end_time <= :e3))
+            ");
+            $stmt->execute([
+                'batch_id' => $batchId,
+                'day_of_week' => $dayOfWeek,
+                'id' => $slotId,
+                's1' => $startTime,
+                's2' => $startTime,
+                'e1' => $endTime,
+                'e2' => $endTime,
+                's3' => $startTime,
+                'e3' => $endTime
+            ]);
+            if ($stmt->fetch()) {
+                throw new Exception("Time slot conflicts with an existing class in this batch");
+            }
+
+            // Check teacher conflict
+            $stmt = $db->prepare("
+                SELECT ts.id
+                FROM timetable_slots ts
+                WHERE ts.teacher_id = :teacher_id
+                AND ts.day_of_week = :day_of_week
+                AND ts.id != :id
+                AND ((ts.start_time <= :s1 AND ts.end_time > :s2)
+                    OR (ts.start_time < :e1 AND ts.end_time >= :e2)
+                    OR (ts.start_time >= :s3 AND ts.end_time <= :e3))
+            ");
+            $stmt->execute([
+                'teacher_id' => $teacherId,
+                'day_of_week' => $dayOfWeek,
+                'id' => $slotId,
+                's1' => $startTime,
+                's2' => $startTime,
+                'e1' => $endTime,
+                'e2' => $endTime,
+                's3' => $startTime,
+                'e3' => $endTime
+            ]);
+            if ($stmt->fetch()) {
+                throw new Exception("Teacher has a conflict at this time");
+            }
+
+            // Check room conflict
+            if (!empty($roomId)) {
+                $stmt = $db->prepare("
+                    SELECT ts.id
+                    FROM timetable_slots ts
+                    WHERE ts.room_id = :room_id
+                    AND ts.day_of_week = :day_of_week
+                    AND ts.id != :id
+                    AND ((ts.start_time <= :s1 AND ts.end_time > :s2)
+                        OR (ts.start_time < :e1 AND ts.end_time >= :e2)
+                        OR (ts.start_time >= :s3 AND ts.end_time <= :e3))
+                ");
+                $stmt->execute([
+                    'room_id' => $roomId,
+                    'day_of_week' => $dayOfWeek,
+                    'id' => $slotId,
+                    's1' => $startTime,
+                    's2' => $startTime,
+                    'e1' => $endTime,
+                    'e2' => $endTime,
+                    's3' => $startTime,
+                    'e3' => $endTime
+                ]);
+                if ($stmt->fetch()) {
+                    throw new Exception("Room is already occupied at this time");
+                }
+            }
+
             $stmt = $db->prepare("
                 UPDATE timetable_slots 
                 SET batch_id = :batch_id,
@@ -256,7 +374,7 @@ try {
                     day_of_week = :day_of_week,
                     start_time = :start_time,
                     end_time = :end_time,
-                    room = :room,
+                    room_id = :room_id,
                     online_link = :online_link,
                     class_type = :class_type,
                     updated_at = NOW()
@@ -272,7 +390,7 @@ try {
                 'day_of_week' => $dayOfWeek,
                 'start_time' => $startTime,
                 'end_time' => $endTime,
-                'room' => $room,
+                'room_id' => $roomId,
                 'online_link' => $onlineLink,
                 'class_type' => $classType
             ]);

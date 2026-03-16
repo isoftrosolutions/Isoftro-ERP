@@ -110,15 +110,31 @@
     background: #dc2626;
 }
 
+.tt-day-column.drag-over {
+    background: #f0f9ff;
+    border: 2px dashed #0ea5e9;
+}
+
+.tt-slot.dragging {
+    opacity: 0.5;
+    transform: scale(0.95);
+    background: #f1f5f9;
+}
+
 .tt-slot {
     background: white;
-    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
     padding: 12px;
-    margin-bottom: 10px;
-    border-left: 4px solid #0d9488;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    cursor: pointer;
+    margin-bottom: 12px;
+    cursor: grab;
     transition: transform 0.2s, box-shadow 0.2s;
+    position: relative;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.tt-slot:active {
+    cursor: grabbing;
 }
 
 .tt-slot:hover {
@@ -159,31 +175,39 @@
 }
 
 /* Modal Styles */
-.modal-overlay {
+.tt-modal-overlay {
     display: none;
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0,0,0,0.5);
-    z-index: 1000;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(4px); /* Keeping it but making it explicit and scoped */
+    z-index: 10000;
     align-items: center;
     justify-content: center;
+    padding: 20px;
 }
 
-.modal-overlay.active {
+.tt-modal-overlay.active {
     display: flex;
 }
 
-.modal {
+.tt-modal {
     background: white;
     border-radius: 16px;
-    width: 90%;
+    width: 100%;
     max-width: 500px;
     max-height: 90vh;
     overflow-y: auto;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    animation: ttModalScale 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes ttModalScale {
+    from { transform: scale(0.95); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
 }
 
 .modal-header {
@@ -301,16 +325,21 @@
 
 <div class="timetable-container">
     <div class="tt-header">
-        <h1 class="tt-title">Timetable Builder</h1>
+        <h2 class="tt-title">Timetable Builder</h2>
+        <div class="tt-acts">
+            <button class="tt-btn tt-btn-secondary" onclick="exportPDF()">
+                <i class="fa-solid fa-file-pdf"></i> Export PDF
+            </button>
+            <button class="tt-btn tt-btn-primary" onclick="openAddModal()">
+                <i class="fa-solid fa-plus"></i> Add Slot
+            </button>
+        </div>
     </div>
     
     <div class="tt-filters">
         <select class="tt-select" id="batchFilter">
             <option value="">Select Batch</option>
         </select>
-        <button class="tt-btn tt-btn-primary" onclick="openAddModal()">
-            <i class="fa-solid fa-plus"></i> Add Slot
-        </button>
         <button class="tt-btn tt-btn-secondary" onclick="loadTimetable()">
             <i class="fa-solid fa-refresh"></i> Refresh
         </button>
@@ -325,8 +354,8 @@
 </div>
 
 <!-- Add/Edit Modal -->
-<div class="modal-overlay" id="slotModal">
-    <div class="modal">
+<div class="tt-modal-overlay" id="slotModal">
+    <div class="tt-modal">
         <div class="modal-header">
             <h3 class="modal-title" id="modalTitle">Add Timetable Slot</h3>
             <button class="modal-close" onclick="closeModal()">&times;</button>
@@ -351,7 +380,18 @@
                 
                 <div class="form-group">
                     <label class="form-label">Subject *</label>
-                    <input type="text" class="form-input" id="slotSubject" placeholder="Enter subject name" required>
+                    <select class="form-select" id="slotSubject" required>
+                        <option value="">Select Subject</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Class Type *</label>
+                    <select class="form-select" id="slotClassType" required>
+                        <option value="offline">Offline (In-Person)</option>
+                        <option value="online">Online (Virtual)</option>
+                        <option value="lab">Lab / Practical</option>
+                    </select>
                 </div>
                 
                 <div class="form-group">
@@ -382,7 +422,9 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label class="form-label">Room</label>
-                        <input type="text" class="form-input" id="slotRoom" placeholder="e.g., Room 101">
+                        <select class="form-select" id="slotRoom">
+                            <option value="">Select Room</option>
+                        </select>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Online Link</label>
@@ -400,250 +442,7 @@
 </div>
 
 <script>
-let currentBatches = [];
-let currentTeachers = [];
-
-document.addEventListener('DOMContentLoaded', function() {
-    loadBatches();
-    loadTeachers();
-    loadTimetable();
-});
-
-async function loadBatches() {
-    try {
-        const response = await fetch('?api=batches&tenant_id=' + window.currentTenantId);
-        const result = await response.json();
-        
-        if (result.success) {
-            currentBatches = result.data || [];
-            const select = document.getElementById('batchFilter');
-            const modalSelect = document.getElementById('slotBatch');
-            
-            // Keep first option
-            const filterOptions = '<option value="">All Batches</option>';
-            const modalOptions = '<option value="">Select Batch</option>';
-            
-            select.innerHTML = filterOptions + currentBatches.map(b => 
-                `<option value="${b.id}">${b.name}</option>`
-            ).join('');
-            
-            modalSelect.innerHTML = modalOptions + currentBatches.map(b => 
-                `<option value="${b.id}">${b.name}</option>`
-            ).join('');
-        }
-    } catch (error) {
-        console.error('Error loading batches:', error);
-    }
-}
-
-async function loadTeachers() {
-    try {
-        const response = await fetch('?api=staff&role=teacher&tenant_id=' + window.currentTenantId);
-        const result = await response.json();
-        
-        if (result.success) {
-            currentTeachers = result.data || [];
-            const select = document.getElementById('slotTeacher');
-            
-            select.innerHTML = '<option value="">Select Teacher</option>' + 
-                currentTeachers.map(t => {
-                    const name = t.name || t.teacher_name || 'Unknown';
-                    return `<option value="${t.teacher_id || t.id}">${name}</option>`;
-                }).join('');
-        }
-    } catch (error) {
-        console.error('Error loading teachers:', error);
-    }
-}
-
-async function loadTimetable() {
-    const batchId = document.getElementById('batchFilter').value;
-    const grid = document.getElementById('timetableGrid');
-    
-    grid.innerHTML = '<div class="tt-loading"><i class="fa-solid fa-spinner fa-spin"></i>Loading timetable...</div>';
-    
-    try {
-        const url = batchId 
-            ? `?api=timetable&batch_id=${batchId}&tenant_id=${window.currentTenantId}`
-            : `?api=timetable&tenant_id=${window.currentTenantId}`;
-            
-        const response = await fetch(url);
-        const result = await response.json();
-        
-        if (result.success) {
-            renderTimetable(result.grouped || []);
-        } else {
-            grid.innerHTML = '<div class="tt-empty">Error loading timetable</div>';
-        }
-    } catch (error) {
-        console.error('Error loading timetable:', error);
-        grid.innerHTML = '<div class="tt-empty">Error loading timetable</div>';
-    }
-}
-
-function renderTimetable(groupedData) {
-    const grid = document.getElementById('timetableGrid');
-    const days = ['', 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    
-    // Create all 7 day columns
-    let html = '';
-    for (let i = 1; i <= 7; i++) {
-        const dayData = groupedData.find(d => d.day_of_week == i);
-        const slots = dayData ? dayData.slots : [];
-        const isSunday = i === 1;
-        
-        html += `<div class="tt-day-column">
-            <div class="tt-day-header ${isSunday ? 'sunday' : ''}">${days[i]}</div>`;
-        
-        if (slots.length === 0) {
-            html += '<div class="tt-empty">No classes</div>';
-        } else {
-            slots.forEach(slot => {
-                html += `
-                <div class="tt-slot" onclick="editSlot(${slot.id})">
-                    <div class="tt-slot-time">${formatTime(slot.start_time)} - ${formatTime(slot.end_time)}</div>
-                    <div class="tt-slot-subject">${slot.subject}</div>
-                    <div class="tt-slot-teacher">${slot.teacher_name || 'No teacher'}</div>
-                    ${slot.room ? `<div class="tt-slot-room"><i class="fa-solid fa-door"></i> ${slot.room}</div>` : ''}
-                </div>`;
-            });
-        }
-        
-        html += '</div>';
-    }
-    
-    grid.innerHTML = html;
-}
-
-function formatTime(time) {
-    if (!time) return '';
-    const [hours, minutes] = time.split(':');
-    const h = parseInt(hours);
-    const ampm = h >= 12 ? 'PM' : 'AM';
-    const h12 = h % 12 || 12;
-    return `${h12}:${minutes} ${ampm}`;
-}
-
-function openAddModal() {
-    document.getElementById('modalTitle').textContent = 'Add Timetable Slot';
-    document.getElementById('slotId').value = '';
-    document.getElementById('slotForm').reset();
-    document.getElementById('deleteBtn').style.display = 'none';
-    document.getElementById('slotModal').classList.add('active');
-}
-
-async function editSlot(slotId) {
-    // Get the slot data from the current timetable
-    const batchId = document.getElementById('batchFilter').value;
-    const url = batchId 
-        ? `?api=timetable&batch_id=${batchId}&tenant_id=${window.currentTenantId}`
-        : `?api=timetable&tenant_id=${window.currentTenantId}`;
-    
-    try {
-        const response = await fetch(url);
-        const result = await response.json();
-        
-        if (result.success) {
-            const allSlots = result.data || [];
-            const slot = allSlots.find(s => s.id == slotId);
-            
-            if (slot) {
-                document.getElementById('modalTitle').textContent = 'Edit Timetable Slot';
-                document.getElementById('slotId').value = slot.id;
-                document.getElementById('slotBatch').value = slot.batch_id;
-                document.getElementById('slotTeacher').value = slot.teacher_id;
-                document.getElementById('slotSubject').value = slot.subject;
-                document.getElementById('slotDay').value = slot.day_of_week;
-                document.getElementById('slotStartTime').value = slot.start_time;
-                document.getElementById('slotEndTime').value = slot.end_time;
-                document.getElementById('slotRoom').value = slot.room || '';
-                document.getElementById('slotOnlineLink').value = slot.online_link || '';
-                document.getElementById('deleteBtn').style.display = 'inline-flex';
-                document.getElementById('slotModal').classList.add('active');
-            }
-        }
-    } catch (error) {
-        console.error('Error loading slot:', error);
-    }
-}
-
-function closeModal() {
-    document.getElementById('slotModal').classList.remove('active');
-}
-
-async function saveSlot() {
-    const slotId = document.getElementById('slotId').value;
-    const data = {
-        action: slotId ? 'update' : 'create',
-        batch_id: document.getElementById('slotBatch').value,
-        teacher_id: document.getElementById('slotTeacher').value,
-        subject: document.getElementById('slotSubject').value,
-        day_of_week: document.getElementById('slotDay').value,
-        start_time: document.getElementById('slotStartTime').value,
-        end_time: document.getElementById('slotEndTime').value,
-        room: document.getElementById('slotRoom').value,
-        online_link: document.getElementById('slotOnlineLink').value
-    };
-    
-    if (slotId) {
-        data.id = slotId;
-    }
-    
-    // Validation
-    if (!data.batch_id || !data.teacher_id || !data.subject || !data.day_of_week || !data.start_time || !data.end_time) {
-        alert('Please fill in all required fields');
-        return;
-    }
-    
-    try {
-        const response = await fetch('?api=timetable&tenant_id=' + window.currentTenantId, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        });
-        
-        const result = await response.json();
-        
-        if (result.success) {
-            closeModal();
-            loadTimetable();
-        } else {
-            alert(result.message || 'Error saving timetable slot');
-        }
-    } catch (error) {
-        console.error('Error saving slot:', error);
-        alert('Error saving timetable slot');
-    }
-}
-
-async function deleteSlot() {
-    const slotId = document.getElementById('slotId').value;
-    
-    if (!confirm('Are you sure you want to delete this timetable slot?')) {
-        return;
-    }
-    
-    try {
-        const response = await fetch('?api=timetable&tenant_id=' + window.currentTenantId, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'delete', id: slotId })
-        });
-        
-        const result = await response.json();
-        
-        if (result.success) {
-            closeModal();
-            loadTimetable();
-        } else {
-            alert(result.message || 'Error deleting timetable slot');
-        }
-    } catch (error) {
-        console.error('Error deleting slot:', error);
-        alert('Error deleting timetable slot');
-    }
-}
-
-// Event listeners
-document.getElementById('batchFilter').addEventListener('change', loadTimetable);
+    window.currentTenantId = '<?php echo $_SESSION['userData']['tenant_id'] ?? $_SESSION['tenant_id'] ?? ''; ?>';
+    window.baseUrl = '<?php echo APP_URL; ?>';
 </script>
+<script src="<?php echo APP_URL; ?>/public/assets/js/ia-timetable.js"></script>

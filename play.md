@@ -1,0 +1,1 @@
+why  the page academic-timetable is not rendeering read the relevan t files find the root cause and report me 
