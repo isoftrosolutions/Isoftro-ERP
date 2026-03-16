@@ -15,7 +15,7 @@ include VIEWS_PATH . '/layouts/header.php';
                     <i class="fa-solid fa-bars"></i>
                 </button>
                 <div class="hdr-logo-box">
-                    <div style="width:36px; height:36px; border-radius:50%; overflow:hidden; display:flex; align-items:center; justify-content:center; background:#fff; margin-right:10px;">
+                    <div style="width:38px; height:38px; border-radius:10px; overflow:hidden; display:flex; align-items:center; justify-content:center; background:#fff; margin-right:10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
                         <img src="<?php echo APP_URL; ?>/public/assets/images/logo.png" alt="Logo" style="width:100%; height:auto;">
                     </div>
                     <span class="logo-txt"><?php echo APP_NAME; ?></span>
@@ -86,11 +86,7 @@ include VIEWS_PATH . '/layouts/header.php';
     <script src="<?php echo APP_URL; ?>/public/assets/js/ia-study-materials.js"></script>
     <script src="<?php echo APP_URL; ?>/public/assets/js/ia-qbank.js"></script>
     <script src="<?php echo APP_URL; ?>/public/assets/js/ia-lms.js"></script>
-    <script src="<?php echo APP_URL; ?>/public/assets/js/ta-profile.js"></script>
-    <script src="<?php echo APP_URL; ?>/public/assets/js/ta-classes.js"></script>
-    <script src="<?php echo APP_URL; ?>/public/assets/js/ta-payment.js"></script>
-    <script src="<?php echo APP_URL; ?>/public/assets/js/teacher-updated.js"></script>
-    <script src="<?php echo APP_URL; ?>/public/assets/js/breadcrumb.js"></script>
+    <script src="<?php echo APP_URL; ?>/public/assets/js/teacher-portal.js"></script>
     <script>
         // Dropdown Logic
         const chip = document.getElementById('userChip');

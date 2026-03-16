@@ -105,6 +105,9 @@ document.addEventListener('DOMContentLoaded', () => {
         let html = '';
 
         sections.forEach(sec => {
+            if (sec === 'PERSONAL') {
+                html += `<div class="sb-divider"></div>`;
+            }
             html += `<div class="sb-sec"><div class="sb-sec-lbl">${sec}</div>`;
 
             NAV.filter(n => n.sec === sec).forEach(nav => {
@@ -114,8 +117,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 html += `<div class="sb-item">
                     <button class="nb-btn ${isActive ? 'active' : ''}" onclick="${nav.sub ? `toggleExp('${nav.id}')` : `goNav('${nav.id}')`}">
                         <i class="fa-solid ${nav.icon}"></i>
-                        <span style="flex:1; text-align:left;">${nav.label}</span>
-                        ${nav.sub ? `<i class="fa-solid fa-chevron-right" style="font-size:10px; transition:0.2s; ${isExp ? 'transform:rotate(90deg)' : ''}"></i>` : ''}
+                        <span class="sb-lbl">${nav.label}</span>
+                        ${nav.sub ? `<i class="fa-solid fa-chevron-right sb-chev" style="font-size:10px; transition:0.2s; ${isExp ? 'transform:rotate(90deg)' : ''}"></i>` : ''}
                     </button>`;
 
                 if (nav.sub && isExp) {
@@ -133,13 +136,29 @@ document.addEventListener('DOMContentLoaded', () => {
             html += `</div>`;
         });
 
-        // Append Install App Button
+        // Add Install Button
         html += `
-            <div class="sb-install-box">
-                <button class="install-btn-trigger" onclick="openPwaModal()">
+            <div style="padding: 10px 24px;">
+                <button onclick="if(window.openPwaModal) openPwaModal()" style="width:100%; display:flex; align-items:center; gap:10px; padding:10px 16px; background:#f0fdf4; border:1px dashed var(--green); border-radius:10px; color:var(--green); font-size:12px; font-weight:700; cursor:pointer; transition:0.2s;">
                     <i class="fa-solid fa-bolt"></i>
                     <span>Instant Install</span>
                 </button>
+            </div>
+        `;
+
+        // Add Sidebar Footer (same as front-desk)
+        const uName = document.querySelector('#userChip span:first-child')?.innerText || 'Teacher';
+        const uInitials = document.querySelector('#userChip .u-av')?.innerText || 'T';
+        
+        html += `
+            <div style="flex:1"></div>
+            <div class="sb-footer">
+                <div class="sb-user-av">${uInitials}</div>
+                <div style="overflow:hidden;">
+                    <div class="sb-user-name" style="white-space:nowrap; text-overflow:ellipsis; overflow:hidden;">${uName}</div>
+                    <div class="sb-user-role">Teacher Portal</div>
+                </div>
+                <div style="margin-left:auto"><span class="online-dot"></span></div>
             </div>
         `;
 
@@ -269,26 +288,27 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div>
                             <div class="card mb-20">
                                 <div class="ct"><i class="fa-solid fa-chart-line"></i> Syllabus Coverage</div>
-                                <div class="pr-row">
-                                    <div class="pr-lbl">Pol. History</div>
-                                    <div class="pr-tr"><div class="pr-fi" style="width:100%; background:var(--green);"></div></div>
-                                    <div style="font-size:10px; color:var(--text-light);">100%</div>
-                                </div>
-                                <div class="pr-row">
-                                    <div class="pr-lbl">Constitution</div>
-                                    <div class="pr-tr"><div class="pr-fi" style="width:75%; background:var(--teal);"></div></div>
-                                    <div style="font-size:10px; color:var(--text-light);">75%</div>
-                                </div>
+                                ${(data.syllabus_coverage || []).length === 0 ? '<div style="font-size:12px; color:var(--text-light); text-align:center; padding:10px;">No coverage data available</div>' : data.syllabus_coverage.map(s => `
+                                    <div class="pr-row">
+                                        <div class="pr-lbl" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${s.subject}</div>
+                                        <div class="pr-tr"><div class="pr-fi" style="width:${s.percentage}%; background:${s.color};"></div></div>
+                                        <div style="font-size:10px; color:var(--text-light);">${s.percentage}%</div>
+                                    </div>
+                                `).join('')}
                                 <button class="btn bs" style="width:100%; justify-content:center; margin-top:10px; font-size:11px;">Update Progress</button>
                             </div>
 
                             <div class="card">
                                 <div class="ct"><i class="fa-solid fa-user-clock"></i> Leave Balance</div>
-                                <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-                                    <span style="font-size:12px; color:var(--text-body);">Casual Leaves</span>
-                                    <span style="font-size:12px; font-weight:700;">4/12 used</span>
-                                </div>
-                                <div class="prog-t"><div class="prog-f" style="width:33%; background:var(--green);"></div></div>
+                                ${(data.leave_balance || []).length === 0 ? '<div style="font-size:12px; color:var(--text-light); text-align:center; padding:10px;">No leave data available</div>' : data.leave_balance.map(l => `
+                                    <div style="margin-bottom:12px;">
+                                        <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                                            <span style="font-size:12px; color:var(--text-body);">${l.type}</span>
+                                            <span style="font-size:11px; font-weight:700;">${l.used}/${l.total} used</span>
+                                        </div>
+                                        <div class="prog-t"><div class="prog-f" style="width:${l.percentage}%; background:${l.color};"></div></div>
+                                    </div>
+                                `).join('')}
                             </div>
                         </div>
                     </div>

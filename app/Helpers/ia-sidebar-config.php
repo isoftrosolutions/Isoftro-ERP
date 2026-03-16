@@ -68,6 +68,7 @@ function getIASidebarConfig()
                         ['id' => 'subjects', 'l' => 'Subjects', 'icon' => 'fa-book'],
                         ['id' => 'allocation', 'l' => 'Subject Allocation', 'icon' => 'fa-users-rectangle'],
                         ['id' => 'timetable', 'l' => 'Timetable Builder', 'icon' => 'fa-calendar-plus'],
+                        ['id' => 'rooms', 'l' => 'Room Management', 'icon' => 'fa-door-open'],
                         ['id' => 'calendar', 'l' => 'Academic Calendar', 'icon' => 'fa-calendar-days'],
                     ],
                 ],

@@ -69,22 +69,40 @@ try {
 
         $batchId = $_GET['batch_id'] ?? null;
         
-        // Get timetable slots for a specific batch
+        // Check if room_id column exists in timetable_slots (migration may not have run yet)
+        $hasRoomId = false;
+        try {
+            $checkCol = $db->query("SHOW COLUMNS FROM timetable_slots LIKE 'room_id'");
+            $hasRoomId = ($checkCol->rowCount() > 0);
+        } catch (Exception $e) {
+            $hasRoomId = false;
+        }
+
+        // Build the query with or without room JOIN based on schema state
+        if ($hasRoomId) {
+            $roomSelect = "r.name as room_name";
+            $roomJoin   = "LEFT JOIN rooms r ON ts.room_id = r.id";
+        } else {
+            // Migration not yet run — use the existing ts.room VARCHAR column as room_name
+            $roomSelect = "ts.room as room_name";
+            $roomJoin   = "";
+        }
+
         $query = "SELECT ts.*, 
-                  b.name as batch_name, 
+                  b.name  as batch_name, 
                   t.full_name as teacher_name,
-                   s.name as subject_name,
-                   s.code as subject_code,
-                   c.name as course_name,
-                   r.name as room_name
-                   FROM timetable_slots ts
-                   JOIN batches b ON ts.batch_id = b.id
-                   LEFT JOIN teachers t ON ts.teacher_id = t.id
-                   LEFT JOIN subjects s ON ts.subject_id = s.id
-                   LEFT JOIN courses c ON b.course_id = c.id
-                   LEFT JOIN rooms r ON ts.room_id = r.id
-                   WHERE ts.tenant_id = :tid";
-        
+                  s.name  as subject_name,
+                  s.code  as subject_code,
+                  c.name  as course_name,
+                  {$roomSelect}
+                  FROM timetable_slots ts
+                  JOIN   batches   b ON ts.batch_id   = b.id
+                  LEFT JOIN teachers t ON ts.teacher_id = t.id
+                  LEFT JOIN subjects s ON ts.subject_id = s.id
+                  LEFT JOIN courses  c ON b.course_id   = c.id
+                  {$roomJoin}
+                  WHERE ts.tenant_id = :tid";
+
         $params = ['tid' => $tenantId];
         
         if ($batchId) {
@@ -97,6 +115,7 @@ try {
         $stmt = $db->prepare($query);
         $stmt->execute($params);
         $timetable = $stmt->fetchAll();
+
         
         // Group by day of week
         $grouped = [];
@@ -130,6 +149,13 @@ try {
 
         $action = $input['action'] ?? 'create';
 
+        // Check once if room_id column exists (migration may not have run yet)
+        $hasRoomId = false;
+        try {
+            $checkCol = $db->query("SHOW COLUMNS FROM timetable_slots LIKE 'room_id'");
+            $hasRoomId = ($checkCol->rowCount() > 0);
+        } catch (Exception $e) { $hasRoomId = false; }
+
         if ($action === 'create') {
             // Create new timetable slot
             $batchId = $input['batch_id'] ?? null;
@@ -141,6 +167,12 @@ try {
             $roomId = $input['room_id'] ?? null;
             $onlineLink = $input['online_link'] ?? null;
             $classType = $input['class_type'] ?? 'offline';
+
+            // Sanitize IDs: Convert empty strings to null to avoid MySQL 'Incorrect integer value' errors
+            if ($batchId === '') $batchId = null;
+            if ($teacherId === '') $teacherId = null;
+            if ($subjectId === '') $subjectId = null;
+            if ($roomId === '') $roomId = null;
 
             if (empty($batchId) || empty($teacherId) || empty($subjectId) || empty($dayOfWeek) || empty($startTime) || empty($endTime)) {
                 throw new Exception("Batch, Teacher, Subject, Day, Start Time and End Time are required");
@@ -202,8 +234,8 @@ try {
                 throw new Exception("Teacher has a conflict at this time");
             }
 
-            // Check room conflict
-            if (!empty($roomId)) {
+            // Check room conflict (only if room_id column exists in DB)
+            if (!empty($roomId) && $hasRoomId) {
                 $stmt = $db->prepare("
                     SELECT ts.*, b.name as batch_name
                     FROM timetable_slots ts
@@ -215,40 +247,63 @@ try {
                         OR (ts.start_time >= :s3 AND ts.end_time <= :e3))
                 ");
                 $stmt->execute([
-                    'room_id' => $roomId,
-                    'day_of_week' => $dayOfWeek,
-                    's1' => $startTime,
-                    's2' => $startTime,
-                    'e1' => $endTime,
-                    'e2' => $endTime,
-                    's3' => $startTime,
-                    'e3' => $endTime
+                    'room_id'    => $roomId,
+                    'day_of_week'=> $dayOfWeek,
+                    's1' => $startTime, 's2' => $startTime,
+                    'e1' => $endTime,   'e2' => $endTime,
+                    's3' => $startTime, 'e3' => $endTime
                 ]);
-                
                 if ($stmt->fetch()) {
                     throw new Exception("Room is already occupied at this time");
                 }
             }
 
-            $stmt = $db->prepare("
-                INSERT INTO timetable_slots 
-                (tenant_id, batch_id, teacher_id, subject_id, day_of_week, start_time, end_time, room_id, online_link, class_type, created_at, updated_at)
-                VALUES 
-                (:tid, :batch_id, :teacher_id, :subject_id, :day_of_week, :start_time, :end_time, :room_id, :online_link, :class_type, NOW(), NOW())
-            ");
 
-            $stmt->execute([
-                'tid' => $tenantId,
-                'batch_id' => $batchId,
-                'teacher_id' => $teacherId,
-                'subject_id' => $subjectId,
-                'day_of_week' => $dayOfWeek,
-                'start_time' => $startTime,
-                'end_time' => $endTime,
-                'room_id' => $roomId,
-                'online_link' => $onlineLink,
-                'class_type' => $classType
-            ]);
+            // Build INSERT dynamically based on whether room_id column exists
+            if ($hasRoomId) {
+                $stmt = $db->prepare("
+                    INSERT INTO timetable_slots
+                    (tenant_id, batch_id, teacher_id, subject_id, day_of_week, start_time, end_time, room_id, online_link, class_type, created_at, updated_at)
+                    VALUES
+                    (:tid, :batch_id, :teacher_id, :subject_id, :day_of_week, :start_time, :end_time, :room_id, :online_link, :class_type, NOW(), NOW())
+                ");
+                $stmt->execute([
+                    'tid'        => $tenantId,
+                    'batch_id'   => $batchId,
+                    'teacher_id' => $teacherId,
+                    'subject_id' => $subjectId,
+                    'day_of_week'=> $dayOfWeek,
+                    'start_time' => $startTime,
+                    'end_time'   => $endTime,
+                    'room_id'    => $roomId,
+                    'online_link'=> $onlineLink,
+                    'class_type' => $classType
+                ]);
+            } else {
+                // room_id column not added yet (migration pending) — use room VARCHAR
+                // roomId here is the rooms table ID; since the table may not exist,
+                // $roomId can be passed as a room name string from the frontend as a fallback.
+                $roomName = $input['room_name'] ?? null;
+                $stmt = $db->prepare("
+                    INSERT INTO timetable_slots
+                    (tenant_id, batch_id, teacher_id, subject_id, day_of_week, start_time, end_time, room, online_link, class_type, created_at, updated_at)
+                    VALUES
+                    (:tid, :batch_id, :teacher_id, :subject_id, :day_of_week, :start_time, :end_time, :room, :online_link, :class_type, NOW(), NOW())
+                ");
+                $stmt->execute([
+                    'tid'        => $tenantId,
+                    'batch_id'   => $batchId,
+                    'teacher_id' => $teacherId,
+                    'subject_id' => $subjectId,
+                    'day_of_week'=> $dayOfWeek,
+                    'start_time' => $startTime,
+                    'end_time'   => $endTime,
+                    'room'       => $roomName,
+                    'online_link'=> $onlineLink,
+                    'class_type' => $classType
+                ]);
+            }
+
 
             $slotId = $db->lastInsertId();
 
@@ -270,6 +325,12 @@ try {
             $roomId = $input['room_id'] ?? null;
             $onlineLink = $input['online_link'] ?? null;
             $classType = $input['class_type'] ?? 'offline';
+
+            // Convert empty strings to null for integer/foreign key columns
+            if ($batchId === '') $batchId = null;
+            if ($teacherId === '') $teacherId = null;
+            if ($subjectId === '') $subjectId = null;
+            if ($roomId === '') $roomId = null;
 
             if (empty($slotId)) {
                 throw new Exception("Slot ID is required");
@@ -339,7 +400,7 @@ try {
             }
 
             // Check room conflict
-            if (!empty($roomId)) {
+            if (!empty($roomId) && $hasRoomId) {
                 $stmt = $db->prepare("
                     SELECT ts.id
                     FROM timetable_slots ts
@@ -366,34 +427,66 @@ try {
                 }
             }
 
-            $stmt = $db->prepare("
-                UPDATE timetable_slots 
-                SET batch_id = :batch_id,
-                    teacher_id = :teacher_id,
-                    subject_id = :subject_id,
-                    day_of_week = :day_of_week,
-                    start_time = :start_time,
-                    end_time = :end_time,
-                    room_id = :room_id,
-                    online_link = :online_link,
-                    class_type = :class_type,
-                    updated_at = NOW()
-                WHERE id = :id AND tenant_id = :tid
-            ");
+            if ($hasRoomId) {
+                $stmt = $db->prepare("
+                    UPDATE timetable_slots 
+                    SET batch_id = :batch_id,
+                        teacher_id = :teacher_id,
+                        subject_id = :subject_id,
+                        day_of_week = :day_of_week,
+                        start_time = :start_time,
+                        end_time = :end_time,
+                        room_id = :room_id,
+                        online_link = :online_link,
+                        class_type = :class_type,
+                        updated_at = NOW()
+                    WHERE id = :id AND tenant_id = :tid
+                ");
+                $params = [
+                    'id' => $slotId,
+                    'tid' => $tenantId,
+                    'batch_id' => $batchId,
+                    'teacher_id' => $teacherId,
+                    'subject_id' => $subjectId,
+                    'day_of_week' => $dayOfWeek,
+                    'start_time' => $startTime,
+                    'end_time' => $endTime,
+                    'room_id' => $roomId,
+                    'online_link' => $onlineLink,
+                    'class_type' => $classType
+                ];
+            } else {
+                $roomName = $input['room_name'] ?? null;
+                $stmt = $db->prepare("
+                    UPDATE timetable_slots 
+                    SET batch_id = :batch_id,
+                        teacher_id = :teacher_id,
+                        subject_id = :subject_id,
+                        day_of_week = :day_of_week,
+                        start_time = :start_time,
+                        end_time = :end_time,
+                        room = :room,
+                        online_link = :online_link,
+                        class_type = :class_type,
+                        updated_at = NOW()
+                    WHERE id = :id AND tenant_id = :tid
+                ");
+                $params = [
+                    'id' => $slotId,
+                    'tid' => $tenantId,
+                    'batch_id' => $batchId,
+                    'teacher_id' => $teacherId,
+                    'subject_id' => $subjectId,
+                    'day_of_week' => $dayOfWeek,
+                    'start_time' => $startTime,
+                    'end_time' => $endTime,
+                    'room' => $roomName,
+                    'online_link' => $onlineLink,
+                    'class_type' => $classType
+                ];
+            }
 
-            $stmt->execute([
-                'id' => $slotId,
-                'tid' => $tenantId,
-                'batch_id' => $batchId,
-                'teacher_id' => $teacherId,
-                'subject_id' => $subjectId,
-                'day_of_week' => $dayOfWeek,
-                'start_time' => $startTime,
-                'end_time' => $endTime,
-                'room_id' => $roomId,
-                'online_link' => $onlineLink,
-                'class_type' => $classType
-            ]);
+            $stmt->execute($params);
 
             echo json_encode([
                 'success' => true, 

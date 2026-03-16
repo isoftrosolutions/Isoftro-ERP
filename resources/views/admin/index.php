@@ -39,6 +39,7 @@ include __DIR__ . '/layouts/sidebar.php';   // Side Navigation
 <script src="<?php echo APP_URL; ?>/public/assets/js/ia-exams.js?v=<?php echo $v; ?>"></script>
 <script src="<?php echo APP_URL; ?>/public/assets/js/ia-settings.js?v=<?php echo $v; ?>"></script>
 <script src="<?php echo APP_URL; ?>/public/assets/js/ia-timetable.js?v=<?php echo $v; ?>"></script>
+<script src="<?php echo APP_URL; ?>/public/assets/js/ia-rooms.js?v=<?php echo $v; ?>"></script>
 <script src="<?php echo APP_URL; ?>/public/assets/js/ia-fees.js?v=<?php echo $v; ?>"></script>
 <script src="<?php echo APP_URL; ?>/public/assets/js/ia-attendance.js?v=<?php echo $v; ?>"></script>
 <script src="<?php echo APP_URL; ?>/public/assets/js/ia-homework.js?v=<?php echo $v; ?>"></script>
@@ -62,6 +63,13 @@ include __DIR__ . '/layouts/sidebar.php';   // Side Navigation
     const APP_URL = "<?php echo APP_URL; ?>";
     window.APP_URL = APP_URL;
     const CURRENT_INSTITUTE = "<?php echo isset($_SESSION['tenant_name']) ? addslashes($_SESSION['tenant_name']) : 'Institute'; ?>";
+
+    // Required by ia-timetable.js and other modules that call APIs.
+    // These were previously only set in partial PHP views (which don't
+    // execute scripts when injected via innerHTML in the SPA).
+    window.baseUrl         = "<?php echo APP_URL; ?>";
+    window.currentTenantId = "<?php echo $_SESSION['userData']['tenant_id'] ?? $_SESSION['tenant_id'] ?? ''; ?>";
+    window._IA_TENANT_ID   = window.currentTenantId;
 </script>
 
 </body>

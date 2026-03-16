@@ -144,6 +144,37 @@ try {
         error_log('Teacher attendance rate error: ' . $e->getMessage());
     }
 
+    // 3c. Pending Grading — real data from assignment_submissions
+    try {
+        $pendingStmt = $db->prepare("
+            SELECT COUNT(subs.id) as pending_count
+            FROM assignment_submissions subs
+            JOIN assignments a ON subs.assignment_id = a.id
+            WHERE a.teacher_id = :tid 
+              AND a.tenant_id = :tenant_id
+              AND (subs.marks_awarded IS NULL OR subs.graded_at IS NULL)
+        ");
+        $pendingStmt->execute(['tid' => $teacherId, 'tenant_id' => $tenantId]);
+        $dashboard['stats']['pending_assignments'] = (int)$pendingStmt->fetchColumn();
+    } catch (Exception $e) {
+        error_log('Teacher pending assignments error: ' . $e->getMessage());
+    }
+
+    // 3d. Submitted Exam Papers — real data from exams
+    try {
+        $examStmt = $db->prepare("
+            SELECT COUNT(*) as exam_count
+            FROM exams
+            WHERE created_by_user_id = :uid 
+              AND tenant_id = :tenant_id
+              AND deleted_at IS NULL
+        ");
+        $examStmt->execute(['uid' => $userId, 'tenant_id' => $tenantId]);
+        $dashboard['stats']['submitted_questions'] = (int)$examStmt->fetchColumn();
+    } catch (Exception $e) {
+        error_log('Teacher submitted exams error: ' . $e->getMessage());
+    }
+
     // 4. Announcements
     try {
         $stmt = $db->prepare("

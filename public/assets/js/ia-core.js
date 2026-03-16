@@ -210,6 +210,7 @@ function _iaRenderPage() {
         if (sub==='subjects') { if(urlParams.get('id')) window.renderEditSubjectForm?.(urlParams.get('id')); else if(urlParams.get('action')==='add') window.renderAddSubjectForm?.(); else window.renderSubjectList?.(); return; }
         if (sub==='allocation') { window.renderSubjectAllocation?.(); return; }
         if (sub==='timetable') { window.renderTimetablePage?.(); return; }
+        if (sub==='rooms') { window.renderRoomsPage?.(); return; }
         if (sub==='calendar') { window.renderAcademicCalendar?.(); return; }
     }
     if (nav==='inq') {

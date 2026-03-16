@@ -38,7 +38,7 @@ try {
         
         if ($type === 'teacher') {
             $stmt = $db->prepare("
-                SELECT u.id as user_id, u.email, u.phone, u.status, u.monthly_salary, t.* 
+                SELECT u.id as user_id, u.email, u.phone, u.status, u.monthly_salary, u.name, t.* 
                 FROM users u 
                 JOIN teachers t ON u.id = t.user_id 
                 WHERE u.tenant_id = :tid AND u.role = 'teacher' AND u.deleted_at IS NULL
