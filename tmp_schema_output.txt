@@ -1,0 +1,68 @@
+--- students ---
+id - bigint(20) unsigned
+tenant_id - bigint(20) unsigned
+user_id - bigint(20) unsigned
+roll_no - varchar(50)
+dob_bs - varchar(20)
+gender - enum('male','female','other')
+blood_group - varchar(5)
+citizenship_no - varchar(255)
+national_id - varchar(255)
+permanent_address - longtext
+temporary_address - longtext
+academic_qualifications - longtext
+admission_date - date
+photo_url - varchar(500)
+identity_doc_url - varchar(255)
+status - enum('active','alumni','dropped')
+registration_mode - enum('quick','full')
+registration_status - enum('quick_registered','fully_registered')
+id_card_status - enum('none','requested','processing','issued')
+id_card_issued_at - timestamp
+created_at - timestamp
+updated_at - timestamp
+deleted_at - timestamp
+
+--- enrollments ---
+id - bigint(20) unsigned
+tenant_id - bigint(20) unsigned
+student_id - bigint(20) unsigned
+batch_id - bigint(20) unsigned
+enrollment_id - varchar(50)
+enrollment_date - date
+status - enum('active','completed','dropped','transferred')
+created_at - timestamp
+updated_at - timestamp
+status_changed_at - timestamp
+
+--- homework ---
+id - int(11)
+tenant_id - int(11)
+course_id - int(11)
+batch_id - int(11)
+subject_id - int(11)
+title - varchar(255)
+description - text
+due_date - date
+total_marks - int(11)
+attachment_path - varchar(255)
+created_by - int(11)
+status - enum('draft','published','closed')
+created_at - timestamp
+updated_at - timestamp
+
+--- homework_submissions ---
+id - int(11)
+homework_id - int(11)
+student_id - int(11)
+submission_text - text
+attachment_path - varchar(255)
+marks_obtained - int(11)
+feedback - text
+status - enum('pending','submitted','graded','late')
+submitted_at - timestamp
+graded_by - int(11)
+graded_at - timestamp
+created_at - timestamp
+updated_at - timestamp
+

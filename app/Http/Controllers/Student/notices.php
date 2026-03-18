@@ -31,13 +31,15 @@ $method = $_SERVER['REQUEST_METHOD'];
 try {
     $db = getDBConnection();
     
-    // Get student's batch info
+    // Get student's batch info from enrollments
     $stmt = $db->prepare("
-        SELECT batch_id FROM students WHERE id = :sid AND tenant_id = :tid LIMIT 1
+        SELECT batch_id FROM enrollments 
+        WHERE student_id = :sid AND tenant_id = :tid AND status = 'active' 
+        LIMIT 1
     ");
     $stmt->execute(['sid' => $studentId, 'tid' => $tenantId]);
-    $student = $stmt->fetch(PDO::FETCH_ASSOC);
-    $batchId = $student['batch_id'] ?? null;
+    $enrollment = $stmt->fetch(PDO::FETCH_ASSOC);
+    $batchId = $enrollment['batch_id'] ?? null;
     
     switch ($action) {
         case 'list':

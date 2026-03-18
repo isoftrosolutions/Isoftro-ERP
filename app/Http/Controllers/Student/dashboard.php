@@ -146,7 +146,6 @@ try {
               AND h.tenant_id = :tid
               AND h.status = 'published'
               AND subs.id IS NULL
-              AND h.due_date >= CURDATE()
         ");
         $stmt->execute(['sid' => $studentId, 'bid' => $batchId, 'tid' => $tenantId]);
         $result = $stmt->fetch(PDO::FETCH_ASSOC);

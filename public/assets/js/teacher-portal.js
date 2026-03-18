@@ -202,6 +202,15 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (activeNav === 'exams-qb') {
             if (window.renderQuestionBank) window.renderQuestionBank();
             else renderGenericPage();
+        } else if (activeNav === 'assignments-active' || activeNav === 'assignments-list') {
+            if (window.renderHomeworkList) window.renderHomeworkList();
+            else renderGenericPage();
+        } else if (activeNav === 'assignments-create') {
+            if (window.renderCreateHomeworkForm) window.renderCreateHomeworkForm();
+            else renderGenericPage();
+        } else if (activeNav === 'assignments-grading' || activeNav === 'assignments') {
+            if (window.renderHomeworkList) window.renderHomeworkList(); // Currently no grading module, fallback to list
+            else renderGenericPage();
         } else {
             renderGenericPage();
         }
@@ -573,12 +582,22 @@ window.renderPartialModule = async function(endpoint, extraParams = '') {
         const html = await res.text();
         mc.innerHTML = html;
 
-        // Execute scripts in partial
+        // Execute scripts in partial safely
         const scripts = mc.querySelectorAll('script');
         scripts.forEach(s => {
+            if (s.src) {
+                // If script with same SRC already exists, skip
+                if (document.querySelector(`script[src*="${s.src.split('?')[0]}"]`)) {
+                    console.log(`Skipping already loaded script: ${s.src}`);
+                    return;
+                }
+            }
             const newScript = document.createElement('script');
-            if (s.src) newScript.src = s.src;
-            else newScript.textContent = s.textContent;
+            if (s.src) {
+                newScript.src = s.src;
+            } else {
+                newScript.textContent = s.textContent;
+            }
             document.head.appendChild(newScript);
         });
     } catch (err) {

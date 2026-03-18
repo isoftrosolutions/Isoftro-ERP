@@ -32,13 +32,15 @@ $action = $_GET['action'] ?? 'pending';
 try {
     $db = getDBConnection();
     
-    // Get student's batch info
+    // Get student's batch info from enrollments
     $stmt = $db->prepare("
-        SELECT batch_id FROM students WHERE id = :sid AND tenant_id = :tid LIMIT 1
+        SELECT batch_id FROM enrollments 
+        WHERE student_id = :sid AND tenant_id = :tid AND status = 'active' 
+        LIMIT 1
     ");
     $stmt->execute(['sid' => $studentId, 'tid' => $tenantId]);
-    $student = $stmt->fetch(PDO::FETCH_ASSOC);
-    $batchId = $student['batch_id'] ?? null;
+    $enrollment = $stmt->fetch(PDO::FETCH_ASSOC);
+    $batchId = $enrollment['batch_id'] ?? null;
     
     switch ($action) {
         case 'pending':
@@ -210,11 +212,16 @@ try {
             $attachmentUrl = null;
             if (isset($_FILES['attachment']) && $_FILES['attachment']['error'] === UPLOAD_ERR_OK) {
                 $file = $_FILES['attachment'];
-                $allowedExtensions = ['pdf', 'doc', 'docx', 'txt', 'jpg', 'png', 'zip'];
+                $allowedExtensions = ['pdf', 'doc', 'docx', 'txt', 'jpg', 'jpeg', 'png', 'zip'];
                 $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
                 
                 if (!in_array($extension, $allowedExtensions)) {
                     echo json_encode(['success' => false, 'message' => 'Invalid file type']);
+                    exit;
+                }
+                
+                if ($file['size'] > 10 * 1024 * 1024) {
+                    echo json_encode(['success' => false, 'message' => 'File too large (max 10MB)']);
                     exit;
                 }
                 
@@ -227,7 +234,7 @@ try {
                 $filepath = $uploadDir . $filename;
                 
                 if (move_uploaded_file($file['tmp_name'], $filepath)) {
-                    $attachmentUrl = '/public/uploads/assignments/submissions/' . $filename;
+                    $attachmentUrl = 'public/uploads/assignments/submissions/' . $filename;
                 }
             }
             

@@ -86,21 +86,25 @@ include VIEWS_PATH . '/layouts/header.php';
     <script src="<?php echo APP_URL; ?>/public/assets/js/ia-study-materials.js"></script>
     <script src="<?php echo APP_URL; ?>/public/assets/js/ia-qbank.js"></script>
     <script src="<?php echo APP_URL; ?>/public/assets/js/ia-lms.js"></script>
+    <script src="<?php echo APP_URL; ?>/public/assets/js/ia-homework.js"></script>
     <script src="<?php echo APP_URL; ?>/public/assets/js/teacher-portal.js"></script>
     <script>
-        // Dropdown Logic
-        const chip = document.getElementById('userChip');
-        const drop = document.getElementById('userDropdown');
-        chip.onclick = (e) => {
-            e.stopPropagation();
-            const isVisible = drop.style.visibility === 'visible';
-            drop.style.visibility = isVisible ? 'hidden' : 'visible';
-            drop.style.opacity = isVisible ? '0' : '1';
-        };
-        document.onclick = () => {
-            drop.style.visibility = 'hidden';
-            drop.style.opacity = '0';
-        };
+        (function() {
+            const chip = document.getElementById('userChip');
+            const drop = document.getElementById('userDropdown');
+            if (chip && drop) {
+                chip.onclick = (e) => {
+                    e.stopPropagation();
+                    const isVisible = drop.style.visibility === 'visible';
+                    drop.style.visibility = isVisible ? 'hidden' : 'visible';
+                    drop.style.opacity = isVisible ? '0' : '1';
+                };
+                document.addEventListener('click', () => {
+                    drop.style.visibility = 'hidden';
+                    drop.style.opacity = '0';
+                });
+            }
+        })();
     </script>
 
 </body>

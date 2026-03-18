@@ -26,7 +26,7 @@ $role = $_SESSION['userData']['role'] ?? '';
 $method = $_SERVER['REQUEST_METHOD'];
 
 // RBAC check
-if (!in_array($role, ['instituteadmin', 'frontdesk', 'superadmin'])) {
+if (!in_array($role, ['instituteadmin', 'frontdesk', 'superadmin', 'teacher'])) {
     echo json_encode(['success' => false, 'message' => 'Forbidden']);
     exit;
 }

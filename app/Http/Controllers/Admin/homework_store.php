@@ -47,7 +47,7 @@ try {
     $attachment_path = null;
 
     if (isset($_FILES['attachment']) && $_FILES['attachment']['error'] === UPLOAD_ERR_OK) {
-        $uploadDir = ABSPATH . '/storage/uploads/homework/' . $tenant_id . '/';
+        $uploadDir = APP_ROOT . '/storage/uploads/homework/' . $tenant_id . '/';
         if (!file_exists($uploadDir)) {
             mkdir($uploadDir, 0777, true);
         }

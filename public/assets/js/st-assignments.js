@@ -280,7 +280,7 @@ window.viewAssignment = async function(id) {
                             
                             ${a.attachment_url ? `
                                 <div style="margin-bottom:20px;">
-                                    <a href="${a.attachment_url}" target="_blank" class="btn" style="background:var(--sa-primary);color:#fff;">
+                                    <a href="${window.APP_URL}/${a.attachment_url.replace(/^\//, '')}" target="_blank" class="btn" style="background:var(--sa-primary);color:#fff;">
                                         <i class="fa-solid fa-download"></i> Download Homework Attachment
                                     </a>
                                 </div>
@@ -292,7 +292,7 @@ window.viewAssignment = async function(id) {
                                     <p><strong>Submitted on:</strong> ${formatDate(a.submitted_at)}</p>
                                     <p><strong>Submission:</strong></p>
                                     <p style="white-space:pre-wrap;">${escapeHtml(a.submission_text || 'No text submitted')}</p>
-                                    ${a.submission_attachment ? `<p><a href="${a.submission_attachment}" target="_blank">View submission attachment</a></p>` : ''}
+                                    ${a.submission_attachment ? `<p><a href="${window.APP_URL}/${a.submission_attachment.replace(/^\//, '')}" target="_blank" style="color:var(--sa-primary);font-weight:600;text-decoration:underline;"><i class="fa-solid fa-paperclip"></i> View submission attachment</a></p>` : ''}
                                 </div>
                             ` : ''}
                             
@@ -303,6 +303,11 @@ window.viewAssignment = async function(id) {
                                         <div style="margin-bottom:16px;">
                                             <label style="display:block;margin-bottom:6px;font-weight:600;">Your Answer</label>
                                             <textarea id="submissionText" rows="6" class="form-control" placeholder="Write your answer here..." style="width:100%;padding:10px;border:1px solid var(--cb);border-radius:8px;background:var(--bg);color:var(--td);resize:vertical;"></textarea>
+                                        </div>
+                                        <div style="margin-bottom:20px;">
+                                            <label style="display:block;margin-bottom:6px;font-weight:600;">Attach File (PDF, Image, Docx)</label>
+                                            <input type="file" id="submissionFile" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.zip" style="width:100%;padding:10px;border:1px solid var(--cb);border-radius:8px;background:var(--bg);color:var(--td);">
+                                            <p style="font-size:11px;color:var(--tl);margin-top:5px;">Allowed: PDF, DOC, DOCX, JPG, PNG, ZIP (Max 10MB)</p>
                                         </div>
                                         <button type="submit" class="btn bs" style="background:var(--sa-primary);color:#fff;">
                                             <i class="fa-solid fa-paper-plane"></i> Submit Assignment
@@ -331,11 +336,12 @@ window.viewAssignment = async function(id) {
 window.submitAssignment = async function(e, assignmentId) {
     e.preventDefault();
     
-    const submissionText = document.getElementById('submissionText').value;
+    const submissionText = document.getElementById('submissionText').value.trim();
+    const fileInput = document.getElementById('submissionFile');
     const msgDiv = document.getElementById('submissionMessage');
     
-    if (!submissionText.trim()) {
-        alert('Please enter your answer');
+    if (!submissionText && (!fileInput || fileInput.files.length === 0)) {
+        alert('Please enter your answer or attach a file');
         return;
     }
     
@@ -343,6 +349,11 @@ window.submitAssignment = async function(e, assignmentId) {
         const formData = new FormData();
         formData.append('assignment_id', assignmentId);
         formData.append('submission_text', submissionText);
+        
+        const fileInput = document.getElementById('submissionFile');
+        if (fileInput && fileInput.files.length > 0) {
+            formData.append('attachment', fileInput.files[0]);
+        }
         
         const res = await fetch(`${window.APP_URL}/api/student/assignments?action=submit`, {
             method: 'POST',

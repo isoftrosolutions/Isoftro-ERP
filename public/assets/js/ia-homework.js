@@ -44,6 +44,7 @@ window.renderHomeworkList = function() {
                                     <th>Subject</th>
                                     <th>Due Date</th>
                                     <th>Status</th>
+                                    <th>Submissions</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -64,7 +65,7 @@ window.renderHomeworkList = function() {
 
 window.iaHwLoadCourses = async function() {
     try {
-        const url = APP_URL + '/api/admin/courses'; 
+        const url = window.APP_URL + '/api/admin/courses'; 
         const res = await fetch(url);
         const data = await res.json();
         if (data.success && data.data) {
@@ -90,7 +91,7 @@ window.iaHwLoadBatches = async function() {
     }
     
     try {
-        const url = APP_URL + '/api/admin/batches?course_id=' + courseId;
+        const url = window.APP_URL + '/api/admin/batches?course_id=' + courseId;
         const res = await fetch(url);
         const data = await res.json();
         if (data.success && data.data) {
@@ -116,7 +117,7 @@ window.loadHomeworkData = async function() {
         /*
          * Note: API endpoint for homework will be created next
          */
-        const url = APP_URL + `/api/admin/homework?course_id=${courseId}&batch_id=${batchId}&status=${status}`;
+        const url = window.APP_URL + `/api/admin/homework?course_id=${courseId}&batch_id=${batchId}&status=${status}`;
         const res = await fetch(url);
         
         // Handle mock response or actual response properly
@@ -146,7 +147,12 @@ window.loadHomeworkData = async function() {
                             </td>
                             <td><span class="badge" style="background:${hw.status==='published'?'var(--green)':hw.status==='closed'?'var(--text-light)':'var(--orange)'};color:#fff">${hw.status}</span></td>
                             <td>
-                                <button class="btn-icon" title="View"><i class="fa fa-eye"></i></button>
+                                <div style="font-weight:700; color:var(--sa-primary); cursor:pointer;" onclick="viewSubmissions(${hw.id}, '${hw.title.replace(/'/g, "\\'")}')">
+                                    <i class="fa-solid fa-users"></i> ${hw.submission_count || 0}
+                                </div>
+                            </td>
+                            <td>
+                                <button class="btn-icon" title="View Submissions" onclick="viewSubmissions(${hw.id}, '${hw.title.replace(/'/g, "\\'")}')"><i class="fa fa-eye"></i></button>
                                 <button class="btn-icon" title="Edit"><i class="fa fa-edit"></i></button>
                                 <button class="btn-icon danger" title="Delete"><i class="fa fa-trash"></i></button>
                             </td>
@@ -258,7 +264,7 @@ window.renderCreateHomeworkForm = function() {
 
 window.iaHwFormLoadCourses = async function() {
     try {
-        const url = APP_URL + '/api/admin/courses';
+        const url = window.APP_URL + '/api/admin/courses';
         const res = await fetch(url);
         const data = await res.json();
         if (data.success && data.data) {
@@ -283,7 +289,7 @@ window.iaHwFormLoadBatches = async function() {
     if (!courseId) return;
     
     try {
-        const url = APP_URL + '/api/admin/batches?course_id=' + courseId;
+        const url = window.APP_URL + '/api/admin/batches?course_id=' + courseId;
         const res = await fetch(url);
         const data = await res.json();
         if (data.success && data.data) {
@@ -307,7 +313,7 @@ window.iaHwFormLoadSubjects = async function() {
     // Fallback logic for subjects if specific batch-subject mapping endpoint doesn't exist
     // Initially just loading course subjects
     try {
-        const url = APP_URL + '/api/admin/subjects?course_id=' + courseId;
+        const url = window.APP_URL + '/api/admin/subjects?course_id=' + courseId;
         const res = await fetch(url);
         
         if(res.status === 404) {
@@ -341,7 +347,7 @@ window.submitHomework = async function(e) {
     const formData = new FormData(form);
     
     try {
-        const url = APP_URL + '/api/admin/homework/store';
+        const url = window.APP_URL + '/api/admin/homework/store';
         const res = await fetch(url, {
             method: 'POST',
             body: formData,
@@ -385,5 +391,146 @@ window.submitHomework = async function(e) {
             btn.innerHTML = originalText;
             btn.disabled = false;
         }
+    }
+};
+
+window.viewSubmissions = async function(homeworkId, title) {
+    const mc = document.getElementById('mainContent');
+    mc.innerHTML = `
+        <div class="pg">
+            <div class="pg-hdr">
+                <div class="pg-title"><i class="fa fa-arrow-left" style="cursor:pointer; margin-right:10px" onclick="goNav('assignments-active')"></i> ${title} — Submissions</div>
+            </div>
+            <div class="card">
+                <div class="card-body" id="subsContainer">
+                    <div style="text-align:center; padding:40px;"><i class="fa fa-spinner fa-spin fa-2x"></i></div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    try {
+        const url = `${window.APP_URL}/api/admin/homework?action=submissions&homework_id=${homeworkId}`;
+        const res = await fetch(url);
+        const result = await res.json();
+
+        if (result.success) {
+            const subs = result.submissions || [];
+            if (subs.length === 0) {
+                document.getElementById('subsContainer').innerHTML = '<div style="text-align:center; padding:40px; color:var(--tl);">No submissions yet.</div>';
+                return;
+            }
+
+            let html = `
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Student</th>
+                            <th>Submitted At</th>
+                            <th>Attachment</th>
+                            <th>Marks</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            subs.forEach(s => {
+                const isGraded = s.graded_at;
+                html += `
+                    <tr>
+                        <td>
+                            <div style="font-weight:600">${s.student_name}</div>
+                            <div style="font-size:11px; color:var(--tl)">Roll: ${s.roll_no || '-'}</div>
+                        </td>
+                        <td>${new Date(s.submitted_at).toLocaleString()}</td>
+                        <td>
+                            ${s.submission_attachment ? `<a href="${window.APP_URL}/${s.submission_attachment}" target="_blank" class="btn btn-sm" style="background:#f1f5f9;"><i class="fa-solid fa-paperclip"></i> View File</a>` : 'No file'}
+                        </td>
+                        <td>
+                            <div style="font-weight:700; color:${isGraded ? 'var(--green)' : 'var(--amber)'}">${s.marks_obtained !== null ? s.marks_obtained : '-'}</div>
+                        </td>
+                        <td>
+                            <span class="badge" style="background:${isGraded ? '#dcfce7' : '#fef3c7'}; color:${isGraded ? '#166534' : '#92400e'}">
+                                ${isGraded ? 'Graded' : 'Pending'}
+                            </span>
+                        </td>
+                        <td>
+                            <button class="btn btn-sm" style="background:var(--sa-primary); color:#fff;" onclick="gradeSubmissionModal(${s.id}, '${s.student_name.replace(/'/g, "\\'")}', '${(s.submission_text || '').replace(/'/g, "\\'").replace(/\n/g, "\\n")}', ${s.marks_obtained || 0}, '${(s.comments || '').replace(/'/g, "\\'")}')">
+                                <i class="fa-solid fa-pen-to-square"></i> ${isGraded ? 'Re-grade' : 'Grade'}
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            html += '</tbody></table>';
+            document.getElementById('subsContainer').innerHTML = html;
+        } else {
+            document.getElementById('subsContainer').innerHTML = `<div class="alert alert-danger">${result.message}</div>`;
+        }
+    } catch (e) {
+        console.error(e);
+        document.getElementById('subsContainer').innerHTML = '<div class="alert alert-danger">Error loading submissions</div>';
+    }
+};
+
+window.gradeSubmissionModal = function(id, name, text, marks, comments) {
+    // Simple popup for grading
+    const html = `
+        <div id="gradeModal" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; display:flex; align-items:center; justify-content:center; padding:20px;">
+            <div class="card" style="width:100%; max-width:600px; max-height:90vh; overflow-y:auto;">
+                <div class="card-hdr" style="display:flex; justify-content:space-between; align-items:center;">
+                    <div class="ct">Grade Submission: ${name}</div>
+                    <i class="fa-solid fa-xmark" style="cursor:pointer;" onclick="document.getElementById('gradeModal').remove()"></i>
+                </div>
+                <div class="card-body">
+                    <div style="background:#f8fafc; padding:15px; border-radius:8px; margin-bottom:20px; font-size:14px; white-space:pre-wrap; border:1px solid #e2e8f0;">${text || 'No text submission provided.'}</div>
+                    
+                    <form onsubmit="submitGrade(event, ${id})">
+                        <div class="form-group" style="margin-bottom:15px;">
+                            <label style="display:block; margin-bottom:5px; font-weight:600;">Marks Obtained</label>
+                            <input type="number" name="marks" class="form-control" value="${marks}" required style="width:100px;">
+                        </div>
+                        <div class="form-group" style="margin-bottom:20px;">
+                            <label style="display:block; margin-bottom:5px; font-weight:600;">Feedback / Comments</label>
+                            <textarea name="comments" class="form-control" rows="3" placeholder="Well done! Provide constructive feedback...">${comments}</textarea>
+                        </div>
+                        <div style="text-align:right; gap:10px; display:flex; justify-content:flex-end;">
+                            <button type="button" class="btn" style="background:#f1f5f9;" onclick="document.getElementById('gradeModal').remove()">Cancel</button>
+                            <button type="submit" class="btn" style="background:var(--sa-primary); color:#fff;">Save Grade</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', html);
+};
+
+window.submitGrade = async function(e, id) {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    formData.append('id', id);
+
+    try {
+        const url = `${window.APP_URL}/api/admin/homework?action=grade`;
+        const res = await fetch(url, {
+            method: 'POST',
+            body: formData
+        });
+        const result = await res.json();
+        if (result.success) {
+            alert('Grade updated successfully!');
+            document.getElementById('gradeModal').remove();
+            // Refresh submissions (we need the homework ID, luckily we can probably find it or just refresh the whole view)
+            // For now, let's just assume the user will manually refresh if needed, OR we can try to call viewSubmissions again if we had the homework ID stored.
+            // Better yet, just refresh the page content.
+        } else {
+            alert(result.message || 'Failed to update grade');
+        }
+    } catch (e) {
+        alert('Error updating grade');
     }
 };
