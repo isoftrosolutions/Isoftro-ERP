@@ -144,20 +144,20 @@ try {
         error_log('Teacher attendance rate error: ' . $e->getMessage());
     }
 
-    // 3c. Pending Grading — real data from assignment_submissions
+    // 3c. Pending Grading — real data from homework_submissions
     try {
         $pendingStmt = $db->prepare("
             SELECT COUNT(subs.id) as pending_count
-            FROM assignment_submissions subs
-            JOIN assignments a ON subs.assignment_id = a.id
-            WHERE a.teacher_id = :tid 
-              AND a.tenant_id = :tenant_id
-              AND (subs.marks_awarded IS NULL OR subs.graded_at IS NULL)
+            FROM homework_submissions subs
+            JOIN homework h ON subs.homework_id = h.id
+            WHERE h.created_by = :uid 
+              AND h.tenant_id = :tenant_id
+              AND (subs.marks_obtained IS NULL OR subs.graded_at IS NULL)
         ");
-        $pendingStmt->execute(['tid' => $teacherId, 'tenant_id' => $tenantId]);
+        $pendingStmt->execute(['uid' => $userId, 'tenant_id' => $tenantId]);
         $dashboard['stats']['pending_assignments'] = (int)$pendingStmt->fetchColumn();
     } catch (Exception $e) {
-        error_log('Teacher pending assignments error: ' . $e->getMessage());
+        error_log('Teacher pending homework error: ' . $e->getMessage());
     }
 
     // 3d. Submitted Exam Papers — real data from exams

@@ -32,10 +32,13 @@ class StudentService {
      * Register a new student with transaction
      */
     public function registerStudent($input, $tenantId) {
-        if ($this->db instanceof \PDO) {
+        $startedTransaction = false;
+        if ($this->db instanceof \PDO && !$this->db->inTransaction()) {
             $this->db->beginTransaction();
-        } elseif (class_exists('Illuminate\Support\Facades\DB')) {
+            $startedTransaction = true;
+        } elseif (class_exists('Illuminate\Support\Facades\DB') && \Illuminate\Support\Facades\DB::getFacadeRoot() && !\Illuminate\Support\Facades\DB::transactionLevel()) {
             \Illuminate\Support\Facades\DB::beginTransaction();
+            $startedTransaction = true;
         }
 
         try {
@@ -159,10 +162,12 @@ class StudentService {
                 throw new Exception("No new enrollments were created. The student might already be enrolled in all selected batches.");
             }
 
-            if ($this->db instanceof \PDO) {
-                $this->db->commit();
-            } elseif (class_exists('Illuminate\Support\Facades\DB')) {
-                \Illuminate\Support\Facades\DB::commit();
+            if ($startedTransaction) {
+                if ($this->db instanceof \PDO && $this->db->inTransaction()) {
+                    $this->db->commit();
+                } elseif (class_exists('Illuminate\Support\Facades\DB') && \Illuminate\Support\Facades\DB::getFacadeRoot()) {
+                    \Illuminate\Support\Facades\DB::commit();
+                }
             }
 
             // Post-commit: Audit log (only for NEW student creation)
@@ -195,10 +200,12 @@ class StudentService {
             if ($e instanceof \PDOException) {
                 error_log("PDO Error Info: " . json_encode($e->errorInfo));
             }
-            if ($this->db instanceof \PDO && $this->db->inTransaction()) {
-                $this->db->rollBack();
-            } elseif (class_exists('Illuminate\Support\Facades\DB')) {
-                \Illuminate\Support\Facades\DB::rollBack();
+            if ($startedTransaction) {
+                if ($this->db instanceof \PDO && $this->db->inTransaction()) {
+                    $this->db->rollBack();
+                } elseif (class_exists('Illuminate\Support\Facades\DB') && \Illuminate\Support\Facades\DB::getFacadeRoot()) {
+                    \Illuminate\Support\Facades\DB::rollBack();
+                }
             }
             throw $e;
         }

@@ -529,127 +529,74 @@ try {
 
         // --- Action: Record Payment ---
         if ($action === 'record_payment') {
-            $studentId = $input['student_id'] ?? null;
-            $amount = $input['amount'] ?? 0;
-            $paymentMode = $input['payment_mode'] ?? 'cash';
-            $reference = $input['reference'] ?? null;
-            $paymentDate = $input['payment_date'] ?? date('Y-m-d');
-            $userId = $_SESSION['user_id'] ?? null;
-
-            if (!$studentId || $amount <= 0) {
-                throw new Exception("Student ID and valid amount are required.");
-            }
-
             try {
-                $db->beginTransaction();
+                $studentId = $input['student_id'] ?? null;
+                $amount = floatval($input['amount'] ?? 0);
+                $paymentMode = $input['payment_mode'] ?? 'cash';
+                $reference = $input['reference'] ?? null;
+                $paymentDate = $input['payment_date'] ?? date('Y-m-d');
+                $notes = $input['notes'] ?? 'Direct Payment via Front Desk';
 
-                // 1. Get active enrollment and fee summary
-                $stmtAuth = $db->prepare("
-                    SELECT sfs.id as fee_summary_id, sfs.enrollment_id, sfs.total_fee, sfs.paid_amount, sfs.due_amount
-                    FROM student_fee_summary sfs
-                    JOIN enrollments e ON sfs.enrollment_id = e.id
-                    WHERE sfs.student_id = :sid AND sfs.tenant_id = :tid AND e.status = 'active'
-                ");
-                $stmtAuth->execute(['sid' => $studentId, 'tid' => $tenantId]);
-                $summary = $stmtAuth->fetch(PDO::FETCH_ASSOC);
-
-                if (!$summary) {
-                    throw new Exception("No active fee summary found for this student.");
+                if (!$studentId || $amount <= 0) {
+                    throw new Exception("Student ID and valid amount are required.");
                 }
 
-                if ($amount > $summary['due_amount']) {
-                    throw new Exception("Payment amount exceeds due amount. Maximum allowed payment is " . $summary['due_amount']);
-                }
-
-                // student_payments insert removed (table non-existent)
-
-                // 3. Update student_fee_summary
-                $newPaidAmount = $summary['paid_amount'] + $amount;
-                $newDueAmount = $summary['total_fee'] - $newPaidAmount;
-                
-                $feeStatus = 'unpaid';
-                if ($newDueAmount <= 0) {
-                    $feeStatus = 'paid';
-                } elseif ($newPaidAmount > 0) {
-                    $feeStatus = 'partial';
-                }
-
-                $stmtUpdate = $db->prepare("
-                    UPDATE student_fee_summary
-                    SET paid_amount = :paid, due_amount = :due, fee_status = :status
-                    WHERE id = :id AND tenant_id = :tid
-                ");
-                $stmtUpdate->execute([
-                    'paid' => $newPaidAmount,
-                    'due' => $newDueAmount,
-                    'status' => $feeStatus,
-                    'id' => $summary['fee_summary_id'],
-                    'tid' => $tenantId
-                ]);
-
-                // 4. Generate Receipt Number and log to payment_transactions for Dashboard visibility
-                $receiptNo = 'RCPT-' . strtoupper(uniqid());
-                // We'll set fee_record_id to NULL or 0 since this is a general payment not tied to a specific fee item
-                $stmtTransPay = $db->prepare("
-                    INSERT INTO payment_transactions (tenant_id, student_id, fee_record_id, amount, payment_method, payment_date, receipt_number, notes)
-                    VALUES (:tid, :sid, 0, :amt, :mode, :pdate, :rno, 'Direct Payment')
-                ");
-                $stmtTransPay->execute([
-                    'tid' => $tenantId,
-                    'sid' => $studentId,
-                    'amt' => $amount,
-                    'mode' => $paymentMode,
-                    'pdate' => $paymentDate,
-                    'rno' => $receiptNo
-                ]);
-
-                // 5. Queue Receipt Tasks (PDF & Email)
-                $queue = new QueueService($db);
-                $queue->dispatch('payment_receipt', [
-                    'tenant_id' => $tenantId,
+                $financeService = new \App\Services\FinanceService();
+                $result = $financeService->recordBulkPayment([
                     'student_id' => $studentId,
-                    'receipt_no' => $receiptNo,
-                    'transaction_ids' => [0] // Use 0 for Direct Payment
-                ]);
+                    'amount' => $amount,
+                    'payment_mode' => $paymentMode,
+                    'payment_date' => $paymentDate,
+                    'notes' => $notes
+                ], $tenantId);
 
-                $emailStatus = 'no_email';
-                try {
-                    $stmtGetEmail = $db->prepare("
-                        SELECT u.name as full_name, u.email as email 
-                        FROM students s 
-                        LEFT JOIN users u ON s.user_id = u.id 
-                        WHERE s.id = :sid AND s.tenant_id = :tid
-                    ");
-                    $stmtGetEmail->execute(['sid' => $studentId, 'tid' => $tenantId]);
-                    $stdEmailInfo = $stmtGetEmail->fetch(PDO::FETCH_ASSOC);
+                if ($result['success']) {
+                    $receiptNo = $result['receipt_no'];
+                    $transactionId = $result['transaction_ids'][0] ?? null;
 
-                    if ($stdEmailInfo && !empty($stdEmailInfo['email'])) {
-                        $queue->dispatch('send_email_receipt', [
-                            'tenant_id' => $tenantId,
-                            'student_id' => $studentId,
-                            'recipient_email' => $stdEmailInfo['email'],
-                            'recipient_name' => $stdEmailInfo['full_name'],
-                            'receipt_no' => $receiptNo
-                        ]);
-                        $emailStatus = 'queued';
-                    }
-                } catch (Exception $em) {
-                    error_log("Failed to queue direct payment email: " . $em->getMessage());
-                }
-
-                $db->commit();
-                echo json_encode([
-                    'success' => true, 
-                    'message' => 'Payment recorded successfully.',
-                    'data' => [
+                    // Queue receipt tasks
+                    $queue = new QueueService();
+                    $queue->dispatch('payment_receipt', [
+                        'transaction_id' => $transactionId,
                         'receipt_no' => $receiptNo,
-                        'amount_paid' => $amount,
-                        'email_status' => $emailStatus,
                         'student_id' => $studentId,
-                        'student_name' => $stdEmailInfo['full_name'] ?? 'Student',
-                        'redirect_url' => '?page=fee-details&receipt_no=' . $receiptNo
-                    ]
-                ]);
+                        'amount' => $amount,
+                        'paid_date' => $paymentDate,
+                        'payment_mode' => $paymentMode
+                    ], $tenantId);
+
+                    // Fetch student email for receipt notification
+                    $stdStmt = $db->prepare("SELECT u.name as full_name, u.email FROM students s JOIN users u ON s.user_id = u.id WHERE s.id = :sid");
+                    $stdStmt->execute(['sid' => $studentId]);
+                    $student = $stdStmt->fetch(PDO::FETCH_ASSOC);
+
+                    $emailSent = false;
+                    if ($student && !empty($student['email'])) {
+                        $queue->dispatch('send_email_receipt', [
+                            'recipient_email' => $student['email'],
+                            'recipient_name' => $student['full_name'],
+                            'receipt_no' => $receiptNo,
+                            'amount' => $amount,
+                            'paid_date' => $paymentDate
+                        ], $tenantId);
+                        $emailSent = true;
+                    }
+
+                    echo json_encode([
+                        'success' => true, 
+                        'message' => 'Payment recorded and allocated successfully.',
+                        'data' => [
+                            'receipt_no' => $receiptNo,
+                            'amount_paid' => $amount,
+                            'student_id' => $studentId,
+                            'student_name' => $student['full_name'] ?? 'Student',
+                            'email_sent' => $emailSent,
+                            'redirect_url' => '?page=fee-details&receipt_no=' . $receiptNo
+                        ]
+                    ]);
+                } else {
+                    throw new Exception($result['message'] ?? 'Failed to record payment');
+                }
             } catch (Exception $e) {
                 if ($db->inTransaction()) {
                     $db->rollBack();

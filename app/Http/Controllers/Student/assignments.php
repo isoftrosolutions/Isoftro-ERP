@@ -44,19 +44,20 @@ try {
         case 'pending':
             // Get pending assignments (not submitted or not graded)
             $stmt = $db->prepare("
-                SELECT a.*, s.name as subject_name, s.code as subject_code,
-                       st.name as teacher_name,
+                SELECT a.id, a.title, a.description, a.due_date, a.total_marks as max_marks, a.attachment_path as attachment_url,
+                       s.name as subject_name, s.code as subject_code,
+                       u.name as teacher_name,
                        DATEDIFF(a.due_date, CURDATE()) as days_remaining,
                        subs.submitted_at, subs.id as submission_id
-                FROM assignments a
+                FROM homework a
                 LEFT JOIN subjects s ON a.subject_id = s.id
-                LEFT JOIN staff st ON a.teacher_id = st.id
-                LEFT JOIN assignment_submissions subs ON a.id = subs.assignment_id 
+                LEFT JOIN users u ON a.created_by = u.id
+                LEFT JOIN homework_submissions subs ON a.id = subs.homework_id 
                     AND subs.student_id = :sid
                 WHERE a.batch_id = :bid
                   AND a.tenant_id = :tid
+                  AND a.status = 'published'
                   AND (subs.id IS NULL OR subs.marks_obtained IS NULL)
-                  AND a.due_date >= CURDATE()
                 ORDER BY a.due_date ASC
             ");
             $stmt->execute(['sid' => $studentId, 'bid' => $batchId, 'tid' => $tenantId]);
@@ -86,13 +87,14 @@ try {
         case 'submitted':
             // Get submitted assignments awaiting grading
             $stmt = $db->prepare("
-                SELECT a.*, s.name as subject_name,
-                       st.name as teacher_name,
-                       subs.submitted_at, subs.submission_text, subs.attachment_url
-                FROM assignment_submissions subs
-                JOIN assignments a ON subs.assignment_id = a.id
+                SELECT a.id, a.title, a.description, a.due_date, a.total_marks as max_marks,
+                       s.name as subject_name,
+                       u.name as teacher_name,
+                       subs.submitted_at, subs.submission_text, subs.attachment_path as attachment_url
+                FROM homework_submissions subs
+                JOIN homework a ON subs.homework_id = a.id
                 LEFT JOIN subjects s ON a.subject_id = s.id
-                LEFT JOIN staff st ON a.teacher_id = st.id
+                LEFT JOIN users u ON a.created_by = u.id
                 WHERE subs.student_id = :sid
                   AND a.tenant_id = :tid
                   AND subs.marks_obtained IS NULL
@@ -110,15 +112,16 @@ try {
         case 'graded':
             // Get graded assignments
             $stmt = $db->prepare("
-                SELECT a.*, s.name as subject_name,
-                       st.name as teacher_name,
+                SELECT a.id, a.title, a.description, a.due_date, a.total_marks as max_marks,
+                       s.name as subject_name,
+                       u.name as teacher_name,
                        subs.submitted_at, subs.marks_obtained, 
                        subs.feedback, subs.graded_at, subs.graded_by,
                        grader.name as graded_by_name
-                FROM assignment_submissions subs
-                JOIN assignments a ON subs.assignment_id = a.id
+                FROM homework_submissions subs
+                JOIN homework a ON subs.homework_id = a.id
                 LEFT JOIN subjects s ON a.subject_id = s.id
-                LEFT JOIN staff st ON a.teacher_id = st.id
+                LEFT JOIN users u ON a.created_by = u.id
                 LEFT JOIN users grader ON subs.graded_by = grader.id
                 WHERE subs.student_id = :sid
                   AND a.tenant_id = :tid
@@ -143,15 +146,17 @@ try {
             }
             
             $stmt = $db->prepare("
-                SELECT a.*, s.name as subject_name, s.code as subject_code,
-                       st.name as teacher_name, st.email as teacher_email,
+                SELECT a.id, a.title, a.description, a.due_date, a.total_marks as max_marks, a.attachment_path as attachment_url,
+                       s.name as subject_name, s.code as subject_code,
+                       u.name as teacher_name, u.email as teacher_email,
                        subs.id as submission_id, subs.submission_text,
-                       subs.attachment_url as submission_attachment,
-                       subs.submitted_at, subs.marks_obtained, subs.feedback
-                FROM assignments a
+                       subs.attachment_path as submission_attachment,
+                       subs.submitted_at, subs.marks_obtained, subs.feedback,
+                       DATEDIFF(a.due_date, CURDATE()) as days_remaining
+                FROM homework a
                 LEFT JOIN subjects s ON a.subject_id = s.id
-                LEFT JOIN staff st ON a.teacher_id = st.id
-                LEFT JOIN assignment_submissions subs ON a.id = subs.assignment_id 
+                LEFT JOIN users u ON a.created_by = u.id
+                LEFT JOIN homework_submissions subs ON a.id = subs.homework_id 
                     AND subs.student_id = :sid
                 WHERE a.id = :aid AND a.tenant_id = :tid
             ");
@@ -182,7 +187,7 @@ try {
             
             // Check if assignment exists and is not past due
             $stmt = $db->prepare("
-                SELECT id, due_date FROM assignments 
+                SELECT id, due_date FROM homework 
                 WHERE id = :aid AND tenant_id = :tid AND batch_id = :bid
             ");
             $stmt->execute(['aid' => $assignmentId, 'tid' => $tenantId, 'bid' => $batchId]);
@@ -195,8 +200,8 @@ try {
             
             // Check if already submitted
             $stmt = $db->prepare("
-                SELECT id FROM assignment_submissions 
-                WHERE assignment_id = :aid AND student_id = :sid
+                SELECT id FROM homework_submissions 
+                WHERE homework_id = :aid AND student_id = :sid
             ");
             $stmt->execute(['aid' => $assignmentId, 'sid' => $studentId]);
             $existing = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -229,7 +234,7 @@ try {
             if ($existing) {
                 // Update existing submission
                 $sql = "
-                    UPDATE assignment_submissions 
+                    UPDATE homework_submissions 
                     SET submission_text = :text, submitted_at = NOW()
                 ";
                 $params = [
@@ -238,7 +243,7 @@ try {
                 ];
                 
                 if ($attachmentUrl) {
-                    $sql .= ", attachment_url = :attachment";
+                    $sql .= ", attachment_path = :attachment";
                     $params['attachment'] = $attachmentUrl;
                 }
                 
@@ -250,9 +255,9 @@ try {
             } else {
                 // Create new submission
                 $stmt = $db->prepare("
-                    INSERT INTO assignment_submissions 
-                    (assignment_id, student_id, submission_text, attachment_url, submitted_at)
-                    VALUES (:aid, :sid, :text, :attachment, NOW())
+                    INSERT INTO homework_submissions 
+                    (homework_id, student_id, submission_text, attachment_path, status, submitted_at)
+                    VALUES (:aid, :sid, :text, :attachment, 'submitted', NOW())
                 ");
                 $stmt->execute([
                     'aid' => $assignmentId,

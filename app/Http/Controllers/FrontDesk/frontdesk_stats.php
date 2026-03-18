@@ -90,11 +90,18 @@ try {
     ];
 
     // ── 2. MINI STATUS CARDS ──
+    $stmtInq = $db->prepare("SELECT COUNT(*) FROM inquiries WHERE tenant_id = ? AND status = 'open' AND deleted_at IS NULL");
+    $stmtInq->execute([$tenantId]);
+    $stmtLve = $db->prepare("SELECT COUNT(*) FROM leave_requests WHERE tenant_id = ? AND status = 'pending'");
+    $stmtLve->execute([$tenantId]);
+    $stmtLib = $db->prepare("SELECT COUNT(*) FROM library_issues WHERE tenant_id = ? AND return_date IS NULL");
+    $stmtLib->execute([$tenantId]);
+
     $data['mini_stats'] = [
-        'inquiries' => (int) $db->query("SELECT COUNT(*) FROM inquiries WHERE tenant_id = $tenantId AND status = 'open' AND deleted_at IS NULL")->fetchColumn(),
-        'leaves' => (int) $db->query("SELECT COUNT(*) FROM leave_requests WHERE tenant_id = $tenantId AND status = 'pending'")->fetchColumn(),
-        'library' => (int) $db->query("SELECT COUNT(*) FROM library_issues WHERE tenant_id = $tenantId AND return_date IS NULL")->fetchColumn(),
-        'alerts' => 3 
+        'inquiries' => (int) $stmtInq->fetchColumn(),
+        'leaves'    => (int) $stmtLve->fetchColumn(), 
+        'library'   => (int) $stmtLib->fetchColumn(),
+        'alerts'    => 3 
     ];
 
     // Today's Transactions - Pulled from payment_transactions to match revenue

@@ -563,61 +563,65 @@ try {
 
         // --- Action: Record Payment ---
         if ($action === 'record_payment') {
-            $studentId = $input['student_id'] ?? null;
-            $amount = floatval($input['amount'] ?? 0);
-            $paymentMode = $input['payment_mode'] ?? 'cash';
-            $reference = $input['reference'] ?? null;
-            $paymentDate = $input['payment_date'] ?? date('Y-m-d');
-            $notes = $input['notes'] ?? 'Direct Payment via Student Profile';
+            try {
+                $studentId = $input['student_id'] ?? null;
+                $amount = floatval($input['amount'] ?? 0);
+                $paymentMode = $input['payment_mode'] ?? 'cash';
+                $reference = $input['reference'] ?? null;
+                $paymentDate = $input['payment_date'] ?? date('Y-m-d');
+                $notes = $input['notes'] ?? 'Direct Payment via Student Profile';
 
-            if (!$studentId || $amount <= 0) {
-                throw new Exception("Student ID and valid amount are required.");
-            }
+                if (!$studentId || $amount <= 0) {
+                    throw new Exception("Student ID and valid amount are required.");
+                }
 
-            $financeService = new \App\Services\FinanceService();
-            $result = $financeService->recordBulkPayment([
-                'student_id' => $studentId,
-                'amount' => $amount,
-                'payment_mode' => $paymentMode,
-                'payment_date' => $paymentDate,
-                'notes' => $notes
-            ], $tenantId);
-
-            if ($result['success']) {
-                $receiptNo = $result['receipt_no'];
-                $transactionId = $result['transaction_ids'][0] ?? null;
-
-                // Queue receipt and email tasks
-                $queue = new \App\Services\QueueService();
-                $stdStmt = $db->prepare("SELECT u.name as student_name, u.email as student_email, s.roll_no, c.name as course_name, b.name as batch_name FROM students s JOIN users u ON s.user_id = u.id LEFT JOIN enrollments e ON s.id = e.student_id AND e.status = 'active' LEFT JOIN batches b ON e.batch_id = b.id LEFT JOIN courses c ON b.course_id = c.id WHERE s.id = :sid");
-                $stdStmt->execute(['sid' => $studentId]);
-                $studentInfo = $stdStmt->fetch(PDO::FETCH_ASSOC);
-
-                $queue->dispatch('payment_receipt', [
-                    'transaction_id' => $transactionId,
-                    'receipt_no' => $receiptNo,
+                $financeService = new \App\Services\FinanceService();
+                $result = $financeService->recordBulkPayment([
                     'student_id' => $studentId,
-                    'student_name' => $studentInfo['student_name'] ?? 'Student',
-                    'student_email' => $studentInfo['student_email'] ?? '',
-                    'roll_no' => $studentInfo['roll_no'] ?? '',
-                    'course_name' => $studentInfo['course_name'] ?? '',
-                    'batch_name' => $studentInfo['batch_name'] ?? '',
                     'amount' => $amount,
-                    'paid_date' => $paymentDate,
                     'payment_mode' => $paymentMode,
-                    'login_url' => (defined('APP_URL') ? APP_URL : '') . '/?page=login'
+                    'payment_date' => $paymentDate,
+                    'notes' => $notes
                 ], $tenantId);
 
-                echo json_encode([
-                    'success' => true,
-                    'message' => 'Payment recorded and allocated successfully.',
-                    'data' => [
+                if ($result['success']) {
+                    $receiptNo = $result['receipt_no'];
+                    $transactionId = $result['transaction_ids'][0] ?? null;
+
+                    // Queue receipt and email tasks
+                    $queue = new \App\Services\QueueService();
+                    $stdStmt = $db->prepare("SELECT u.name as student_name, u.email as student_email, s.roll_no, c.name as course_name, b.name as batch_name FROM students s JOIN users u ON s.user_id = u.id LEFT JOIN enrollments e ON s.id = e.student_id AND e.status = 'active' LEFT JOIN batches b ON e.batch_id = b.id LEFT JOIN courses c ON b.course_id = c.id WHERE s.id = :sid");
+                    $stdStmt->execute(['sid' => $studentId]);
+                    $studentInfo = $stdStmt->fetch(PDO::FETCH_ASSOC);
+
+                    $queue->dispatch('payment_receipt', [
+                        'transaction_id' => $transactionId,
                         'receipt_no' => $receiptNo,
-                        'amount_paid' => $amount,
-                        'student_name' => $stdEmailInfo['full_name'] ?? 'Student',
-                        'redirect_url' => '?page=fee-details&receipt_no=' . $receiptNo
-                    ]
-                ]);
+                        'student_id' => $studentId,
+                        'student_name' => $studentInfo['student_name'] ?? 'Student',
+                        'student_email' => $studentInfo['student_email'] ?? '',
+                        'roll_no' => $studentInfo['roll_no'] ?? '',
+                        'course_name' => $studentInfo['course_name'] ?? '',
+                        'batch_name' => $studentInfo['batch_name'] ?? '',
+                        'amount' => $amount,
+                        'paid_date' => $paymentDate,
+                        'payment_mode' => $paymentMode,
+                        'login_url' => (defined('APP_URL') ? APP_URL : '') . '/?page=login'
+                    ], $tenantId);
+
+                    echo json_encode([
+                        'success' => true,
+                        'message' => 'Payment recorded and allocated successfully.',
+                        'data' => [
+                            'receipt_no' => $receiptNo,
+                            'amount_paid' => $amount,
+                            'student_name' => $studentInfo['student_name'] ?? 'Student',
+                            'redirect_url' => '?page=fee-details&receipt_no=' . $receiptNo
+                        ]
+                    ]);
+                } else {
+                    throw new Exception($result['message'] ?? 'Failed to record payment');
+                }
             } catch (Exception $e) {
                 if ($db->inTransaction()) {
                     $db->rollBack();

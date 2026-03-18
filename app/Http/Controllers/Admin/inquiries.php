@@ -123,7 +123,7 @@ try {
             );
             $stmtFu->execute([
                 'iid'       => $inquiryId,
-                'uid'       => $user['id'],
+                'uid'       => $userId,
                 'remarks'   => $remarks,
                 'next_date' => $input['next_followup_date'] ?? null,
             ]);

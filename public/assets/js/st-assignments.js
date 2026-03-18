@@ -281,7 +281,7 @@ window.viewAssignment = async function(id) {
                             ${a.attachment_url ? `
                                 <div style="margin-bottom:20px;">
                                     <a href="${a.attachment_url}" target="_blank" class="btn" style="background:var(--sa-primary);color:#fff;">
-                                        <i class="fa-solid fa-download"></i> Download Attachment
+                                        <i class="fa-solid fa-download"></i> Download Homework Attachment
                                     </a>
                                 </div>
                             ` : ''}
@@ -292,7 +292,7 @@ window.viewAssignment = async function(id) {
                                     <p><strong>Submitted on:</strong> ${formatDate(a.submitted_at)}</p>
                                     <p><strong>Submission:</strong></p>
                                     <p style="white-space:pre-wrap;">${escapeHtml(a.submission_text || 'No text submitted')}</p>
-                                    ${a.attachment_url ? `<p><a href="${a.attachment_url}" target="_blank">View attachment</a></p>` : ''}
+                                    ${a.submission_attachment ? `<p><a href="${a.submission_attachment}" target="_blank">View submission attachment</a></p>` : ''}
                                 </div>
                             ` : ''}
                             

@@ -14,7 +14,7 @@ $db = getDBConnection();
 // Initial Setup / Migration
 function self_migrate_comms($db) {
     // email_campaigns table
-    $db->exec("CREATE TABLE IF NOT EXISTu.email_campaigns (
+    $db->exec("CREATE TABLE IF NOT EXISTS email_campaigns (
         id INT AUTO_INCREMENT PRIMARY KEY,
         tenant_id INT NOT NULL,
         campaign_name VARCHAR(255) NOT NULL,
@@ -30,7 +30,7 @@ function self_migrate_comms($db) {
     )");
 
     // email_logs (if not exists)
-    $db->exec("CREATE TABLE IF NOT EXISTu.email_logs (
+    $db->exec("CREATE TABLE IF NOT EXISTS email_logs (
         id INT AUTO_INCREMENT PRIMARY KEY,
         tenant_id INT NOT NULL,
         student_id INT DEFAULT 0,

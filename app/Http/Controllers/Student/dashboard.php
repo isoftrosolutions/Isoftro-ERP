@@ -135,20 +135,24 @@ try {
     $stmt->execute(['sid' => $studentId, 'tid' => $tenantId]);
     $dashboard['fee_summary'] = $stmt->fetch(PDO::FETCH_ASSOC);
     
-    // 5. Count pending assignments (placeholder - assignments table may not exist yet)
+    // 5. Count pending homework
     try {
+        // Find homework assigned to student's batch but not yet submitted
         $stmt = $db->prepare("
-            SELECT COUNT(*) as count 
-            FROM assignment_submissions subs
-            JOIN assignments a ON subs.assignment_id = a.id
-            WHERE subs.student_id = :sid 
-              AND subs.marks_obtained IS NULL
-              AND a.due_date >= CURDATE()
+            SELECT COUNT(h.id) as count 
+            FROM homework h
+            LEFT JOIN homework_submissions subs ON h.id = subs.homework_id AND subs.student_id = :sid
+            WHERE h.batch_id = :bid 
+              AND h.tenant_id = :tid
+              AND h.status = 'published'
+              AND subs.id IS NULL
+              AND h.due_date >= CURDATE()
         ");
-        $stmt->execute(['sid' => $studentId]);
+        $stmt->execute(['sid' => $studentId, 'bid' => $batchId, 'tid' => $tenantId]);
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
         $dashboard['pending_assignments'] = (int)($result['count'] ?? 0);
     } catch (Exception $e) {
+        error_log("Dashboard pending homework count error: " . $e->getMessage());
         $dashboard['pending_assignments'] = 0;
     }
     
