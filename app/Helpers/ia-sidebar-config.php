@@ -152,6 +152,18 @@ function getIASidebarConfig()
                     'icon' => 'fa-wallet',
                     'permission' => 'dashboard.view',
                 ],
+                [
+                    'id' => 'expenses',
+                    'label' => 'Expenses',
+                    'icon' => 'fa-receipt',
+                    'permission' => 'dashboard.view',
+                    'sub' => [
+                        ['id' => 'dashboard', 'l' => 'Expenses Dashboard', 'icon' => 'fa-chart-pie'],
+                        ['id' => 'list', 'l' => 'Expense List', 'icon' => 'fa-list'],
+                        ['id' => 'add', 'l' => 'Add Expense', 'icon' => 'fa-plus'],
+                        ['id' => 'categories', 'l' => 'Manage Categories', 'icon' => 'fa-folder-tree'],
+                    ],
+                ],
             ],
         ],
 

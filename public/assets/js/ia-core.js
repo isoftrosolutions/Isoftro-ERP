@@ -228,6 +228,12 @@ function _iaRenderPage() {
         if (sub==='list' || !sub) { window.renderHomeworkList?.(); return; }
         if (sub==='create') { window.renderCreateHomeworkForm?.(); return; }
     }
+    if (nav==='expenses') {
+        if (sub==='categories') { window.renderExpenseCategoryList?.(); return; }
+        if (sub==='add') { window.renderAddExpenseForm?.(); return; }
+        if (sub==='list' || !sub || sub==='dashboard') { window.renderExpenseDashboard?.(); return; }
+        window.renderExpenseDashboard?.(); return;
+    }
     if (nav==='fee' && sub==='setup') { window.renderFeeSetup?.(); return; }
     if (nav==='fee' && sub==='record') { window.renderFeeRecord?.(); return; }
     if (nav==='fee' && sub==='details') { window.renderFeeDetails?.(urlParams.get('receipt_no')); return; }

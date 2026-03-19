@@ -113,6 +113,7 @@ if (!defined('TIMEZONE'))
     define('TIMEZONE', 'Asia/Kathmandu');
 
 // Role-Based Access Control (RBAC)
+global $ROLES;
 $ROLES = [
     'superadmin' => [
         'name' => 'Super Admin',
@@ -132,7 +133,8 @@ $ROLES = [
             'exams.view', 'exams.add', 'exams.edit', 'exams.delete',
             'grades.view', 'grades.add', 'grades.edit', 'grades.delete',
             'reports.view',
-            'settings.view', 'settings.edit'
+            'settings.view', 'settings.edit',
+            'expenses.view', 'expenses.create', 'expenses.edit', 'expenses.delete', 'expense_categories.view'
         ],
         'dashboard' => '/dash/admin',
         'color' => '#00B894'

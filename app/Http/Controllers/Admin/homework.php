@@ -94,11 +94,20 @@ try {
             if (!$homework_id) throw new Exception("Homework ID missing");
 
             // Verify access
-            $checkStmt = $db->prepare("SELECT created_by FROM homework WHERE id = :hid AND tenant_id = :tid");
+            $checkStmt = $db->prepare("SELECT created_by, batch_id, subject_id FROM homework WHERE id = :hid AND tenant_id = :tid");
             $checkStmt->execute(['hid' => $homework_id, 'tid' => $tenant_id]);
             $hw = $checkStmt->fetch();
-            if (!$hw || ($role === 'teacher' && $hw['created_by'] != $user_id)) {
-                throw new Exception("Access Denied");
+            if (!$hw) throw new Exception("Access Denied");
+
+            if ($role === 'teacher' && $hw['created_by'] != $user_id) {
+                // If not creator, check if assigned to this batch/subject
+                $tStmt = $db->prepare("SELECT id FROM teachers WHERE user_id = :uid AND tenant_id = :tid");
+                $tStmt->execute(['uid' => $user_id, 'tid' => $tenant_id]);
+                $teacherId = $tStmt->fetchColumn();
+
+                if (!$teacherId || !($db->query("SELECT id FROM batch_subject_allocations WHERE teacher_id = {$teacherId} AND batch_id = {$hw['batch_id']} AND subject_id = {$hw['subject_id']}")->fetch())) {
+                    throw new Exception("Access Denied");
+                }
             }
 
             $sql = "
@@ -129,14 +138,23 @@ try {
 
             // Verify access to the homework via this submission
             $checkStmt = $db->prepare("
-                SELECT h.created_by FROM homework h
+                SELECT h.created_by, h.batch_id, h.subject_id FROM homework h
                 JOIN homework_submissions s ON h.id = s.homework_id
                 WHERE s.id = :sid AND h.tenant_id = :tid
             ");
             $checkStmt->execute(['sid' => $submission_id, 'tid' => $tenant_id]);
             $hw = $checkStmt->fetch();
-            if (!$hw || ($role === 'teacher' && $hw['created_by'] != $user_id)) {
-                throw new Exception("Access Denied");
+            if (!$hw) throw new Exception("Access Denied");
+
+            if ($role === 'teacher' && $hw['created_by'] != $user_id) {
+                // If not creator, check if assigned to this batch/subject
+                $tStmt = $db->prepare("SELECT id FROM teachers WHERE user_id = :uid AND tenant_id = :tid");
+                $tStmt->execute(['uid' => $user_id, 'tid' => $tenant_id]);
+                $teacherId = $tStmt->fetchColumn();
+
+                if (!$teacherId || !($db->query("SELECT id FROM batch_subject_allocations WHERE teacher_id = {$teacherId} AND batch_id = {$hw['batch_id']} AND subject_id = {$hw['subject_id']}")->fetch())) {
+                    throw new Exception("Access Denied");
+                }
             }
 
             $stmt = $db->prepare("

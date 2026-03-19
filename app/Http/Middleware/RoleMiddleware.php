@@ -38,7 +38,8 @@ class RoleMiddleware {
             'reports.view', 'reports.export',
             'settings.view', 'settings.edit',
             'library.view', 'library.manage',
-            'messages.view', 'messages.send'
+            'messages.view', 'messages.send',
+            'expenses.view', 'expenses.create', 'expenses.edit', 'expenses.delete', 'expense_categories.view'
         ],
         'frontdesk' => [
             'dashboard.view',

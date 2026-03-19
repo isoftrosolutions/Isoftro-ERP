@@ -57,7 +57,8 @@ return [
                 'exams.view', 'exams.add', 'exams.edit', 'exams.delete',
                 'fees.view', 'fees.add', 'fees.edit', 'fees.delete',
                 'reports.view', 'reports.export',
-                'settings.view', 'settings.edit'
+                'settings.view', 'settings.edit',
+                'expenses.view', 'expenses.create', 'expenses.edit', 'expenses.delete', 'expense_categories.view'
             ],
             'color' => '#00B894'
         ],

@@ -365,6 +365,19 @@ Route::any('/api/admin/homework/store', function() {
     require_once app_path('Http/Controllers/Admin/homework_store.php');
 });
 
+// Expenses Module Routes
+Route::any('/api/admin/expenses', function() {
+    require_once app_path('Http/Controllers/Admin/expenses.php');
+});
+
+Route::get('/api/admin/expenses/stats', function() {
+    require_once app_path('Http/Controllers/Admin/expenses_stats.php');
+});
+
+Route::any('/api/admin/expense-categories', function() {
+    require_once app_path('Http/Controllers/Admin/expense_categories.php');
+});
+
 Route::any('/api/admin/academic-calendar/{action}', function() {
     require_once app_path('Http/Controllers/Admin/academic_calendar.php');
 });
