@@ -1075,10 +1075,6 @@ window.renderEditStudentForm = async (id) => {
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label class="form-label">Date of Birth (AD)</label>
-                                <input type="date" name="dob_ad" id="edit_dob_ad" class="form-control">
-                            </div>
-                            <div class="form-group">
                                 <label class="form-label">Date of Birth (BS)</label>
                                 <input type="text" name="dob_bs" id="edit_dob_bs" class="form-control" placeholder="YYYY-MM-DD (B.S.)">
                             </div>
@@ -1317,7 +1313,6 @@ async function _loadStudentDataForEdit(id) {
             document.getElementById('edit_mother_name').value = s.mother_name || '';
             document.getElementById('edit_gender').value = s.gender || '';
             document.getElementById('edit_blood_group').value = s.blood_group || '';
-            document.getElementById('edit_dob_ad').value = s.dob_ad || '';
             document.getElementById('edit_dob_bs').value = s.dob_bs || '';
             document.getElementById('edit_citizenship_no').value = s.citizenship_no || '';
             document.getElementById('edit_national_id').value = s.national_id || '';

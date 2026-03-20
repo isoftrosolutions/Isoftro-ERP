@@ -132,8 +132,8 @@ try {
         }
 
         // Get all students for CSV (no pagination limit)
-        $query = "SELECT s.roll_no, u.name as full_name, u.email, u.phone, s.gender, s.dob_bs,
-                         s.citizenship_no,
+        $query = "SELECT s.roll_no, u.name as full_name, u.email, u.phone, s.gender, s.dob_bs, s.dob_ad,
+                         s.citizenship_no, s.father_name, s.mother_name, s.guardian_name, s.guardian_relation,
                          s.permanent_address, s.temporary_address,
                          b.name as batch_name, c.name as course_name,
                          s.status, s.registration_status, s.admission_date, s.created_at
@@ -153,7 +153,7 @@ try {
         $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         // Build CSV
-        $csv = "Roll No,Full Name,Email,Phone,Gender,DOB (BS),Citizenship No,Permanent Address,Temporary Address,Batch,Course,Status,Registration Status,Admission Date,Joined Date\n";
+        $csv = "Roll No,Full Name,Email,Phone,Gender,DOB (BS),DOB (AD),Citizenship No,Father's Name,Mother's Name,Guardian Name,Guardian Relation,Permanent Address,Temporary Address,Batch,Course,Status,Registration Status,Admission Date,Joined Date\n";
 
         foreach ($students as $s) {
             $addr = is_array($s['permanent_address']) ? json_encode($s['permanent_address']) : ($s['permanent_address'] ?: '');
@@ -164,7 +164,12 @@ try {
                     '"' . ($s['phone'] ?? '') . '",' .
                     '"' . ($s['gender'] ?? '') . '",' .
                     '"' . ($s['dob_bs'] ?? '') . '",' .
+                    '"' . ($s['dob_ad'] ?? '') . '",' .
                     '"' . ($s['citizenship_no'] ?? '') . '",' .
+                    '"' . str_replace('"', '""', ($s['father_name'] ?? '')) . '",' .
+                    '"' . str_replace('"', '""', ($s['mother_name'] ?? '')) . '",' .
+                    '"' . str_replace('"', '""', ($s['guardian_name'] ?? '')) . '",' .
+                    '"' . str_replace('"', '""', ($s['guardian_relation'] ?? '')) . '",' .
                     '"' . str_replace('"', '""', $addr) . '",' .
                     '"' . str_replace('"', '""', $taddr) . '",' .
                     '"' . ($s['batch_name'] ?? '') . '",' .
@@ -724,8 +729,9 @@ try {
         $fields = [];
         $params = ['id' => $id, 'tid' => $tenantId];
 
+        // Only fields that exist in the `students` table
         $allowedFields = [
-            'batch_id', 'roll_no', 'full_name', 'phone', 'email', 'dob_ad', 'dob_bs', 
+            'roll_no', 'dob_ad', 'dob_bs', 
             'gender', 'blood_group', 'citizenship_no', 'national_id', 
             'father_name', 'mother_name', 'husband_name', 'guardian_name', 'guardian_relation', 
             'photo_url', 'identity_doc_url', 
@@ -734,6 +740,10 @@ try {
 
         foreach ($allowedFields as $f) {
             if (isset($input[$f])) {
+                // Convert empty strings to NULL for date fields
+                if (in_array($f, ['admission_date', 'dob_ad']) && $input[$f] === '') {
+                    $input[$f] = null;
+                }
                 $fields[] = "$f = :$f";
                 $params[$f] = $input[$f];
             }
@@ -765,13 +775,28 @@ try {
             $stmt->execute($params);
         }
 
-        // Update linked user if name or phone changed
+        // Update batch_id in enrollments table (not in students)
+        if (isset($input['batch_id']) && $input['batch_id']) {
+            $enrStmt = $db->prepare("SELECT id FROM enrollments WHERE student_id = :sid AND tenant_id = :tid AND status = 'active' LIMIT 1");
+            $enrStmt->execute(['sid' => $id, 'tid' => $tenantId]);
+            $enrollment = $enrStmt->fetch(PDO::FETCH_ASSOC);
+            if ($enrollment) {
+                $db->prepare("UPDATE enrollments SET batch_id = :bid WHERE id = :eid")
+                   ->execute(['bid' => $input['batch_id'], 'eid' => $enrollment['id']]);
+            }
+        }
+
+        // Update linked user record (full_name, phone, email, status live in users table)
         if ($student['user_id']) {
             $userFields = [];
             $userParams = ['uid' => $student['user_id']];
             if (isset($input['full_name'])) {
                 $userFields[] = "name = :name";
                 $userParams['name'] = $input['full_name'];
+            }
+            if (isset($input['email'])) {
+                $userFields[] = "email = :email";
+                $userParams['email'] = $input['email'];
             }
             if (isset($input['phone'])) {
                 $userFields[] = "phone = :phone";
