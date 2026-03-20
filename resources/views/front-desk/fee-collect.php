@@ -21,6 +21,9 @@ if (!isset($_GET['partial'])) {
     renderFrontDeskHeader();
     renderFrontDeskSidebar('fee-coll');
 }
+
+// Include the Premium Payment Processing Modal Component
+require_once VIEWS_PATH . '/components/payment-processing-modal.php';
 ?>
 
 <!-- Content is dynamically rendered via SPA (fd-fees.js), matching the Admin's architecture -->

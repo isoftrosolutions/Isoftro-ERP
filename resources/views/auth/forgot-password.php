@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Forgot Password — Hamro ERP</title>
+    <title>Forgot Password — iSoftro Academic ERP</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -80,7 +80,7 @@
 </head>
 <body>
     <div class="fp-card">
-        <img src="<?= $BASE ?>/public/assets/images/logo.png" alt="Hamro Labs" class="fp-logo">
+        <img src="<?= $BASE ?>/public/assets/images/logo.png" alt="isoftro" class="fp-logo">
         <h1 class="fp-title">Forgot Password?</h1>
         <p class="fp-subtitle" id="fpSubtitle">Enter your email address and we'll send you an OTP code to reset your password.</p>
         

@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login — Hamro Labs Academic ERP</title>
-  <meta name="description" content="Login to your Hamro Labs Academic ERP dashboard.">
+  <title>Login — iSoftro Academic ERP</title>
+  <meta name="description" content="Login to your iSoftro Academic ERP dashboard.">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -66,8 +66,8 @@
         <div style="text-align:center;">
           <div style="width:min(320px, 80vw); height:min(320px, 80vw); margin:0 auto; background:linear-gradient(135deg,#006D44,#8CC63F); border-radius:50%; display:flex; align-items:center; justify-content:center; box-shadow:0 30px 60px rgba(0,109,68,0.25);">
             <div style="text-align:center; color:#fff; padding: 20px;">
-              <img src="<?= $BASE ?>/public/assets/images/logo.png" alt="Hamro Labs" style="width:100%; max-width:120px; height:auto; margin-bottom:16px; filter: brightness(0) invert(1);">
-              <div style="font-size:clamp(18px, 4vw, 28px); font-weight:800; letter-spacing:-0.5px;">Hamro Labs</div>
+              <img src="<?= $BASE ?>/public/assets/images/logo.png" alt="isoftro" style="width:100%; max-width:120px; height:auto; margin-bottom:16px; filter: brightness(0) invert(1);">
+              <div style="font-size:clamp(18px, 4vw, 28px); font-weight:800; letter-spacing:-0.5px;">isoftro</div>
               <div style="font-size:11px; font-weight:500; opacity:0.8; letter-spacing:2px;">ACADEMIC ERP</div>
             </div>
           </div>
@@ -84,7 +84,7 @@
           <div class="lp-logo">
             <img src="<?= $BASE ?>/public/assets/images/logo.png" alt="Logo" style="height:32px; width:auto; margin-right:12px;">
             <div class="logo-text">
-              <span class="lt-top">HAMRO</span>
+              <span class="lt-top">ISOFTRO</span>
               <span class="lt-bot">ACADEMIC ERP</span>
             </div>
           </div>
@@ -138,7 +138,7 @@
             <img src="<?= $BASE ?>/public/assets/images/logo.png" alt="App Icon">
           </div>
           <div class="pwa-text">
-            <h3>Install Hamro ERP</h3>
+            <h3>Install isoftro ERP</h3>
             <p>Install our app on your home screen for a faster, better experience.</p>
           </div>
           <button type="button" class="pwa-install-btn" onclick="triggerPwaInstall()">

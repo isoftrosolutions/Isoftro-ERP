@@ -444,28 +444,34 @@ window.renderQuickPayment = async (studentId) => {
             </div>
         `;
 
-        document.getElementById('quickPaymentForm').onsubmit = async (e) => {
-            e.preventDefault();
-            const btn = e.target.querySelector('button[type="submit"]');
+        // Helper to perform the payment submission
+        const _submitPayment = async (form) => {
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData.entries());
+
+            const btn = form.querySelector('button[type="submit"]');
             const orig = btn.innerHTML;
             btn.disabled = true;
-            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Processing...';
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Initializing...';
 
-            const formData = new FormData(e.target);
-            const data = Object.fromEntries(formData.entries());
-            data.action = 'record_payment'; // Reuse existing logic if possible, or we might need to adjust it
+            const modalData = {
+                studentName: student.name,
+                amount: getCurrencySymbol() + parseFloat(data.amount).toLocaleString(),
+                method: data.payment_mode.charAt(0).toUpperCase() + data.payment_mode.slice(1).replace('_', ' ')
+            };
+
+            const restoreBtn = () => { btn.disabled = false; btn.innerHTML = orig; };
+
+            // Step 1: Open the modal (with double-click guard)
+            if (window.PaymentProcessor) {
+                if (!window.PaymentProcessor.open(modalData)) {
+                    restoreBtn();
+                    return; // Already running, ignore
+                }
+            }
 
             try {
-                // Since our new UI might pay multiple items, we need a special backend handler or 
-                // handle it here by calling record_payment multiple times (not efficient)
-                // OR adapt record_payment to handle "auto-distribute"
-                
-                // For now, let's assume we use the existing record_payment logic 
-                // but we need to know WHICH fee record. The diagram shows a "Consolidated" payment.
-                // In FinanceService.php, recordPayment handles one record at a time.
-                // WE NEED A BULK PAYMENT ACTION IN BACKEND.
-                
-                // Let's call a new bulk action
+                // Step 1 is visible — make the actual API call
                 const result = await _safeFetch(`${window.APP_URL}/api/frontdesk/fees`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -478,21 +484,56 @@ window.renderQuickPayment = async (studentId) => {
                         notes: data.notes
                     })
                 });
-                
-                if (result.success) {
-                    const d = result.data;
-                    // Redirect to the new details page
-                    goNav('fee', 'details', { receipt_no: d.receipt_no });
+
+                if (!result.success) {
+                    throw new Error(result.message || 'Payment failed');
                 }
-                else {
-                    Swal.fire('Error', result.message, 'error');
-                    btn.disabled = false; btn.innerHTML = orig;
+
+                const d = result.data;
+
+                if (window.PaymentProcessor) {
+                    // Step 2: Generating receipt PDF (cosmetic)
+                    await window.PaymentProcessor.goToStep(2);
+                    await new Promise(r => setTimeout(r, 800));
+
+                    // Step 3: Sending to student (cosmetic)
+                    await window.PaymentProcessor.goToStep(3);
+                    await new Promise(r => setTimeout(r, 600));
+
+                    // Success screen with real data
+                    await window.PaymentProcessor.showSuccess({
+                        studentName: student.name,
+                        amount: getCurrencySymbol() + parseFloat(data.amount).toLocaleString(),
+                        method: data.payment_mode.charAt(0).toUpperCase() + data.payment_mode.slice(1).replace('_', ' '),
+                        txnId: (d.transaction_ids && d.transaction_ids[0]) || 'TXN-' + Math.random().toString(36).substr(2, 9).toUpperCase(),
+                        downloadUrl: `${window.APP_URL}/api/frontdesk/fees?action=generate_receipt_html&is_pdf=1&receipt_no=${d.receipt_no}`
+                    });
+                } else {
+                    const d2 = result.data;
+                    goNav('fee', 'details', { receipt_no: d2.receipt_no });
                 }
+
+                restoreBtn();
+
             } catch (err) {
-                console.error(err);
-                Swal.fire('Error', 'Something went wrong', 'error');
-                btn.disabled = false; btn.innerHTML = orig;
+                console.error('[fd-fees] Payment error:', err);
+
+                if (window.PaymentProcessor) {
+                    window.PaymentProcessor.showError(
+                        err.message || 'An unexpected error occurred. Please try again.',
+                        () => _submitPayment(form) // Retry callback
+                    );
+                } else {
+                    Swal.fire('Error', err.message || 'Something went wrong while processing the payment', 'error');
+                }
+
+                restoreBtn();
             }
+        };
+
+        document.getElementById('quickPaymentForm').onsubmit = (e) => {
+            e.preventDefault();
+            _submitPayment(e.target);
         };
 
     } catch (error) {

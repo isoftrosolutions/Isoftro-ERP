@@ -1,6 +1,6 @@
 <?php
 /**
- * Hamro ERP — Configuration File
+ * isoftro — Configuration File
  * Platform Blueprint V3.0
  */
 
@@ -42,7 +42,7 @@ if (session_status() === PHP_SESSION_NONE) {
 
 // Application Configuration
 if (!defined('APP_NAME')) {
-    $dynamicAppName = $_SESSION['tenant_name'] ?? getenv('APP_NAME') ?: 'Hamro ERP';
+    $dynamicAppName = $_SESSION['tenant_name'] ?? getenv('APP_NAME') ?: 'isoftro';
     define('APP_NAME', $dynamicAppName);
 }
 if (!defined('APP_VERSION'))
@@ -94,9 +94,9 @@ if (!defined('SMTP_USERNAME'))
 if (!defined('SMTP_PASSWORD'))
     define('SMTP_PASSWORD', 'your-app-password');
 if (!defined('FROM_EMAIL'))
-    define('FROM_EMAIL', 'noreply@hamroerp.com');
+    define('FROM_EMAIL', 'noreply@isoftro.com');
 if (!defined('FROM_NAME'))
-    define('FROM_NAME', 'Hamro ERP');
+    define('FROM_NAME', 'isoftro');
 
 // Pagination Configuration
 if (!defined('RECORDS_PER_PAGE'))

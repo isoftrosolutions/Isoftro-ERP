@@ -9,6 +9,7 @@ include VIEWS_PATH . '/layouts/header.php'; // HTML Shell (<head>, <body> open)
 
 // Internal Admin Components
 include __DIR__ . '/layouts/sidebar.php';   // Side Navigation
+require_once VIEWS_PATH . '/components/payment-processing-modal.php';
 ?>
 
 <div class="main">

@@ -52,7 +52,7 @@ $BASE = defined('APP_URL') ? APP_URL : '/erp';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reset Password — Hamro ERP</title>
+    <title>Reset Password — iSoftro ERP</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -132,7 +132,7 @@ $BASE = defined('APP_URL') ? APP_URL : '/erp';
 </head>
 <body>
     <div class="rp-card">
-        <img src="<?= $BASE ?>/public/assets/images/logo.png" alt="Hamro Labs" class="rp-logo">
+        <img src="<?= $BASE ?>/public/assets/images/logo.png" alt="isoftro" class="rp-logo">
         <h1 class="rp-title">Create New Password</h1>
         <p class="rp-subtitle">Verify your identity and choose a secure password to protect your account.</p>
 

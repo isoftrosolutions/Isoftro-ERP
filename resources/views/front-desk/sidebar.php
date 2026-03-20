@@ -1,6 +1,6 @@
 <?php
 /**
- * Hamro ERP — Front Desk Sidebar Component
+ * iSoftro — Front Desk Sidebar Component
  * Light theme, green accents, reorganized as per mockup
  */
 
@@ -141,7 +141,7 @@ function renderFrontDeskSidebar($activePage = null) {
     <?php
     $user = getCurrentUser();
     $userName = $user['name'] ?? 'Operator';
-    $instituteName = $_SESSION['tenant_name'] ?? 'Hamro Labs';
+    $instituteName = $_SESSION['tenant_name'] ?? 'isoftro';
     
     // User initials for sidebar footer
     $parts = explode(' ', $userName);

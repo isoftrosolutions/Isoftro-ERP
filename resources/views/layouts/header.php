@@ -1,6 +1,6 @@
 <?php
 /**
- * Hamro ERP — Centralized Header
+ * isoftro — Centralized Header
  * Platform Blueprint V3.0
  * 
  * This file is included in all dashboard pages to ensure consistent

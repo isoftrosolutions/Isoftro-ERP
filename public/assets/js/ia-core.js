@@ -236,6 +236,7 @@ function _iaRenderPage() {
     }
     if (nav==='fee' && sub==='setup') { window.renderFeeSetup?.(); return; }
     if (nav==='fee' && sub==='record') { window.renderFeeRecord?.(); return; }
+    if (nav==='fee' && (sub==='quick' || sub==='fee-coll')) { window.renderQuickPayment?.(urlParams.get('id') || urlParams.get('student_id')); return; }
     if (nav==='fee' && sub==='details') { window.renderFeeDetails?.(urlParams.get('receipt_no')); return; }
     if (nav==='fee' && sub==='outstanding') { window.renderFeeOutstanding?.(); return; }
     if (nav==='fee' && sub==='fin-reports') { window.renderFeeReports?.(); return; }

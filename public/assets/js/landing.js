@@ -1,5 +1,5 @@
 /**
- * Hamro Labs Academic ERP — Landing Page Interactivity
+ * isoftro Academic ERP — Landing Page Interactivity
  * Green SaaS Theme
  */
 document.addEventListener('DOMContentLoaded', () => {

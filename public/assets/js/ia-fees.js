@@ -515,24 +515,35 @@ window.renderQuickPayment = async (studentId) => {
             </div>
         `;
 
-        document.getElementById('quickPaymentForm').onsubmit = async (e) => {
-            e.preventDefault();
-            const formData = new FormData(e.target);
+        // Helper to perform the payment submission
+        const _submitPayment = async (form) => {
+            const formData = new FormData(form);
             const data = Object.fromEntries(formData.entries());
-            
-            const progress = _showProgressModal(
-                'Processing Payment', 
-                'Please wait while we secure your transaction and prepare your receipt.',
-                ['Recording Payment', 'Generating PDF Receipt', 'Sending Email to Student']
-            );
+
+            const btn = form.querySelector('button[type="submit"]');
+            const orig = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Initializing...';
+
+            const modalData = {
+                studentName: student.name,
+                amount: getCurrencySymbol() + parseFloat(data.amount).toLocaleString(),
+                method: data.payment_mode.charAt(0).toUpperCase() + data.payment_mode.slice(1).replace('_', ' ')
+            };
+
+            const restoreBtn = () => { btn.disabled = false; btn.innerHTML = orig; };
+
+            // Step 1: Open the modal (with double-click guard)
+            if (window.PaymentProcessor) {
+                if (!window.PaymentProcessor.open(modalData)) {
+                    restoreBtn();
+                    return; // Already running, ignore
+                }
+            }
 
             try {
-                // Phase 1: Contacting Server
-                progress.updateStep(0, 'active');
-                progress.updateProgress(10);
-                
-                let isFinished = false;
-                const apiPromise = _safeFetch(`${window.APP_URL}/api/admin/fees`, {
+                // Step 1 is visible — make the actual API call
+                const result = await _safeFetch(`${window.APP_URL}/api/admin/fees`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -546,50 +557,55 @@ window.renderQuickPayment = async (studentId) => {
                     })
                 });
 
-                // Simulate "Smooth" Progress across steps while waiting
-                const animateProgress = async () => {
-                    if (isFinished) return;
-                    
-                    // Step 1 (~1.5s)
-                    await new Promise(r => setTimeout(r, 1200));
-                    if (isFinished) return;
-                    progress.updateStep(0, 'completed');
-                    progress.updateStep(1, 'active');
-                    progress.updateProgress(45);
-                    
-                    // Step 2 (~2.5s)
-                    await new Promise(r => setTimeout(r, 2500));
-                    if (isFinished) return;
-                    progress.updateStep(1, 'completed');
-                    progress.updateStep(2, 'active');
-                    progress.updateProgress(80);
-                };
-
-                // Start animation and wait for API
-                animateProgress();
-                const result = await apiPromise;
-                isFinished = true;
-
-                if (result.success) {
-                    // Force complete all steps
-                    for(let i=0; i<3; i++) progress.updateStep(i, 'completed');
-                    progress.updateProgress(100);
-                    
-                    setTimeout(() => {
-                        progress.close();
-                        _showToast('Payment recorded and receipt sent!', 'success');
-                        goNav('fee', 'details', { receipt_no: result.data.receipt_no });
-                    }, 600);
-                } else {
-                    progress.close();
-                    Swal.fire('Payment Error', result.message, 'error');
+                if (!result.success) {
+                    throw new Error(result.message || 'Payment failed');
                 }
+
+                const d = result.data;
+
+                if (window.PaymentProcessor) {
+                    // Step 2: Generating receipt PDF (cosmetic)
+                    await window.PaymentProcessor.goToStep(2);
+                    await new Promise(r => setTimeout(r, 800));
+
+                    // Step 3: Sending to student (cosmetic)
+                    await window.PaymentProcessor.goToStep(3);
+                    await new Promise(r => setTimeout(r, 600));
+
+                    // Success screen with real data
+                    await window.PaymentProcessor.showSuccess({
+                        studentName: student.name,
+                        amount: getCurrencySymbol() + parseFloat(data.amount).toLocaleString(),
+                        method: data.payment_mode.charAt(0).toUpperCase() + data.payment_mode.slice(1).replace('_', ' '),
+                        txnId: (d.transaction_ids && d.transaction_ids[0]) || 'TXN-' + Math.random().toString(36).substr(2, 9).toUpperCase(),
+                        downloadUrl: `${window.APP_URL}/api/admin/fees?action=generate_receipt_html&is_pdf=1&receipt_no=${d.receipt_no}`
+                    });
+                } else {
+                    _showToast('Payment recorded successfully!', 'success');
+                    goNav('fee', 'record');
+                }
+
+                restoreBtn();
+
             } catch (err) {
-                isFinished = true;
-                console.error(err);
-                progress.close();
-                Swal.fire('Error', 'An error occurred during synchronization. Please check your internet and try again.', 'error');
+                console.error('[ia-fees] Payment error:', err);
+
+                if (window.PaymentProcessor) {
+                    window.PaymentProcessor.showError(
+                        err.message || 'An unexpected error occurred. Please try again.',
+                        () => _submitPayment(form) // Retry callback
+                    );
+                } else {
+                    Swal.fire('Error', err.message || 'An unexpected error occurred.', 'error');
+                }
+
+                restoreBtn();
             }
+        };
+
+        document.getElementById('quickPaymentForm').onsubmit = (e) => {
+            e.preventDefault();
+            _submitPayment(e.target);
         };
 
     } catch (error) {
@@ -1296,7 +1312,7 @@ async function _autoSelectStudent(id) {
             const s = Array.isArray(result.data) ? result.data[0] : result.data;
             if (s) {
                 // Mapping field names if they differ
-                const name = u.name || s.name;
+                const name = s.name || s.full_name;
                 const course = s.course_name || '';
                 const batch = s.batch_name || '';
                 _selectStudent(s.id, name, course, batch);

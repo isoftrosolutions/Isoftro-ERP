@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Payment Processing Modal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --p: #00b894;
+            --p-d: #009e7e;
+            --p-lt: rgba(0, 184, 148, 0.1);
+            --bg-overlay: rgba(15, 23, 42, 0.4);
+            --text-main: #1e293b;
+            --text-sub: #475569;
+            --text-muted: #94a3b8;
+            --glass: rgba(255, 255, 255, 0.9);
+            --sh-p: 0 40px 100px -20px rgba(0, 0, 0, 0.15);
+            --trans: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            --rad: 24px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', 'Poppins', sans-serif;
+        }
+
+        body {
+            background: #f1f5f9;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Background Page Content (Simulated) */
+        .page-content {
+            text-align: center;
+            transition: filter 0.5s ease;
+        }
+
+        .page-content.blurred {
+            filter: blur(8px);
+            pointer-events: none;
+        }
+
+        /* Modal System */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: var(--bg-overlay);
+            backdrop-filter: blur(12px);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .modal-card {
+            background: #fff;
+            width: 100%;
+            max-width: 500px;
+            border-radius: var(--rad);
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--sh-p);
+            transform: scale(0.9) translateY(40px);
+            opacity: 0;
+            transition: var(--trans);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-overlay.active .modal-card {
+            transform: scale(1) translateY(0);
+            opacity: 1;
+        }
+
+        /* Modal Header */
+        .modal-header {
+            padding: 32px 32px 20px;
+            text-align: center;
+        }
+
+        .modal-title {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--text-main);
+            margin-bottom: 8px;
+        }
+
+        .modal-subtitle {
+            font-size: 14px;
+            color: var(--text-sub);
+            font-weight: 500;
+        }
+
+        /* Steps Indicator */
+        .steps-wrapper {
+            padding: 0 40px 32px;
+            display: flex;
+            justify-content: space-between;
+            position: relative;
+        }
+
+        .steps-wrapper::before {
+            content: '';
+            position: absolute;
+            top: 20px;
+            left: 55px;
+            right: 55px;
+            height: 3px;
+            background: #e2e8f0;
+            z-index: 0;
+        }
+
+        .step-item {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+        }
+
+        .step-icon {
+            width: 44px;
+            height: 44px;
+            background: #fff;
+            border: 3px solid #e2e8f0;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: var(--text-muted);
+            transition: var(--trans);
+        }
+
+        .step-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: var(--trans);
+        }
+
+        /* Active Step */
+        .step-item.active .step-icon {
+            border-color: var(--p);
+            color: var(--p);
+            box-shadow: 0 0 0 6px var(--p-lt);
+            animation: pulse 2s infinite;
+        }
+
+        .step-item.active .step-label {
+            color: var(--p);
+        }
+
+        /* Completed Step */
+        .step-item.completed .step-icon {
+            background: var(--p);
+            border-color: var(--p);
+            color: #fff;
+        }
+
+        .step-item.completed .step-label {
+            color: var(--text-main);
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0px var(--p-lt); }
+            70% { box-shadow: 0 0 0 10px rgba(0, 184, 148, 0); }
+            100% { box-shadow: 0 0 0 0px rgba(0, 184, 148, 0); }
+        }
+
+        /* Content Area */
+        .modal-body {
+            padding: 0 40px 40px;
+            text-align: center;
+            min-height: 220px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .step-content {
+            display: none;
+            width: 100%;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .step-content.active {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Animations */
+        .loader-icon {
+            font-size: 48px;
+            color: var(--p);
+            margin-bottom: 24px;
+        }
+
+        .dot-bricks {
+            position: relative;
+            width: 10px;
+            height: 10px;
+            border-radius: 5px;
+            background-color: var(--p);
+            color: var(--p);
+            box-shadow: -15px 0 0 0 var(--p);
+            animation: dot-bricks 2s infinite ease;
+            margin-bottom: 30px;
+        }
+
+        @keyframes dot-bricks {
+            0% { box-shadow: -15px 0 0 0 var(--p); }
+            8.33% { box-shadow: 0 -15px 0 0 var(--p); }
+            16.66% { box-shadow: 15px 0 0 0 var(--p); }
+            25% { box-shadow: 0 15px 0 0 var(--p); }
+            33.33% { box-shadow: -15px 0 0 0 var(--p); }
+            41.66% { box-shadow: 0 -15px 0 0 var(--p); }
+            50% { box-shadow: 15px 0 0 0 var(--p); }
+            58.33% { box-shadow: 0 15px 0 0 var(--p); }
+            66.66% { box-shadow: -15px 0 0 0 var(--p); }
+            75% { box-shadow: 0 -15px 0 0 var(--p); }
+            83.33% { box-shadow: 15px 0 0 0 var(--p); }
+            91.66% { box-shadow: 0 15px 0 0 var(--p); }
+            100% { box-shadow: -15px 0 0 0 var(--p); }
+        }
+
+        /* Progress Bar for Step 2 */
+        .progress-bar-container {
+            width: 100%;
+            height: 8px;
+            background: #f1f5f9;
+            border-radius: 10px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--p-d), var(--p));
+            width: 0%;
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+
+        /* Success State */
+        .success-icon {
+            width: 90px;
+            height: 90px;
+            background: linear-gradient(135deg, var(--p), var(--p-d));
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 40px;
+            margin-bottom: 24px;
+            box-shadow: 0 20px 40px -10px rgba(0, 184, 148, 0.4);
+            animation: successScale 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes successScale {
+            from { transform: scale(0); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .summary-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 20px;
+            width: 100%;
+            padding: 24px;
+            margin-top: 24px;
+            text-align: left;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .summary-row:last-child {
+            margin-bottom: 0;
+            padding-top: 12px;
+            border-top: 1px dashed #cbd5e1;
+        }
+
+        .summary-label {
+            font-size: 13px;
+            color: var(--text-sub);
+            font-weight: 500;
+        }
+
+        .summary-value {
+            font-size: 13px;
+            color: var(--text-main);
+            font-weight: 700;
+        }
+
+        .summary-value.amount {
+            font-size: 16px;
+            color: var(--p-d);
+        }
+
+        /* Actions */
+        .modal-actions {
+            padding: 0 40px 40px;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 14px 24px;
+            border-radius: 14px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--trans);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            border: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--p-d), var(--p));
+            color: #fff;
+            box-shadow: 0 10px 20px -5px rgba(0, 184, 148, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 25px -5px rgba(0, 184, 148, 0.4);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--text-sub);
+            border: 2px solid #e2e8f0;
+        }
+
+        .btn-outline:hover {
+            background: #f8fafc;
+            border-color: #cbd5e1;
+            color: var(--text-main);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        /* Floating Animation */
+        .floating-doc {
+            animation: floating 3s ease-in-out infinite;
+        }
+
+        @keyframes floating {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* Pulse for Email */
+        .envelope-send {
+            position: relative;
+        }
+
+        .plane-anim {
+            position: absolute;
+            top: 0;
+            right: 0;
+            font-size: 20px;
+            color: var(--p);
+            animation: planeFly 2s infinite linear;
+        }
+
+        @keyframes planeFly {
+            0% { transform: translate(-20px, 20px) scale(0); opacity: 0; }
+            50% { transform: translate(10px, -10px) scale(1.2); opacity: 1; }
+            100% { transform: translate(40px, -40px) scale(0); opacity: 0; }
+        }
+
+        /* Close Button after Success */
+        .close-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 32px;
+            height: 32px;
+            border-radius: 10px;
+            background: #f1f5f9;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--text-sub);
+            transition: var(--trans);
+        }
+
+        .close-btn:hover {
+            background: #e2e8f0;
+            color: var(--text-main);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="page-content" id="pageContent">
+        <h1 style="color: #64748b; margin-bottom: 20px;">Main ERP Dashboard</h1>
+        <button class="btn btn-primary" onclick="openPaymentModal()" style="width: auto; margin: 0 auto;">Process Payment</button>
+    </div>
+
+    <!-- Modal Overlay -->
+    <div class="modal-overlay" id="paymentModalOverlay">
+        <div class="modal-card" id="paymentModalCard">
+            <div class="close-btn" id="modalCloseBtn" onclick="closePaymentModal()">
+                <i class="fas fa-times"></i>
+            </div>
+
+            <!-- Header -->
+            <div class="modal-header" id="modalHeader">
+                <h2 class="modal-title" id="mainTitle">Processing Payment</h2>
+                <p class="modal-subtitle" id="mainSubtitle">Please wait while we finalize the transaction</p>
+            </div>
+
+            <!-- Steps -->
+            <div class="steps-wrapper" id="stepsIndicator">
+                <div class="step-item active" id="step1">
+                    <div class="step-icon">
+                        <i class="fas fa-wallet"></i>
+                    </div>
+                    <span class="step-label">Record</span>
+                </div>
+                <div class="step-item" id="step2">
+                    <div class="step-icon">
+                        <i class="fas fa-file-invoice"></i>
+                    </div>
+                    <span class="step-label">Generate</span>
+                </div>
+                <div class="step-item" id="step3">
+                    <div class="step-icon">
+                        <i class="fas fa-paper-plane"></i>
+                    </div>
+                    <span class="step-label">Send</span>
+                </div>
+            </div>
+
+            <!-- Body -->
+            <div class="modal-body">
+                <!-- Step 1 Content -->
+                <div class="step-content active" id="content1">
+                    <div class="dot-bricks"></div>
+                    <p style="font-weight: 600; color: var(--text-main);">Recording payment details securely...</p>
+                    <p style="font-size: 13px; color: var(--text-muted); margin-top: 8px;">Syncing with global servers</p>
+                </div>
+
+                <!-- Step 2 Content -->
+                <div class="step-content" id="content2">
+                    <div class="loader-icon floating-doc">
+                        <i class="fas fa-file-pdf"></i>
+                    </div>
+                    <p style="font-weight: 600; color: var(--text-main);">Generating receipt PDF...</p>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar-fill" id="pdfProgressBar"></div>
+                    </div>
+                    <p style="font-size: 13px; color: var(--text-muted);">Attaching high-security signatures</p>
+                </div>
+
+                <!-- Step 3 Content -->
+                <div class="step-content" id="content3">
+                    <div class="loader-icon envelope-send">
+                        <i class="fas fa-envelope-open-text"></i>
+                        <i class="fas fa-paper-plane plane-anim"></i>
+                    </div>
+                    <p style="font-weight: 600; color: var(--text-main);">Sending receipt to student email...</p>
+                    <p style="font-size: 13px; color: var(--text-muted); margin-top: 8px;">Checking network connection</p>
+                </div>
+
+                <!-- Final Success Content -->
+                <div class="step-content" id="successContent">
+                    <div class="success-icon">
+                        <i class="fas fa-check"></i>
+                    </div>
+                    <h2 class="modal-title" style="font-size: 26px;">Payment Successful!</h2>
+                    <p class="modal-subtitle">Payment recorded and receipt sent successfully.</p>
+
+                    <div class="summary-card">
+                        <div class="summary-row">
+                            <span class="summary-label">Student Name</span>
+                            <span class="summary-value" id="resStudent">Abhishek Sharma</span>
+                        </div>
+                        <div class="summary-row">
+                            <span class="summary-label">Payment Method</span>
+                            <span class="summary-value" id="resMethod">E-Sewa Mobile Wallet</span>
+                        </div>
+                        <div class="summary-row">
+                            <span class="summary-label">Transaction ID</span>
+                            <span class="summary-value" id="resTxn">TXN-9485720491</span>
+                        </div>
+                        <div class="summary-row">
+                            <span class="summary-label">Amount Paid</span>
+                            <span class="summary-value amount" id="resAmount">Rs. 12,500.00</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer Actions -->
+            <div class="modal-actions" id="modalActions" style="display: none;">
+                <button class="btn btn-primary">
+                    <i class="fas fa-download"></i> Download Receipt
+                </button>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <button class="btn btn-outline">
+                        <i class="fas fa-list"></i> Records
+                    </button>
+                    <button class="btn btn-outline" style="background: var(--text-main); color: #fff; border: none;" onclick="closePaymentModal()">
+                        Done
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const overlay = document.getElementById('paymentModalOverlay');
+        const card = document.getElementById('paymentModalCard');
+        const pageContent = document.getElementById('pageContent');
+        const closeBtn = document.getElementById('modalCloseBtn');
+        const actions = document.getElementById('modalActions');
+        const stepsIndicator = document.getElementById('stepsIndicator');
+        const modalHeader = document.getElementById('modalHeader');
+
+        function openPaymentModal() {
+            // Setup initial state
+            resetModal();
+            
+            // Open animation
+            overlay.classList.add('active');
+            pageContent.classList.add('blurred');
+            document.body.style.overflow = 'hidden'; // Disable scroll
+
+            // Start processing flow
+            startProcess();
+        }
+
+        function closePaymentModal() {
+            overlay.classList.remove('active');
+            pageContent.classList.remove('blurred');
+            document.body.style.overflow = 'auto';
+        }
+
+        function resetModal() {
+            // Hide all content blocks
+            document.querySelectorAll('.step-content').forEach(c => c.classList.remove('active'));
+            document.getElementById('content1').classList.add('active');
+            
+            // Reset steps
+            document.querySelectorAll('.step-item').forEach(s => {
+                s.classList.remove('active', 'completed');
+            });
+            document.getElementById('step1').classList.add('active');
+
+            // Reset UI elements
+            actions.style.display = 'none';
+            closeBtn.style.display = 'none';
+            stepsIndicator.style.display = 'flex';
+            modalHeader.style.display = 'block';
+            document.getElementById('pdfProgressBar').style.width = '0%';
+        }
+
+        async function startProcess() {
+            // Step 1: Record (Delayed for 2s)
+            await wait(2000);
+            completeStep(1);
+            setActiveStep(2);
+
+            // Step 2: Generate PDF (Simulate progress bar)
+            await simulateProgress('pdfProgressBar', 1500);
+            completeStep(2);
+            setActiveStep(3);
+
+            // Step 3: Send (Delayed for 2s)
+            await wait(2000);
+            completeStep(3);
+            
+            // Final transition to success
+            showSuccess();
+        }
+
+        function setActiveStep(num) {
+            document.querySelectorAll('.step-content').forEach(c => c.classList.remove('active'));
+            document.getElementById('content' + num).classList.add('active');
+            
+            document.querySelectorAll('.step-item').forEach(s => s.classList.remove('active'));
+            document.getElementById('step' + num).classList.add('active');
+        }
+
+        function completeStep(num) {
+            document.getElementById('step' + num).classList.add('completed');
+        }
+
+        function showSuccess() {
+            document.querySelectorAll('.step-content').forEach(c => c.classList.remove('active'));
+            document.getElementById('successContent').classList.add('active');
+            
+            stepsIndicator.style.display = 'none';
+            modalHeader.style.display = 'none';
+            actions.style.display = 'grid';
+            closeBtn.style.display = 'flex';
+        }
+
+        function wait(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        function simulateProgress(id, duration) {
+            return new Promise(resolve => {
+                const el = document.getElementById(id);
+                let progress = 0;
+                const interval = 20; // 20ms steps
+                const step = 100 / (duration / interval);
+                
+                const timer = setInterval(() => {
+                    progress += step;
+                    if (progress >= 100) {
+                        el.style.width = '100%';
+                        clearInterval(timer);
+                        setTimeout(resolve, 200); // Small buffer
+                    } else {
+                        el.style.width = progress + '%';
+                    }
+                }, interval);
+            });
+        }
+    </script>
+</body>
+</html>

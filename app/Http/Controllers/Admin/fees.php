@@ -588,9 +588,13 @@ try {
                     try {
                         $pdfPath = ReceiptHelper::generatePdf($db, $tenantId, $transactionId, $receiptNo);
                         
-                        // Fetch student info for template
-                        $stmt = $db->prepare("SELECT u.name as name, u.email as email 
-                                            FROM students s LEFT JOIN users u ON s.user_id = u.id 
+                        // Fetch student info for template (with course/batch JOINs)
+                        $stmt = $db->prepare("SELECT u.name as name, u.email as email, s.roll_no,
+                                                     c.name as course_name, b.name as batch_name
+                                            FROM students s LEFT JOIN users u ON s.user_id = u.id
+                                            LEFT JOIN enrollments e ON s.id = e.student_id AND e.status = 'active'
+                                            LEFT JOIN batches b ON e.batch_id = b.id
+                                            LEFT JOIN courses c ON b.course_id = c.id
                                             WHERE s.id = ?");
                         $stmt->execute([$result['fee_record']['student_id']]);
                         $student = $stmt->fetch();
@@ -599,9 +603,17 @@ try {
                             $sent = MailHelper::sendPaymentReceiptEmail($db, $tenantId, [
                                 'transaction_id' => $transactionId,
                                 'receipt_no' => $receiptNo,
+                                'student_id' => $result['fee_record']['student_id'],
                                 'student_name' => $student['name'],
                                 'email' => $student['email'],
-                                'amount_due' => $result['fee_record']['amount_due'] - $result['fee_record']['amount_paid']
+                                'roll_no' => $student['roll_no'] ?? '',
+                                'course_name' => $student['course_name'] ?? '',
+                                'batch_name' => $student['batch_name'] ?? '',
+                                'amount' => $result['amount_paid'] ?? 0,
+                                'amount_due' => (float)$result['fee_record']['amount_due'] - (float)$result['fee_record']['amount_paid'],
+                                'paid_date' => date('Y-m-d'),
+                                'payment_mode' => $result['payment_method'] ?? 'cash',
+                                'login_url' => (defined('APP_URL') ? APP_URL : '') . '/?page=login'
                             ], $pdfPath);
                             $emailStatus = $sent ? 'sent' : 'failed';
                         }
@@ -670,9 +682,13 @@ try {
                     try {
                         $pdfPath = ReceiptHelper::generatePdf($db, $tenantId, $transactionId, $receiptNo);
                         
-                        // Fetch student info 
-                        $stmt = $db->prepare("SELECT u.name as name, u.email as email 
-                                            FROM students s LEFT JOIN users u ON s.user_id = u.id 
+                        // Fetch student info (with course/batch JOINs)
+                        $stmt = $db->prepare("SELECT u.name as name, u.email as email, s.roll_no,
+                                                     c.name as course_name, b.name as batch_name
+                                            FROM students s LEFT JOIN users u ON s.user_id = u.id
+                                            LEFT JOIN enrollments e ON s.id = e.student_id AND e.status = 'active'
+                                            LEFT JOIN batches b ON e.batch_id = b.id
+                                            LEFT JOIN courses c ON b.course_id = c.id
                                             WHERE s.id = ?");
                         $stmt->execute([$data['student_id']]);
                         $student = $stmt->fetch();
@@ -681,9 +697,17 @@ try {
                             $sent = MailHelper::sendPaymentReceiptEmail($db, $tenantId, [
                                 'transaction_id' => $transactionId,
                                 'receipt_no' => $receiptNo,
+                                'student_id' => $data['student_id'],
                                 'student_name' => $student['name'],
                                 'email' => $student['email'],
-                                'amount_due' => 0 // Simple assumption for bulk success
+                                'roll_no' => $student['roll_no'] ?? '',
+                                'course_name' => $student['course_name'] ?? '',
+                                'batch_name' => $student['batch_name'] ?? '',
+                                'amount' => $result['amount_paid'] ?? 0,
+                                'amount_due' => 0,
+                                'paid_date' => date('Y-m-d'),
+                                'payment_mode' => $data['payment_mode'] ?? ($result['payment_method'] ?? 'cash'),
+                                'login_url' => (defined('APP_URL') ? APP_URL : '') . '/?page=login'
                             ], $pdfPath);
                             $emailStatus = $sent ? 'sent' : 'failed';
                         }

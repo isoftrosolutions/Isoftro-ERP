@@ -19,6 +19,7 @@ $sidebarConfig = getFDSidebarConfig();
 $badges = []; // We can add a function to fetch badges later
 
 // Internal Front Desk Components
+require_once VIEWS_PATH . '/components/payment-processing-modal.php';
 ?>
 
 <!-- ── PREMIUM SIDEBAR ── -->

@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Hamro Labs Academic ERP — Cloud-Based Institute Management for Nepal</title>
-  <meta name="description" content="Hamro Labs Academic ERP is a multi-tenant, cloud-based academic management platform built for schools, colleges, and coaching centers in Nepal.">
+  <title>iSoftro Academic ERP — Cloud-Based Institute Management for Nepal</title>
+  <meta name="description" content="isoftro Academic ERP is a multi-tenant, cloud-based academic management platform built for schools, colleges, and coaching centers in Nepal.">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -20,8 +20,8 @@
 <nav class="l-navbar" id="lNavbar">
   <div class="landing-container l-navbar__inner">
     <a href="#hero" class="l-navbar__brand">
-      <img src="<?= $BASE ?>/public/assets/images/logo.png" alt="Hamro Labs">
-      <span>Hamro Labs</span>
+      <img src="<?= $BASE ?>/public/assets/images/logo.png" alt="isoftro">
+      <span>isoftro</span>
     </a>
     <div class="l-navbar__links" id="navLinks">
       <a href="#about">About</a>
@@ -59,7 +59,7 @@
   <div class="landing-container l-hero__content">
     <div class="l-hero__text">
       <h1 class="l-hero__title">We provide comprehensive academic ERP software for academic institutions</h1>
-      <p class="l-hero__subtitle">Hamro Labs Academic ERP — the most powerful & comprehensive ERP solution for managing your academic institutions smartly. We provide 25+ modules with role-based dashboards for Admin, Students, Teachers, and Parents.</p>
+      <p class="l-hero__subtitle">isoftro Academic ERP — the most powerful & comprehensive ERP solution for managing your academic institutions smartly. We provide 25+ modules with role-based dashboards for Admin, Students, Teachers, and Parents.</p>
       <div class="l-hero__actions">
         <a href="#contact" class="btn btn--white btn--large"><i class="fa-solid fa-calendar-check"></i> Request a Demo</a>
         <a href="#modules" class="btn btn--white-outline btn--large"><i class="fa-solid fa-phone"></i> Contact Us</a>
@@ -124,7 +124,7 @@
         <div class="l-hero__phone">
           <div class="l-hero__phone-screen">
             <div style="background:#006D44;padding:8px;border-radius:10px 10px 0 0;">
-              <div style="font-size:6px;color:#fff;font-weight:700;">Hamro Labs</div>
+              <div style="font-size:6px;color:#fff;font-weight:700;">isoftro</div>
             </div>
             <div style="padding:6px;flex:1;">
               <div style="font-size:5px;font-weight:700;color:#004D30;margin-bottom:4px;">Dashboard</div>
@@ -199,7 +199,7 @@
     <div class="l-about__text reveal">
       <span class="section-badge section-badge--green"><i class="fa-solid fa-info-circle"></i> About Us</span>
       <h2 class="section-title">Automate school management through academic ERP software</h2>
-      <p class="l-about__desc">Hamro Labs Academic ERP helps your institution digitize academics, administration, and communication — all from one single platform. Built specifically for Nepal's educational landscape.</p>
+      <p class="l-about__desc">isoftro Academic ERP helps your institution digitize academics, administration, and communication — all from one single platform. Built specifically for Nepal's educational landscape.</p>
       <div class="l-about__list">
         <div class="l-about__list-item"><i class="fa-solid fa-check"></i> Multi-tenant cloud-based architecture</div>
         <div class="l-about__list-item"><i class="fa-solid fa-check"></i> 25+ integrated modules</div>
@@ -293,8 +293,8 @@
   </div>
   <div class="landing-container">
     <div class="l-why__header reveal">
-      <span class="section-badge section-badge--white"><i class="fa-solid fa-heart"></i> Why Hamro Labs</span>
-      <h2 class="section-title" style="color:#fff;">Why Hamro Labs ERP for Your Institution?</h2>
+      <span class="section-badge section-badge--white"><i class="fa-solid fa-heart"></i> Why isoftro</span>
+      <h2 class="section-title" style="color:#fff;">Why isoftro ERP for Your Institution?</h2>
       <p class="section-subtitle mx-auto" style="color:rgba(255,255,255,0.75);">Academic ERP offers many benefits such as faster workflow, better visibility, lower costs, and more. Here are five main advantages.</p>
     </div>
     <div class="l-why__grid">
@@ -333,7 +333,7 @@
     <div class="l-steps__header reveal">
       <span class="section-badge section-badge--green"><i class="fa-solid fa-route"></i> How It Works</span>
       <h2 class="section-title">Go Live in 4 Simple Steps</h2>
-      <p class="section-subtitle mx-auto">From signup to full automation — your institute can be running on Hamro Labs in under a week.</p>
+      <p class="section-subtitle mx-auto">From signup to full automation — your institute can be running on isoftro in under a week.</p>
     </div>
     <div class="l-steps__timeline">
       <div class="step-card reveal reveal-delay-1">
@@ -500,7 +500,7 @@
   <div class="landing-container">
     <div class="l-pricing__header reveal">
       <span class="section-badge section-badge--green"><i class="fa-solid fa-tags"></i> Pricing Strategy</span>
-      <h2 class="section-title">Hamro Labs Academic ERP — Pricing Strategy</h2>
+      <h2 class="section-title">isoftro Academic ERP — Pricing Strategy</h2>
       <p class="section-subtitle mx-auto">Choose the perfect plan for your institution's growth.</p>
     </div>
     
@@ -646,7 +646,7 @@
       </div>
       <div class="testimonial-card reveal reveal-delay-3">
         <div class="testimonial-card__stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
-        <p class="testimonial-card__quote">"We manage 3 branches from one dashboard. Hamro Labs gave us the centralized control we needed to scale."</p>
+        <p class="testimonial-card__quote">"We manage 3 branches from one dashboard. isoftro gave us the centralized control we needed to scale."</p>
         <div class="testimonial-card__author">
           <div class="testimonial-card__avatar" style="background:linear-gradient(135deg,#006D44,#004D30);">BG</div>
           <div><div class="testimonial-card__name">Bikash Gurung</div><div class="testimonial-card__role">CEO, Nepal Career Institute Group</div></div>
@@ -665,7 +665,7 @@
       <p class="section-subtitle mx-auto">Everything you need to know before getting started.</p>
     </div>
     <div class="l-faq__list">
-      <div class="faq-item reveal"><div class="faq-item__question"><span>Where is the data hosted? Do I need my own server?</span><i class="fa-solid fa-chevron-down faq-item__icon"></i></div><div class="faq-item__answer"><div class="faq-item__answer-inner">No server needed. Hamro Labs is 100% cloud-hosted with enterprise-grade encryption and daily automated backups.</div></div></div>
+      <div class="faq-item reveal"><div class="faq-item__question"><span>Where is the data hosted? Do I need my own server?</span><i class="fa-solid fa-chevron-down faq-item__icon"></i></div><div class="faq-item__answer"><div class="faq-item__answer-inner">No server needed. isoftro is 100% cloud-hosted with enterprise-grade encryption and daily automated backups.</div></div></div>
       <div class="faq-item reveal"><div class="faq-item__question"><span>How secure is my institute's data?</span><i class="fa-solid fa-chevron-down faq-item__icon"></i></div><div class="faq-item__answer"><div class="faq-item__answer-inner">We use AES-256 encryption at rest, TLS 1.3 in transit, plus role-based access controls. Automated backups with 30-day retention.</div></div></div>
       <div class="faq-item reveal"><div class="faq-item__question"><span>Can I customize the system for my institute?</span><i class="fa-solid fa-chevron-down faq-item__icon"></i></div><div class="faq-item__answer"><div class="faq-item__answer-inner">Yes! Growth and Professional plans support custom fields, grading schemas, fee structures, and report templates.</div></div></div>
       <div class="faq-item reveal"><div class="faq-item__question"><span>We use paper registers. How do we migrate?</span><i class="fa-solid fa-chevron-down faq-item__icon"></i></div><div class="faq-item__answer"><div class="faq-item__answer-inner">Our onboarding team handles migration. We provide templates for bulk import — most institutes go live in 3–5 days.</div></div></div>
@@ -681,7 +681,7 @@
       <div class="l-app-promo__phone">
         <div class="l-app-promo__phone-screen">
           <div style="background:#006D44;padding:10px;text-align:center;border-radius:14px 14px 0 0;">
-            <div style="font-size:7px;color:#fff;font-weight:700;">Hamro Labs</div>
+            <div style="font-size:7px;color:#fff;font-weight:700;">isoftro</div>
           </div>
           <div style="padding:8px;flex:1;">
             <div style="font-size:6px;font-weight:700;color:#004D30;margin-bottom:6px;">Dashboard</div>
@@ -730,13 +730,13 @@
     <div class="reveal">
       <span class="section-badge section-badge--green"><i class="fa-solid fa-rocket"></i> Get Started</span>
       <h2 class="l-cta__title">Ready to Transform Your Institute?</h2>
-      <p class="l-cta__desc">Join 150+ institutes across Nepal that have already digitized their operations with Hamro Labs Academic ERP.</p>
+      <p class="l-cta__desc">Join 150+ institutes across Nepal that have already digitized their operations with isoftro Academic ERP.</p>
       <div class="l-cta__actions">
-        <a href="mailto:demo@hamrolabs.com?subject=Demo Request" class="btn btn--primary btn--large"><i class="fa-solid fa-calendar-check"></i> Request a Demo</a>
+        <a href="mailto:demo@isoftro.com?subject=Demo Request" class="btn btn--primary btn--large"><i class="fa-solid fa-calendar-check"></i> Request a Demo</a>
         <a href="#pricing" class="btn btn--outline btn--large"><i class="fa-solid fa-tags"></i> View Pricing</a>
       </div>
       <div class="l-cta__contact">
-        <a href="mailto:info@hamrolabs.com"><i class="fa-solid fa-envelope"></i> info@hamrolabs.com</a>
+        <a href="mailto:info@isoftro.com"><i class="fa-solid fa-envelope"></i> info@isoftro.com</a>
         <a href="tel:+977-01-5970467"><i class="fa-solid fa-phone"></i> +977-01-5970467</a>
         <a href="#"><i class="fa-solid fa-location-dot"></i> Kathmandu, Nepal</a>
       </div>
@@ -750,8 +750,8 @@
     <div class="l-footer__grid">
       <div class="l-footer__brand">
         <div class="l-footer__brand-name">
-          <img src="<?= $BASE ?>/public/assets/images/logo.png" alt="Hamro Labs">
-          <span>Hamro Labs</span>
+          <img src="<?= $BASE ?>/public/assets/images/logo.png" alt="isoftro">
+          <span>isoftro</span>
         </div>
         <p>The most effective academic ERP solution for schools and colleges. A single system to manage admissions, academics, and administration.</p>
       </div>
@@ -776,13 +776,13 @@
         <div class="l-footer__col-title">Information</div>
         <div class="l-footer__links">
           <a href="tel:+977-01-5970467"><i class="fa-solid fa-phone" style="margin-right:6px;"></i> +977-01-5970467</a>
-          <a href="mailto:info@hamrolabs.com"><i class="fa-solid fa-envelope" style="margin-right:6px;"></i> info@hamrolabs.com</a>
+          <a href="mailto:info@isoftro.com"><i class="fa-solid fa-envelope" style="margin-right:6px;"></i> info@isoftro.com</a>
           <a href="#"><i class="fa-solid fa-location-dot" style="margin-right:6px;"></i> Kathmandu, Nepal</a>
         </div>
       </div>
     </div>
     <div class="l-footer__bottom">
-      <span>&copy; <?= date('Y') ?> Hamro Labs Pvt. Ltd. All rights reserved.</span>
+      <span>&copy; <?= date('Y') ?> isoftro Pvt. Ltd. All rights reserved.</span>
       <div class="l-footer__social">
         <a href="#" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
         <a href="#" aria-label="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>

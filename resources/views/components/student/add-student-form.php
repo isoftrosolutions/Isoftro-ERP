@@ -153,6 +153,61 @@ $initialMode = $initialMode ?? null; // 'new' or 'existing'
 @keyframes scaleIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
 .hidden-section { display: none; }
+
+/* Custom Validation Styles */
+.f-grp.error .fi { border-color: var(--a); background: #fff1f2; box-shadow: 0 0 0 5px rgba(255, 118, 117, 0.1); }
+.f-grp.error .f-lbl { color: var(--a); }
+.f-grp.error i { color: var(--a); }
+.err-msg { color: var(--a); font-size: 11px; font-weight: 700; margin-top: 6px; margin-left: 4px; display: none; animation: shake 0.4s ease-in-out; }
+.f-grp.error .err-msg { display: block; }
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-4px); }
+    75% { transform: translateX(4px); }
+}
+
+/* Breadcrumb Styling */
+.bc { display: flex; align-items: center; gap: 8px; margin-bottom: 20px; font-size: 13px; font-weight: 600; color: #94a3b8; }
+.bc a { color: #64748b; text-decoration: none; transition: var(--trans); }
+.bc a:hover { color: var(--p); }
+.bc-sep { font-size: 16px; opacity: 0.5; }
+.bc-cur { color: var(--p); }
+.bc-cur { color: var(--p); }
+
+/* Premium Success Modal System */
+.m-overlay { 
+    position: fixed; inset: 0; background: rgba(15, 23, 42, 0.4); 
+    z-index: 99999; display: none; align-items: center; justify-content: center; 
+    padding: 2rem; opacity: 0; transition: all 0.4s ease; backdrop-filter: blur(0px); 
+}
+.m-overlay.active { opacity: 1; backdrop-filter: blur(12px); pointer-events: auto; }
+
+.m-card { 
+    background: #fff; border-radius: 32px; padding: clamp(2rem, 5vw, 3.5rem); 
+    max-width: 550px; width: 100%; box-shadow: 0 40px 100px -20px rgba(0,0,0,0.3); 
+    text-align: center; transform: scale(0.85) translateY(40px); opacity: 0; transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); 
+}
+.m-overlay.active .m-card { transform: scale(1) translateY(0); opacity: 1; }
+
+.m-ico { 
+    width: 84px; height: 84px; border-radius: 24px; display: flex; align-items: center; 
+    justify-content: center; font-size: 32px; color: #fff; margin: 0 auto 2rem; 
+    box-shadow: 0 20px 40px -10px rgba(0, 184, 148, 0.4); 
+}
+
+/* Credentials Premium Box */
+.cred-box { 
+    background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 20px; 
+    padding: 1.5rem; text-align: left; margin-top: 1.5rem; position: relative; overflow: hidden; 
+}
+.cred-box::before { 
+    content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--p); 
+}
+.cred-title { font-size: 11px; font-weight: 800; color: var(--p); margin-bottom: 12px; letter-spacing: 0.05em; text-transform: uppercase; }
+.cred-line { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; font-size: 14px; font-weight: 600; color: #1e293b; }
+.cred-line span { opacity: 0.5; width: 70px; font-weight: 700; color: #64748b; }
+.cred-val { font-family: 'JetBrains Mono', 'Courier New', monospace; background: #fff; padding: 4px 10px; border-radius: 8px; border: 1px solid #e2e8f0; font-size: 13px; color: var(--p); }
 </style>
 
 <!-- Main Admission Form Container -->
@@ -161,18 +216,24 @@ $initialMode = $initialMode ?? null; // 'new' or 'existing'
 <div class="pg">
 
     <!-- Standard Header with Breadcrumb Integration -->
+    <div class="bc">
+        <a href="<?= APP_URL ?>/dash/front-desk/index">Dashboard</a>
+        <span class="bc-sep">&rsaquo;</span>
+        <a href="<?= $viewAllStudentsUrl ?>">Students</a>
+        <span class="bc-sep">&rsaquo;</span>
+        <span class="bc-cur"><?= htmlspecialchars($pageTitle) ?></span>
+    </div>
+
     <div class="pg-head" style="background: none; border: none; padding: 0; margin-bottom: clamp(1rem, 3dvh, 1.5rem);">
         <div class="pg-left">
             <div class="pg-ico"><i class="fas fa-user-plus"></i></div>
             <div>
                 <h1 class="pg-title"><?= htmlspecialchars($pageTitle) ?></h1>
-               
             </div>
         </div>
-       
     </div>
 
-    <form id="<?= $formId ?>" onsubmit="handleAdmissionSubmit_<?= $componentId ?>(event)">
+    <form id="<?= $formId ?>" onsubmit="handleAdmissionSubmit_<?= $componentId ?>(event)" novalidate>
         <div id="studentProfileSections_<?= $componentId ?>">
             <!-- Section 1: Academic High Priority -->
             <div class="sc-adm callout-p">
@@ -182,19 +243,21 @@ $initialMode = $initialMode ?? null; // 'new' or 'existing'
                         <label class="f-lbl req">Target Course</label>
                         <div class="ipt-box">
                             <i class="fas fa-award"></i>
-                            <select id="<?= $selCourseId ?>" class="fi fi-sel" 
+                            <select id="<?= $selCourseId ?>" name="course_id" class="fi fi-sel" required 
                                     data-fallback='<?= $coursesFallbackJson ?>'>
                                 <option value="" disabled selected>⏳ Loading courses...</option>
                             </select>
+                            <div class="err-msg">Please select a target course.</div>
                         </div>
                     </div>
                     <div class="f-grp">
                         <label class="f-lbl req">Assigned Batch</label>
                         <div class="ipt-box">
                             <i class="fas fa-clock"></i>
-                            <select id="<?= $selBatchId ?>" class="fi fi-sel" disabled>
+                            <select id="<?= $selBatchId ?>" class="fi fi-sel" disabled required>
                                 <option value="">— Select course first —</option>
                             </select>
+                            <div class="err-msg">At least one batch enrollment is required.</div>
                         </div>
                         <button type="button" class="btn bt" style="margin-top: 10px; width: auto; font-size: 12px; padding: 8px 15px;" onclick="addBatchChip_<?= $componentId ?>()">
                             <i class="fas fa-plus"></i> Add Batch
@@ -214,6 +277,7 @@ $initialMode = $initialMode ?? null; // 'new' or 'existing'
                     <div class="ipt-box">
                         <i class="fas fa-user-edit"></i>
                         <input type="text" name="full_name" class="fi" placeholder="e.g. Roshan Sharma" required>
+                        <div class="err-msg">Student name is required.</div>
                     </div>
                 </div>
                 <div class="f-grp">
@@ -221,6 +285,7 @@ $initialMode = $initialMode ?? null; // 'new' or 'existing'
                     <div class="ipt-box">
                         <i class="fas fa-mobile-screen-button"></i>
                         <input type="tel" name="contact_number" class="fi" placeholder="98XXXXXXXX" pattern="[0-9]{10}" required>
+                        <div class="err-msg">Enter a valid 10-digit mobile number.</div>
                     </div>
                 </div>
                 <div class="f-grp">
@@ -228,6 +293,7 @@ $initialMode = $initialMode ?? null; // 'new' or 'existing'
                     <div class="ipt-box">
                         <i class="fas fa-envelope"></i>
                         <input type="email" name="email" class="fi" placeholder="email@example.com" required>
+                        <div class="err-msg">Enter a valid email address.</div>
                     </div>
                 </div>
                 <div class="f-grp">
@@ -240,6 +306,7 @@ $initialMode = $initialMode ?? null; // 'new' or 'existing'
                             <option value="female">Female</option>
                             <option value="other">Other</option>
                         </select>
+                        <div class="err-msg">Please select a gender.</div>
                     </div>
                 </div>
             </div>
@@ -252,6 +319,7 @@ $initialMode = $initialMode ?? null; // 'new' or 'existing'
                 <div class="f-grp">
                     <label class="f-lbl req">DOB (BS)</label>
                     <input type="text" name="dob_bs" id="<?= $dobBsId ?>" class="fi" placeholder="YYYY-MM-DD" style="padding-left: 20px;" required>
+                    <div class="err-msg">Date of birth (BS) is required.</div>
                 </div>
             </div>
 
@@ -261,6 +329,7 @@ $initialMode = $initialMode ?? null; // 'new' or 'existing'
                     <div class="ipt-box">
                         <i class="fas fa-user-shield"></i>
                         <input type="text" name="father_name" class="fi" placeholder="Full name of guardian" required>
+                        <div class="err-msg">Guardian name is required.</div>
                     </div>
                 </div>
             </div>
@@ -269,20 +338,22 @@ $initialMode = $initialMode ?? null; // 'new' or 'existing'
                 <div class="f-grp">
                     <label class="f-lbl req">Student Address</label>
                     <textarea name="permanent_address" class="fi" style="padding-left: 16px; min-height: 100px;" placeholder="Full Address..." required></textarea>
+                    <div class="err-msg">Address details are required.</div>
                 </div>
             </div>
         </div>
 
         <!-- Section 4: Security Callout -->
-        <div class="sc-adm callout-p callout-s">
-            <h3 class="sc-title" style="color: #e11d48;"><i class="fas fa-key"></i> System Access</h3>
-            <p style="font-size: 12px; color: #be123c; margin: -1rem 0 1.5rem 3.5rem; font-weight: 600;">Standard student portal credentials</p>
+        <div class="sc-adm callout-p" style="border-color: #e2e8f0; background: #f8fafc;">
+            <h3 class="sc-title" style="color: #1e293b;"><i class="fas fa-key"></i> System Access</h3>
+            <p style="font-size: 12px; color: #64748b; margin: -1rem 0 1.5rem 3.5rem; font-weight: 600;">Standard student portal credentials</p>
             <div class="grid-box">
                 <div class="f-grp">
                     <label class="f-lbl req">Access Password</label>
                     <div class="ipt-box">
                         <i class="fas fa-user-lock"></i>
                         <input type="password" name="password" id="<?= $passId ?>" class="fi" placeholder="e.g. Student@123" minlength="8" required>
+                        <div class="err-msg">Password must be at least 8 characters.</div>
                         <span onclick="togglePassView_<?= $componentId ?>('<?= $passId ?>')" style="position: absolute; right: 16px; top: 50%; transform: translateY(-50%); color: #94a3b8; cursor: pointer; padding: 5px; z-index:2;">
                             <i class="fas fa-eye" id="<?= $passId ?>Eye"></i>
                         </span>
@@ -351,13 +422,16 @@ $initialMode = $initialMode ?? null; // 'new' or 'existing'
         if (overlay) overlay.style.display = 'none';
         
         if (mode === 'existing') {
-            searchSec.classList.remove('hidden-section');
-            profileSecs.classList.add('hidden-section');
+            if (searchSec) searchSec.classList.remove('hidden-section');
+            if (profileSecs) profileSecs.classList.add('hidden-section');
+            
             // Remove required from profile fields
-            profileSecs.querySelectorAll('[required]').forEach(el => {
-                el.dataset.wasRequired = 'true';
-                el.removeAttribute('required');
-            });
+            if (profileSecs) {
+                profileSecs.querySelectorAll('[required]').forEach(el => {
+                    el.dataset.wasRequired = 'true';
+                    el.removeAttribute('required');
+                });
+            }
 
             // Populate students dropdown
             window['populateStudentsDropdown_' + CID]();
@@ -369,12 +443,15 @@ $initialMode = $initialMode ?? null; // 'new' or 'existing'
             const infoText = document.getElementById('infoText_' + CID);
             if (infoText) infoText.textContent = 'This enrollment will be added to the student profile records.';
         } else {
-            searchSec.classList.add('hidden-section');
-            profileSecs.classList.remove('hidden-section');
+            if (searchSec) searchSec.classList.add('hidden-section');
+            if (profileSecs) profileSecs.classList.remove('hidden-section');
+            
             // Re-add required
-            profileSecs.querySelectorAll('[data-was-required="true"]').forEach(el => {
-                el.setAttribute('required', '');
-            });
+            if (profileSecs) {
+                profileSecs.querySelectorAll('[data-was-required="true"]').forEach(el => {
+                    el.setAttribute('required', '');
+                });
+            }
 
             // Update Submit Button Label
             const btnText = document.getElementById('btnText_' + CID);
@@ -616,13 +693,77 @@ $initialMode = $initialMode ?? null; // 'new' or 'existing'
         ico.className = isPass ? 'fas fa-eye-slash' : 'fas fa-eye';
     };
 
+    // ── Validation Helpers ──
+    function validateAdmForm_CID(_f) {
+        let isValid = true;
+        const requiredFields = _f.querySelectorAll('[required]');
+        
+        // Custom Check for Batches
+        if (admissionMode === 'new' && selectedBatches.length === 0) {
+            const batchGrp = document.getElementById('<?= $selBatchId ?>').closest('.f-grp');
+            if (batchGrp) batchGrp.classList.add('error');
+            isValid = false;
+        }
+
+        requiredFields.forEach(field => {
+            const grp = field.closest('.f-grp');
+            if (grp && grp.classList.contains('hidden-section')) return; // Skip hidden
+            
+            let fieldValid = true;
+            if (field.tagName === 'SELECT') {
+                if (!field.value) fieldValid = false;
+            } else if (field.type === 'tel') {
+                const telRegex = /^[0-9]{10}$/;
+                if (!telRegex.test(field.value)) fieldValid = false;
+            } else if (field.type === 'email') {
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(field.value)) fieldValid = false;
+            } else if (field.minlength && field.value.length < field.minlength) {
+                fieldValid = false;
+            } else {
+                if (!field.value.trim()) fieldValid = false;
+            }
+
+            if (!fieldValid) {
+                if (grp) grp.classList.add('error');
+                isValid = false;
+            } else {
+                if (grp) grp.classList.remove('error');
+            }
+        });
+
+        // Live reset on input
+        _f.querySelectorAll('.fi').forEach(fi => {
+            ['input', 'change'].forEach(evt => {
+                fi.addEventListener(evt, () => {
+                    const g = fi.closest('.f-grp');
+                    if (g) g.classList.remove('error');
+                });
+            });
+        });
+
+        return isValid;
+    }
+
     // ── Form Submit ──
     window['handleAdmissionSubmit_' + CID] = async function(e) {
         e.preventDefault();
+        const _form = e.target;
+        
+        // 1. Run Custom Validation
+        if (!validateAdmForm_CID(_form)) {
+            const firstErr = _form.querySelector('.f-grp.error');
+            if (firstErr) {
+                firstErr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                // If it's a select or input, focus it
+                const inp = firstErr.querySelector('.fi');
+                if (inp) setTimeout(() => inp.focus(), 500);
+            }
+            return;
+        }
+
         const btn = document.getElementById('<?= $btnId ?>');
         if (btn && btn.disabled) return;
-
-        const form = e.target;
 
         if (btn) { btn.disabled = true; }
         const oldBtnHTML = btn ? btn.innerHTML : '';
@@ -630,17 +771,17 @@ $initialMode = $initialMode ?? null; // 'new' or 'existing'
 
         const payload = {
             student_id:             admissionMode === 'existing' ? (document.getElementById('valStuId_' + CID).value) : null,
-            full_name:              admissionMode === 'new' ? (form.full_name?.value     || '').trim() : null,
-            contact_number:         admissionMode === 'new' ? (form.contact_number?.value || '').trim() : null,
-            email:                  admissionMode === 'new' ? (form.email?.value          || '').trim() : null,
-            password:               admissionMode === 'new' ? (form.password?.value        || '') : null,
+            full_name:              admissionMode === 'new' ? (_form.full_name?.value     || '').trim() : null,
+            contact_number:         admissionMode === 'new' ? (_form.contact_number?.value || '').trim() : null,
+            email:                  admissionMode === 'new' ? (_form.email?.value          || '').trim() : null,
+            password:               admissionMode === 'new' ? (_form.password?.value        || '') : null,
             batch_ids:              selectedBatches.map(b => b.id),
-            batch_id:               selectedBatches.length > 0 ? selectedBatches[0].id : (form.batch_id?.value || null),
-            dob_bs:                 admissionMode === 'new' ? (form.dob_bs?.value          || '') : null,
-            gender:                 admissionMode === 'new' ? (form.gender?.value          || '') : null,
-            father_name:            admissionMode === 'new' ? (form.father_name?.value    || '').trim() : null,
-            permanent_address:      (admissionMode === 'new' && form.permanent_address?.value.trim())
-                                    ? JSON.stringify({ address: form.permanent_address.value.trim() })
+            batch_id:               selectedBatches.length > 0 ? selectedBatches[0].id : (_form.batch_id?.value || null),
+            dob_bs:                 admissionMode === 'new' ? (_form.dob_bs?.value          || '') : null,
+            gender:                 admissionMode === 'new' ? (_form.gender?.value          || '') : null,
+            father_name:            admissionMode === 'new' ? (_form.father_name?.value    || '').trim() : null,
+            permanent_address:      (admissionMode === 'new' && _form.permanent_address?.value.trim())
+                                    ? JSON.stringify({ address: _form.permanent_address.value.trim() })
                                     : null,
             registration_status:    'fully_registered'
         };
@@ -680,10 +821,10 @@ $initialMode = $initialMode ?? null; // 'new' or 'existing'
                 
                 if (admissionMode === 'new') {
                     successHtml += `
-                    <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:18px;padding:1.5rem;text-align:left;margin-top:1.5rem;">
-                        <p style="font-size:11px;font-weight:700;color:var(--p);margin-bottom:8px;letter-spacing:0.05em;">PORTAL CREDENTIALS</p>
-                        <div style="margin-bottom:6px;font-size:14px;"><span style="opacity:0.6;width:90px;display:inline-block;">Email:</span> <strong>${escHtmlAdm(payload.email)}</strong></div>
-                        <div style="font-size:14px;"><span style="opacity:0.6;width:90px;display:inline-block;">Password:</span> <span style="font-family:monospace;background:#fff;padding:2px 8px;border-radius:6px;border:1px solid #ddd;">${escHtmlAdm(payload.password)}</span></div>
+                    <div class="cred-box">
+                        <div class="cred-title">Portal Credentials</div>
+                        <div class="cred-line"><span>Email</span> <strong>${escHtmlAdm(payload.email)}</strong></div>
+                        <div class="cred-line"><span>Password</span> <span class="cred-val">${escHtmlAdm(payload.password)}</span></div>
                     </div>`;
                 }
 
@@ -694,6 +835,7 @@ $initialMode = $initialMode ?? null; // 'new' or 'existing'
                         { label: 'Add Another', click: `location.reload()`, style: 'background:#f1f5f9;color:#1e293b;box-shadow:none;' }
                     ]
                 );
+
             } else {
                 if (window.Swal) {
                     Swal.fire({ title: 'Admission Failed', text: result.message || 'Unknown server error.', icon: 'error' });
@@ -740,15 +882,16 @@ $initialMode = $initialMode ?? null; // 'new' or 'existing'
             `<button onclick="${a.click}" class="btn-p" style="height:52px;font-size:14px;${a.style}">${a.label}</button>`
         ).join('');
         ov.style.display = 'flex';
-        setTimeout(() => cd && cd.classList.add('active'), 10);
+        // Force reflow and add active class for animations
+        setTimeout(() => ov.classList.add('active'), 10);
     }
 
     window['closeAdmModal_CID'] = function() {
-        const cd = document.getElementById('<?= $scCardId ?>');
         const ov = document.getElementById('<?= $dialogId ?>');
-        if (cd) cd.classList.remove('active');
-        setTimeout(() => { if (ov) ov.style.display = 'none'; }, 300);
+        if (ov) ov.classList.remove('active');
+        setTimeout(() => { if (ov) ov.style.display = 'none'; }, 400);
     };
+
 
     function escHtmlAdm(str) {
         return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');

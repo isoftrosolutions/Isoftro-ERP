@@ -1304,9 +1304,8 @@ async function _submitStudentForm(e, method) {
 /* ── RECORD PAYMENT MODAL ────────────────────────────────────────── */
 /* ── RECORD PAYMENT REDIRECTION ────────────────────────────────────────── */
 window.openRecordPaymentModal = (studentId, studentName) => {
-    // Redirect to the robust Fee Management -> Record Payment page
-    // We pass the student_id in params so ia-fees.js can auto-select the student
-    goNav('fee', 'record', { student_id: studentId });
+    // Redirect to the new premium Quick Payment page
+    goNav('fee', 'quick', { id: studentId });
 };
 
 /* ── LOAD STUDENTS (with pagination) ───────────────────────────── */
@@ -1421,7 +1420,7 @@ window.loadStudents = async (page) => {
                   <button class="act-btn act-edit btn btn-sm btn-success" title="Edit Student" onclick="goNav('students','edit',{id:${s.id}})">
                     <i class="fa-solid fa-pen"></i>
                   </button>
-                  <button class="act-btn act-pay btn btn-sm btn-warning" title="Collect Fee" onclick="window.renderQuickPayment(${s.id})">
+                  <button class="act-btn act-pay btn btn-sm btn-warning" title="Collect Fee" onclick="goNav('fee', 'quick', {id:${s.id}})">
                     <i class="fa-solid fa-hand-holding-dollar"></i>
                   </button>
                   <button class="act-btn act-email btn btn-sm btn-info" title="Send Email" onclick="sendEmailToStudent(${s.id}, '${safeName}', '${s.email || ''}')">
