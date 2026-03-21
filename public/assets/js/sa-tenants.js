@@ -93,8 +93,9 @@
                 <td style="padding:14px 12px;"><span class="tag ${t.status === 'active' ? 'bg-g' : t.status === 'suspended' ? 'bg-r' : 'bg-t'}">${t.status}</span></td>
                 <td style="padding:14px 12px;">${t.user_count || 0}</td>
                 <td style="padding:14px 12px;text-align:right;">
-                    <button class="btn-icon" onclick="SuperAdmin.viewTenant(${t.id})"><i class="fa-solid fa-eye"></i></button>
-                    <button class="btn-icon" onclick="SuperAdmin.editTenant(${t.id})"><i class="fa-solid fa-pen"></i></button>
+                    <button class="btn-icon" onclick="SuperAdmin.viewTenant(${t.id})" title="View Details"><i class="fa-solid fa-eye"></i></button>
+                    <button class="btn-icon" onclick="SuperAdmin.openModuleModal(${t.id}, '${t.name.replace(/'/g, "\\'")}')" title="Modules"><i class="fa-solid fa-cubes"></i></button>
+                    <button class="btn-icon" onclick="SuperAdmin.editTenant(${t.id})" title="Edit"><i class="fa-solid fa-pen"></i></button>
                     <button class="btn-icon" onclick="SuperAdmin.impersonateTenant(${t.id})" title="Impersonate"><i class="fa-solid fa-user-secret"></i></button>
                 </td>
             </tr>
@@ -125,5 +126,95 @@
 
     SuperAdmin.viewTenant = (id) => console.log('View tenant:', id);
     SuperAdmin.editTenant = (id) => console.log('Edit tenant:', id);
+
+    SuperAdmin.openModuleModal = async function(tenantId, tenantName) {
+        document.getElementById('module_tenant_id').value = tenantId;
+        document.getElementById('module_tenant_name').textContent = tenantName;
+        const list = document.getElementById('modulesList');
+        list.innerHTML = '<div style="text-align:center; padding:20px;"><i class="fa-solid fa-circle-notch fa-spin"></i> Loading modules...</div>';
+        SuperAdmin.openModal('moduleModal');
+
+        try {
+            const result = await SuperAdmin.fetchAPI(`TenantsApi.php?action=get-modules&id=${tenantId}`);
+            if (result.success) {
+                renderModulesList(result.data);
+            } else {
+                SuperAdmin.showNotification(result.message, 'error');
+                SuperAdmin.closeModal('moduleModal');
+            }
+        } catch (e) {
+            SuperAdmin.closeModal('moduleModal');
+        }
+    };
+
+    function renderModulesList(modules) {
+        const list = document.getElementById('modulesList');
+        list.innerHTML = '';
+
+        modules.forEach(m => {
+            const item = document.createElement('div');
+            item.style.display = 'flex';
+            item.style.alignItems = 'center';
+            item.style.justifyContent = 'space-between';
+            item.style.padding = '12px 16px';
+            item.style.background = '#f8fafc';
+            item.style.borderRadius = '12px';
+            item.style.border = '1px solid var(--cb)';
+
+            const isChecked = m.is_enabled == 1 ? 'checked' : '';
+            const isCore = m.is_core == 1;
+            const disabledAttr = isCore ? 'disabled' : '';
+            const coreTag = isCore ? '<span style="font-size:9px; background:var(--sa-primary); color:#fff; padding:2px 6px; border-radius:4px; margin-left:8px;">CORE</span>' : '';
+
+            item.innerHTML = `
+                <div>
+                    <div style="font-size:14px; font-weight:700; color:var(--td);">${m.label} ${coreTag}</div>
+                    <div style="font-size:11px; color:var(--tl);">${m.name}</div>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" class="module-toggle" value="${m.id}" ${isChecked} ${disabledAttr}>
+                    <span class="slider round"></span>
+                </label>
+            `;
+            list.appendChild(item);
+        });
+    }
+
+    SuperAdmin.saveModules = async function() {
+        const tenantId = document.getElementById('module_tenant_id').value;
+        const btn = document.getElementById('saveModulesBtn');
+        const checkboxes = document.querySelectorAll('.module-toggle:checked');
+        const enabledModules = Array.from(checkboxes).map(cb => cb.value);
+
+        // Always include core modules if they were disabled in UI
+        const allCheckboxes = document.querySelectorAll('.module-toggle');
+        allCheckboxes.forEach(cb => {
+            if (cb.disabled && !enabledModules.includes(cb.value)) {
+                enabledModules.push(cb.value);
+            }
+        });
+
+        btn.disabled = true;
+        const oldHtml = btn.innerHTML;
+        btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Saving...';
+
+        try {
+            const result = await SuperAdmin.fetchAPI('TenantsApi.php?action=update-modules', {
+                method: 'POST',
+                body: JSON.stringify({ tenant_id: tenantId, modules: enabledModules })
+            });
+            if (result.success) {
+                SuperAdmin.showNotification(result.message, 'success');
+                SuperAdmin.closeModal('moduleModal');
+            } else {
+                SuperAdmin.showNotification(result.message, 'error');
+            }
+        } catch (e) {
+            // Error handled by fetchAPI
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = oldHtml;
+        }
+    };
 
 })(window.SuperAdmin);

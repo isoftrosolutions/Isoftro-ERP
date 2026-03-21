@@ -23,6 +23,16 @@ if (!$user || ($user['role'] ?? '') !== 'superadmin') {
     exit;
 }
 
+// CSRF check for POST/PUT/DELETE
+if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+    try {
+        \App\Helpers\CsrfHelper::requireCsrfToken();
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'message' => 'CSRF token mismatch.']);
+        exit;
+    }
+}
+
 $action = $_GET['action'] ?? 'dashboard';
 
 try {

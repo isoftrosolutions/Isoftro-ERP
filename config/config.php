@@ -329,6 +329,30 @@ if (!function_exists('hasPermission')) {
     }
 }
 
+/**
+ * Check if the current institute has access to a specific module.
+ * @param string $module Module name (e.g., 'finance', 'academic')
+ * @return bool
+ */
+if (!function_exists('hasModule')) {
+    function hasModule($module)
+    {
+        // Core modules are always enabled
+        $coreModules = ['dashboard', 'academic', 'staff', 'system'];
+        if (in_array($module, $coreModules)) {
+            return true;
+        }
+
+        // Check if modules are loaded in session
+        if (!isset($_SESSION['tenant_modules'])) {
+            // If not in session, assume true for now (fallback during migration)
+            return true;
+        }
+
+        return in_array($module, $_SESSION['tenant_modules']);
+    }
+}
+
 if (!function_exists('requireAuth')) {
     function requireAuth()
     {
@@ -347,6 +371,37 @@ if (!function_exists('requirePermission')) {
         if (!hasPermission($permission)) {
             http_response_code(403);
             die('Access Denied: You do not have permission to view this page.');
+        }
+    }
+}
+
+/**
+ * Require a specific module to be enabled for the current institute.
+ * @param string $module
+ */
+if (!function_exists('requireModule')) {
+    function requireModule($module)
+    {
+        requireAuth();
+
+        if (!hasModule($module)) {
+            http_response_code(403);
+            die("Access Denied: The '{$module}' module is not enabled for your institute.");
+        }
+    }
+}
+
+/**
+ * Combined check for permission AND module.
+ * @param string $permission
+ * @param string|null $module
+ */
+if (!function_exists('enforceAccess')) {
+    function enforceAccess($permission, $module = null)
+    {
+        requirePermission($permission);
+        if ($module) {
+            requireModule($module);
         }
     }
 }

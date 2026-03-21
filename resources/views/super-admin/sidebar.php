@@ -206,60 +206,67 @@ function renderSidebar($activePage = null) {
     ?>
     <!-- ── SIDEBAR (same structure as institute-admin) ── -->
     <nav class="sb" id="sidebar">
-        <!-- Mobile-only header inside sidebar -->
-        <div class="sb-header" style="padding: 16px 20px; display: flex; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05);">
-            <img src="<?php echo APP_URL; ?>/public/assets/images/logo.png" alt="Logo" style="height:28px; width:auto; margin-right:10px; filter: brightness(0) invert(1);">
-            <div class="logo-txt" style="font-size:14px; font-weight:800; color:#fff; letter-spacing:0.5px;">PLATFORM</div>
-            <button class="sb-toggle" style="margin-left:auto; background:none; border:none; color:#fff;" id="sbClose">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-        </div>
-
         <div class="sb-body" id="sbBody">
             <?php foreach ($menu as $section): ?>
-                <div class="sb-lbl"><?php echo $section['title']; ?></div>
+                <div class="sb-sec">
+                    <div class="sb-lbl"><?php echo $section['title']; ?></div>
 
-                <?php foreach ($section['items'] as $item):
-                    $isActive = !empty($item['active']);
-                    $hasSubmenu = !empty($item['has_submenu']);
-                ?>
-                    <?php if ($hasSubmenu): ?>
-                        <button class="nb-btn <?php echo $isActive ? 'active' : ''; ?>"
-                                onclick="SuperAdmin.toggleMenu('<?php echo $item['submenu_id']; ?>')">
-                            <i class="fa <?php echo $item['icon']; ?> nbi"></i>
-                            <span class="nbl"><?php echo $item['label']; ?></span>
-                            <i class="fa fa-chevron-right nbc <?php echo !empty($item['submenu_open']) ? 'open' : ''; ?>"
-                               id="chev-<?php echo $item['submenu_id']; ?>"></i>
-                        </button>
-                        <div class="sub-menu <?php echo !empty($item['submenu_open']) ? 'open' : ''; ?>"
-                             id="<?php echo $item['submenu_id']; ?>"
-                             style="<?php echo empty($item['submenu_open']) ? 'display:none;' : ''; ?>">
-                            <?php foreach ($item['submenu'] as $sub):
-                                $subActive = false;
-                                if (isset($sub['nav']) && isset($sub['sub'])) {
-                                    $subActive = ($sub['nav'] === $currentNav && $sub['sub'] === $currentSub);
-                                } else {
-                                    $subActive = (basename(strtok($sub['href'] ?? '', '?')) === $currentFile);
-                                }
-                                $onClick = (isset($sub['nav'])) ? " onclick=\"goNav('" . $sub['nav'] . "', '" . ($sub['sub'] ?? '') . "')\"" : '';
+                    <?php foreach ($section['items'] as $item):
+                        $isActive = !empty($item['active']);
+                        $hasSubmenu = !empty($item['has_submenu']);
+                    ?>
+                        <?php if ($hasSubmenu): ?>
+                            <button class="nb-btn <?php echo $isActive ? 'active' : ''; ?>"
+                                    onclick="SuperAdmin.toggleMenu('<?php echo $item['submenu_id']; ?>')">
+                                <i class="fa-solid <?php echo $item['icon']; ?> nbi"></i>
+                                <span class="nbl"><?php echo $item['label']; ?></span>
+                                <i class="fa-solid fa-chevron-right nbc <?php echo !empty($item['submenu_open']) ? 'open' : ''; ?>"
+                                   id="chev-<?php echo $item['submenu_id']; ?>"></i>
+                            </button>
+                            <div class="sub-menu <?php echo !empty($item['submenu_open']) ? 'open' : ''; ?>"
+                                 id="<?php echo $item['submenu_id']; ?>"
+                                 style="<?php echo empty($item['submenu_open']) ? 'display:none;' : ''; ?>">
+                                <?php foreach ($item['submenu'] as $sub):
+                                    $subActive = false;
+                                    if (isset($sub['nav']) && isset($sub['sub'])) {
+                                        $subActive = ($sub['nav'] === $currentNav && $sub['sub'] === $currentSub);
+                                    } else {
+                                        $subActive = (basename(strtok($sub['href'] ?? '', '?')) === $currentFile);
+                                    }
+                                    $onClick = (isset($sub['nav'])) ? " onclick=\"goNav('" . $sub['nav'] . "', '" . ($sub['sub'] ?? '') . "')\"" : '';
 
-                                $href = (isset($sub['nav'])) ? '#' : ($sub['href'] ?? '#');
-                            ?>
-                                <a href="<?php echo $href; ?>" <?php echo $onClick; ?>
-                                   class="sub-btn <?php echo $subActive ? 'active' : ''; ?>">
-                                    <?php echo $sub['label']; ?>
-                                </a>
-                            <?php endforeach; ?>
-                        </div>
-                    <?php else: ?>
-                        <a href="<?php echo $item['href']; ?>"
-                           class="nb-btn <?php echo $isActive ? 'active' : ''; ?>">
-                            <i class="fa <?php echo $item['icon']; ?> nbi"></i>
-                            <span class="nbl"><?php echo $item['label']; ?></span>
-                        </a>
-                    <?php endif; ?>
-                <?php endforeach; ?>
+                                    $href = (isset($sub['nav'])) ? '#' : ($sub['href'] ?? '#');
+                                ?>
+                                    <a href="<?php echo $href; ?>" <?php echo $onClick; ?>
+                                       class="sub-btn <?php echo $subActive ? 'active' : ''; ?>">
+                                        <i class="fa-solid fa-circle" style="font-size: 4px; opacity: 0.5;"></i>
+                                        <?php echo $sub['label']; ?>
+                                    </a>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php else: ?>
+                            <a href="<?php echo $item['href']; ?>"
+                               class="nb-btn <?php echo $isActive ? 'active' : ''; ?>">
+                                <i class="fa-solid <?php echo $item['icon']; ?> nbi"></i>
+                                <span class="nbl"><?php echo $item['label']; ?></span>
+                            </a>
+                        <?php endif; ?>
+                    <?php endforeach; ?>
+                </div>
             <?php endforeach; ?>
+        </div>
+
+        <!-- Platform Context Footer (mirrors IA footer) -->
+        <div class="sb-footer" style="padding: 15px 20px; border-top: 1px solid var(--cb); margin-top: auto;">
+             <div style="display: flex; align-items: center; gap: 10px;">
+                <div style="width: 32px; height: 32px; background: var(--sa-primary-lt); color: var(--sa-primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 12px; border: 1px solid rgba(0, 158, 126, 0.2);">
+                    HQ
+                </div>
+                <div style="flex: 1; min-width: 0;">
+                    <div style="font-size: 12px; font-weight: 700; color: var(--td); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">PLATFORM HQ</div>
+                    <div style="font-size: 10px; color: var(--tl);">Super Admin Node</div>
+                </div>
+             </div>
         </div>
     </nav>
     <?php

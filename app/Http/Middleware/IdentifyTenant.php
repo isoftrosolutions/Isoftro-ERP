@@ -36,6 +36,9 @@ class IdentifyTenant {
                 $_SESSION['tenant_logo'] = $logoPath;
                 $_SESSION['institute_logo'] = $logoPath;
                 
+                // Load enabled modules for the tenant
+                $this->loadTenantModules($tenant['id']);
+                
                 return $tenant;
             }
         }
@@ -58,6 +61,11 @@ class IdentifyTenant {
                 }
                 $_SESSION['tenant_logo'] = $logoPath;
                 $_SESSION['institute_logo'] = $logoPath;
+
+                // Ensure modules are loaded
+                if (!isset($_SESSION['tenant_modules'])) {
+                    $this->loadTenantModules($tenant['id']);
+                }
             }
             return $tenant;
         }
@@ -159,6 +167,29 @@ class IdentifyTenant {
     public static function isTenantActive() {
         return isset($_SESSION['tenant_status']) && 
                in_array($_SESSION['tenant_status'], ['active', 'trial']);
+    }
+    /**
+     * Load enabled modules for the tenant into session
+     */
+    private function loadTenantModules($tenantId) {
+        try {
+            $db = getDBConnection();
+            $stmt = $db->prepare("
+                SELECT m.name 
+                FROM modules m
+                JOIN institute_modules im ON m.id = im.module_id
+                WHERE im.tenant_id = :tenant_id 
+                AND im.is_enabled = 1
+                AND m.status = 'active'
+            ");
+            $stmt->execute(['tenant_id' => $tenantId]);
+            $modules = $stmt->fetchAll(\PDO::FETCH_COLUMN);
+            
+            $_SESSION['tenant_modules'] = $modules ?: [];
+        } catch (\PDOException $e) {
+            error_log("Failed to load tenant modules: " . $e->getMessage());
+            $_SESSION['tenant_modules'] = [];
+        }
     }
 }
 

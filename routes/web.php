@@ -729,7 +729,7 @@ Route::middleware(['auth.superadmin'])->group(function () {
     });
     
     // New SPA API endpoints
-    Route::get('/api/superadmin/TenantsApi.php', function() {
+    Route::match(['get', 'post'], '/api/superadmin/TenantsApi.php', function() {
         require_once app_path('Http/Controllers/SuperAdmin/TenantsApi.php');
     });
     Route::get('/api/superadmin/PlansApi.php', function() {
@@ -779,5 +779,28 @@ if (defined('APP_ENV') && APP_ENV === 'development') {
             'logged_in' => isLoggedIn(),
             'user' => getCurrentUser(),
         ];
+    });
+
+    // CSRF Debug endpoint - for troubleshooting only
+    Route::get('/api/debug/csrf', function() {
+        header('Content-Type: application/json');
+        
+        $debug = \App\Helpers\CsrfHelper::debugCsrf();
+        echo json_encode($debug, JSON_PRETTY_PRINT);
+    });
+
+    // CSRF token refresh endpoint - returns new token without validation
+    Route::post('/api/csrf/refresh', function() {
+        header('Content-Type: application/json');
+        
+        $newToken = \App\Helpers\CsrfHelper::generateCsrfToken();
+        
+        // Return new token in both body and header
+        header('X-CSRF-Token: ' . $newToken);
+        
+        echo json_encode([
+            'success' => true,
+            'csrf_token' => $newToken
+        ]);
     });
 }

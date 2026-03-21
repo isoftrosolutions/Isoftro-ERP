@@ -23,7 +23,7 @@ include VIEWS_PATH . '/layouts/header.php';
                     <div style="width:28px; height:28px; border-radius:50%; overflow:hidden; display:flex; align-items:center; justify-content:center; background:#fff;">
                         <img src="<?php echo APP_URL; ?>/assets/images/logo.png" alt="Logo" style="width:100%; height:auto;">
                     </div>
-                    <span class="logo-txt">Hamro ERP</span>
+                    <span class="logo-txt">Isoftro ERP</span>
                 </div>
             </div>
 
@@ -101,104 +101,61 @@ include VIEWS_PATH . '/layouts/header.php';
                 </div>
 
                 <!-- ID Card Display -->
-                <div class="id-card-container">
-                    <div class="id-card">
-                        <!-- Card Header -->
-                        <div class="id-card-header">
-                            <div style="display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 8px;">
-                                <div style="width: 40px; height: 40px; background: rgba(255,255,255,0.2); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
-                                    <i class="fas fa-graduation-cap" style="font-size: 20px;"></i>
-                                </div>
-                                <h3 style="font-size: 20px; font-weight: 800;">HAMRO INSTITUTE</h3>
+                <div class="id-card-wrapper" id="printableCard">
+                    <div class="custom-id-card">
+                        <!-- Top Banner -->
+                        <div class="card-top-bg"></div>
+                        <svg class="card-top-shadow" width="48%" height="12px" viewBox="0 0 288 12" preserveAspectRatio="none" style="position: absolute; top: 80px; right: 0; z-index: 2; display: block;">
+                            <polygon points="20,0 288,0 288,12 0,12" fill="#020942" />
+                        </svg>
+                        
+                        <div class="card-header-content">
+                            <div class="card-logo">
+                                <i class="fas fa-graduation-cap" style="font-size: 38px; color: #fff;"></i>
                             </div>
-                            <p style="font-size: 12px; opacity: 0.9;">Loksewa & Academic Excellence</p>
-                        </div>
-
-                        <!-- Card Photo Area -->
-                        <div style="display: flex; padding: 24px; gap: 20px; border-bottom: 1px dashed var(--card-border);">
-                            <div style="width: 120px; height: 140px; background: linear-gradient(145deg, #f1f5f9, #e2e8f0); border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 2px solid #fff; box-shadow: var(--shadow);">
-                                <i class="fas fa-user-graduate" style="font-size: 48px; color: var(--text-light);"></i>
-                                <span style="font-size: 10px; color: var(--text-light); margin-top: 8px;">STUDENT PHOTO</span>
-                            </div>
-                            <div style="flex: 1;">
-                                <div style="display: flex; flex-direction: column; gap: 8px;">
-                                    <div>
-                                        <span style="font-size: 10px; color: var(--text-light); text-transform: uppercase;">Student Name</span>
-                                        <div style="font-size: 20px; font-weight: 800; color: var(--text-dark);">Rahul Sharma</div>
-                                    </div>
-                                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                                        <div>
-                                            <span style="font-size: 9px; color: var(--text-light); text-transform: uppercase;">Roll Number</span>
-                                            <div style="font-weight: 700;">STU-2025-001</div>
-                                        </div>
-                                        <div>
-                                            <span style="font-size: 9px; color: var(--text-light); text-transform: uppercase;">Batch</span>
-                                            <div style="font-weight: 700;">Morning 2025</div>
-                                        </div>
-                                    </div>
-                                </div>
+                            <div class="card-institute">
+                                <h2>Ginyard International Co.</h2>
+                                <p>Address</p>
                             </div>
                         </div>
 
-                        <!-- Card Details -->
-                        <div style="padding: 20px;">
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px 20px;">
-                                <div>
-                                    <span style="font-size: 9px; color: var(--text-light); text-transform: uppercase;">Course</span>
-                                    <div style="font-weight: 600; font-size: 13px;">Loksewa Nayab Subba</div>
-                                </div>
-                                <div>
-                                    <span style="font-size: 9px; color: var(--text-light); text-transform: uppercase;">Valid Until</span>
-                                    <div style="font-weight: 600; font-size: 13px;">Dec 2025</div>
-                                </div>
-                                <div>
-                                    <span style="font-size: 9px; color: var(--text-light); text-transform: uppercase;">Blood Group</span>
-                                    <div style="font-weight: 600; font-size: 13px;">B+</div>
-                                </div>
-                                <div>
-                                    <span style="font-size: 9px; color: var(--text-light); text-transform: uppercase;">Date of Birth</span>
-                                    <div style="font-weight: 600; font-size: 13px;">15 Jan 2003</div>
-                                </div>
-                            </div>
-
-                            <!-- Contact & Address -->
-                            <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--card-border);">
-                                <div style="display: flex; gap: 12px; margin-bottom: 8px;">
-                                    <i class="fas fa-phone-alt" style="color: var(--green); font-size: 12px;"></i>
-                                    <span style="font-size: 12px;">+977 9841234567</span>
-                                </div>
-                                <div style="display: flex; gap: 12px;">
-                                    <i class="fas fa-map-marker-alt" style="color: var(--green); font-size: 12px;"></i>
-                                    <span style="font-size: 12px;">Kathmandu, Nepal</span>
-                                </div>
-                            </div>
-
-                            <!-- QR Code -->
-                            <div style="display: flex; justify-content: flex-end; margin-top: 16px;">
-                                <div style="background: #f1f5f9; padding: 8px; border-radius: 8px;">
-                                    <div style="width: 60px; height: 60px; background: #fff; display: flex; align-items: center; justify-content: center;">
-                                        <i class="fas fa-qrcode" style="font-size: 40px; color: var(--text-dark);"></i>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Signature -->
-                            <div style="margin-top: 16px; text-align: right; border-top: 1px solid var(--card-border); padding-top: 12px;">
-                                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='30' viewBox='0 0 120 30'%3E%3Cpath d='M10,20 Q30,10 50,20 T90,15' stroke='%23475569' fill='none' stroke-width='2'/%3E%3C/svg%3E" style="width: 100px;">
-                                <div style="font-size: 11px; color: var(--text-light);">Authorized Signature</div>
-                            </div>
+                        <!-- Body -->
+                        <div class="card-body">
+                            <h1 class="card-title">STUDENT CARD</h1>
+                            <table class="card-details">
+                                <tr><td>Name</td><td>:</td><td>Suman Karki</td></tr>
+                                <tr><td>Roll No</td><td>:</td><td>HL-KH-047</td></tr>
+                                <tr><td>Course</td><td>:</td><td>Nayab Subba</td></tr>
+                                <tr><td>Batch</td><td>:</td><td>Morning 2025</td></tr>
+                                <tr><td>Address</td><td>:</td><td>Kathmandu, Nepal</td></tr>
+                                <tr><td>Contact No</td><td>:</td><td>9841234567</td></tr>
+                            </table>
                         </div>
 
-                        <!-- Card Footer -->
-                        <div style="background: #f8fafc; padding: 12px; text-align: center; border-top: 1px solid var(--card-border);">
-                            <span style="font-size: 10px; color: var(--text-light);">This card is property of Hamro Institute. If found, please return to:</span>
-                            <div style="font-size: 11px; font-weight: 600;">info@hamroinstitute.edu.np | 01-4412345</div>
+                        <!-- Photo -->
+                        <div class="card-photo">
+                            <div class="photo-inner"></div>
                         </div>
+
+                        <!-- Bottom Decor -->
+                        <div class="decor-bg"></div>
+                        <svg width="220" height="180" viewBox="0 0 220 180" preserveAspectRatio="none" style="position: absolute; bottom: 0; left: 0; z-index: 2; display: block;">
+                            <polygon points="0,54 220,180 0,180" fill="#020942" />
+                        </svg>
+                        <svg width="200" height="120" viewBox="0 0 200 120" preserveAspectRatio="none" style="position: absolute; bottom: 0; left: 0; z-index: 3; display: block;">
+                            <polygon points="0,24 160,120 0,120" fill="#8cc63f" />
+                        </svg>
+                        <svg width="120" height="60" viewBox="0 0 120 60" preserveAspectRatio="none" style="position: absolute; bottom: 0; left: 0; z-index: 4; display: block;">
+                            <polygon points="0,6 78,60 0,60" fill="#3cb4cd" />
+                        </svg>
+                        <svg width="20" height="45" viewBox="0 0 20 45" preserveAspectRatio="none" style="position: absolute; bottom: 0; left: 210px; z-index: 2; display: block;">
+                            <polygon points="6,0 20,45 0,45" fill="#fff" />
+                        </svg>
                     </div>
                 </div>
 
                 <!-- ID Card Info & Actions -->
-                <div class="card" style="max-width: 540px; margin: 0 auto;">
+                <div class="card" style="max-width: 600px; margin: 0 auto;">
                     <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
                         <div class="sc-ico ic-blue"><i class="fas fa-info-circle"></i></div>
                         <div>
@@ -215,33 +172,141 @@ include VIEWS_PATH . '/layouts/header.php';
             </div>
 
             <style>
-                .id-card-container {
+                .id-card-wrapper {
                     display: flex;
                     justify-content: center;
-                    margin-bottom: 24px;
+                    margin: 30px auto 40px;
                 }
-                
-                .id-card {
-                    width: 100%;
-                    max-width: 540px;
-                    background: #fff;
-                    border-radius: 20px;
-                    box-shadow: var(--shadow-md);
+                .custom-id-card {
+                    width: 600px;
+                    height: 380px;
+                    background: linear-gradient(135deg, #cbeeea 0%, #80b5e2 100%);
+                    position: relative;
                     overflow: hidden;
-                    border: 1px solid var(--card-border);
+                    font-family: 'Inter', sans-serif;
+                    border-radius: 12px;
+                    box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+                    color: #0b114d;
                 }
-                
-                .id-card-header {
-                    background: linear-gradient(135deg, var(--green) 0%, var(--green-d) 100%);
-                    padding: 24px 20px;
-                    color: #fff;
+
+                /* Top Sections */
+                .card-top-bg {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 80px;
+                    background-color: #8cc63f; /* Bright green */
+                    z-index: 3;
+                }
+
+                .card-header-content {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 80px;
+                    z-index: 4;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 0 30px;
+                    gap: 15px;
                     text-align: center;
+                }
+                .card-logo {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+                .card-institute {
+                    color: #fff;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                }
+                .card-institute h2 {
+                    margin: 0;
+                    font-size: 28px;
+                    font-weight: 800;
+                    letter-spacing: 0.5px;
+                }
+                .card-institute p {
+                    margin: 0;
+                    font-size: 16px;
+                    opacity: 0.95;
+                    font-weight: 500;
+                }
+
+                /* Body Content */
+                .card-body {
+                    position: absolute;
+                    top: 110px;
+                    left: 35px;
+                    z-index: 5;
+                }
+                .card-title {
+                    font-size: 32px;
+                    font-weight: 800;
+                    color: #020942;
+                    margin: 0 0 15px 0;
+                    letter-spacing: 1px;
+                }
+                .card-details {
+                    border-collapse: collapse;
+                }
+                .card-details td {
+                    padding: 5px 0;
+                    font-size: 17px;
+                    font-weight: 600;
+                    color: #0f5173; /* Teal blue */
+                }
+                .card-details td:nth-child(1) {
+                    width: 110px;
+                }
+                .card-details td:nth-child(2) {
+                    width: 20px;
+                    text-align: center;
+                }
+                .card-details td:nth-child(3) {
+                    color: #2c3e50;
+                }
+
+                /* Photo Area */
+                .card-photo {
+                    position: absolute;
+                    top: 100px;
+                    right: 40px;
+                    width: 160px;
+                    height: 180px;
+                    background-color: #020942;
+                    border-radius: 25px;
+                    padding: 5px;
+                    z-index: 6;
+                }
+                .photo-inner {
+                    width: 100%;
+                    height: 100%;
+                    border-radius: 20px;
+                    border: 4px solid #3cb4cd;
+                    background: url('https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80') center/cover;
+                }
+
+                /* Bottom Decorations */
+                .decor-bg {
+                    position: absolute;
+                    bottom: 0;
+                    left: 0;+
+                    width: 100%;
+                    height: 45px;
+                    background-color: #9ECCE6;
+                    z-index: 1;
                 }
                 
                 @media print {
                     body * { visibility: hidden; }
-                    .id-card, .id-card * { visibility: visible; }
-                    .id-card { position: absolute; top: 20px; left: 20px; width: 100%; max-width: 540px; }
+                    .id-card-wrapper, .id-card-wrapper * { visibility: visible; }
+                    .id-card-wrapper { position: absolute; top: 0; left: 0; margin: 0; transform: scale(1.1); transform-origin: top left; }
                     .pg-acts, .card, .breadcrumb { display: none; }
                 }
             </style>

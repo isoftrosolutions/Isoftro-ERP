@@ -68,8 +68,13 @@ class CsrfHelper
 
         // If no token provided, try to get from various sources
         if ($token === null) {
-            // Check header first
-            $token = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? null;
+            // Check headers - support multiple header name formats:
+            // - X-CSRF-Token (standard with hyphen) → HTTP_X_CSRF_TOKEN
+            // - X-CSRF-TOKEN (with underscore beforeKEN) → HTTP_X_CSRF_TOKEN_
+            // - X-CSRF_TOKEN (with underscore) → HTTP_X_CSRF_TOKEN (ambiguous)
+            $token = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? 
+                     $_SERVER['HTTP_X_CSRF_TOKEN_'] ?? 
+                     null;
 
             // Check POST
             if ($token === null) {
@@ -148,14 +153,22 @@ class CsrfHelper
                     window.CSRF_TOKEN = newToken; // Ensure uppercase version is also synced
                 };
 
+                // Initialize from meta tag on page load
+                const initialToken = document.querySelector('meta[name=\"csrf-token\"]')?.content;
+                if (initialToken) {
+                    window.csrfToken = initialToken;
+                    window.CSRF_TOKEN = initialToken;
+                }
+
                 const originalFetch = window.fetch;
                 window.fetch = function(...args) {
                     const [resource, config] = args;
-                    const freshToken = document.querySelector('meta[name=\"csrf-token\"]')?.content;
+                    const freshToken = document.querySelector('meta[name=\"csrf-token\"]')?.content || window.CSRF_TOKEN || window.csrfToken;
                     
                     if (config && freshToken && ['POST', 'PUT', 'DELETE', 'PATCH'].includes(config.method?.toUpperCase())) {
                         config.headers = config.headers || {};
                         // Handle both Headers object and plain object
+                        // Use X-CSRF-Token (with hyphen) which PHP expects
                         if (config.headers instanceof Headers) {
                             config.headers.set('X-CSRF-Token', freshToken);
                         } else {
@@ -172,5 +185,32 @@ class CsrfHelper
                 };
             })();
         </script>";
+    }
+
+    /**
+     * Debug CSRF state - for troubleshooting
+     * @return array Debug information
+     */
+    public static function debugCsrf()
+    {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        return [
+            'session_id' => session_id(),
+            'session_started' => session_status() !== PHP_SESSION_NONE,
+            'csrf_token_in_session' => isset($_SESSION['csrf_token']),
+            'csrf_token_value' => isset($_SESSION['csrf_token']) ? substr($_SESSION['csrf_token'], 0, 8) . '...' : null,
+            'csrf_token_time' => $_SESSION['csrf_token_time'] ?? null,
+            'token_age_seconds' => isset($_SESSION['csrf_token_time']) ? time() - $_SESSION['csrf_token_time'] : null,
+            'headers_received' => [
+                'HTTP_X_CSRF_TOKEN' => isset($_SERVER['HTTP_X_CSRF_TOKEN']) ? substr($_SERVER['HTTP_X_CSRF_TOKEN'], 0, 8) . '...' : null,
+                'HTTP_X_CSRF_TOKEN_' => isset($_SERVER['HTTP_X_CSRF_TOKEN_']) ? substr($_SERVER['HTTP_X_CSRF_TOKEN_'], 0, 8) . '...' : null,
+            ],
+            'post_csrf_token' => isset($_POST['csrf_token']) ? substr($_POST['csrf_token'], 0, 8) . '...' : null,
+            'get_csrf_token' => isset($_GET['csrf_token']) ? substr($_GET['csrf_token'], 0, 8) . '...' : null,
+            'is_validated' => self::validateCsrfToken(),
+        ];
     }
 }

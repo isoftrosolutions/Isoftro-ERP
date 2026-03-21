@@ -552,16 +552,28 @@ body.sb-active .sb-overlay {
     font-weight: 700;
     color: var(--tl);
     text-transform: uppercase;
-    padding: 12px 20px 6px;
-    letter-spacing: 0.5px;
+    padding: 16px 20px 8px;
+    letter-spacing: 0.05em;
+    opacity: 0.8;
+}
+
+.sb-sec {
+    margin-bottom: 8px;
+    border-bottom: 1px solid rgba(0,0,0,0.02);
+    padding-bottom: 8px;
+}
+
+.sb-sec:last-child {
+    border-bottom: none;
 }
 
 .nb-btn {
-    width: 100%;
+    width: calc(100% - 20px);
+    margin: 0 10px 2px;
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 10px 18px;
+    padding: 10px 16px;
     border: none;
     background: none;
     color: var(--tb);
@@ -569,22 +581,21 @@ body.sb-active .sb-overlay {
     font-weight: 500;
     font-family: var(--font);
     cursor: pointer;
-    transition: background 0.2s, color 0.2s;
-    border-left: 3px solid transparent;
+    transition: all 0.2s;
+    border-radius: 8px;
     text-decoration: none;
     text-align: left;
 }
 
 .nb-btn:hover {
-    background: var(--sa-primary-lt);
-    color: var(--sa-primary);
+    background: #f1f5f9;
+    color: var(--td);
 }
 
 .nb-btn.active {
     background: var(--sa-primary-lt);
     color: var(--sa-primary);
-    border-left-color: var(--sa-primary);
-    font-weight: 600;
+    font-weight: 700;
 }
 
 .nbi {
@@ -609,15 +620,17 @@ body.sb-active .sb-overlay {
 
 /* Sub-menu */
 .sub-menu {
-    background: #fafafa;
+    background: #fff;
+    padding: 4px 0;
 }
 
 .sub-btn {
-    width: 100%;
+    width: calc(100% - 30px);
+    margin: 0 15px 1px;
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 8px 18px 8px 48px;
+    padding: 8px 16px 8px 36px;
     border: none;
     background: none;
     font-size: 13px;
@@ -626,20 +639,26 @@ body.sb-active .sb-overlay {
     cursor: pointer;
     text-align: left;
     text-decoration: none;
-    transition: background 0.2s, color 0.2s;
-    border-left: 2px solid transparent;
+    transition: all 0.2s;
+    border-radius: 6px;
 }
 
 .sub-btn:hover {
-    background: var(--sa-primary-lt);
+    background: #f1f5f9;
     color: var(--sa-primary);
 }
 
 .sub-btn.active {
     background: var(--sa-primary-lt);
     color: var(--sa-primary);
-    border-left-color: var(--sa-primary);
-    font-weight: 600;
+    font-weight: 700;
+}
+
+.sub-btn i {
+    font-size: 4px;
+    opacity: 0.5;
+    margin-left: -12px;
+    margin-right: 8px;
 }
 
 /* ============================================================

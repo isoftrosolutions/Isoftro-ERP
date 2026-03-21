@@ -166,14 +166,26 @@ window.SuperAdmin = window.SuperAdmin || (function () {
   }
 
   async function fetchAPI(url, options = {}) {
+    // Get CSRF token from multiple sources for compatibility
+    const csrfToken = window.CSRF_TOKEN || 
+                      window.csrfToken || 
+                      document.querySelector('meta[name="csrf-token"]')?.content;
+    
     const defaults = {
       headers: {
         "Content-Type": "application/json",
         "Accept": "application/json",
         "X-Requested-With": "XMLHttpRequest",
+        // Use X-CSRF-Token (hyphen) to match PHP's HTTP_X_CSRF_TOKEN
+        ...(csrfToken ? { "X-CSRF-Token": csrfToken } : {})
       },
       credentials: "same-origin",
     };
+
+    // Deep merge headers
+    if (options.headers) {
+        options.headers = { ...defaults.headers, ...options.headers };
+    }
 
     let fullUrl = url;
     if (!url.includes('://')) {

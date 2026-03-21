@@ -2544,16 +2544,159 @@ window.sendStudentEmail = (id) => {
     });
 };
 
-window.downloadStudentID = (id) => {
-    Swal.fire({
-        icon: 'info',
-        title: 'ID Card Generator',
-        text: 'The pixel-perfect ID card generator is being finalized. You will be able to download/print high-quality student ID cards directly in the next minor update.',
-        confirmButtonColor: '#2563eb'
-    });
+window.downloadStudentID = async (id) => {
+    try {
+        if(typeof Swal !== 'undefined') Swal.fire({ title: 'Generating ID Card...', text: 'Please wait...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+        if(typeof html2canvas === 'undefined') {
+            await new Promise((resolve, reject) => {
+                const s = document.createElement('script');
+                s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+                s.onload = resolve;
+                s.onerror = () => reject('Failed to load html2canvas');
+                document.head.appendChild(s);
+            });
+        }
+
+        const apiUrl = window.APP_URL + (window.location.pathname.includes('frontdesk') || window.location.pathname.includes('front-desk') ? '/api/frontdesk/students' : '/api/admin/students');
+        
+        const res = await fetch(`${apiUrl}?id=${id}&include=details`);
+        const result = await res.json();
+        if (!result.success || !result.data) {
+            if(typeof Swal !== 'undefined') Swal.fire('Error', 'Failed to fetch student details for ID Card.', 'error');
+            return;
+        }
+
+        const s = result.data;
+        let photoSrc = window.APP_URL + '/public/assets/images/user-placeholder.png'; // default
+        if (s.photo_url) {
+            photoSrc = s.photo_url.startsWith('http') ? s.photo_url : window.APP_URL + (s.photo_url.startsWith('/') ? '' : '/') + s.photo_url;
+        }
+
+        let address = 'N/A';
+        try {
+            let aData = s.permanent_address || s.temporary_address || s.address;
+            if (typeof aData === 'string' && aData.trim().startsWith('{')) aData = JSON.parse(aData);
+            if (aData && typeof aData === 'object') {
+                const muni = aData.municipality || '';
+                const ward = aData.ward ? `-${aData.ward}` : '';
+                const dist = aData.district ? `, ${aData.district}` : '';
+                address = `${muni}${ward}${dist}`.replace(/^[-,\s]+/, '').trim() || 'N/A';
+            } else if (aData) {
+                address = aData;
+            }
+        } catch(e) { address = s.permanent_address || 'N/A'; }
+        const contact = s.phone || 'N/A';
+        const name = s.name || s.full_name || 'N/A';
+        const roll = s.roll_no || s.student_id || 'N/A';
+        const course = s.course_name || (s.enrollments && s.enrollments.length > 0 ? s.enrollments[0].course_name : 'N/A');
+        const batch = s.batch_name || (s.enrollments && s.enrollments.length > 0 ? s.enrollments[0].batch_name : 'N/A');
+        const instituteName = document.title.split('|')[0].trim() || 'Ginyard International Co.';
+        
+        const esc = (str) => {
+            if (!str) return '';
+            return str.toString().replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+        };
+
+        const ghost = document.createElement('div');
+        ghost.style.position = 'fixed';
+        ghost.style.top = '-9999px';
+        ghost.style.left = '-9999px';
+
+        const html = `
+        <div id="id-card-capture" style="width: 600px; height: 380px; background: linear-gradient(135deg, #cbeeea 0%, #80b5e2 100%); position: relative; overflow: hidden; border-radius: 12px; font-family: 'Inter', sans-serif; color: #0b114d; box-sizing: border-box;">
+            <div style="position: absolute; top: 0; left: 0; width: 100%; height: 80px; background-color: #8cc63f; z-index: 3;"></div>
+            
+            <svg width="288" height="12" viewBox="0 0 288 12" preserveAspectRatio="none" style="position: absolute; top: 80px; right: 0; z-index: 2; display: block;">
+                <polygon points="20,0 288,0 288,12 0,12" fill="#020942" />
+            </svg>
+            
+            <div style="position: absolute; top: 0; left: 0; width: 100%; height: 80px; z-index: 4; display: flex; align-items: center; justify-content: center; padding: 0 30px; gap: 15px; text-align: center; box-sizing: border-box;">
+                <div style="display: flex; align-items: center; justify-content: center;"><i class="fas fa-graduation-cap" style="font-size: 38px; color: #fff;"></i></div>
+                <div style="color: #fff; display: flex; flex-direction: column; align-items: center;">
+                    <h2 style="margin: 0; font-size: 24px; font-weight: 800; letter-spacing: 0.5px;">${esc(instituteName)}</h2>
+                </div>
+            </div>
+
+            <div style="position: absolute; top: 110px; left: 35px; z-index: 5;">
+                <h1 style="font-size: 32px; font-weight: 800; color: #020942; margin: 0 0 15px 0; letter-spacing: 1px;">STUDENT CARD</h1>
+                <table style="border-collapse: collapse;">
+                    <tr><td style="padding: 5px 0; font-size: 17px; font-weight: 600; color: #0f5173; width: 110px;">Name</td><td style="width: 20px; text-align: center; color: #0f5173;">:</td><td style="color: #2c3e50; font-size: 17px; font-weight: 600;">${esc(name)}</td></tr>
+                    <tr><td style="padding: 5px 0; font-size: 17px; font-weight: 600; color: #0f5173;">Roll No</td><td style="width: 20px; text-align: center; color: #0f5173;">:</td><td style="color: #2c3e50; font-size: 17px; font-weight: 600;">${esc(roll)}</td></tr>
+                    <tr><td style="padding: 5px 0; font-size: 17px; font-weight: 600; color: #0f5173;">Course</td><td style="width: 20px; text-align: center; color: #0f5173;">:</td><td style="color: #2c3e50; font-size: 17px; font-weight: 600;">${esc(course)}</td></tr>
+                    <tr><td style="padding: 5px 0; font-size: 17px; font-weight: 600; color: #0f5173;">Batch</td><td style="width: 20px; text-align: center; color: #0f5173;">:</td><td style="color: #2c3e50; font-size: 17px; font-weight: 600;">${esc(batch)}</td></tr>
+                    <tr><td style="padding: 5px 0; font-size: 17px; font-weight: 600; color: #0f5173;">Address</td><td style="width: 20px; text-align: center; color: #0f5173;">:</td><td style="color: #2c3e50; font-size: 17px; font-weight: 600;">${esc(address)}</td></tr>
+                    <tr><td style="padding: 5px 0; font-size: 17px; font-weight: 600; color: #0f5173;">Contact No</td><td style="width: 20px; text-align: center; color: #0f5173; ">:</td><td style="color: #2c3e50; font-size: 17px; font-weight: 600;">${esc(contact)}</td></tr>
+                </table>
+            </div>
+
+            <div style="position: absolute; top: 100px; right: 40px; width: 160px; height: 180px; background-color: #020942; border-radius: 25px; padding: 5px; z-index: 6; box-sizing: border-box;">
+                <div style="width: 100%; height: 100%; border-radius: 20px; border: 4px solid #3cb4cd; padding:0; margin:0; overflow: hidden; background: #fff;">
+                    <img id="captureReadyImg" src="${photoSrc}" style="width: 100%; height: 100%; object-fit: cover; display:block;" crossorigin="anonymous">
+                </div>
+            </div>
+
+            <div style="position: absolute; bottom: 0; left: 0; width: 100%; height: 45px; background-color: #9ECCE6; z-index: 1;"></div>
+            
+            <svg width="220" height="180" viewBox="0 0 220 180" preserveAspectRatio="none" style="position: absolute; bottom: 0; left: 0; z-index: 2; display: block;">
+                <polygon points="0,54 220,180 0,180" fill="#020942" />
+            </svg>
+            <svg width="200" height="120" viewBox="0 0 200 120" preserveAspectRatio="none" style="position: absolute; bottom: 0; left: 0; z-index: 3; display: block;">
+                <polygon points="0,24 160,120 0,120" fill="#8cc63f" />
+            </svg>
+            <svg width="120" height="60" viewBox="0 0 120 60" preserveAspectRatio="none" style="position: absolute; bottom: 0; left: 0; z-index: 4; display: block;">
+                <polygon points="0,6 78,60 0,60" fill="#3cb4cd" />
+            </svg>
+            <svg width="20" height="45" viewBox="0 0 20 45" preserveAspectRatio="none" style="position: absolute; bottom: 0; left: 210px; z-index: 2; display: block;">
+                <polygon points="6,0 20,45 0,45" fill="#fff" />
+            </svg>
+        </div>
+        `;
+        
+        ghost.innerHTML = html;
+        document.body.appendChild(ghost);
+
+        const imgEl = ghost.querySelector('#captureReadyImg');
+        const targetEl = ghost.querySelector('#id-card-capture');
+
+        const beginCapture = () => {
+            html2canvas(targetEl, {
+                scale: 3,
+                useCORS: true,
+                allowTaint: true,
+                backgroundColor: null,
+            }).then(canvas => {
+                const imgData = canvas.toDataURL('image/jpeg', 0.95);
+                const a = document.createElement('a');
+                a.href = imgData;
+                a.download = `ID_Card_${name.replace(/\s+/g, '_')}_${roll}.jpg`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                document.body.removeChild(ghost);
+                if(typeof Swal !== 'undefined') Swal.close();
+            }).catch(e => {
+                console.error('html2canvas err:', e);
+                document.body.removeChild(ghost);
+                if(typeof Swal !== 'undefined') Swal.fire('Error', 'Failed to generate visual ID.', 'error');
+            });
+        };
+
+        if(imgEl.complete) {
+            beginCapture();
+        } else {
+            imgEl.onload = beginCapture;
+            imgEl.onerror = () => {
+                imgEl.src = window.APP_URL + '/public/assets/images/user-placeholder.png'; // Fallback
+                setTimeout(beginCapture, 1000);
+            };
+        }
+
+    } catch (err) {
+        console.error(err);
+        if(typeof Swal !== 'undefined') Swal.fire('Error', 'Failed to generate ID card', 'error');
+    }
 };
-
-
 
 /* ── QUICK ADD STUDENT (Custom Modal - Matching quick-registration.html) ───────────────── */
 window.openQuickAddStudent = async () => {

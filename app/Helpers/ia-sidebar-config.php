@@ -22,6 +22,7 @@ function getIASidebarConfig()
                     'label' => 'Dashboard',
                     'icon' => 'fa-house',
                     'permission' => 'dashboard.view',
+                    'module' => 'dashboard', // Core
                 ],
             ],
         ],
@@ -35,6 +36,7 @@ function getIASidebarConfig()
                     'label' => 'Students',
                     'icon' => 'fa-user-graduate',
                     'permission' => 'students.view',
+                    'module' => 'academic',
                     'badge_key' => 'total_students',
                     'sub' => [
                         ['id' => 'all', 'l' => 'All Students', 'icon' => 'fa-list'],
@@ -49,6 +51,7 @@ function getIASidebarConfig()
                     'label' => 'Teachers',
                     'icon' => 'fa-user-tie',
                     'permission' => 'teachers.view',
+                    'module' => 'academic',
                     'sub' => [
                         ['id' => 'profiles', 'l' => 'Teacher List', 'icon' => 'fa-id-badge'],
                         ['id' => 'add', 'l' => 'Add Teacher', 'icon' => 'fa-user-plus'],
@@ -61,6 +64,7 @@ function getIASidebarConfig()
                     'label' => 'Courses & Batches',
                     'icon' => 'fa-book',
                     'permission' => 'courses.view',
+                    'module' => 'academic',
                     'sub' => [
                         ['id' => 'courses', 'l' => 'Courses', 'icon' => 'fa-book-bookmark'],
                         ['id' => 'course-categories', 'l' => 'Course Categories', 'icon' => 'fa-folder-tree'],
@@ -77,6 +81,7 @@ function getIASidebarConfig()
                     'label' => 'Attendance',
                     'icon' => 'fa-calendar-check',
                     'permission' => 'attendance.view',
+                    'module' => 'attendance',
                     'sub' => [
                         ['id' => 'take', 'l' => 'Mark Attendance', 'icon' => 'fa-user-check'],
                         ['id' => 'leave', 'l' => 'Leave Requests', 'icon' => 'fa-envelope-open-text'],
@@ -88,6 +93,7 @@ function getIASidebarConfig()
                     'label' => 'Examinations',
                     'icon' => 'fa-file-signature',
                     'permission' => 'exams.view',
+                    'module' => 'exams',
                     'sub' => [
                         ['id' => 'qbank', 'l' => 'Question Bank', 'icon' => 'fa-database'],
                         ['id' => 'create-ex', 'l' => 'Create Exam', 'icon' => 'fa-circle-plus'],
@@ -100,6 +106,7 @@ function getIASidebarConfig()
                     'label' => 'Homework',
                     'icon' => 'fa-clipboard-list',
                     'permission' => 'exams.view',
+                    'module' => 'exams',
                     'sub' => [
                         ['id' => 'list', 'l' => 'All Homework', 'icon' => 'fa-list'],
                         ['id' => 'create', 'l' => 'Assign Homework', 'icon' => 'fa-plus'],
@@ -117,6 +124,7 @@ function getIASidebarConfig()
                     'label' => 'Inquiries',
                     'icon' => 'fa-magnifying-glass',
                     'permission' => 'students.view',
+                    'module' => 'admissions',
                     'badge_key' => 'new_inquiries',
                     'sub' => [
                         ['id' => 'list', 'l' => 'Inquiry List', 'icon' => 'fa-clipboard-list'],
@@ -137,6 +145,7 @@ function getIASidebarConfig()
                     'label' => 'Fee Collection',
                     'icon' => 'fa-hand-holding-dollar',
                     'permission' => 'dashboard.view',
+                    'module' => 'finance',
                     'badge_key' => 'outstanding_count',
                     'sub' => [
                         ['id' => 'setup', 'l' => 'Fee Items Setup', 'icon' => 'fa-sliders'],
@@ -151,19 +160,9 @@ function getIASidebarConfig()
                     'label' => 'Staff Salary',
                     'icon' => 'fa-wallet',
                     'permission' => 'dashboard.view',
+                    'module' => 'finance',
                 ],
-                [
-                    'id' => 'expenses',
-                    'label' => 'Expenses',
-                    'icon' => 'fa-receipt',
-                    'permission' => 'dashboard.view',
-                    'sub' => [
-                        ['id' => 'dashboard', 'l' => 'Expenses Dashboard', 'icon' => 'fa-chart-pie'],
-                        ['id' => 'list', 'l' => 'Expense List', 'icon' => 'fa-list'],
-                        ['id' => 'add', 'l' => 'Add Expense', 'icon' => 'fa-plus'],
-                        ['id' => 'categories', 'l' => 'Manage Categories', 'icon' => 'fa-folder-tree'],
-                    ],
-                ],
+
             ],
         ],
 
@@ -176,6 +175,7 @@ function getIASidebarConfig()
                     'label' => 'Front Desk',
                     'icon' => 'fa-headset',
                     'permission' => 'dashboard.view',
+                    'module' => 'staff',
                     'sub' => [
                         ['id' => 'list', 'l' => 'Front Desk List', 'icon' => 'fa-list'],
                         ['id' => 'add', 'l' => 'Add Front Desk', 'icon' => 'fa-user-plus'],
@@ -193,6 +193,7 @@ function getIASidebarConfig()
                     'label' => 'Study Materials',
                     'icon' => 'fa-book-open',
                     'permission' => 'dashboard.view',
+                    'module' => 'lms',
                     'badge_key' => 'total_materials',
                     'sub' => [
                         ['id' => 'overview', 'l' => 'Materials Dashboard', 'icon' => 'fa-chart-pie'],
@@ -209,6 +210,7 @@ function getIASidebarConfig()
                     'label' => 'SMS / Notices',
                     'icon' => 'fa-bell',
                     'permission' => 'dashboard.view',
+                    'module' => 'communication',
                     'sub' => [
                         ['id' => 'sms', 'l' => 'SMS Broadcast', 'icon' => 'fa-message'],
                         ['id' => 'email', 'l' => 'Email Campaigns', 'icon' => 'fa-envelope-open-text'],
@@ -221,6 +223,7 @@ function getIASidebarConfig()
                     'label' => 'Library',
                     'icon' => 'fa-book',
                     'permission' => 'dashboard.view',
+                    'module' => 'library',
                     'sub' => [
                         ['id' => 'catalog', 'l' => 'Book Catalog', 'icon' => 'fa-rectangle-list'],
                         ['id' => 'issue', 'l' => 'Issue / Return', 'icon' => 'fa-right-left'],
@@ -240,6 +243,7 @@ function getIASidebarConfig()
                     'label' => 'Reports',
                     'icon' => 'fa-chart-column',
                     'permission' => 'reports.view',
+                    'module' => 'reports',
                     'sub' => [
                         ['id' => 'fee-rep', 'l' => 'Fee Reports', 'icon' => 'fa-file-invoice-dollar'],
                         ['id' => 'att-rep', 'l' => 'Attendance Reports', 'icon' => 'fa-clipboard-user'],
@@ -261,6 +265,7 @@ function getIASidebarConfig()
                     'label' => 'Settings',
                     'icon' => 'fa-gear',
                     'permission' => 'settings.view',
+                    'module' => 'system',
                     'sub' => [
                         ['id' => 'prof', 'l' => 'Institute Profile', 'icon' => 'fa-building'],
                         ['id' => 'email', 'l' => 'Email Configuration', 'icon' => 'fa-envelope-circle-check'],
@@ -275,12 +280,14 @@ function getIASidebarConfig()
                     'label' => 'Audit Logs',
                     'icon' => 'fa-shield-halved',
                     'permission' => 'settings.view',
+                    'module' => 'system',
                 ],
                 [
                     'id' => 'support',
                     'label' => 'Help & Support',
                     'icon' => 'fa-headset',
                     'permission' => 'dashboard.view',
+                    'module' => 'system', // Core support
                     'onclick' => "window.location.href='" . APP_URL . "/dash/admin/support'",
                 ],
             ],
@@ -299,7 +306,10 @@ function filterIASidebarByPermission($config)
         $allowedItems = [];
         foreach ($section['items'] as $item) {
             $perm = $item['permission'] ?? 'dashboard.view';
-            if (hasPermission($perm)) {
+            $module = $item['module'] ?? null;
+
+            // Check both permission AND module access
+            if (hasPermission($perm) && ($module === null || hasModule($module))) {
                 $allowedItems[] = $item;
             }
         }

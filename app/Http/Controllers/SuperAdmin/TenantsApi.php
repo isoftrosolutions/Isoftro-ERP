@@ -23,6 +23,16 @@ if (!$user || ($user['role'] ?? '') !== 'superadmin') {
     exit;
 }
 
+// CSRF check for POST/PUT/DELETE
+if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+    try {
+        \App\Helpers\CsrfHelper::requireCsrfToken();
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'message' => 'CSRF token mismatch.']);
+        exit;
+    }
+}
+
 $action = $_GET['action'] ?? 'list';
 
 try {
@@ -215,6 +225,62 @@ try {
             echo json_encode(['success' => true, 'message' => 'Tenant deleted successfully']);
             break;
             
+        case 'get-modules':
+            $id = (int)$_GET['id'];
+            if (!$id) {
+                echo json_encode(['success' => false, 'message' => 'Tenant ID required']);
+                exit;
+            }
+
+            // Get all modules and their status for this tenant
+            $stmt = $db->prepare("
+                SELECT m.id, m.name, m.label, m.is_core, 
+                       COALESCE(im.is_enabled, 0) as is_enabled
+                FROM modules m
+                LEFT JOIN institute_modules im ON m.id = im.module_id AND im.tenant_id = :tenant_id
+                ORDER BY m.is_core DESC, m.label ASC
+            ");
+            $stmt->execute(['tenant_id' => $id]);
+            $modules = $stmt->fetchAll();
+
+            echo json_encode(['success' => true, 'data' => $modules]);
+            break;
+
+        case 'update-modules':
+            $input = json_decode(file_get_contents('php://input'), true);
+            $tenantId = (int)($input['tenant_id'] ?? 0);
+            $enabledModules = $input['modules'] ?? []; // Array of module IDs
+
+            if (!$tenantId) {
+                echo json_encode(['success' => false, 'message' => 'Tenant ID required']);
+                exit;
+            }
+
+            $db->beginTransaction();
+            try {
+                // 1. Reset all modules for this tenant (except core if we want to be safe, but UI should handle core)
+                // Actually, just set is_enabled = 0 for all for this tenant
+                $db->prepare("DELETE FROM institute_modules WHERE tenant_id = ?")->execute([$tenantId]);
+
+                // 2. Insert enabled modules
+                if (!empty($enabledModules)) {
+                    $insertStmt = $db->prepare("INSERT INTO institute_modules (tenant_id, module_id, is_enabled) VALUES (?, ?, 1)");
+                    foreach ($enabledModules as $moduleId) {
+                        $insertStmt->execute([$tenantId, (int)$moduleId]);
+                    }
+                }
+
+                $db->commit();
+                echo json_encode(['success' => true, 'message' => 'Modules updated successfully']);
+                
+                // Clear session cache for this tenant if they are currently logged in? 
+                // Hard to do across all sessions, but next IdentifyTenant call will reload it.
+            } catch (Exception $e) {
+                $db->rollBack();
+                echo json_encode(['success' => false, 'message' => 'Failed to update modules: ' . $e->getMessage()]);
+            }
+            break;
+
         case 'stats':
             // Quick stats for tenant management
             $stats = [

@@ -1,1 +1,1 @@
-see when the payment sucess modal is shown up then after that the page should be redirect to the redirect page page=fee-record and the url should be http://localhost/erp/dash/admin?page=fee-record#
+Refactor the super admin sidebar and make it as same as institute admin , padding , spacing coloring , fonts etc
