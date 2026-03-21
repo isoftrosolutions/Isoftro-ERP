@@ -580,6 +580,9 @@ window.renderQuickPayment = async (studentId) => {
                         txnId: (d.transaction_ids && d.transaction_ids[0]) || 'TXN-' + Math.random().toString(36).substr(2, 9).toUpperCase(),
                         downloadUrl: `${window.APP_URL}/api/admin/fees?action=generate_receipt_html&is_pdf=1&receipt_no=${d.receipt_no}`
                     });
+                    
+                    // After the user closes the modal or clicks 'Done', redirect them to the history page
+                    window.onPaymentRecordsView = () => goNav('fee', 'record');
                 } else {
                     _showToast('Payment recorded successfully!', 'success');
                     goNav('fee', 'record');

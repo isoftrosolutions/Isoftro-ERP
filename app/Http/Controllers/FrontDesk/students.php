@@ -175,17 +175,10 @@ try {
         $stmt->execute(['tid' => $tenantId]);
         $stats['batches'] = (int)$stmt->fetchColumn();
 
-        // Fee Overdue count
-        $stmt = $db->prepare("
-            SELECT COUNT(DISTINCT sfs.student_id) 
-            FROM student_fee_summary sfs
-            JOIN enrollments e ON sfs.enrollment_id = e.id
-            WHERE sfs.tenant_id = :tid 
-              AND e.status = 'active'
-              AND sfs.fee_status = 'overdue'
-        ");
+        // Total Courses
+        $stmt = $db->prepare("SELECT COUNT(*) FROM courses WHERE tenant_id = :tid AND deleted_at IS NULL");
         $stmt->execute(['tid' => $tenantId]);
-        $stats['overdue'] = (int)$stmt->fetchColumn();
+        $stats['courses'] = (int)$stmt->fetchColumn();
 
         echo json_encode(['success' => true, 'stats' => $stats]);
         exit;

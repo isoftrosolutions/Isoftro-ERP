@@ -215,14 +215,6 @@ $initialMode = $initialMode ?? null; // 'new' or 'existing'
 
 <div class="pg">
 
-    <!-- Standard Header with Breadcrumb Integration -->
-    <div class="bc">
-        <a href="<?= APP_URL ?>/dash/front-desk/index">Dashboard</a>
-        <span class="bc-sep">&rsaquo;</span>
-        <a href="<?= $viewAllStudentsUrl ?>">Students</a>
-        <span class="bc-sep">&rsaquo;</span>
-        <span class="bc-cur"><?= htmlspecialchars($pageTitle) ?></span>
-    </div>
 
     <div class="pg-head" style="background: none; border: none; padding: 0; margin-bottom: clamp(1rem, 3dvh, 1.5rem);">
         <div class="pg-left">
@@ -321,41 +313,6 @@ $initialMode = $initialMode ?? null; // 'new' or 'existing'
                     <input type="text" name="dob_bs" id="<?= $dobBsId ?>" class="fi" placeholder="YYYY-MM-DD" style="padding-left: 20px;" required onblur="window.handleDobSync_<?= $componentId ?>(this.value)">
                     <input type="hidden" name="dob_ad" id="inpDobAd_<?= $componentId ?>">
                     <div class="err-msg">Date of birth (BS) is required.</div>
-                </div>
-                <div class="f-grp">
-                    <label class="f-lbl">Father's Name</label>
-                    <div class="ipt-box">
-                        <i class="fas fa-user-friends"></i>
-                        <input type="text" name="father_name" class="fi" placeholder="Full name of father">
-                    </div>
-                </div>
-                <div class="f-grp">
-                    <label class="f-lbl">Mother's Name</label>
-                    <div class="ipt-box">
-                        <i class="fas fa-user-friends"></i>
-                        <input type="text" name="mother_name" class="fi" placeholder="Full name of mother">
-                    </div>
-                </div>
-                <div class="f-grp">
-                    <label class="f-lbl">Guardian Name</label>
-                    <div class="ipt-box">
-                        <i class="fas fa-user-shield"></i>
-                        <input type="text" name="guardian_name" class="fi" placeholder="Full name of guardian">
-                    </div>
-                </div>
-                <div class="f-grp">
-                    <label class="f-lbl">Relation</label>
-                    <div class="ipt-box">
-                        <i class="fas fa-link"></i>
-                        <input type="text" name="guardian_relation" class="fi" placeholder="e.g. Brother, Uncle">
-                    </div>
-                </div>
-                <div class="f-grp">
-                    <label class="f-lbl">Husband's Name (If any)</label>
-                    <div class="ipt-box">
-                        <i class="fas fa-user-tag"></i>
-                        <input type="text" name="husband_name" class="fi" placeholder="Full name of husband">
-                    </div>
                 </div>
             </div>
 
@@ -806,11 +763,6 @@ $initialMode = $initialMode ?? null; // 'new' or 'existing'
             dob_bs:                 admissionMode === 'new' ? (_form.dob_bs?.value          || '') : null,
             dob_ad:                 admissionMode === 'new' ? (_form.dob_ad?.value          || '') : null,
             gender:                 admissionMode === 'new' ? (_form.gender?.value          || '') : null,
-            father_name:            admissionMode === 'new' ? (_form.father_name?.value    || '').trim() : null,
-            mother_name:            admissionMode === 'new' ? (_form.mother_name?.value    || '').trim() : null,
-            husband_name:           admissionMode === 'new' ? (_form.husband_name?.value   || '').trim() : null,
-            guardian_name:          admissionMode === 'new' ? (_form.guardian_name?.value  || '').trim() : null,
-            guardian_relation:      admissionMode === 'new' ? (_form.guardian_relation?.value || '').trim() : null,
             permanent_address:      (admissionMode === 'new' && _form.permanent_address?.value.trim())
                                     ? JSON.stringify({ address: _form.permanent_address.value.trim() })
                                     : null

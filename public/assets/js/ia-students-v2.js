@@ -163,13 +163,7 @@ window.renderAddStudentFormV2 = async () => {
 
     // Inject the fetched PHP-rendered HTML into the SPA main content
     mc.innerHTML = `
-      <div class="bc">
-        <a href="#" onclick="goNav('overview')">Dashboard</a>
-        <span class="bc-sep">&rsaquo;</span>
-        <a href="#" onclick="goNav('students')">Students</a>
-        <span class="bc-sep">&rsaquo;</span>
-        <span class="bc-cur">Add New Student</span>
-      </div>
+      <div class="pg">
       ${html}
     `;
 
@@ -237,13 +231,7 @@ window.renderEnrollExistingFormV2 = async () => {
     const html = await res.text();
 
     mc.innerHTML = `
-      <div class="bc">
-        <a href="#" onclick="goNav('overview')">Dashboard</a>
-        <span class="bc-sep">&rsaquo;</span>
-        <a href="#" onclick="goNav('students')">Students</a>
-        <span class="bc-sep">&rsaquo;</span>
-        <span class="bc-cur">Enroll Existing Student</span>
-      </div>
+      <div class="pg">
       ${html}
     `;
 

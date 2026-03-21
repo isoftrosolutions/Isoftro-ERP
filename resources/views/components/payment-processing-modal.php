@@ -515,7 +515,7 @@
                 <button class="pm-btn pm-btn-outline" onclick="PaymentProcessor.onViewRecords()">
                     <i class="fas fa-list"></i> Records
                 </button>
-                <button class="pm-btn" style="background: var(--text-main); color: #fff;" onclick="PaymentProcessor.close()">
+                <button class="pm-btn" style="background: var(--text-main); color: #fff;" onclick="PaymentProcessor.onViewRecords()">
                     Done
                 </button>
             </div>

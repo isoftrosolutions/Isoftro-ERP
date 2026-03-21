@@ -136,7 +136,7 @@ try {
                          s.citizenship_no, s.father_name, s.mother_name, s.guardian_name, s.guardian_relation,
                          s.permanent_address, s.temporary_address,
                          b.name as batch_name, c.name as course_name,
-                         s.status, s.registration_status, s.admission_date, s.created_at
+                         s.status, s.admission_date, s.created_at
                   FROM students s 
                   JOIN users u ON s.user_id = u.id
                   LEFT JOIN enrollments e ON s.id = e.student_id AND e.status = 'active'
@@ -153,7 +153,7 @@ try {
         $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         // Build CSV
-        $csv = "Roll No,Full Name,Email,Phone,Gender,DOB (BS),DOB (AD),Citizenship No,Father's Name,Mother's Name,Guardian Name,Guardian Relation,Permanent Address,Temporary Address,Batch,Course,Status,Registration Status,Admission Date,Joined Date\n";
+        $csv = "Roll No,Full Name,Email,Phone,Gender,DOB (BS),DOB (AD),Citizenship No,Father's Name,Mother's Name,Guardian Name,Guardian Relation,Permanent Address,Temporary Address,Batch,Course,Status,Admission Date,Joined Date\n";
 
         foreach ($students as $s) {
             $addr = is_array($s['permanent_address']) ? json_encode($s['permanent_address']) : ($s['permanent_address'] ?: '');
@@ -175,9 +175,8 @@ try {
                     '"' . ($s['batch_name'] ?? '') . '",' .
                     '"' . ($s['course_name'] ?? '') . '",' .
                     '"' . ($s['status'] ?? '') . '",' .
-                    '"' . ($s['registration_status'] ?? '') . '",' .
                     '"' . ($s['admission_date'] ?? '') . '",' .
-                    '"' . ($s['created_at'] ?? '') . '"\n';
+                    '"' . ($s['created_at'] ?? '') . '"' . "\n";
         }
 
         header('Content-Type: text/csv');
@@ -220,17 +219,10 @@ try {
         $stmt->execute(['tid' => $tenantId]);
         $stats['batches'] = (int)$stmt->fetchColumn();
 
-        // Fee Overdue count
-        $stmt = $db->prepare("
-            SELECT COUNT(DISTINCT sfs.student_id) 
-            FROM student_fee_summary sfs
-            JOIN enrollments e ON sfs.enrollment_id = e.id
-            WHERE sfs.tenant_id = :tid 
-              AND e.status = 'active'
-              AND sfs.fee_status = 'overdue'
-        ");
+        // Total Courses
+        $stmt = $db->prepare("SELECT COUNT(*) FROM courses WHERE tenant_id = :tid AND deleted_at IS NULL");
         $stmt->execute(['tid' => $tenantId]);
-        $stats['overdue'] = (int)$stmt->fetchColumn();
+        $stats['courses'] = (int)$stmt->fetchColumn();
 
         echo json_encode(['success' => true, 'stats' => $stats]);
         exit;

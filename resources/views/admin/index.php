@@ -58,6 +58,7 @@ require_once VIEWS_PATH . '/components/payment-processing-modal.php';
 <script src="<?php echo APP_URL; ?>/public/assets/js/ia-feedback.js?v=<?php echo $v; ?>"></script>
 <!-- Core: routing, sidebar, dashboard — must be LAST -->
 <script src="<?php echo APP_URL; ?>/public/assets/js/breadcrumb.js?v=<?php echo $v; ?>"></script>
+<script src="<?php echo APP_URL; ?>/public/assets/js/ia-sidebar.js?v=<?php echo $v; ?>"></script>
 <script src="<?php echo APP_URL; ?>/public/assets/js/ia-core.js?v=<?php echo $v; ?>"></script>
 
 <script>

@@ -30,8 +30,8 @@ window.loadStudentStats = async () => {
             const elMonth = document.getElementById('stat-month');
             if (elMonth) elMonth.textContent = st.this_month || 0;
             
-            const elOverdue = document.getElementById('stat-overdue');
-            if(elOverdue) elOverdue.textContent = st.overdue || 0;
+            const elCourses = document.getElementById('stat-courses');
+            if(elCourses) elCourses.textContent = st.courses || 0;
             
             const elBatches = document.getElementById('stat-batches');
             if(elBatches) elBatches.textContent = st.batches || 0;
@@ -222,14 +222,7 @@ window.renderStudentList = async () => {
     mc.innerHTML = `
 
 
-  <div class="pg-head">
-    <div class="pg-left">
-      <div class="pg-ico"><i class="fa-solid fa-users"></i></div>
-      <div>
-        <div class="pg-title">Student Directory</div>
-        <div class="pg-sub">Manage student records and track financial status</div>
-      </div>
-    </div>
+  <div class="pg-head" style="justify-content: flex-end;">
     <div class="pg-acts">
       <button class="btn bs" onclick="exportStudentsCSV()"><i class="fa-solid fa-file-csv"></i> Export CSV</button>
       <button class="btn bt" onclick="goNav('students', 'add')"><i class="fa-solid fa-user-plus"></i> Add Student</button>
@@ -253,10 +246,10 @@ window.renderStudentList = async () => {
         </div>
     </div>
     <div class="student-stat-card">
-        <div class="stat-icon-box red"><i class="fa-solid fa-circle-exclamation"></i></div>
+        <div class="stat-icon-box amber"><i class="fa-solid fa-graduation-cap"></i></div>
         <div class="stat-info">
-            <div class="stat-label">FEE OVERDUE</div>
-            <div class="stat-value" id="stat-overdue">0</div>
+            <div class="stat-label">TOTAL COURSES</div>
+            <div class="stat-value" id="stat-courses">0</div>
         </div>
     </div>
     <div class="student-stat-card">
@@ -590,11 +583,6 @@ window.renderAddStudentForm = async () => {
 
     mc.innerHTML = `
         <div class="pg fu">
-            <div class="bc">
-                <a href="#" onclick="goNav('overview')">Dashboard</a> <span class="bc-sep">›</span> 
-                <a href="#" onclick="goNav('students')">Students</a> <span class="bc-sep">›</span> 
-                <span class="bc-cur">Add New Student</span>
-            </div>
             <div class="pg-head">
                 <div class="pg-left">
                     <div class="pg-ico"><i class="fa-solid fa-user-plus"></i></div>
@@ -698,20 +686,8 @@ window.renderAddStudentForm = async () => {
                                         <input type="text" name="dob_bs" id="add_dob_bs" class="form-control" placeholder="YYYY-MM-DD">
                                     </div>
                                     <div class="form-group">
-                                        <label class="form-label">Father's Name</label>
-                                        <input type="text" name="father_name" class="form-control">
-                                    </div>
-                                    <div class="form-group">
-                                        <label class="form-label">Mother's Name</label>
-                                        <input type="text" name="mother_name" class="form-control">
-                                    </div>
-                                    <div class="form-group">
                                         <label class="form-label">Citizenship No.</label>
                                         <input type="text" name="citizenship_no" class="form-control">
-                                    </div>
-                                    <div class="form-group">
-                                        <label class="form-label">Husband's Name</label>
-                                        <input type="text" name="husband_name" class="form-control">
                                     </div>
                                 </div>
                             </div>

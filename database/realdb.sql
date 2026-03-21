@@ -416,7 +416,7 @@ CREATE TABLE `email_logs` (
   KEY `tenant_id` (`tenant_id`),
   KEY `status` (`status`),
   KEY `student_id` (`student_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=31 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=34 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 /*Data for the table `email_logs` */
 
@@ -450,7 +450,10 @@ insert  into `email_logs`(`id`,`tenant_id`,`student_id`,`campaign_id`,`email`,`s
 (27,3,0,0,'nepalcyberfirm@gmail.com','Payment Successful - Receipt #RCP-000029','sent','tenant_smtp',NULL,'2026-03-20 06:03:21'),
 (28,3,0,0,'nepalcyberfirm@gmail.com','Payment Successful - Receipt #RCP-000030','sent','tenant_smtp',NULL,'2026-03-20 06:13:07'),
 (29,3,0,0,'pdewbrath@gmail.com','Payment Successful - Receipt #RCP-000031','sent','tenant_smtp',NULL,'2026-03-20 06:15:25'),
-(30,3,0,0,'pdewbrath@gmail.com','Payment Successful - Receipt #RCP-000032','sent','tenant_smtp',NULL,'2026-03-20 06:22:13');
+(30,3,0,0,'pdewbrath@gmail.com','Payment Successful - Receipt #RCP-000032','sent','tenant_smtp',NULL,'2026-03-20 06:22:13'),
+(31,3,0,0,'nepalcyberfirm@gmail.com','Payment Successful - Receipt #RCP-000033','sent','tenant_smtp',NULL,'2026-03-20 06:53:47'),
+(32,3,0,0,'pdewbrath@gmail.com','Registration Successful - Hamro Loksewa institute! ?','sent','tenant_smtp',NULL,'2026-03-20 07:00:42'),
+(33,3,0,0,'pdewbrath@gmail.com','Payment Successful - Receipt #RCP-000034','sent','tenant_smtp',NULL,'2026-03-20 07:01:43');
 
 /*Table structure for table `email_templates` */
 
@@ -496,7 +499,7 @@ CREATE TABLE `enrollments` (
   CONSTRAINT `fk_enr_batch_ref` FOREIGN KEY (`batch_id`) REFERENCES `batches` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_enr_student_ref` FOREIGN KEY (`student_id`) REFERENCES `students` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_enr_tenant_ref` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=20 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=21 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 /*Data for the table `enrollments` */
 
@@ -516,7 +519,8 @@ insert  into `enrollments`(`id`,`tenant_id`,`student_id`,`batch_id`,`enrollment_
 (16,3,16,1,'ENR-3-2026-00016-49','2026-03-18','active','2026-03-18 17:55:30','2026-03-18 17:55:30',NULL),
 (17,3,17,1,'ENR-3-2026-00017-48','2026-03-19','active','2026-03-19 13:42:39','2026-03-19 13:42:39',NULL),
 (18,3,18,1,'ENR-3-2026-00018-51','2026-03-19','active','2026-03-19 20:29:28','2026-03-19 20:29:28',NULL),
-(19,3,19,1,'ENR-3-2026-00019-38','2026-03-19','active','2026-03-19 20:36:16','2026-03-19 20:36:16',NULL);
+(19,3,19,1,'ENR-3-2026-00019-38','2026-03-19','active','2026-03-19 20:36:16','2026-03-19 20:36:16',NULL),
+(20,3,20,1,'ENR-3-2026-00020-56','2026-03-20','active','2026-03-20 07:00:37','2026-03-20 07:00:37',NULL);
 
 /*Table structure for table `exam_attempts` */
 
@@ -728,7 +732,7 @@ CREATE TABLE `fee_ledger` (
   KEY `idx_tenant_student` (`tenant_id`,`student_id`),
   KEY `idx_entry_date` (`entry_date`),
   CONSTRAINT `fk_fee_ledger_tenant` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=39 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=41 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 /*Data for the table `fee_ledger` */
 
@@ -770,7 +774,9 @@ insert  into `fee_ledger`(`id`,`tenant_id`,`student_id`,`payment_transaction_id`
 (35,3,19,35,NULL,'2026-03-20','credit',1000.00,'Bulk Fee Payment - Receipt #RCP-000029','2026-03-20 06:03:05','2026-03-20 06:03:05'),
 (36,3,19,36,NULL,'2026-03-20','credit',1000.00,'Bulk Fee Payment - Receipt #RCP-000030','2026-03-20 06:12:49','2026-03-20 06:12:49'),
 (37,3,12,37,NULL,'2026-03-20','credit',1000.00,'Bulk Fee Payment - Receipt #RCP-000031','2026-03-20 06:15:10','2026-03-20 06:15:10'),
-(38,3,12,38,NULL,'2026-03-20','credit',1000.00,'Bulk Fee Payment - Receipt #RCP-000032','2026-03-20 06:21:59','2026-03-20 06:21:59');
+(38,3,12,38,NULL,'2026-03-20','credit',1000.00,'Bulk Fee Payment - Receipt #RCP-000032','2026-03-20 06:21:59','2026-03-20 06:21:59'),
+(39,3,19,39,NULL,'2026-03-20','credit',1000.00,'Bulk Fee Payment - Receipt #RCP-000033','2026-03-20 06:53:31','2026-03-20 06:53:31'),
+(40,3,20,40,NULL,'2026-03-20','credit',500.00,'Bulk Fee Payment - Receipt #RCP-000034','2026-03-20 07:01:25','2026-03-20 07:01:25');
 
 /*Table structure for table `fee_records` */
 
@@ -819,7 +825,7 @@ CREATE TABLE `fee_records` (
   CONSTRAINT `fk_fee_records_fee_item` FOREIGN KEY (`fee_item_id`) REFERENCES `fee_items` (`id`),
   CONSTRAINT `fk_fee_records_student` FOREIGN KEY (`student_id`) REFERENCES `students` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_fee_records_tenant` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=18 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 /*Data for the table `fee_records` */
 
@@ -839,7 +845,8 @@ insert  into `fee_records`(`id`,`tenant_id`,`student_id`,`batch_id`,`fee_item_id
 (14,3,16,1,1,1,8000.00,1000.00,0.00,'2026-03-18','2026-03-18','RCP-000026',NULL,'esewa',123,0.00,0.00,NULL,'2026-2027','partial',NULL,'2026-03-18 17:55:30','2026-03-18 17:56:18'),
 (15,3,17,1,1,1,8000.00,1000.00,0.00,'2026-03-19','2026-03-19','RCP-000027',NULL,'esewa',123,0.00,0.00,NULL,'2026-2027','partial',NULL,'2026-03-19 13:42:39','2026-03-19 13:44:41'),
 (16,3,18,1,1,1,8000.00,0.00,0.00,'2026-03-19',NULL,NULL,NULL,NULL,NULL,0.00,0.00,NULL,'2026-2027','pending',NULL,'2026-03-19 20:29:28','2026-03-19 20:29:28'),
-(17,3,19,1,1,1,8000.00,3000.00,0.00,'2026-03-19','2026-03-20','RCP-000030',NULL,'cash',123,0.00,0.00,NULL,'2026-2027','partial',NULL,'2026-03-19 20:36:16','2026-03-20 06:12:49');
+(17,3,19,1,1,1,8000.00,4000.00,0.00,'2026-03-19','2026-03-20','RCP-000033',NULL,'bank_transfer',123,0.00,0.00,NULL,'2026-2027','partial',NULL,'2026-03-19 20:36:16','2026-03-20 06:53:31'),
+(18,3,20,1,1,1,8000.00,500.00,0.00,'2026-03-20','2026-03-20','RCP-000034',NULL,'esewa',123,0.00,0.00,NULL,'2026-2027','partial',NULL,'2026-03-20 07:00:37','2026-03-20 07:01:25');
 
 /*Table structure for table `fee_settings` */
 
@@ -862,7 +869,7 @@ CREATE TABLE `fee_settings` (
 /*Data for the table `fee_settings` */
 
 insert  into `fee_settings`(`id`,`tenant_id`,`invoice_prefix`,`receipt_prefix`,`next_invoice_number`,`next_receipt_number`,`created_at`,`updated_at`) values 
-(1,3,'INV','RCP',1,33,'2026-03-13 11:56:09','2026-03-20 06:21:59');
+(1,3,'INV','RCP',1,35,'2026-03-13 11:56:09','2026-03-20 07:01:25');
 
 /*Table structure for table `feedbacks` */
 
@@ -1141,7 +1148,7 @@ CREATE TABLE `ledger_entries` (
   PRIMARY KEY (`id`),
   KEY `ledger_entries_tenant_id_entry_date_index` (`tenant_id`,`entry_date`),
   KEY `ledger_entries_tenant_id_student_id_index` (`tenant_id`,`student_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=39 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=41 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 /*Data for the table `ledger_entries` */
 
@@ -1183,7 +1190,9 @@ insert  into `ledger_entries`(`id`,`tenant_id`,`student_id`,`reference_type`,`re
 (35,3,19,'payment',35,1000.00,'credit','Bulk Fee Payment - Receipt #RCP-000029','2026-03-20','2026-03-20 06:03:05','2026-03-20 06:03:05'),
 (36,3,19,'payment',36,1000.00,'credit','Bulk Fee Payment - Receipt #RCP-000030','2026-03-20','2026-03-20 06:12:49','2026-03-20 06:12:49'),
 (37,3,12,'payment',37,1000.00,'credit','Bulk Fee Payment - Receipt #RCP-000031','2026-03-20','2026-03-20 06:15:10','2026-03-20 06:15:10'),
-(38,3,12,'payment',38,1000.00,'credit','Bulk Fee Payment - Receipt #RCP-000032','2026-03-20','2026-03-20 06:21:59','2026-03-20 06:21:59');
+(38,3,12,'payment',38,1000.00,'credit','Bulk Fee Payment - Receipt #RCP-000032','2026-03-20','2026-03-20 06:21:59','2026-03-20 06:21:59'),
+(39,3,19,'payment',39,1000.00,'credit','Bulk Fee Payment - Receipt #RCP-000033','2026-03-20','2026-03-20 06:53:31','2026-03-20 06:53:31'),
+(40,3,20,'payment',40,500.00,'credit','Bulk Fee Payment - Receipt #RCP-000034','2026-03-20','2026-03-20 07:01:25','2026-03-20 07:01:25');
 
 /*Table structure for table `library_books` */
 
@@ -1554,7 +1563,7 @@ CREATE TABLE `payment_transactions` (
   CONSTRAINT `payment_transactions_recorded_by_foreign` FOREIGN KEY (`recorded_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
   CONSTRAINT `payment_transactions_student_id_foreign` FOREIGN KEY (`student_id`) REFERENCES `students` (`id`) ON DELETE CASCADE,
   CONSTRAINT `payment_transactions_tenant_id_foreign` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=39 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=41 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 /*Data for the table `payment_transactions` */
 
@@ -1596,7 +1605,9 @@ insert  into `payment_transactions`(`id`,`tenant_id`,`student_id`,`fee_record_id
 (35,3,19,17,'fee_record',NULL,NULL,1000.00,'cash',NULL,'RCP-000029','2026-03-20','public/uploads/receipts/receipt_RCP-000029.pdf',123,' (Bulk Payment Part)','completed','2026-03-20 06:03:05','2026-03-20 06:03:09'),
 (36,3,19,17,'fee_record',NULL,NULL,1000.00,'cash',NULL,'RCP-000030','2026-03-20','public/uploads/receipts/receipt_RCP-000030.pdf',123,' (Bulk Payment Part)','completed','2026-03-20 06:12:49','2026-03-20 06:12:56'),
 (37,3,12,11,'fee_record',NULL,NULL,1000.00,'cash',NULL,'RCP-000031','2026-03-20','public/uploads/receipts/receipt_RCP-000031.pdf',123,' (Bulk Payment Part)','completed','2026-03-20 06:15:10','2026-03-20 06:15:13'),
-(38,3,12,11,'fee_record',NULL,NULL,1000.00,'cash',NULL,'RCP-000032','2026-03-20','public/uploads/receipts/receipt_RCP-000032.pdf',123,' (Bulk Payment Part)','completed','2026-03-20 06:21:59','2026-03-20 06:22:02');
+(38,3,12,11,'fee_record',NULL,NULL,1000.00,'cash',NULL,'RCP-000032','2026-03-20','public/uploads/receipts/receipt_RCP-000032.pdf',123,' (Bulk Payment Part)','completed','2026-03-20 06:21:59','2026-03-20 06:22:02'),
+(39,3,19,17,'fee_record',NULL,NULL,1000.00,'bank_transfer',NULL,'RCP-000033','2026-03-20','public/uploads/receipts/receipt_RCP-000033.pdf',123,' (Bulk Payment Part)','completed','2026-03-20 06:53:31','2026-03-20 06:53:34'),
+(40,3,20,18,'fee_record',NULL,NULL,500.00,'esewa',NULL,'RCP-000034','2026-03-20','public/uploads/receipts/receipt_RCP-000034.pdf',123,' (Bulk Payment Part)','completed','2026-03-20 07:01:25','2026-03-20 07:01:28');
 
 /*Table structure for table `payments` */
 
@@ -1870,7 +1881,7 @@ CREATE TABLE `student_fee_summary` (
   CONSTRAINT `fk_fee_summary_enrollment` FOREIGN KEY (`enrollment_id`) REFERENCES `enrollments` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_fee_summary_student` FOREIGN KEY (`student_id`) REFERENCES `students` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_fee_summary_tenant` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=23 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=24 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 /*Data for the table `student_fee_summary` */
 
@@ -1890,7 +1901,8 @@ insert  into `student_fee_summary`(`id`,`tenant_id`,`student_id`,`enrollment_id`
 (19,3,16,16,8000.00,1000.00,7000.00,'partial','2026-03-18 17:55:30','2026-03-18 17:56:18'),
 (20,3,17,17,8000.00,1000.00,7000.00,'partial','2026-03-19 13:42:39','2026-03-19 13:44:41'),
 (21,3,18,18,8000.00,0.00,8000.00,'unpaid','2026-03-19 20:29:28','2026-03-19 20:29:28'),
-(22,3,19,19,8000.00,3000.00,5000.00,'partial','2026-03-19 20:36:16','2026-03-20 06:12:49');
+(22,3,19,19,8000.00,4000.00,4000.00,'partial','2026-03-19 20:36:16','2026-03-20 06:53:31'),
+(23,3,20,20,8000.00,500.00,7500.00,'partial','2026-03-20 07:00:37','2026-03-20 07:01:25');
 
 /*Table structure for table `students` */
 
@@ -1902,7 +1914,7 @@ CREATE TABLE `students` (
   `user_id` bigint(20) unsigned DEFAULT NULL,
   `roll_no` varchar(50) NOT NULL,
   `dob_bs` varchar(20) DEFAULT NULL COMMENT 'Date of birth (BS) — nullable for quick registration',
-  `dob_ad` date DEFAULT NULL COMMENT 'Date of birth (AD)',
+  `dob_ad` date DEFAULT NULL,
   `gender` enum('male','female','other') DEFAULT NULL COMMENT 'Gender — nullable for quick registration',
   `blood_group` varchar(5) DEFAULT NULL,
   `citizenship_no` varchar(255) DEFAULT NULL,
@@ -1919,8 +1931,6 @@ CREATE TABLE `students` (
   `photo_url` varchar(500) DEFAULT NULL,
   `identity_doc_url` varchar(255) DEFAULT NULL,
   `status` enum('active','inactive','on-leave','graduated','alumni','dropped') NOT NULL DEFAULT 'active',
-  `registration_mode` enum('quick','full') NOT NULL DEFAULT 'full' COMMENT 'quick=Quick Registration; full=Complete Profile',
-  `registration_status` enum('quick_registered','fully_registered') NOT NULL DEFAULT 'fully_registered' COMMENT 'Registration completion status',
   `id_card_status` enum('none','requested','processing','issued') NOT NULL DEFAULT 'none',
   `id_card_issued_at` timestamp NULL DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
@@ -1938,28 +1948,29 @@ CREATE TABLE `students` (
   CONSTRAINT `fk_students_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL,
   CONSTRAINT `check_stu_permanent_addr` CHECK (json_valid(`permanent_address`)),
   CONSTRAINT `check_stu_qualifications` CHECK (json_valid(`academic_qualifications`))
-) ENGINE=InnoDB AUTO_INCREMENT=20 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=21 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 /*Data for the table `students` */
 
-insert  into `students`(`id`,`tenant_id`,`user_id`,`roll_no`,`dob_bs`,`gender`,`blood_group`,`citizenship_no`,`national_id`,`permanent_address`,`temporary_address`,`academic_qualifications`,`admission_date`,`photo_url`,`identity_doc_url`,`status`,`registration_mode`,`registration_status`,`id_card_status`,`id_card_issued_at`,`created_at`,`updated_at`,`deleted_at`) values 
-(1,3,124,'STD-2026-0001','2063-09-05','female','A+',NULL,NULL,'{\"address\":\"Hamro Labs ,No. 13, Radhemai, Birgunj Metropolitan City Parsa District, Madhesh Province, Nepal Postal Code: 44300\"}',NULL,NULL,NULL,NULL,NULL,'active','full','fully_registered','none',NULL,'2026-03-11 10:17:01','2026-03-15 08:17:27','2026-03-11 15:39:37'),
-(2,3,126,'STD-2026-0002','2063-09-05','male',NULL,NULL,NULL,'{\"address\":\"Hamro Labs ,No. 13, Radhemai, Birgunj Metropolitan City Parsa District, Madhesh Province, Nepal Postal Code: 44300\"}',NULL,NULL,NULL,NULL,NULL,'active','full','fully_registered','none',NULL,'2026-03-11 11:26:22','2026-03-11 14:21:34','2026-03-11 14:21:34'),
-(4,3,123,'STD-2026-0003','2063-09-05','male',NULL,NULL,NULL,'{\"address\":\"Hamro Labs ,No. 13, Radhemai, Birgunj Metropolitan City Parsa District, Madhesh Province, Nepal Postal Code: 44300\"}',NULL,NULL,NULL,NULL,NULL,'active','full','fully_registered','none',NULL,'2026-03-12 07:06:12','2026-03-14 08:56:59','2026-03-14 08:56:59'),
-(5,3,129,'STD-2026-0005','2063-09-05','male',NULL,NULL,NULL,'{\"address\":\"Hamro Labs ,No. 13, Radhemai, Birgunj Metropolitan City Parsa District, Madhesh Province, Nepal Postal Code: 44300\"}',NULL,NULL,NULL,NULL,NULL,'active','full','fully_registered','none',NULL,'2026-03-12 09:41:44','2026-03-14 08:56:35','2026-03-14 08:56:35'),
-(6,3,129,'STD-2026-0006','2063-09-05','male',NULL,NULL,NULL,'{\"address\":\"Birgunj\"}',NULL,NULL,NULL,NULL,NULL,'active','full','fully_registered','none',NULL,'2026-03-14 06:00:06','2026-03-14 08:56:31','2026-03-14 08:56:31'),
-(7,3,132,'STD-2026-0007','2063-09-05','female',NULL,NULL,NULL,'{\"address\":\"Hamro Labs ,No. 13, Radhemai, Birgunj Metropolitan City Parsa District, Madhesh Province, Nepal Postal Code: 44300\"}',NULL,NULL,NULL,NULL,NULL,'active','full','fully_registered','none',NULL,'2026-03-14 08:58:00','2026-03-14 08:59:52','2026-03-14 08:59:52'),
-(8,3,131,'STD-2026-0008','2063-09-05','male',NULL,NULL,NULL,'{\"address\":\"Hamro Labs ,No. 13, Radhemai, Birgunj Metropolitan City Parsa District, Madhesh Province, Nepal Postal Code: 44300\"}',NULL,NULL,NULL,NULL,NULL,'active','full','fully_registered','none',NULL,'2026-03-14 09:00:37','2026-03-14 09:01:44','2026-03-14 09:01:44'),
-(9,3,133,'STD-2026-0009','2063-09-05','male',NULL,NULL,NULL,'{\"address\":\"Hamro Labs ,No. 13, Radhemai, Birgunj Metropolitan City Parsa District, Madhesh Province, Nepal Postal Code: 44300\"}',NULL,NULL,NULL,NULL,NULL,'active','full','fully_registered','none',NULL,'2026-03-14 11:03:50','2026-03-15 07:07:33','2026-03-15 07:07:33'),
-(10,3,134,'STD-2026-0010','2063-09-05','male',NULL,NULL,NULL,'{\"address\":\"Hamro Labs ,No. 13, Radhemai, Birgunj Metropolitan City Parsa District, Madhesh Province, Nepal Postal Code: 44300\"}',NULL,NULL,NULL,NULL,NULL,'active','full','fully_registered','none',NULL,'2026-03-14 16:38:20','2026-03-14 18:11:43','2026-03-14 18:11:43'),
-(11,3,135,'STD-2026-0011','2052-09-17','female',NULL,NULL,NULL,'{\"address\":\"Hamro Labs ,No. 13, Radhemai, Birgunj Metropolitan City Parsa District, Madhesh Province, Nepal Postal Code: 44300\"}',NULL,NULL,NULL,NULL,NULL,'active','full','fully_registered','none',NULL,'2026-03-15 06:18:23','2026-03-18 14:34:16','2026-03-18 14:34:16'),
-(12,3,136,'STD-2026-0012','2063-09-05','male',NULL,NULL,NULL,'{\"address\":\"Hamro Labs ,No. 13, Radhemai, Birgunj Metropolitan City Parsa District, Madhesh Province, Nepal Postal Code: 44300\"}',NULL,NULL,NULL,NULL,NULL,'active','full','fully_registered','none',NULL,'2026-03-16 13:41:45','2026-03-16 13:41:45',NULL),
-(13,3,137,'STD-2026-0013','2060-01-01','male',NULL,NULL,NULL,NULL,NULL,NULL,'2026-03-16',NULL,NULL,'active','full','fully_registered','none',NULL,'2026-03-16 13:51:41','2026-03-16 17:45:43','2026-03-16 17:45:43'),
-(15,3,140,'STD-2026-0014','2063-09-05','male',NULL,NULL,NULL,'{\"address\":\"Hamro Labs ,No. 13, Radhemai, Birgunj Metropolitan City Parsa District, Madhesh Province, Nepal Postal Code: 44300\"}',NULL,NULL,NULL,NULL,NULL,'active','full','fully_registered','none',NULL,'2026-03-18 14:35:04','2026-03-18 14:35:04',NULL),
-(16,3,141,'STD-2026-0016','2052-09-17','male',NULL,NULL,NULL,'{\"address\":\"Hamro Labs ,No. 13, Radhemai, Birgunj Metropolitan City Parsa District, Madhesh Province, Nepal Postal Code: 44300\"}',NULL,NULL,NULL,NULL,NULL,'active','full','fully_registered','none',NULL,'2026-03-18 17:55:30','2026-03-18 17:55:30',NULL),
-(17,3,142,'STD-2026-0017','2063-09-12','male',NULL,NULL,NULL,'{\"address\":\"Hamro Labs ,No. 13, Radhemai, Birgunj Metropolitan City Parsa District, Madhesh Province, Nepal Postal Code: 44300\"}',NULL,NULL,NULL,NULL,NULL,'active','full','fully_registered','none',NULL,'2026-03-19 13:42:39','2026-03-19 13:42:39',NULL),
-(18,3,143,'STD-2026-0018','2063-09-12','male',NULL,NULL,NULL,'{\"address\":\"Hamro Labs ,No. 13, Radhemai, Birgunj Metropolitan City Parsa District, Madhesh Province, Nepal Postal Code: 44300\"}',NULL,NULL,NULL,NULL,NULL,'active','full','fully_registered','none',NULL,'2026-03-19 20:29:28','2026-03-19 20:35:11','2026-03-19 20:35:11'),
-(19,3,144,'STD-2026-0019','2063-09-05','male',NULL,NULL,NULL,'{\"address\":\"Hamro Labs ,No. 13, Radhemai, Birgunj Metropolitan City Parsa District, Madhesh Province, Nepal Postal Code: 44300\"}',NULL,NULL,NULL,NULL,NULL,'active','full','fully_registered','none',NULL,'2026-03-19 20:36:16','2026-03-19 20:36:16',NULL);
+insert  into `students`(`id`,`tenant_id`,`user_id`,`roll_no`,`dob_bs`,`dob_ad`,`gender`,`blood_group`,`citizenship_no`,`national_id`,`father_name`,`mother_name`,`husband_name`,`guardian_name`,`guardian_relation`,`permanent_address`,`temporary_address`,`academic_qualifications`,`admission_date`,`photo_url`,`identity_doc_url`,`status`,`id_card_status`,`id_card_issued_at`,`created_at`,`updated_at`,`deleted_at`) values 
+(1,3,124,'STD-2026-0001','2063-09-05',NULL,'female','A+',NULL,NULL,NULL,NULL,NULL,NULL,NULL,'{\"address\":\"Hamro Labs ,No. 13, Radhemai, Birgunj Metropolitan City Parsa District, Madhesh Province, Nepal Postal Code: 44300\"}',NULL,NULL,NULL,NULL,NULL,'active','none',NULL,'2026-03-11 10:17:01','2026-03-15 08:17:27','2026-03-11 15:39:37'),
+(2,3,126,'STD-2026-0002','2063-09-05',NULL,'male',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'{\"address\":\"Hamro Labs ,No. 13, Radhemai, Birgunj Metropolitan City Parsa District, Madhesh Province, Nepal Postal Code: 44300\"}',NULL,NULL,NULL,NULL,NULL,'active','none',NULL,'2026-03-11 11:26:22','2026-03-11 14:21:34','2026-03-11 14:21:34'),
+(4,3,123,'STD-2026-0003','2063-09-05',NULL,'male',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'{\"address\":\"Hamro Labs ,No. 13, Radhemai, Birgunj Metropolitan City Parsa District, Madhesh Province, Nepal Postal Code: 44300\"}',NULL,NULL,NULL,NULL,NULL,'active','none',NULL,'2026-03-12 07:06:12','2026-03-14 08:56:59','2026-03-14 08:56:59'),
+(5,3,129,'STD-2026-0005','2063-09-05',NULL,'male',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'{\"address\":\"Hamro Labs ,No. 13, Radhemai, Birgunj Metropolitan City Parsa District, Madhesh Province, Nepal Postal Code: 44300\"}',NULL,NULL,NULL,NULL,NULL,'active','none',NULL,'2026-03-12 09:41:44','2026-03-14 08:56:35','2026-03-14 08:56:35'),
+(6,3,129,'STD-2026-0006','2063-09-05',NULL,'male',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'{\"address\":\"Birgunj\"}',NULL,NULL,NULL,NULL,NULL,'active','none',NULL,'2026-03-14 06:00:06','2026-03-14 08:56:31','2026-03-14 08:56:31'),
+(7,3,132,'STD-2026-0007','2063-09-05',NULL,'female',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'{\"address\":\"Hamro Labs ,No. 13, Radhemai, Birgunj Metropolitan City Parsa District, Madhesh Province, Nepal Postal Code: 44300\"}',NULL,NULL,NULL,NULL,NULL,'active','none',NULL,'2026-03-14 08:58:00','2026-03-14 08:59:52','2026-03-14 08:59:52'),
+(8,3,131,'STD-2026-0008','2063-09-05',NULL,'male',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'{\"address\":\"Hamro Labs ,No. 13, Radhemai, Birgunj Metropolitan City Parsa District, Madhesh Province, Nepal Postal Code: 44300\"}',NULL,NULL,NULL,NULL,NULL,'active','none',NULL,'2026-03-14 09:00:37','2026-03-14 09:01:44','2026-03-14 09:01:44'),
+(9,3,133,'STD-2026-0009','2063-09-05',NULL,'male',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'{\"address\":\"Hamro Labs ,No. 13, Radhemai, Birgunj Metropolitan City Parsa District, Madhesh Province, Nepal Postal Code: 44300\"}',NULL,NULL,NULL,NULL,NULL,'active','none',NULL,'2026-03-14 11:03:50','2026-03-15 07:07:33','2026-03-15 07:07:33'),
+(10,3,134,'STD-2026-0010','2063-09-05',NULL,'male',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'{\"address\":\"Hamro Labs ,No. 13, Radhemai, Birgunj Metropolitan City Parsa District, Madhesh Province, Nepal Postal Code: 44300\"}',NULL,NULL,NULL,NULL,NULL,'active','none',NULL,'2026-03-14 16:38:20','2026-03-14 18:11:43','2026-03-14 18:11:43'),
+(11,3,135,'STD-2026-0011','2052-09-17',NULL,'female',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'{\"address\":\"Hamro Labs ,No. 13, Radhemai, Birgunj Metropolitan City Parsa District, Madhesh Province, Nepal Postal Code: 44300\"}',NULL,NULL,NULL,NULL,NULL,'active','none',NULL,'2026-03-15 06:18:23','2026-03-18 14:34:16','2026-03-18 14:34:16'),
+(12,3,136,'STD-2026-0012','2063-09-05',NULL,'male',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'{\"address\":\"Hamro Labs ,No. 13, Radhemai, Birgunj Metropolitan City Parsa District, Madhesh Province, Nepal Postal Code: 44300\"}',NULL,NULL,NULL,NULL,NULL,'active','none',NULL,'2026-03-16 13:41:45','2026-03-20 06:54:44','2026-03-20 06:54:44'),
+(13,3,137,'STD-2026-0013','2060-01-01',NULL,'male',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'2026-03-16',NULL,NULL,'active','none',NULL,'2026-03-16 13:51:41','2026-03-16 17:45:43','2026-03-16 17:45:43'),
+(15,3,140,'STD-2026-0014','2063-09-05',NULL,'male',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'{\"address\":\"Hamro Labs ,No. 13, Radhemai, Birgunj Metropolitan City Parsa District, Madhesh Province, Nepal Postal Code: 44300\"}',NULL,NULL,NULL,NULL,NULL,'active','none',NULL,'2026-03-18 14:35:04','2026-03-20 06:54:44','2026-03-20 06:54:44'),
+(16,3,141,'STD-2026-0016','2052-09-17',NULL,'male',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'{\"address\":\"Hamro Labs ,No. 13, Radhemai, Birgunj Metropolitan City Parsa District, Madhesh Province, Nepal Postal Code: 44300\"}',NULL,NULL,NULL,NULL,NULL,'active','none',NULL,'2026-03-18 17:55:30','2026-03-20 06:54:44','2026-03-20 06:54:44'),
+(17,3,142,'STD-2026-0017','2063-09-12',NULL,'male',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'{\"address\":\"Hamro Labs ,No. 13, Radhemai, Birgunj Metropolitan City Parsa District, Madhesh Province, Nepal Postal Code: 44300\"}',NULL,NULL,NULL,NULL,NULL,'active','none',NULL,'2026-03-19 13:42:39','2026-03-20 06:54:44','2026-03-20 06:54:44'),
+(18,3,143,'STD-2026-0018','2063-09-12',NULL,'male',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'{\"address\":\"Hamro Labs ,No. 13, Radhemai, Birgunj Metropolitan City Parsa District, Madhesh Province, Nepal Postal Code: 44300\"}',NULL,NULL,NULL,NULL,NULL,'active','none',NULL,'2026-03-19 20:29:28','2026-03-19 20:35:11','2026-03-19 20:35:11'),
+(19,3,144,'STD-2026-0019','2063-09-05','2006-12-20','male','','','','','','','','','{\"address\":\"Hamro Labs ,No. 13, Radhemai, Birgunj Metropolitan City Parsa District, Madhesh Province, Nepal Postal Code: 44300\"}',NULL,'[{\"level\":\"+2\",\"school\":\"A Plus academy\",\"year\":\"2079\",\"percentage\":\"B+\"}]',NULL,NULL,NULL,'active','none',NULL,'2026-03-19 20:36:16','2026-03-20 06:54:44','2026-03-20 06:54:44'),
+(20,3,145,'STD-2026-0020','2063-09-12','2006-12-27','male',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'{\"address\":\"Hamro Labs ,No. 13, Radhemai, Birgunj Metropolitan City Parsa District, Madhesh Province, Nepal Postal Code: 44300\"}',NULL,NULL,NULL,NULL,NULL,'active','none',NULL,'2026-03-20 07:00:37','2026-03-20 07:00:37',NULL);
 
 /*Table structure for table `study_material_access_logs` */
 
@@ -2385,7 +2396,7 @@ CREATE TABLE `users` (
   PRIMARY KEY (`id`),
   KEY `fk_users_tenant` (`tenant_id`),
   CONSTRAINT `fk_users_tenant` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=145 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=146 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 /*Data for the table `users` */
 
@@ -2405,14 +2416,15 @@ insert  into `users`(`id`,`tenant_id`,`role`,`email`,`password_hash`,`phone`,`st
 (133,3,'student','toonmitra355@gmail.com','$2y$12$HLd54CKB6g/dTNnGIsSgEO0sMkVkns1N/l6WCpyp.shYjxzZ0EiJa','9845012350','active',0.00,'2026-03-14 15:06:44',0,'2026-03-14 11:03:50','2026-03-15 07:07:33','2026-03-15 07:07:33',NULL,NULL,'Nepal Cyber Firm',0,NULL),
 (134,3,'student','infohamrolabs@gmail.com','$2y$12$VmzR702PrJMIuKsAAevQE.ZOINHgz3WdrqZrg6MrnzKWOP74h.Tki','9855044403','active',0.00,NULL,0,'2026-03-14 16:38:20','2026-03-14 18:11:43','2026-03-14 18:11:43',NULL,NULL,'Devbarat Prasad Patel',0,NULL),
 (135,3,'student','addamssmith937@gmail.com','$2y$12$kcNgbcyiziTufcgqYinqXuUpiip7pjmIGqURupI/46.qGWXGu4BQ.','9845012350','active',0.00,NULL,0,'2026-03-15 06:18:23','2026-03-18 14:34:16','2026-03-18 14:34:16',NULL,NULL,'Nepal Cyber Firm',0,NULL),
-(136,3,'student','pdewbrath@gmail.com','$2y$12$FKDsy.Kz9kCYeH17cl0inuc0wwc2XrZsjBtxx2uJOp0yhTTTEkrla','9845012350','active',0.00,NULL,0,'2026-03-16 13:41:45','2026-03-16 13:41:45',NULL,NULL,NULL,'Nepal Cyber Firm',0,NULL),
+(136,3,'student','pdewbrath@gmail.com','$2y$12$FKDsy.Kz9kCYeH17cl0inuc0wwc2XrZsjBtxx2uJOp0yhTTTEkrla','9845012350','active',0.00,NULL,0,'2026-03-16 13:41:45','2026-03-20 06:54:44','2026-03-20 06:54:44',NULL,NULL,'Nepal Cyber Firm',0,NULL),
 (137,3,'student','test_std_1773648401@example.com','$2y$12$v2x2ovKiFtITq6kbZM/dIeeAxt5aKzw.GP.SmP0YU4Yt/nA/7as2G','9845951232','active',0.00,NULL,0,'2026-03-16 13:51:41','2026-03-16 17:45:43','2026-03-16 17:45:43',NULL,NULL,'Automated Test Student 1773648401',0,NULL),
 (139,3,'frontdesk','nepalcodingschool@gmail.com','$2y$12$lbMaiy8CiqssMbaibmnE5eCLH4SQpR0YL1BdTlgL2YBds0NieRZwm','9833344402','active',15000.00,NULL,0,'2026-03-16 14:07:54','2026-03-16 17:54:02',NULL,NULL,NULL,'Ram Kumar yadav ',0,NULL),
-(140,3,'student','addamssmith937@gmail.com','$2y$12$1G0OvnLiTCU9pHddB7TIZO7DcB5L3biZoPn3xZkQ04sd279cMaqvm','9845012350','active',0.00,NULL,0,'2026-03-18 14:35:04','2026-03-18 14:35:04',NULL,NULL,NULL,'Devbarat Prasad Patel',0,NULL),
-(141,3,'student','aimsinstitutebirgunj@gmail.com','$2y$12$9LLAKPFUfkxBolSjBFIl5exOZ0VjtViz1Uslw2pWtZCVHrW9RYGsi','9825205484','active',0.00,NULL,0,'2026-03-18 17:55:30','2026-03-18 17:55:30',NULL,NULL,NULL,'Ramesh Kuamar',0,NULL),
-(142,3,'student','mohammadmishal557@gmail.com','$2y$12$NdY7gQR8quv76.CGoG8T4eoBILaep119/6PKy8uJnfSiAjval6ZDq','9855044403','active',0.00,NULL,0,'2026-03-19 13:42:38','2026-03-19 13:42:38',NULL,NULL,NULL,'Mishal MD.',0,NULL),
+(140,3,'student','addamssmith937@gmail.com','$2y$12$1G0OvnLiTCU9pHddB7TIZO7DcB5L3biZoPn3xZkQ04sd279cMaqvm','9845012350','active',0.00,NULL,0,'2026-03-18 14:35:04','2026-03-20 06:54:44','2026-03-20 06:54:44',NULL,NULL,'Devbarat Prasad Patel',0,NULL),
+(141,3,'student','aimsinstitutebirgunj@gmail.com','$2y$12$9LLAKPFUfkxBolSjBFIl5exOZ0VjtViz1Uslw2pWtZCVHrW9RYGsi','9825205484','active',0.00,NULL,0,'2026-03-18 17:55:30','2026-03-20 06:54:44','2026-03-20 06:54:44',NULL,NULL,'Ramesh Kuamar',0,NULL),
+(142,3,'student','mohammadmishal557@gmail.com','$2y$12$NdY7gQR8quv76.CGoG8T4eoBILaep119/6PKy8uJnfSiAjval6ZDq','9855044403','active',0.00,NULL,0,'2026-03-19 13:42:38','2026-03-20 06:54:44','2026-03-20 06:54:44',NULL,NULL,'Mishal MD.',0,NULL),
 (143,3,'student','nepalcyberfirm@gmail.com','$2y$12$sn3n0YJl2lbhZhdXv.vGZOf3vP3ovLcwEXsbjuYKAi17m0BGBApEW','9825205484','active',0.00,NULL,0,'2026-03-19 20:29:28','2026-03-19 20:35:11','2026-03-19 20:35:11',NULL,NULL,'Nepal Cyber Firm',0,NULL),
-(144,3,'student','nepalcyberfirm@gmail.com','$2y$12$3H4CunWpH7g9QY5R8vkwTe2.YxwlnnTfMEGcG922rEZ2R/RxyKaIq','9825205184','active',0.00,NULL,0,'2026-03-19 20:36:16','2026-03-19 20:36:16',NULL,NULL,NULL,'Nepal Cyber Firm',0,NULL);
+(144,3,'student','nepalcyberfirm@gmail.com','$2y$12$3H4CunWpH7g9QY5R8vkwTe2.YxwlnnTfMEGcG922rEZ2R/RxyKaIq','9825205184','active',0.00,NULL,0,'2026-03-19 20:36:16','2026-03-20 06:54:44','2026-03-20 06:54:44',NULL,NULL,'Dev',0,NULL),
+(145,3,'student','pdewbrath@gmail.com','$2y$12$JHzcqSjs2hB3ZSeIHNU6w.bcRnzC7wOKws34Bj5GleVNNq7h1VrAC','9845012350','active',0.00,NULL,0,'2026-03-20 07:00:37','2026-03-20 07:00:37',NULL,NULL,NULL,'Devbarat Prasad Patel',0,NULL);
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
 /*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;

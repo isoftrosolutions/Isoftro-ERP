@@ -881,31 +881,8 @@ document.addEventListener('DOMContentLoaded', () => {
     _IA.activeNav = pv.includes('-') ? pv.split('-')[0] : pv;
     _IA.activeSub = pv.includes('-') ? pv.split('-')[1] : null;
 
-    // ── Sidebar toggle (desktop collapse + mobile drawer) ──
-    const sbToggle = document.getElementById('sbToggle');
-    const sbClose = document.getElementById('sbClose');
-    const sbOverlay = document.getElementById('sbOverlay');
+    // ── Global Search & Interactions ──
     const sbSearch = document.getElementById('globalSearch');
-
-    const toggleSB = () => {
-        if (window.innerWidth >= 768) {
-            document.body.classList.toggle('sb-collapsed');
-            localStorage.setItem('_ia_sb_collapsed', document.body.classList.contains('sb-collapsed') ? '1' : '0');
-        } else {
-            document.body.classList.toggle('sb-active');
-        }
-    };
-
-    // Restore collapsed state on desktop
-    if (window.innerWidth >= 768 && localStorage.getItem('_ia_sb_collapsed') === '1') {
-        document.body.classList.add('sb-collapsed');
-    }
-
-    if (sbToggle)  sbToggle.addEventListener('click', toggleSB);
-    const menuToggle = document.getElementById('menuToggle');
-    if (menuToggle) menuToggle.addEventListener('click', toggleSB);
-    if (sbClose)   sbClose.addEventListener('click', () => document.body.classList.remove('sb-active'));
-    if (sbOverlay) sbOverlay.addEventListener('click', () => document.body.classList.remove('sb-active'));
     
     // Global Search Functionality
     if (sbSearch) {
