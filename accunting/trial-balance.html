@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trial Balance - Hamro Labs ERP</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="hamro-accounting-styles.css">
+</head>
+<body>
+
+<div class="app-container">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">Hamro Loksewa Institute</div>
+        </div>
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <div class="nav-section-title">Finance</div>
+                <a href="#" class="nav-item active">
+                    <div class="nav-item-content">
+                        <i class="fas fa-calculator nav-item-icon"></i>
+                        <span>Accounting</span>
+                    </div>
+                    <i class="fas fa-chevron-down nav-item-chevron"></i>
+                </a>
+                <div class="nav-submenu active">
+                    <a href="accounting-dashboard.html" class="nav-submenu-item">Dashboard</a>
+                    <a href="chart-of-accounts.html" class="nav-submenu-item">Chart of Accounts</a>
+                    <a href="voucher-entry.html" class="nav-submenu-item">Vouchers</a>
+                    <a href="day-book.html" class="nav-submenu-item">Day Book</a>
+                    <a href="ledger.html" class="nav-submenu-item">Ledger</a>
+                    <a href="trial-balance.html" class="nav-submenu-item active">Trial Balance</a>
+                    <a href="financial-reports.html" class="nav-submenu-item">Financial Reports</a>
+                </div>
+            </div>
+        </nav>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+        <!-- TOP HEADER -->
+        <header class="top-header">
+            <div class="search-bar">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Search accounts...">
+            </div>
+            <div class="header-actions">
+                <div class="year-badge">
+                    <i class="fas fa-calendar"></i>
+                    <span>FY 2081/82</span>
+                </div>
+                <button class="header-icon-btn"><i class="fas fa-bell"></i><span class="notification-badge">3</span></button>
+                <div class="user-avatar">Ha</div>
+            </div>
+        </header>
+
+        <!-- PAGE CONTENT -->
+        <div class="page-content">
+            <!-- PAGE TITLE SECTION -->
+            <div class="page-title-section">
+                <div class="page-title-header">
+                    <div>
+                        <h1 class="page-title">Trial Balance</h1>
+                        <div class="page-meta">
+                            <span><i class="fas fa-balance-scale"></i> Debit & Credit Balance Verification</span>
+                            <span><i class="fas fa-clock"></i> As on 7th Falgun 2081</span>
+                        </div>
+                    </div>
+                    <div class="page-actions">
+                        <button class="btn btn-secondary">
+                            <i class="fas fa-file-excel"></i> Export Excel
+                        </button>
+                        <button class="btn btn-secondary">
+                            <i class="fas fa-file-pdf"></i> Export PDF
+                        </button>
+                        <button class="btn btn-primary">
+                            <i class="fas fa-print"></i> Print
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FILTER SECTION -->
+            <div class="card" style="margin-bottom: 24px;">
+                <div class="form-row cols-4">
+                    <div class="form-group">
+                        <label class="form-label">As on Date (BS)</label>
+                        <input type="text" class="form-control" value="2081-12-07">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Fiscal Year</label>
+                        <select class="form-control">
+                            <option>2081/82 (Current)</option>
+                            <option>2080/81</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Account Type Filter</label>
+                        <select class="form-control">
+                            <option>All Accounts</option>
+                            <option>Assets Only</option>
+                            <option>Liabilities Only</option>
+                            <option>Income Only</option>
+                            <option>Expense Only</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">&nbsp;</label>
+                        <button class="btn btn-primary" style="width: 100%;">
+                            <i class="fas fa-sync-alt"></i> Refresh Report
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- REPORT CARD -->
+            <div class="card">
+                <!-- Report Header -->
+                <div class="report-header">
+                    <h3 class="report-title">TRIAL BALANCE</h3>
+                    <div class="report-subtitle">Hamro Loksewa Academy Pvt. Ltd.</div>
+                    <div class="report-period">As on 7th Falgun 2081 (March 21, 2025)</div>
+                </div>
+
+                <!-- Balance Check Alert -->
+                <div style="background: #DCFCE7; border: 1px solid #16A34A; padding: 16px; border-radius: 10px; margin-bottom: 24px; display: flex; align-items: center; gap: 12px;">
+                    <i class="fas fa-check-circle" style="font-size: 24px; color: #16A34A;"></i>
+                    <div>
+                        <div style="font-weight: 700; color: #166534; font-size: 14px;">Books are Balanced ✓</div>
+                        <div style="font-size: 12px; color: #15803D;">Total Debit = Total Credit (NPR 4,523,090.00)</div>
+                    </div>
+                </div>
+
+                <!-- Trial Balance Table -->
+                <div class="table-wrapper">
+                    <table class="financial-table">
+                        <thead>
+                            <tr>
+                                <th>Account Code</th>
+                                <th>Account Name</th>
+                                <th style="text-align: right;">Debit Balance (NPR)</th>
+                                <th style="text-align: right;">Credit Balance (NPR)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- ASSETS SECTION -->
+                            <tr class="section-header">
+                                <td colspan="4"><strong>ASSETS</strong></td>
+                            </tr>
+                            <tr>
+                                <td>1110</td>
+                                <td>Cash on Hand</td>
+                                <td class="amount-cell">55,420.00</td>
+                                <td class="amount-cell">-</td>
+                            </tr>
+                            <tr>
+                                <td>1120</td>
+                                <td>Bank - NIC Asia (A/C: 003456789)</td>
+                                <td class="amount-cell">872,300.00</td>
+                                <td class="amount-cell">-</td>
+                            </tr>
+                            <tr>
+                                <td>1130</td>
+                                <td>Student Receivables (Control)</td>
+                                <td class="amount-cell">895,200.00</td>
+                                <td class="amount-cell">-</td>
+                            </tr>
+                            <tr>
+                                <td>1210</td>
+                                <td>Furniture & Fixtures</td>
+                                <td class="amount-cell">325,000.00</td>
+                                <td class="amount-cell">-</td>
+                            </tr>
+                            <tr>
+                                <td>1220</td>
+                                <td>Computer Equipment</td>
+                                <td class="amount-cell">485,600.00</td>
+                                <td class="amount-cell">-</td>
+                            </tr>
+
+                            <!-- LIABILITIES SECTION -->
+                            <tr class="section-header">
+                                <td colspan="4"><strong>LIABILITIES</strong></td>
+                            </tr>
+                            <tr>
+                                <td>2110</td>
+                                <td>Advance Fee Receipts</td>
+                                <td class="amount-cell">-</td>
+                                <td class="amount-cell">125,600.00</td>
+                            </tr>
+                            <tr>
+                                <td>2120</td>
+                                <td>Education Service Fee (ESF) Payable - 1%</td>
+                                <td class="amount-cell">-</td>
+                                <td class="amount-cell">184,260.00</td>
+                            </tr>
+                            <tr>
+                                <td>2130</td>
+                                <td>SSF Payable (31%)</td>
+                                <td class="amount-cell">-</td>
+                                <td class="amount-cell">145,800.00</td>
+                            </tr>
+                            <tr>
+                                <td>2140</td>
+                                <td>TDS Payable</td>
+                                <td class="amount-cell">-</td>
+                                <td class="amount-cell">38,750.00</td>
+                            </tr>
+                            <tr>
+                                <td>2150</td>
+                                <td>Caution Deposit (Student Security)</td>
+                                <td class="amount-cell">-</td>
+                                <td class="amount-cell">450,000.00</td>
+                            </tr>
+
+                            <!-- EQUITY SECTION -->
+                            <tr class="section-header">
+                                <td colspan="4"><strong>EQUITY</strong></td>
+                            </tr>
+                            <tr>
+                                <td>3100</td>
+                                <td>Share Capital</td>
+                                <td class="amount-cell">-</td>
+                                <td class="amount-cell">1,000,000.00</td>
+                            </tr>
+                            <tr>
+                                <td>3200</td>
+                                <td>Retained Earnings</td>
+                                <td class="amount-cell">-</td>
+                                <td class="amount-cell">325,680.00</td>
+                            </tr>
+
+                            <!-- INCOME SECTION -->
+                            <tr class="section-header">
+                                <td colspan="4"><strong>INCOME (Unrestricted)</strong></td>
+                            </tr>
+                            <tr>
+                                <td>4110</td>
+                                <td>Tuition Fee Income</td>
+                                <td class="amount-cell">-</td>
+                                <td class="amount-cell">1,842,600.00</td>
+                            </tr>
+                            <tr>
+                                <td>4120</td>
+                                <td>Admission Fee Income</td>
+                                <td class="amount-cell">-</td>
+                                <td class="amount-cell">285,000.00</td>
+                            </tr>
+                            <tr>
+                                <td>4130</td>
+                                <td>Exam Fee Income</td>
+                                <td class="amount-cell">-</td>
+                                <td class="amount-cell">125,400.00</td>
+                            </tr>
+
+                            <!-- EXPENSES SECTION -->
+                            <tr class="section-header">
+                                <td colspan="4"><strong>EXPENSES</strong></td>
+                            </tr>
+                            <tr>
+                                <td>5110</td>
+                                <td>Teacher Salary Expense</td>
+                                <td class="amount-cell">1,125,600.00</td>
+                                <td class="amount-cell">-</td>
+                            </tr>
+                            <tr>
+                                <td>5120</td>
+                                <td>Staff Salary Expense</td>
+                                <td class="amount-cell">385,200.00</td>
+                                <td class="amount-cell">-</td>
+                            </tr>
+                            <tr>
+                                <td>5210</td>
+                                <td>Rent Expense</td>
+                                <td class="amount-cell">180,000.00</td>
+                                <td class="amount-cell">-</td>
+                            </tr>
+                            <tr>
+                                <td>5310</td>
+                                <td>Electricity Expense</td>
+                                <td class="amount-cell">45,850.00</td>
+                                <td class="amount-cell">-</td>
+                            </tr>
+                            <tr>
+                                <td>5320</td>
+                                <td>Water Expense</td>
+                                <td class="amount-cell">12,400.00</td>
+                                <td class="amount-cell">-</td>
+                            </tr>
+                            <tr>
+                                <td>5340</td>
+                                <td>Internet Expense</td>
+                                <td class="amount-cell">18,600.00</td>
+                                <td class="amount-cell">-</td>
+                            </tr>
+                            <tr>
+                                <td>5410</td>
+                                <td>Scholarship Expense</td>
+                                <td class="amount-cell">184,260.00</td>
+                                <td class="amount-cell">-</td>
+                            </tr>
+
+                            <!-- GRAND TOTAL -->
+                            <tr class="grand-total">
+                                <td colspan="2" style="text-align: right;"><strong>GRAND TOTAL</strong></td>
+                                <td class="amount-cell"><strong>4,523,090.00</strong></td>
+                                <td class="amount-cell"><strong>4,523,090.00</strong></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<style>
+    /* Report Specific Styles */
+    .report-header {
+        text-align: center;
+        margin-bottom: 32px;
+        padding: 24px;
+        background: #F8FAFC;
+        border-radius: 12px;
+    }
+
+    .report-title {
+        font-size: 20px;
+        font-weight: 800;
+        color: #1E293B;
+        margin-bottom: 8px;
+    }
+
+    .report-subtitle {
+        font-size: 14px;
+        color: #64748B;
+        margin-bottom: 4px;
+    }
+
+    .report-period {
+        font-size: 14px;
+        font-weight: 700;
+        color: #00B894;
+        margin-top: 8px;
+    }
+
+    .financial-table th {
+        background: #1E293B;
+        color: white;
+        padding: 14px 16px;
+    }
+
+    .financial-table .section-header {
+        background: #F8FAFC;
+        font-weight: 800;
+        color: #1E293B;
+        font-size: 14px;
+    }
+
+    .financial-table .section-header td {
+        padding: 12px 16px;
+    }
+
+    .financial-table .grand-total {
+        background: #00B894;
+        color: white;
+        font-weight: 800;
+        font-size: 15px;
+    }
+
+    .financial-table .grand-total td {
+        padding: 16px;
+    }
+</style>
+
+</body>
+</html>

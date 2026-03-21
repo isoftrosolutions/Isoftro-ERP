@@ -212,7 +212,7 @@ if (!function_exists('getDBConnection')) {
             $options = [
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-                PDO::ATTR_EMULATE_PREPARES => false,
+                PDO::ATTR_EMULATE_PREPARES => false, // Native prepares preferred with explicit binding
             ];
 
             $pdo = new PDO($dsn, DB_USER, DB_PASS, $options);
@@ -330,6 +330,43 @@ if (!function_exists('hasPermission')) {
 }
 
 /**
+ * Load tenant modules from DB into session.
+ * Standalone global function — callable from anywhere (login, middleware, etc.).
+ * @param int $tenantId
+ */
+if (!function_exists('loadTenantModulesIntoSession')) {
+    function loadTenantModulesIntoSession($tenantId)
+    {
+        if (empty($tenantId)) {
+            error_log("[MODULE-GATE] loadTenantModulesIntoSession called with empty tenantId");
+            $_SESSION['tenant_modules'] = [];
+            return;
+        }
+        try {
+            $db = getDBConnection();
+            $stmt = $db->prepare("
+                SELECT LOWER(TRIM(m.name)) 
+                FROM modules m
+                JOIN institute_modules im ON m.id = im.module_id
+                WHERE im.tenant_id = :tenant_id 
+                AND im.is_enabled = 1
+                AND m.status = 'active'
+            ");
+            $stmt->execute(['tenant_id' => $tenantId]);
+            $modules = $stmt->fetchAll(\PDO::FETCH_COLUMN);
+            $_SESSION['tenant_modules'] = $modules ?: [];
+            $_SESSION['tenant_modules_loaded_at'] = time();
+            if (defined('APP_ENV') && APP_ENV === 'development') {
+                error_log("[MODULE-GATE] Loaded " . count($modules) . " modules for tenant $tenantId: " . implode(', ', $modules));
+            }
+        } catch (\PDOException $e) {
+            error_log("[MODULE-GATE] DB error loading tenant modules: " . $e->getMessage());
+            $_SESSION['tenant_modules'] = [];
+        }
+    }
+}
+
+/**
  * Check if the current institute has access to a specific module.
  * @param string $module Module name (e.g., 'finance', 'academic')
  * @return bool
@@ -337,19 +374,31 @@ if (!function_exists('hasPermission')) {
 if (!function_exists('hasModule')) {
     function hasModule($module)
     {
+        // Normalize input
+        $module = strtolower(trim($module));
+
         // Core modules are always enabled
-        $coreModules = ['dashboard', 'academic', 'staff', 'system'];
+        $coreModules = ['dashboard', 'system'];
         if (in_array($module, $coreModules)) {
             return true;
         }
 
-        // Check if modules are loaded in session
+        // If modules not in session, attempt reload (deny if no tenant context)
         if (!isset($_SESSION['tenant_modules'])) {
-            // If not in session, assume true for now (fallback during migration)
-            return true;
+            if (!empty($_SESSION['tenant_id'])) {
+                error_log("[MODULE-GATE] tenant_modules missing, reloading for tenant " . $_SESSION['tenant_id']);
+                loadTenantModulesIntoSession($_SESSION['tenant_id']);
+            } else {
+                error_log("[MODULE-GATE] No tenant_modules and no tenant_id in session. Denying module: $module");
+                return false; // DENY by default — never bypass
+            }
         }
 
-        return in_array($module, $_SESSION['tenant_modules']);
+        $result = in_array($module, $_SESSION['tenant_modules'] ?? []);
+        if (!$result && defined('APP_ENV') && APP_ENV === 'development') {
+            error_log("[MODULE-GATE] Module '$module' NOT enabled. Available: " . implode(', ', $_SESSION['tenant_modules'] ?? []));
+        }
+        return $result;
     }
 }
 
@@ -491,6 +540,11 @@ if (!function_exists('checkRememberMe')) {
                         $_SESSION['tenant_logo'] = $tenantLogo;
                         $_SESSION['institute_logo'] = $tenantLogo;
                         $_SESSION['last_activity'] = time();
+
+                        // Load tenant modules into session (Fix: rememberMe was missing this)
+                        if (!empty($user['tenant_id'])) {
+                            loadTenantModulesIntoSession($user['tenant_id']);
+                        }
 
                         $stmt = $db->prepare("UPDATE users SET last_login_at = NOW() WHERE id = :id");
                         $stmt->execute([':id' => $user['id']]);

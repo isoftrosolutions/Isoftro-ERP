@@ -180,6 +180,7 @@ function _iaRenderBottomNav() {
         {id:'overview',icon:'fa-house',label:'Home',action:"goNav('overview')"},
         {id:'students',icon:'fa-user-graduate',label:'Students',action:"goNav('students','all')"},
         {id:'fee',icon:'fa-hand-holding-dollar',label:'Fee',action:"goNav('fee','record')"},
+        {id:'accounting',icon:'fa-calculator',label:'Accounts',action:"goNav('accounting','dashboard')"},
         {id:'exams',icon:'fa-file-signature',label:'Exams',action:"goNav('exams','schedule')"},
         {id:'comms',icon:'fa-paper-plane',label:'Comms',action:"goNav('comms','sms')"}
     ];
@@ -284,6 +285,14 @@ function _iaRenderPage() {
         if (sub==='lms-rep') { window.renderLMSAnalytics?.(); return; }
         if (sub==='custom')  { window.renderCustomReports?.(); return; }
         window.renderFeeReports?.(); return;
+    }
+    if (nav==='accounting') {
+        if (window.AccountingModule) {
+            window.AccountingModule.renderAction(sub);
+        } else {
+            mc.innerHTML = `<div class="pg fu"><div class="pg-loading">Loading Accounting Module...</div></div>`;
+        }
+        return;
     }
     if (nav==='auditlogs') {
         window.renderAuditLogs?.();

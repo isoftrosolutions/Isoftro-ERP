@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Income & Expenditure Statement - Hamro Labs ERP</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="hamro-accounting-styles.css">
+</head>
+<body>
+
+<div class="app-container">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">Hamro Loksewa Institute</div>
+        </div>
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <div class="nav-section-title">Finance</div>
+                <a href="#" class="nav-item active">
+                    <div class="nav-item-content">
+                        <i class="fas fa-calculator nav-item-icon"></i>
+                        <span>Accounting</span>
+                    </div>
+                    <i class="fas fa-chevron-down nav-item-chevron"></i>
+                </a>
+                <div class="nav-submenu active">
+                    <a href="accounting-dashboard.html" class="nav-submenu-item">Dashboard</a>
+                    <a href="chart-of-accounts.html" class="nav-submenu-item">Chart of Accounts</a>
+                    <a href="voucher-entry.html" class="nav-submenu-item">Vouchers</a>
+                    <a href="day-book.html" class="nav-submenu-item">Day Book</a>
+                    <a href="ledger.html" class="nav-submenu-item">Ledger</a>
+                    <a href="trial-balance.html" class="nav-submenu-item">Trial Balance</a>
+                    <a href="income-expenditure.html" class="nav-submenu-item active">Financial Reports</a>
+                </div>
+            </div>
+        </nav>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+        <!-- TOP HEADER -->
+        <header class="top-header">
+            <div class="search-bar">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Search...">
+            </div>
+            <div class="header-actions">
+                <div class="year-badge">
+                    <i class="fas fa-calendar"></i>
+                    <span>FY 2081/82</span>
+                </div>
+                <button class="header-icon-btn"><i class="fas fa-bell"></i><span class="notification-badge">3</span></button>
+                <div class="user-avatar">Ha</div>
+            </div>
+        </header>
+
+        <!-- PAGE CONTENT -->
+        <div class="page-content">
+            <!-- PAGE TITLE SECTION -->
+            <div class="page-title-section">
+                <div class="page-title-header">
+                    <div>
+                        <h1 class="page-title">Income & Expenditure Statement</h1>
+                        <div class="page-meta">
+                            <span><i class="fas fa-chart-line"></i> NAS for NPOs Compliant Financial Statement</span>
+                            <span><i class="fas fa-clock"></i> FY 2081/82</span>
+                        </div>
+                    </div>
+                    <div class="page-actions">
+                        <button class="btn btn-secondary">
+                            <i class="fas fa-file-excel"></i> Export Excel
+                        </button>
+                        <button class="btn btn-secondary">
+                            <i class="fas fa-file-pdf"></i> Export PDF
+                        </button>
+                        <button class="btn btn-primary">
+                            <i class="fas fa-print"></i> Print
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FILTER SECTION -->
+            <div class="card" style="margin-bottom: 24px;">
+                <div class="form-row cols-3">
+                    <div class="form-group">
+                        <label class="form-label">Fiscal Year</label>
+                        <select class="form-control">
+                            <option>2081/82 (Current)</option>
+                            <option>2080/81 (Previous)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Period Type</label>
+                        <select class="form-control">
+                            <option>Full Year</option>
+                            <option>Monthly</option>
+                            <option>Quarterly</option>
+                            <option>Custom Range</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">&nbsp;</label>
+                        <button class="btn btn-primary" style="width: 100%;">
+                            <i class="fas fa-sync-alt"></i> Generate Report
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MAIN FINANCIAL STATEMENT -->
+            <div class="card">
+                <!-- Report Header -->
+                <div class="report-header">
+                    <h3 class="report-title">INCOME AND EXPENDITURE STATEMENT</h3>
+                    <div class="report-subtitle">Hamro Loksewa Academy Pvt. Ltd.</div>
+                    <div class="report-period">For the Year Ended 7th Falgun 2081 (March 21, 2025)</div>
+                    <div style="font-size: 12px; color: #64748B; margin-top: 8px;">
+                        (Prepared in accordance with NAS for NPOs - Nepal Accounting Standards for Not-for-Profit Organizations)
+                    </div>
+                </div>
+
+                <!-- Teacher Welfare Compliance Alert -->
+                <div style="background: #DCFCE7; border: 1px solid #16A34A; padding: 16px; border-radius: 10px; margin-bottom: 24px; display: flex; align-items: center; gap: 12px;">
+                    <i class="fas fa-check-circle" style="font-size: 24px; color: #16A34A;"></i>
+                    <div>
+                        <div style="font-weight: 700; color: #166534; font-size: 14px;">Teacher Welfare Ratio: 67.8% ✓ COMPLIANT</div>
+                        <div style="font-size: 12px; color: #15803D;">
+                            Teacher Salary: NPR 1,125,600 ÷ Total Expense: NPR 1,660,450 = 67.8% (Required: Minimum 60%)
+                        </div>
+                    </div>
+                </div>
+
+                <!-- I&E Statement Table -->
+                <div class="table-wrapper">
+                    <table class="financial-table" style="min-width: 100%;">
+                        <tbody>
+                            <!-- INCOME SECTION -->
+                            <tr style="background: #1E293B; color: white;">
+                                <td colspan="2" style="padding: 14px 16px;">
+                                    <strong style="font-size: 16px;">INCOME (UNRESTRICTED FUNDS)</strong>
+                                </td>
+                            </tr>
+
+                            <tr style="background: #F8FAFC;">
+                                <td colspan="2" style="padding: 12px 16px;">
+                                    <strong>Academic Income</strong>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="padding-left: 40px;">Tuition Fee Income</td>
+                                <td class="amount-cell">1,842,600.00</td>
+                            </tr>
+                            <tr>
+                                <td style="padding-left: 40px;">Admission Fee Income</td>
+                                <td class="amount-cell">285,000.00</td>
+                            </tr>
+                            <tr>
+                                <td style="padding-left: 40px;">Exam Fee Income</td>
+                                <td class="amount-cell">125,400.00</td>
+                            </tr>
+                            <tr style="background: #F8FAFC;">
+                                <td style="padding-left: 40px; font-weight: 700;">Total Academic Income</td>
+                                <td class="amount-cell" style="font-weight: 700;">2,253,000.00</td>
+                            </tr>
+
+                            <tr style="background: #F8FAFC;">
+                                <td colspan="2" style="padding: 12px 16px;">
+                                    <strong>Other Income</strong>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="padding-left: 40px;">Library Membership Fee</td>
+                                <td class="amount-cell">18,500.00</td>
+                            </tr>
+                            <tr>
+                                <td style="padding-left: 40px;">Identity Card Fee</td>
+                                <td class="amount-cell">12,600.00</td>
+                            </tr>
+                            <tr>
+                                <td style="padding-left: 40px;">Study Materials Sales</td>
+                                <td class="amount-cell">45,200.00</td>
+                            </tr>
+                            <tr style="background: #F8FAFC;">
+                                <td style="padding-left: 40px; font-weight: 700;">Total Other Income</td>
+                                <td class="amount-cell" style="font-weight: 700;">76,300.00</td>
+                            </tr>
+
+                            <tr style="background: #00B894; color: white;">
+                                <td style="padding: 16px; font-weight: 800; font-size: 15px;">TOTAL INCOME</td>
+                                <td class="amount-cell" style="font-weight: 800; font-size: 15px; color: white;">2,329,300.00</td>
+                            </tr>
+
+                            <!-- EXPENDITURE SECTION -->
+                            <tr style="background: #1E293B; color: white;">
+                                <td colspan="2" style="padding: 14px 16px; border-top: 3px solid #E2E8F0;">
+                                    <strong style="font-size: 16px;">EXPENDITURE</strong>
+                                </td>
+                            </tr>
+
+                            <tr style="background: #F8FAFC;">
+                                <td colspan="2" style="padding: 12px 16px;">
+                                    <strong>Academic Expenditure (Direct Teaching Costs)</strong>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="padding-left: 40px;">Teacher Salary & Benefits</td>
+                                <td class="amount-cell">1,125,600.00</td>
+                            </tr>
+                            <tr>
+                                <td style="padding-left: 40px;">Teaching Materials & Resources</td>
+                                <td class="amount-cell">85,400.00</td>
+                            </tr>
+                            <tr>
+                                <td style="padding-left: 40px;">Student Scholarships & Aid</td>
+                                <td class="amount-cell">184,260.00</td>
+                            </tr>
+                            <tr>
+                                <td style="padding-left: 40px;">Library & Study Materials</td>
+                                <td class="amount-cell">42,800.00</td>
+                            </tr>
+                            <tr style="background: #F8FAFC;">
+                                <td style="padding-left: 40px; font-weight: 700;">Total Academic Expenditure</td>
+                                <td class="amount-cell" style="font-weight: 700;">1,438,060.00</td>
+                            </tr>
+
+                            <tr style="background: #F8FAFC;">
+                                <td colspan="2" style="padding: 12px 16px;">
+                                    <strong>Administrative Expenditure</strong>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="padding-left: 40px;">Staff Salary (Non-Teaching)</td>
+                                <td class="amount-cell">385,200.00</td>
+                            </tr>
+                            <tr>
+                                <td style="padding-left: 40px;">Rent Expense</td>
+                                <td class="amount-cell">180,000.00</td>
+                            </tr>
+                            <tr>
+                                <td style="padding-left: 40px;">Electricity & Water</td>
+                                <td class="amount-cell">58,250.00</td>
+                            </tr>
+                            <tr>
+                                <td style="padding-left: 40px;">Internet & Communication</td>
+                                <td class="amount-cell">28,400.00</td>
+                            </tr>
+                            <tr>
+                                <td style="padding-left: 40px;">Office Supplies & Stationery</td>
+                                <td class="amount-cell">35,600.00</td>
+                            </tr>
+                            <tr>
+                                <td style="padding-left: 40px;">Repairs & Maintenance</td>
+                                <td class="amount-cell">18,500.00</td>
+                            </tr>
+                            <tr>
+                                <td style="padding-left: 40px;">Marketing & Advertising</td>
+                                <td class="amount-cell">45,800.00</td>
+                            </tr>
+                            <tr>
+                                <td style="padding-left: 40px;">Insurance</td>
+                                <td class="amount-cell">12,400.00</td>
+                            </tr>
+                            <tr>
+                                <td style="padding-left: 40px;">Professional Fees (Legal/Audit)</td>
+                                <td class="amount-cell">28,600.00</td>
+                            </tr>
+                            <tr>
+                                <td style="padding-left: 40px;">Depreciation</td>
+                                <td class="amount-cell">38,540.00</td>
+                            </tr>
+                            <tr>
+                                <td style="padding-left: 40px;">Bank Charges</td>
+                                <td class="amount-cell">5,500.00</td>
+                            </tr>
+                            <tr>
+                                <td style="padding-left: 40px;">Miscellaneous Expenses</td>
+                                <td class="amount-cell">8,100.00</td>
+                            </tr>
+                            <tr style="background: #F8FAFC;">
+                                <td style="padding-left: 40px; font-weight: 700;">Total Administrative Expenditure</td>
+                                <td class="amount-cell" style="font-weight: 700;">844,890.00</td>
+                            </tr>
+
+                            <tr style="background: #E11D48; color: white;">
+                                <td style="padding: 16px; font-weight: 800; font-size: 15px;">TOTAL EXPENDITURE</td>
+                                <td class="amount-cell" style="font-weight: 800; font-size: 15px; color: white;">2,282,950.00</td>
+                            </tr>
+
+                            <!-- SURPLUS/DEFICIT -->
+                            <tr style="background: #DCFCE7; border-top: 3px solid #16A34A;">
+                                <td style="padding: 20px; font-weight: 800; font-size: 16px; color: #166534;">
+                                    SURPLUS FOR THE YEAR
+                                </td>
+                                <td class="amount-cell" style="font-weight: 800; font-size: 18px; color: #166534; padding: 20px;">
+                                    46,350.00
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Key Metrics Section -->
+                <div style="margin-top: 32px; padding-top: 24px; border-top: 2px solid #E2E8F0;">
+                    <h4 style="font-size: 14px; font-weight: 800; color: #1E293B; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.5px;">
+                        <i class="fas fa-chart-pie"></i> Key Financial Metrics
+                    </h4>
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
+                        <div style="background: #F8FAFC; padding: 16px; border-radius: 10px; border: 1px solid #E2E8F0;">
+                            <div style="font-size: 11px; color: #64748B; font-weight: 700; margin-bottom: 6px;">ACADEMIC EXPENSE RATIO</div>
+                            <div style="font-size: 24px; font-weight: 800; color: #00B894;">63.0%</div>
+                            <div style="font-size: 11px; color: #64748B; margin-top: 4px;">Academic: 1,438,060 / Total: 2,282,950</div>
+                        </div>
+                        <div style="background: #F8FAFC; padding: 16px; border-radius: 10px; border: 1px solid #E2E8F0;">
+                            <div style="font-size: 11px; color: #64748B; font-weight: 700; margin-bottom: 6px;">TEACHER WELFARE RATIO</div>
+                            <div style="font-size: 24px; font-weight: 800; color: #16A34A;">67.8%</div>
+                            <div style="font-size: 11px; color: #64748B; margin-top: 4px;">✓ Exceeds 60% requirement</div>
+                        </div>
+                        <div style="background: #F8FAFC; padding: 16px; border-radius: 10px; border: 1px solid #E2E8F0;">
+                            <div style="font-size: 11px; color: #64748B; font-weight: 700; margin-bottom: 6px;">NET SURPLUS MARGIN</div>
+                            <div style="font-size: 24px; font-weight: 800; color: #3B82F6;">2.0%</div>
+                            <div style="font-size: 11px; color: #64748B; margin-top: 4px;">Surplus: 46,350 / Income: 2,329,300</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Notes Section -->
+                <div style="margin-top: 32px; padding: 20px; background: #FFFBEB; border: 1px solid #F59E0B; border-radius: 10px;">
+                    <h4 style="font-size: 13px; font-weight: 800; color: #92400E; margin-bottom: 12px;">
+                        <i class="fas fa-info-circle"></i> Notes to Financial Statement
+                    </h4>
+                    <ol style="margin: 0; padding-left: 20px; color: #78350F; font-size: 12px; line-height: 1.8;">
+                        <li>This statement is prepared in accordance with NAS for NPOs (Nepal Accounting Standards for Not-for-Profit Organizations).</li>
+                        <li>All income is classified as unrestricted funds. No restricted fund income received during this period.</li>
+                        <li>Teacher welfare ratio of 67.8% exceeds the mandatory 60% requirement as per social audit regulations.</li>
+                        <li>Scholarship expenses include fee waivers granted to 12 meritorious students during the period.</li>
+                        <li>Depreciation is calculated using straight-line method over the useful life of assets.</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+</body>
+</html>

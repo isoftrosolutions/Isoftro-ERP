@@ -81,9 +81,13 @@ try {
                 ORDER BY t.created_at DESC
                 LIMIT :limit OFFSET :offset
             ");
-            $params['limit'] = $limit;
-            $params['offset'] = $offset;
-            $stmt->execute($params);
+            
+            foreach ($params as $key => $val) {
+                $stmt->bindValue($key, $val);
+            }
+            $stmt->bindValue(':limit', (int)$limit, PDO::PARAM_INT);
+            $stmt->bindValue(':offset', (int)$offset, PDO::PARAM_INT);
+            $stmt->execute();
             $tenants = $stmt->fetchAll();
             
             echo json_encode([
@@ -308,5 +312,7 @@ try {
     }
     
 } catch (Exception $e) {
-    echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    error_log("[DB-ERROR] TenantsApi error: " . $e->getMessage());
+    $msg = (defined('APP_ENV') && APP_ENV === 'development') ? $e->getMessage() : 'An internal error occurred. Please try again.';
+    echo json_encode(['success' => false, 'message' => $msg]);
 }

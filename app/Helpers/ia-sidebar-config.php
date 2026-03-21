@@ -36,7 +36,7 @@ function getIASidebarConfig()
                     'label' => 'Students',
                     'icon' => 'fa-user-graduate',
                     'permission' => 'students.view',
-                    'module' => 'academic',
+                    'module' => 'student',
                     'badge_key' => 'total_students',
                     'sub' => [
                         ['id' => 'all', 'l' => 'All Students', 'icon' => 'fa-list'],
@@ -51,7 +51,7 @@ function getIASidebarConfig()
                     'label' => 'Teachers',
                     'icon' => 'fa-user-tie',
                     'permission' => 'teachers.view',
-                    'module' => 'academic',
+                    'module' => 'teacher',
                     'sub' => [
                         ['id' => 'profiles', 'l' => 'Teacher List', 'icon' => 'fa-id-badge'],
                         ['id' => 'add', 'l' => 'Add Teacher', 'icon' => 'fa-user-plus'],
@@ -106,7 +106,7 @@ function getIASidebarConfig()
                     'label' => 'Homework',
                     'icon' => 'fa-clipboard-list',
                     'permission' => 'exams.view',
-                    'module' => 'exams',
+                    'module' => 'homework',
                     'sub' => [
                         ['id' => 'list', 'l' => 'All Homework', 'icon' => 'fa-list'],
                         ['id' => 'create', 'l' => 'Assign Homework', 'icon' => 'fa-plus'],
@@ -124,7 +124,7 @@ function getIASidebarConfig()
                     'label' => 'Inquiries',
                     'icon' => 'fa-magnifying-glass',
                     'permission' => 'students.view',
-                    'module' => 'admissions',
+                    'module' => 'inquiry',
                     'badge_key' => 'new_inquiries',
                     'sub' => [
                         ['id' => 'list', 'l' => 'Inquiry List', 'icon' => 'fa-clipboard-list'],
@@ -160,7 +160,22 @@ function getIASidebarConfig()
                     'label' => 'Staff Salary',
                     'icon' => 'fa-wallet',
                     'permission' => 'dashboard.view',
-                    'module' => 'finance',
+                    'module' => 'payroll',
+                ],
+                [
+                    'id' => 'accounting',
+                    'label' => 'Accounting',
+                    'icon' => 'fa-calculator',
+                    'permission' => 'dashboard.view',
+                    'module' => 'finance', // Reusing finance module for now
+                    'sub' => [
+                        ['id' => 'dashboard', 'l' => 'Dashboard', 'icon' => 'fa-gauge'],
+                        ['id' => 'coa', 'l' => 'Chart of Accounts', 'icon' => 'fa-tree'],
+                        ['id' => 'voucher', 'l' => 'Voucher Entry', 'icon' => 'fa-file-invoice'],
+                        ['id' => 'ledger', 'l' => 'General Ledger', 'icon' => 'fa-book'],
+                        ['id' => 'trial-balance', 'l' => 'Trial Balance', 'icon' => 'fa-scale-balanced'],
+                        ['id' => 'reports', 'l' => 'Financial Reports', 'icon' => 'fa-chart-line'],
+                    ],
                 ],
 
             ],
@@ -175,7 +190,7 @@ function getIASidebarConfig()
                     'label' => 'Front Desk',
                     'icon' => 'fa-headset',
                     'permission' => 'dashboard.view',
-                    'module' => 'staff',
+                    'module' => 'frontdesk',
                     'sub' => [
                         ['id' => 'list', 'l' => 'Front Desk List', 'icon' => 'fa-list'],
                         ['id' => 'add', 'l' => 'Add Front Desk', 'icon' => 'fa-user-plus'],
@@ -243,7 +258,7 @@ function getIASidebarConfig()
                     'label' => 'Reports',
                     'icon' => 'fa-chart-column',
                     'permission' => 'reports.view',
-                    'module' => 'reports',
+                    'module' => 'report',
                     'sub' => [
                         ['id' => 'fee-rep', 'l' => 'Fee Reports', 'icon' => 'fa-file-invoice-dollar'],
                         ['id' => 'att-rep', 'l' => 'Attendance Reports', 'icon' => 'fa-clipboard-user'],
@@ -308,10 +323,35 @@ function filterIASidebarByPermission($config)
             $perm = $item['permission'] ?? 'dashboard.view';
             $module = $item['module'] ?? null;
 
-            // Check both permission AND module access
-            if (hasPermission($perm) && ($module === null || hasModule($module))) {
-                $allowedItems[] = $item;
+            // Check both permission AND module access for parent item
+            if (!hasPermission($perm) || ($module !== null && !hasModule($module))) {
+                continue;
             }
+
+            // Filter sub-items if they have their own permission/module constraints
+            if (!empty($item['sub'])) {
+                $allowedSubs = [];
+                foreach ($item['sub'] as $sub) {
+                    $subPerm = $sub['permission'] ?? null;
+                    $subModule = $sub['module'] ?? null;
+                    // If sub-item has its own permission check, enforce it
+                    if ($subPerm !== null && !hasPermission($subPerm)) {
+                        continue;
+                    }
+                    // If sub-item has its own module check, enforce it
+                    if ($subModule !== null && !hasModule($subModule)) {
+                        continue;
+                    }
+                    $allowedSubs[] = $sub;
+                }
+                $item['sub'] = $allowedSubs;
+                // If all children were filtered out, skip the parent too
+                if (empty($allowedSubs)) {
+                    continue;
+                }
+            }
+
+            $allowedItems[] = $item;
         }
         if (!empty($allowedItems)) {
             $section['items'] = $allowedItems;

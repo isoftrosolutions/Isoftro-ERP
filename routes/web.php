@@ -157,6 +157,7 @@ $roleMap = [
 
 Route::any('/api/admin/communications', function() {
     requireAuth();
+    requireModule('communication');
     require_once app_path('Http/Controllers/Admin/communications.php');
 });
 
@@ -268,39 +269,57 @@ Route::get('/dash/{role}/{page?}', function ($role, $page = 'index') use ($roleM
 
 
 
+
 Route::get('/api/admin/stats', function() {
+    requireAuth();
     require_once app_path('Http/Controllers/Admin/dashboard_stats.php');
 });
 
 Route::any('/api/admin/students', function() {
+    requireAuth();
+    requireModule('student');
     require_once app_path('Http/Controllers/Admin/students.php');
 });
 
 Route::post('/api/admin/students/email', function() {
+    requireAuth();
+    requireModule('student');
     require_once app_path('Http/Controllers/Admin/students.php');
 });
 
 Route::any('/api/admin/courses', function() {
+    requireAuth();
+    requireModule('academic');
     require_once app_path('Http/Controllers/Admin/courses.php');
 });
 
 Route::any('/api/admin/course-categories', function() {
+    requireAuth();
+    requireModule('academic');
     require_once app_path('Http/Controllers/Admin/course_categories.php');
 });
 
 Route::any('/api/admin/batches', function() {
+    requireAuth();
+    requireModule('academic');
     require_once app_path('Http/Controllers/Admin/batches.php');
 });
 
 Route::any('/api/admin/subjects', function() {
+    requireAuth();
+    requireModule('academic');
     require_once app_path('Http/Controllers/Admin/subjects.php');
 });
 
 Route::any('/api/admin/subject_allocation', function() {
+    requireAuth();
+    requireModule('academic');
     require_once app_path('Http/Controllers/Admin/subject_allocation.php');
 });
 
 Route::any('/api/admin/inquiries', function() {
+    requireAuth();
+    requireModule('inquiry');
     require_once app_path('Http/Controllers/Admin/inquiries.php');
 });
 
@@ -326,18 +345,26 @@ Route::any('/api/frontdesk/students', function() {
 });
 
 Route::any('/api/admin/fees', function() {
+    requireAuth();
+    requireModule('finance');
     require_once app_path('Http/Controllers/Admin/fees.php');
 });
 
 Route::any('/api/admin/exams', function() {
+    requireAuth();
+    requireModule('exams');
     require_once app_path('Http/Controllers/Admin/exams.php');
 });
 
 Route::any('/api/admin/salary', function() {
+    requireAuth();
+    requireModule('payroll');
     require_once app_path('Http/Controllers/Admin/staff_salary.php');
 });
 
 Route::any('/api/admin/staff', function() {
+    requireAuth();
+    requireModule('frontdesk');
     require_once app_path('Http/Controllers/Admin/staff.php');
 });
 
@@ -346,107 +373,156 @@ Route::get('/api/admin/date-convert', function() {
 });
 
 Route::any('/api/admin/timetable', function() {
+    requireAuth();
+    requireModule('academic');
     require_once app_path('Http/Controllers/Admin/timetable.php');
 });
 
 Route::any('/api/admin/rooms', function() {
+    requireAuth();
+    requireModule('academic');
     require_once app_path('Http/Controllers/Admin/rooms.php');
 });
 
 Route::any('/api/admin/academic-calendar', function() {
+    requireAuth();
+    requireModule('academic');
     require_once app_path('Http/Controllers/Admin/academic_calendar.php');
 });
 
 Route::any('/api/admin/homework', function() {
+    requireAuth();
+    requireModule('homework');
     require_once app_path('Http/Controllers/Admin/homework.php');
 });
 
 Route::any('/api/admin/homework/store', function() {
+    requireAuth();
+    requireModule('homework');
     require_once app_path('Http/Controllers/Admin/homework_store.php');
 });
 
 // Expenses Module Routes
 Route::any('/api/admin/expenses', function() {
+    requireAuth();
+    requireModule('finance');
     require_once app_path('Http/Controllers/Admin/expenses.php');
 });
 
 Route::get('/api/admin/expenses/stats', function() {
+    requireAuth();
+    requireModule('finance');
     require_once app_path('Http/Controllers/Admin/expenses_stats.php');
 });
 
 Route::any('/api/admin/expense-categories', function() {
+    requireAuth();
+    requireModule('finance');
     require_once app_path('Http/Controllers/Admin/expense_categories.php');
 });
 
 Route::any('/api/admin/academic-calendar/{action}', function() {
+    requireAuth();
+    requireModule('academic');
     require_once app_path('Http/Controllers/Admin/academic_calendar.php');
 });
 
 // Attendance API Routes
 Route::any('/api/admin/attendance', function() {
+    requireAuth();
+    requireModule('attendance');
     require_once app_path('Http/Controllers/Admin/attendance.php');
 });
 
 Route::any('/api/admin/attendance/{action}', function($action) {
+    requireAuth();
+    requireModule('attendance');
     require_once app_path('Http/Controllers/Admin/attendance.php');
 });
 
 // Leave Requests API Routes
 Route::any('/api/admin/leave-requests', function() {
+    requireAuth();
+    requireModule('attendance');
     require_once app_path('Http/Controllers/Admin/leave_requests.php');
 });
 
 // Audit Logs API Routes
 Route::any('/api/admin/audit-logs', function() {
+    requireAuth();
+    requireModule('system');
     require_once app_path('Http/Controllers/Admin/audit_logs.php');
 });
 
 // Front Desk API Routes - Dedicated Front Desk controllers
 Route::any('/api/frontdesk/attendance', function() {
+    requireAuth();
+    requireModule('attendance');
     require_once app_path('Http/Controllers/FrontDesk/attendance.php');
 });
 
 Route::any('/api/frontdesk/attendance/{action}', function($action) {
+    requireAuth();
+    requireModule('attendance');
     require_once app_path('Http/Controllers/FrontDesk/attendance.php');
 });
 
 Route::any('/api/frontdesk/attendance/take', function() {
+    requireAuth();
+    requireModule('attendance');
     require_once app_path('Http/Controllers/FrontDesk/attendance.php');
 });
 
 Route::any('/api/frontdesk/inquiries', function() {
+    requireAuth();
+    requireModule('inquiry');
     require_once app_path('Http/Controllers/FrontDesk/inquiries.php');
 });
 
 Route::any('/api/frontdesk/library', function() {
+    requireAuth();
+    requireModule('library');
     require_once app_path('Http/Controllers/FrontDesk/library.php');
 });
 
 Route::any('/api/frontdesk/communications', function() {
+    requireAuth();
+    requireModule('communication');
     require_once app_path('Http/Controllers/FrontDesk/communications.php');
 });
 
 Route::any('/api/frontdesk/batches', function() {
+    requireAuth();
+    requireModule('academic');
     require_once app_path('Http/Controllers/FrontDesk/batches.php');
 });
 
 Route::any('/api/frontdesk/courses', function() {
+    requireAuth();
+    requireModule('academic');
     require_once app_path('Http/Controllers/FrontDesk/courses.php');
 });
 
 Route::any('/api/frontdesk/fee-reports', function() {
+    requireAuth();
+    requireModule('finance');
     require_once app_path('Http/Controllers/FrontDesk/FeeReports.php');
 });
 
 Route::any('/api/frontdesk/leave-requests', function() {
+    requireAuth();
+    requireModule('attendance');
     require_once app_path('Http/Controllers/FrontDesk/leave_requests.php');
 });
 
 Route::any('/api/frontdesk/announcements', function() {
+    requireAuth();
+    requireModule('communication');
     require_once app_path('Http/Controllers/FrontDesk/announcements.php');
 });
 
 Route::any('/api/frontdesk/support', function() {
+    requireAuth();
     require_once app_path('Http/Controllers/FrontDesk/support.php');
 });
 
@@ -475,86 +551,121 @@ Route::any('/api/student/leave', function() {
 
 // Phase 2 - New Front Desk Features (Reception Group)
 Route::any('/api/frontdesk/visitor-log', function() {
+    requireAuth();
     require_once app_path('Http/Controllers/FrontDesk/visitor_log.php');
 });
 
 Route::any('/api/frontdesk/appointments', function() {
+    requireAuth();
     require_once app_path('Http/Controllers/FrontDesk/appointments.php');
 });
 
 Route::any('/api/frontdesk/call-logs', function() {
+    requireAuth();
     require_once app_path('Http/Controllers/FrontDesk/call_logs.php');
 });
 
 Route::any('/api/frontdesk/complaints', function() {
+    requireAuth();
     require_once app_path('Http/Controllers/FrontDesk/complaints.php');
 });
 
 Route::any('/api/frontdesk/audit-logs', function() {
+    requireAuth();
+    requireModule('system');
     require_once app_path('Http/Controllers/FrontDesk/audit_logs.php');
 });
 
 Route::any('/api/frontdesk/staff', function() {
+    requireAuth();
+    requireModule('staff');
     require_once app_path('Http/Controllers/FrontDesk/staff.php');
 });
 
 Route::any('/api/frontdesk/subjects', function() {
+    requireAuth();
+    requireModule('academic');
     require_once app_path('Http/Controllers/FrontDesk/subjects.php');
 });
 
 Route::any('/api/frontdesk/timetable', function() {
+    requireAuth();
+    requireModule('academic');
     require_once app_path('Http/Controllers/FrontDesk/timetable.php');
 });
 
 Route::any('/api/frontdesk/subject_allocation', function() {
+    requireAuth();
+    requireModule('academic');
     require_once app_path('Http/Controllers/FrontDesk/subject_allocation.php');
 });
 
 Route::any('/api/frontdesk/homework', function() {
+    requireAuth();
+    requireModule('exams');
     require_once app_path('Http/Controllers/FrontDesk/homework.php');
 });
 
 Route::any('/api/frontdesk/homework/store', function() {
+    requireAuth();
+    requireModule('exams');
     require_once app_path('Http/Controllers/FrontDesk/homework_store.php');
 });
 
 Route::any('/api/frontdesk/salary', function() {
+    requireAuth();
+    requireModule('finance');
     require_once app_path('Http/Controllers/FrontDesk/staff_salary.php');
 });
 
 Route::any('/api/frontdesk/profile', function() {
+    requireAuth();
     require_once app_path('Http/Controllers/FrontDesk/profile.php');
 });
 
 Route::any('/api/frontdesk/email-settings', function() {
+    requireAuth();
+    requireModule('system');
     require_once app_path('Http/Controllers/FrontDesk/email_settings.php');
 });
 
 Route::any('/api/frontdesk/automation-rules', function() {
+    requireAuth();
+    requireModule('system');
     require_once app_path('Http/Controllers/FrontDesk/automation_rules.php');
 });
 
 Route::any('/api/frontdesk/email_templates', function() {
+    requireAuth();
+    requireModule('system');
     require_once app_path('Http/Controllers/FrontDesk/email_templates.php');
 });
 
 Route::any('/api/frontdesk/global-search', function() {
+    requireAuth();
     require_once app_path('Http/Controllers/FrontDesk/global_search.php');
 });
 
 Route::any('/api/frontdesk/academic-calendar', function() {
+    requireAuth();
+    requireModule('academic');
     require_once app_path('Http/Controllers/FrontDesk/academic_calendar.php');
 });
 
 Route::any('/api/frontdesk/date-convert', function() {
+    requireAuth();
     require_once app_path('Http/Controllers/FrontDesk/date_convert.php');
 });
 
 Route::any('/api/frontdesk/billing', function() {
+    requireAuth();
+    requireModule('finance');
     require_once app_path('Http/Controllers/FrontDesk/billing.php');
 });
 
 Route::any('/api/frontdesk/lms', function() {
+    requireAuth();
+    requireModule('lms');
     require_once app_path('Http/Controllers/FrontDesk/lms.php');
 });
 
@@ -654,22 +765,31 @@ Route::any('/api/frontdesk/fees', function() {
 });
 
 Route::any('/api/admin/fee-reports', function() {
+    requireAuth();
+    requireModule('finance');
     require_once app_path('Http/Controllers/Admin/FeeReports.php');
 });
 
 Route::any('/api/admin/global-search', function() {
+    requireAuth();
     require_once app_path('Http/Controllers/Admin/global_search.php');
 });
 
 Route::any('/api/admin/lms', function() {
+    requireAuth();
+    requireModule('lms');
     require_once app_path('Http/Controllers/Admin/lms.php');
 });
 
 Route::any('/api/admin/library', function() {
+    requireAuth();
+    requireModule('library');
     require_once app_path('Http/Controllers/Admin/library.php');
 });
 
 Route::any('/api/admin/communications', function() {
+    requireAuth();
+    requireModule('communication');
     require_once app_path('Http/Controllers/Admin/communications.php');
 });
 
@@ -681,6 +801,12 @@ Route::any('/api/admin/billing', function() {
     require_once app_path('Http/Controllers/Admin/billing.php');
 });
 
+Route::any('/api/admin/accounting', function() {
+    requireAuth();
+    requireModule('finance');
+    require_once app_path('Http/Controllers/Admin/accounting.php');
+});
+
 Route::get('/api/notifications/count', function() {
     require_once app_path('Http/Controllers/Admin/notifications.php');
 });
@@ -690,6 +816,8 @@ Route::any('/api/admin/feedback/submit', function() {
 });
 
 Route::any('/api/admin/automation-rules', function() {
+    requireAuth();
+    requireModule('system');
     require_once app_path('Http/Controllers/Admin/automation_rules.php');
 });
 

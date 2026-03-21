@@ -62,8 +62,10 @@ class IdentifyTenant {
                 $_SESSION['tenant_logo'] = $logoPath;
                 $_SESSION['institute_logo'] = $logoPath;
 
-                // Ensure modules are loaded
-                if (!isset($_SESSION['tenant_modules'])) {
+                // Refresh modules periodically (every 5 min) to pick up admin changes
+                $modulesTTL = 300; // 5 minutes
+                $lastLoaded = $_SESSION['tenant_modules_loaded_at'] ?? 0;
+                if (!isset($_SESSION['tenant_modules']) || (time() - $lastLoaded) > $modulesTTL) {
                     $this->loadTenantModules($tenant['id']);
                 }
             }
@@ -172,23 +174,29 @@ class IdentifyTenant {
      * Load enabled modules for the tenant into session
      */
     private function loadTenantModules($tenantId) {
-        try {
-            $db = getDBConnection();
-            $stmt = $db->prepare("
-                SELECT m.name 
-                FROM modules m
-                JOIN institute_modules im ON m.id = im.module_id
-                WHERE im.tenant_id = :tenant_id 
-                AND im.is_enabled = 1
-                AND m.status = 'active'
-            ");
-            $stmt->execute(['tenant_id' => $tenantId]);
-            $modules = $stmt->fetchAll(\PDO::FETCH_COLUMN);
-            
-            $_SESSION['tenant_modules'] = $modules ?: [];
-        } catch (\PDOException $e) {
-            error_log("Failed to load tenant modules: " . $e->getMessage());
-            $_SESSION['tenant_modules'] = [];
+        // Delegate to global function for consistency
+        if (function_exists('loadTenantModulesIntoSession')) {
+            loadTenantModulesIntoSession($tenantId);
+        } else {
+            // Fallback: direct DB query (should not happen if config.php is loaded)
+            try {
+                $db = getDBConnection();
+                $stmt = $db->prepare("
+                    SELECT LOWER(TRIM(m.name)) 
+                    FROM modules m
+                    JOIN institute_modules im ON m.id = im.module_id
+                    WHERE im.tenant_id = :tenant_id 
+                    AND im.is_enabled = 1
+                    AND m.status = 'active'
+                ");
+                $stmt->execute(['tenant_id' => $tenantId]);
+                $modules = $stmt->fetchAll(\PDO::FETCH_COLUMN);
+                $_SESSION['tenant_modules'] = $modules ?: [];
+                $_SESSION['tenant_modules_loaded_at'] = time();
+            } catch (\PDOException $e) {
+                error_log("[MODULE-GATE] Failed to load tenant modules: " . $e->getMessage());
+                $_SESSION['tenant_modules'] = [];
+            }
         }
     }
 }

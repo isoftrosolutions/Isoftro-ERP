@@ -28,6 +28,7 @@ CREATE TABLE IF NOT EXISTS `institute_modules` (
 
 -- 3. Seed Initial Modules
 INSERT IGNORE INTO `modules` (`name`, `label`, `is_core`) VALUES
+('dashboard', 'Dashboard', 1),
 ('academic', 'Academic Management', 1),
 ('attendance', 'Attendance System', 0),
 ('exams', 'Examinations & Results', 0),

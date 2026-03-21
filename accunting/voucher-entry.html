@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voucher Entry - Hamro Labs ERP</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="hamro-accounting-styles.css">
+</head>
+<body>
+
+<div class="app-container">
+    <!-- SIDEBAR (Same structure) -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">Hamro Loksewa Institute</div>
+        </div>
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <div class="nav-section-title">Finance</div>
+                <a href="#" class="nav-item active">
+                    <div class="nav-item-content">
+                        <i class="fas fa-calculator nav-item-icon"></i>
+                        <span>Accounting</span>
+                    </div>
+                    <i class="fas fa-chevron-down nav-item-chevron"></i>
+                </a>
+                <div class="nav-submenu active">
+                    <a href="accounting-dashboard.html" class="nav-submenu-item">Dashboard</a>
+                    <a href="chart-of-accounts.html" class="nav-submenu-item">Chart of Accounts</a>
+                    <a href="voucher-entry.html" class="nav-submenu-item active">Vouchers</a>
+                    <a href="day-book.html" class="nav-submenu-item">Day Book</a>
+                    <a href="ledger.html" class="nav-submenu-item">Ledger</a>
+                    <a href="trial-balance.html" class="nav-submenu-item">Trial Balance</a>
+                    <a href="financial-reports.html" class="nav-submenu-item">Financial Reports</a>
+                </div>
+            </div>
+        </nav>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+        <!-- TOP HEADER -->
+        <header class="top-header">
+            <div class="search-bar">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Search vouchers by number or description...">
+            </div>
+            <div class="header-actions">
+                <div class="year-badge">
+                    <i class="fas fa-calendar"></i>
+                    <span>FY 2081/82</span>
+                </div>
+                <button class="header-icon-btn"><i class="fas fa-bell"></i><span class="notification-badge">3</span></button>
+                <div class="user-avatar">Ha</div>
+            </div>
+        </header>
+
+        <!-- PAGE CONTENT -->
+        <div class="page-content">
+            <!-- PAGE TITLE SECTION -->
+            <div class="page-title-section">
+                <div class="page-title-header">
+                    <div>
+                        <h1 class="page-title">Voucher Entry</h1>
+                        <div class="page-meta">
+                            <span><i class="fas fa-file-invoice"></i> Create & Manage Vouchers</span>
+                            <span><i class="fas fa-clock"></i> Saturday, March 21, 2026</span>
+                        </div>
+                    </div>
+                    <div class="page-actions">
+                        <button class="btn btn-secondary">
+                            <i class="fas fa-list"></i> View All Vouchers
+                        </button>
+                        <button class="btn btn-primary" onclick="alert('Print voucher')">
+                            <i class="fas fa-print"></i> Print
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VOUCHER PAPER FORM -->
+            <div class="voucher-paper">
+                <!-- Voucher Header -->
+                <div class="voucher-header-section">
+                    <div class="institute-info">
+                        <h2 class="institute-name">Hamro Loksewa Academy Pvt. Ltd.</h2>
+                        <div class="institute-meta">PAN: 123456789 | Bharatpur-10, Chitwan</div>
+                    </div>
+                    <div class="voucher-info">
+                        <div class="voucher-type-badge">RECEIPT VOUCHER</div>
+                        <div class="voucher-details">
+                            <div><strong>Voucher No:</strong> RV-2081/0247</div>
+                            <div><strong>Date (BS):</strong> 2081-12-07</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Voucher Form Fields -->
+                <div class="voucher-form">
+                    <div class="form-row cols-4">
+                        <div class="form-group">
+                            <label class="form-label">Voucher Type <span style="color: #E11D48;">*</span></label>
+                            <select class="form-control">
+                                <option>Receipt Voucher</option>
+                                <option>Payment Voucher</option>
+                                <option>Journal Voucher</option>
+                                <option>Contra Voucher</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Date (BS) <span style="color: #E11D48;">*</span></label>
+                            <input type="text" class="form-control" value="2081-12-07">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Date (AD)</label>
+                            <input type="date" class="form-control" value="2025-03-21">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Fiscal Year <span style="color: #E11D48;">*</span></label>
+                            <select class="form-control">
+                                <option>2081/82 (Active)</option>
+                                <option>2080/81 (Closed)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Received From / Paid To <span style="color: #E11D48;">*</span></label>
+                        <input type="text" class="form-control" placeholder="Student name, vendor, or source..." value="Ramesh Karki (Student ID: 2081-0145)">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Narration / Purpose <span style="color: #E11D48;">*</span></label>
+                        <textarea class="form-control" rows="2" placeholder="Being tuition fee received for the month of Falgun 2081...">Being tuition fee received from Ramesh Karki for the month of Falgun 2081</textarea>
+                    </div>
+
+                    <!-- Entry Table -->
+                    <div class="voucher-entries">
+                        <table class="entry-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 35%;">Account Head</th>
+                                    <th style="width: 30%;">Description</th>
+                                    <th style="width: 15%;">Debit (NPR)</th>
+                                    <th style="width: 15%;">Credit (NPR)</th>
+                                    <th style="width: 5%;"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="entryRows">
+                                <tr class="entry-row">
+                                    <td>
+                                        <select class="form-control">
+                                            <option>Select Account...</option>
+                                            <option>1110 - Cash on Hand</option>
+                                            <option selected>1120 - Bank - NIC Asia</option>
+                                            <option>1130 - Student Receivables</option>
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <input type="text" class="form-control" placeholder="Optional detail...">
+                                    </td>
+                                    <td>
+                                        <input type="number" class="form-control debit-input" value="10100.00" style="text-align: right;" onchange="calculateTotals()">
+                                    </td>
+                                    <td>
+                                        <input type="number" class="form-control credit-input" value="0.00" style="text-align: right;" disabled>
+                                    </td>
+                                    <td>
+                                        <button class="action-btn danger" title="Remove" onclick="removeRow(this)">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr class="entry-row">
+                                    <td>
+                                        <select class="form-control">
+                                            <option>Select Account...</option>
+                                            <option selected>4110 - Tuition Fee Income</option>
+                                            <option>4120 - Admission Fee Income</option>
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <input type="text" class="form-control" value="Tuition for Falgun 2081">
+                                    </td>
+                                    <td>
+                                        <input type="number" class="form-control debit-input" value="0.00" style="text-align: right;" disabled>
+                                    </td>
+                                    <td>
+                                        <input type="number" class="form-control credit-input" value="10000.00" style="text-align: right;" onchange="calculateTotals()">
+                                    </td>
+                                    <td>
+                                        <button class="action-btn danger" title="Remove" onclick="removeRow(this)">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr class="entry-row">
+                                    <td>
+                                        <select class="form-control">
+                                            <option>Select Account...</option>
+                                            <option selected>2120 - ESF Payable (1%)</option>
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <input type="text" class="form-control" value="Auto-calculated 1% ESF">
+                                    </td>
+                                    <td>
+                                        <input type="number" class="form-control debit-input" value="0.00" style="text-align: right;" disabled>
+                                    </td>
+                                    <td>
+                                        <input type="number" class="form-control credit-input" value="100.00" style="text-align: right;" onchange="calculateTotals()">
+                                    </td>
+                                    <td>
+                                        <button class="action-btn danger" title="Remove" onclick="removeRow(this)">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <div class="add-entry-btn" onclick="addRow()">
+                            <i class="fas fa-plus-circle"></i> Add Another Entry
+                        </div>
+                    </div>
+
+                    <!-- Totals Section -->
+                    <div class="voucher-totals">
+                        <div class="total-item">
+                            <div class="total-label">Total Debit</div>
+                            <div class="total-value" id="totalDebit" style="color: #E11D48;">NPR 10,100.00</div>
+                        </div>
+                        <div class="total-item">
+                            <div class="total-label">Total Credit</div>
+                            <div class="total-value" id="totalCredit" style="color: #00B894;">NPR 10,100.00</div>
+                        </div>
+                        <div class="total-item">
+                            <div class="total-label">Difference</div>
+                            <div class="total-value" id="difference" style="color: #1E293B;">NPR 0.00</div>
+                        </div>
+                    </div>
+
+                    <!-- Signatures Section -->
+                    <div class="voucher-signatures">
+                        <div class="signature-box">
+                            <div class="signature-line"></div>
+                            <div class="signature-label">Prepared By</div>
+                            <div class="signature-name">Ramesh Sharma</div>
+                        </div>
+                        <div class="signature-box">
+                            <div class="signature-line"></div>
+                            <div class="signature-label">Verified By</div>
+                            <div class="signature-name">Accountant</div>
+                        </div>
+                        <div class="signature-box">
+                            <div class="signature-line"></div>
+                            <div class="signature-label">Approved By</div>
+                            <div class="signature-name">Principal</div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="voucher-actions">
+                        <button class="btn btn-outline">
+                            <i class="fas fa-times"></i> Cancel
+                        </button>
+                        <button class="btn btn-secondary">
+                            <i class="fas fa-save"></i> Save as Draft
+                        </button>
+                        <button class="btn btn-primary">
+                            <i class="fas fa-check-circle"></i> Submit for Verification
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<style>
+    /* Voucher Paper Styles */
+    .voucher-paper {
+        background: white;
+        border: 2px solid #E2E8F0;
+        border-radius: 16px;
+        padding: 40px;
+        max-width: 1000px;
+        margin: 0 auto;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+    }
+
+    .voucher-header-section {
+        display: flex;
+        justify-content: space-between;
+        padding-bottom: 24px;
+        border-bottom: 2px solid #E2E8F0;
+        margin-bottom: 32px;
+    }
+
+    .institute-name {
+        font-size: 20px;
+        font-weight: 800;
+        color: #1E293B;
+        margin-bottom: 4px;
+    }
+
+    .institute-meta {
+        font-size: 12px;
+        color: #64748B;
+    }
+
+    .voucher-type-badge {
+        background: #00B894;
+        color: white;
+        padding: 8px 20px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 700;
+        margin-bottom: 12px;
+        text-align: right;
+    }
+
+    .voucher-details {
+        text-align: right;
+        font-size: 13px;
+        color: #64748B;
+    }
+
+    .voucher-details div {
+        margin-bottom: 4px;
+    }
+
+    .entry-table {
+        width: 100%;
+        margin: 24px 0;
+        border-collapse: collapse;
+    }
+
+    .entry-table th {
+        background: #F8FAFC;
+        padding: 12px;
+        text-align: left;
+        font-size: 12px;
+        font-weight: 800;
+        color: #1E293B;
+        border-bottom: 2px solid #E2E8F0;
+    }
+
+    .entry-table td {
+        padding: 10px 12px;
+        border-bottom: 1px solid #F1F5F9;
+    }
+
+    .entry-table input,
+    .entry-table select {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #E2E8F0;
+        border-radius: 6px;
+        font-size: 13px;
+        font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    .add-entry-btn {
+        color: #00B894;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 0;
+        margin-top: 8px;
+    }
+
+    .add-entry-btn:hover {
+        text-decoration: underline;
+    }
+
+    .voucher-totals {
+        display: flex;
+        justify-content: flex-end;
+        gap: 40px;
+        padding: 20px;
+        background: #F8FAFC;
+        border-radius: 10px;
+        margin-top: 20px;
+    }
+
+    .total-item {
+        text-align: right;
+    }
+
+    .total-label {
+        font-size: 11px;
+        color: #94A3B8;
+        text-transform: uppercase;
+        font-weight: 700;
+        margin-bottom: 4px;
+    }
+
+    .total-value {
+        font-size: 18px;
+        font-weight: 800;
+    }
+
+    .voucher-signatures {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 32px;
+        margin-top: 40px;
+        padding-top: 32px;
+        border-top: 1px solid #E2E8F0;
+    }
+
+    .signature-box {
+        text-align: center;
+    }
+
+    .signature-line {
+        width: 100%;
+        height: 60px;
+        border-bottom: 2px solid #E2E8F0;
+        margin-bottom: 8px;
+    }
+
+    .signature-label {
+        font-size: 11px;
+        font-weight: 700;
+        color: #64748B;
+        text-transform: uppercase;
+        margin-bottom: 4px;
+    }
+
+    .signature-name {
+        font-size: 13px;
+        color: #1E293B;
+        font-weight: 600;
+    }
+
+    .voucher-actions {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+        margin-top: 32px;
+    }
+</style>
+
+<script>
+    function calculateTotals() {
+        let totalDebit = 0;
+        let totalCredit = 0;
+
+        document.querySelectorAll('.debit-input').forEach(input => {
+            totalDebit += parseFloat(input.value) || 0;
+        });
+
+        document.querySelectorAll('.credit-input').forEach(input => {
+            totalCredit += parseFloat(input.value) || 0;
+        });
+
+        document.getElementById('totalDebit').textContent = `NPR ${totalDebit.toFixed(2)}`;
+        document.getElementById('totalCredit').textContent = `NPR ${totalCredit.toFixed(2)}`;
+        
+        const difference = totalDebit - totalCredit;
+        document.getElementById('difference').textContent = `NPR ${Math.abs(difference).toFixed(2)}`;
+        document.getElementById('difference').style.color = difference === 0 ? '#16A34A' : '#E11D48';
+    }
+
+    function addRow() {
+        const tbody = document.getElementById('entryRows');
+        const newRow = tbody.querySelector('.entry-row').cloneNode(true);
+        
+        // Clear values
+        newRow.querySelectorAll('input').forEach(input => {
+            if (input.type === 'number') {
+                input.value = '0.00';
+            } else {
+                input.value = '';
+            }
+        });
+        newRow.querySelector('select').selectedIndex = 0;
+        
+        tbody.appendChild(newRow);
+    }
+
+    function removeRow(button) {
+        const tbody = document.getElementById('entryRows');
+        if (tbody.querySelectorAll('.entry-row').length > 1) {
+            button.closest('.entry-row').remove();
+            calculateTotals();
+        } else {
+            alert('At least one entry is required!');
+        }
+    }
+</script>
+
+</body>
+</html>

@@ -37,22 +37,48 @@ class StatsHelper
                 $mrr += ($prices[$p['plan']] ?? 0) * $p['count'];
             }
 
-            // 4. MRR Trend (Last 12 Months)
+            // 4. MRR Trend (Last 12 Months) - Optimized Single Query
+            $mrrTrendData = $db->query("
+                SELECT 
+                    DATE_FORMAT(created_at, '%Y-%m-01') as month_start,
+                    DATE_FORMAT(created_at, '%b %Y') as month_label,
+                    plan,
+                    COUNT(*) as count
+                FROM tenants 
+                WHERE status IN ('active', 'trial') 
+                AND created_at >= DATE_SUB(LAST_DAY(NOW()), INTERVAL 12 MONTH)
+                GROUP BY month_start, month_label, plan
+                ORDER BY month_start ASC
+            ")->fetchAll(PDO::FETCH_GROUP|PDO::FETCH_ASSOC);
+
             $mrrTrend = [];
+            $runningPlanCounts = ['starter' => 0, 'growth' => 0, 'professional' => 0, 'enterprise' => 0];
+            
+            // Get base counts from before the 12-month window
+            $baseCounts = $db->query("
+                SELECT plan, COUNT(*) as count 
+                FROM tenants 
+                WHERE status IN ('active', 'trial') 
+                AND created_at < DATE_SUB(LAST_DAY(NOW()), INTERVAL 12 MONTH)
+                GROUP BY plan
+            ")->fetchAll(PDO::FETCH_KEY_PAIR);
+            foreach ($baseCounts as $p => $c) $runningPlanCounts[$p] = (int)$c;
+
             for ($i = 11; $i >= 0; $i--) {
-                $month = date('M Y', strtotime("-$i months"));
-                $monthStart = date('Y-m-01', strtotime("-$i months"));
-                $monthEnd = date('Y-m-t', strtotime("-$i months"));
+                $monthKey = date('Y-m-01', strtotime("-$i months"));
+                $monthLabel = date('M Y', strtotime("-$i months"));
                 
-                $mCount = $db->prepare("SELECT plan, COUNT(*) as count FROM tenants WHERE status IN ('active', 'trial') AND created_at <= ? GROUP BY plan");
-                $mCount->execute([$monthEnd]);
-                $mPlans = $mCount->fetchAll();
+                if (isset($mrrTrendData[$monthKey])) {
+                    foreach ($mrrTrendData[$monthKey] as $row) {
+                        $runningPlanCounts[$row['plan']] += $row['count'];
+                    }
+                }
                 
                 $mMrr = 0;
-                foreach ($mPlans as $mp) {
-                    $mMrr += ($prices[$mp['plan']] ?? 0) * $mp['count'];
+                foreach ($runningPlanCounts as $p => $c) {
+                    $mMrr += ($prices[$p] ?? 0) * $c;
                 }
-                $mrrTrend[] = ['month' => $month, 'mrr' => $mMrr, 'mrrK' => round($mMrr / 1000, 1)];
+                $mrrTrend[] = ['month' => $monthLabel, 'mrr' => $mMrr, 'mrrK' => round($mMrr / 1000, 1)];
             }
 
             // YoY comparison
@@ -76,9 +102,7 @@ class StatsHelper
             
             $totalCredits = $db->query("SELECT COALESCE(SUM(sms_credits), 0) FROM tenants")->fetchColumn();
             $usedCredits = 0;
-            try {
-                $usedCredits = $db->query("SELECT COUNT(*) FROM sms_logs WHERE status = 'sent'")->fetchColumn();
-            } catch (Exception $e) {}
+            try { $usedCredits = $db->query("SELECT COUNT(*) FROM sms_logs WHERE status = 'sent'")->fetchColumn(); } catch (Exception $e) {}
             $smsPercent = $totalCredits > 0 ? round(($usedCredits / $totalCredits) * 100, 1) : 0;
 
             // 6. Total Users Count
@@ -97,7 +121,7 @@ class StatsHelper
             // 10. System Health - Real-time data
             $health = [
                 'uptime' => '99.98%',
-                'latency' => rand(80, 150) . 'ms',
+                'latency' => '120ms',
                 'redis' => '1.2 GB',
                 'status' => 'healthy'
             ];
@@ -111,7 +135,7 @@ class StatsHelper
                     if ($t['status'] === 'open') $tickets['open'] += (int)$t['count'];
                 }
             } catch (Exception $e) {
-                $tickets = ['critical' => rand(1, 4), 'high' => rand(4, 10), 'normal' => rand(10, 20), 'open' => rand(10, 30)];
+                // Return 0s on error, no fake data
             }
 
             // 12. Failed Login Attempts (last 24 hours)
@@ -119,7 +143,7 @@ class StatsHelper
             try {
                 $failedLogins = $db->query("SELECT COUNT(*) FROM login_attempts WHERE status = 'failed' AND created_at >= DATE_SUB(NOW(), INTERVAL 24 HOUR)")->fetchColumn();
             } catch (Exception $e) {
-                $failedLogins = rand(5, 15);
+                // Return 0 on error
             }
 
             // 13. Audit Logs
@@ -149,7 +173,7 @@ class StatsHelper
                 'failedLogins' => (int)$failedLogins
             ];
         } catch (Exception $e) {
-            error_log("StatsHelper error: " . $e->getMessage());
+            error_log("[DB-ERROR] StatsHelper error: " . $e->getMessage());
             return null;
         }
     }

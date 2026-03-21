@@ -96,17 +96,22 @@ class SuperAdminController {
      * Get all tenants with subscription info
      */
     private function getAllTenants() {
-        $stmt = $this->db->query("
-            SELECT t.*, 
-                   s.plan as subscription_plan,
-                   s.status as subscription_status,
-                   s.end_date as subscription_end,
-                   (SELECT COUNT(*) FROM users WHERE tenant_id = t.id) as user_count
-            FROM tenants t
-            LEFT JOIN subscriptions s ON t.id = s.tenant_id AND s.status = 'active'
-            ORDER BY t.created_at DESC
-        ");
-        return $stmt->fetchAll();
+        try {
+            $stmt = $this->db->query("
+                SELECT t.*, 
+                       s.plan as subscription_plan,
+                       s.status as subscription_status,
+                       s.end_date as subscription_end,
+                       (SELECT COUNT(*) FROM users WHERE tenant_id = t.id) as user_count
+                FROM tenants t
+                LEFT JOIN subscriptions s ON t.id = s.tenant_id AND s.status = 'active'
+                ORDER BY t.created_at DESC
+            ");
+            return $stmt->fetchAll();
+        } catch (PDOException $e) {
+            error_log("[DB-ERROR] Error getting tenants: " . $e->getMessage());
+            return [];
+        }
     }
     
     /**
@@ -265,15 +270,23 @@ class SuperAdminController {
      * Get system logs
      */
     private function getSystemLogs($limit = 100) {
-        $stmt = $this->db->query("
-            SELECT al.*, u.email as user_email, t.name as tenant_name
-            FROM audit_logs al
-            LEFT JOIN users u ON al.user_id = u.id
-            LEFT JOIN tenants t ON al.tenant_id = t.id
-            ORDER BY al.created_at DESC
-            LIMIT $limit
-        ");
-        return $stmt->fetchAll();
+        try {
+            $limit = intval($limit); // Sanitize
+            $stmt = $this->db->prepare("
+                SELECT al.*, u.email as user_email, t.name as tenant_name
+                FROM audit_logs al
+                LEFT JOIN users u ON al.user_id = u.id
+                LEFT JOIN tenants t ON al.tenant_id = t.id
+                ORDER BY al.created_at DESC
+                LIMIT :limit
+            ");
+            $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+            $stmt->execute();
+            return $stmt->fetchAll();
+        } catch (PDOException $e) {
+            error_log("[DB-ERROR] Error getting system logs: " . $e->getMessage());
+            return [];
+        }
     }
     
     /**
@@ -288,8 +301,13 @@ class SuperAdminController {
      * Get SMS templates
      */
     private function getSmsTemplates() {
-        $stmt = $this->db->query("SELECT * FROM sms_templates ORDER BY is_default DESC, name ASC");
-        return $stmt->fetchAll();
+        try {
+            $stmt = $this->db->query("SELECT * FROM sms_templates ORDER BY is_default DESC, name ASC");
+            return $stmt->fetchAll();
+        } catch (PDOException $e) {
+            error_log("[DB-ERROR] Error getting SMS templates: " . $e->getMessage());
+            return [];
+        }
     }
     
     /**

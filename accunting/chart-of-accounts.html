@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chart of Accounts - Hamro Labs ERP</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="hamro-accounting-styles.css">
+</head>
+<body>
+
+<div class="app-container">
+    <!-- SIDEBAR (Same as dashboard) -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">Hamro Loksewa Institute</div>
+        </div>
+        <nav class="sidebar-nav">
+            <!-- Navigation sections same as dashboard -->
+            <div class="nav-section">
+                <div class="nav-section-title">Finance</div>
+                <a href="#" class="nav-item active">
+                    <div class="nav-item-content">
+                        <i class="fas fa-calculator nav-item-icon"></i>
+                        <span>Accounting</span>
+                    </div>
+                    <i class="fas fa-chevron-down nav-item-chevron"></i>
+                </a>
+                <div class="nav-submenu active">
+                    <a href="accounting-dashboard.html" class="nav-submenu-item">Dashboard</a>
+                    <a href="chart-of-accounts.html" class="nav-submenu-item active">Chart of Accounts</a>
+                    <a href="voucher-entry.html" class="nav-submenu-item">Vouchers</a>
+                    <a href="day-book.html" class="nav-submenu-item">Day Book</a>
+                    <a href="ledger.html" class="nav-submenu-item">Ledger</a>
+                    <a href="trial-balance.html" class="nav-submenu-item">Trial Balance</a>
+                    <a href="financial-reports.html" class="nav-submenu-item">Financial Reports</a>
+                </div>
+            </div>
+        </nav>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+        <!-- TOP HEADER (Same as dashboard) -->
+        <header class="top-header">
+            <div class="search-bar">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Search accounts by code or name...">
+            </div>
+            <div class="header-actions">
+                <div class="year-badge">
+                    <i class="fas fa-calendar"></i>
+                    <span>FY 2081/82</span>
+                </div>
+                <button class="header-icon-btn"><i class="fas fa-bell"></i><span class="notification-badge">3</span></button>
+                <div class="user-avatar">Ha</div>
+            </div>
+        </header>
+
+        <!-- PAGE CONTENT -->
+        <div class="page-content">
+            <!-- PAGE TITLE SECTION -->
+            <div class="page-title-section">
+                <div class="page-title-header">
+                    <div>
+                        <h1 class="page-title">Chart of Accounts</h1>
+                        <div class="page-meta">
+                            <span><i class="fas fa-sitemap"></i> Hierarchical Account Structure</span>
+                            <span><i class="fas fa-clock"></i> Last updated: Today 2:30 PM</span>
+                        </div>
+                    </div>
+                    <div class="page-actions">
+                        <button class="btn btn-secondary">
+                            <i class="fas fa-file-excel"></i> Export Excel
+                        </button>
+                        <button class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Add Account
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STATS ROW -->
+            <div class="stats-grid" style="grid-template-columns: repeat(5, 1fr); margin-bottom: 32px;">
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <div class="stat-card-title">Total Accounts</div>
+                        <div class="stat-icon blue"><i class="fas fa-list"></i></div>
+                    </div>
+                    <div class="stat-value">156</div>
+                    <div class="stat-label">Active accounts</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <div class="stat-card-title">Assets</div>
+                        <div class="stat-icon green"><i class="fas fa-wallet"></i></div>
+                    </div>
+                    <div class="stat-value">42</div>
+                    <div class="stat-label">Asset accounts</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <div class="stat-card-title">Liabilities</div>
+                        <div class="stat-icon amber"><i class="fas fa-file-invoice-dollar"></i></div>
+                    </div>
+                    <div class="stat-value">28</div>
+                    <div class="stat-label">Liability accounts</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <div class="stat-card-title">Income</div>
+                        <div class="stat-icon purple"><i class="fas fa-arrow-down"></i></div>
+                    </div>
+                    <div class="stat-value">35</div>
+                    <div class="stat-label">Revenue accounts</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <div class="stat-card-title">Expenses</div>
+                        <div class="stat-icon" style="background: #FEE2E2; color: #E11D48;"><i class="fas fa-arrow-up"></i></div>
+                    </div>
+                    <div class="stat-value">51</div>
+                    <div class="stat-label">Expense accounts</div>
+                </div>
+            </div>
+
+            <!-- MAIN CARD -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-sitemap"></i>
+                        Account Hierarchy
+                    </h3>
+                    <div style="display: flex; gap: 12px;">
+                        <select class="form-control" style="width: 180px;">
+                            <option>All Types</option>
+                            <option>Assets</option>
+                            <option>Liabilities</option>
+                            <option>Equity</option>
+                            <option>Income</option>
+                            <option>Expense</option>
+                        </select>
+                        <button class="btn btn-outline btn-sm">
+                            <i class="fas fa-expand-alt"></i> Expand All
+                        </button>
+                        <button class="btn btn-outline btn-sm">
+                            <i class="fas fa-compress-alt"></i> Collapse All
+                        </button>
+                    </div>
+                </div>
+
+                <!-- SEARCH BAR -->
+                <div style="margin-bottom: 24px;">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" class="search-input" placeholder="Search by account code or name...">
+                    </div>
+                </div>
+
+                <!-- COA TREE -->
+                <div class="coa-tree-container">
+                    <ul class="coa-tree">
+                        <!-- ASSETS -->
+                        <li class="coa-item expanded">
+                            <div class="coa-header" onclick="toggleCOA(this)">
+                                <span class="coa-toggle"><i class="fas fa-chevron-down"></i></span>
+                                <span class="coa-code">1000</span>
+                                <span class="coa-name">ASSETS</span>
+                                <span class="coa-type">Asset</span>
+                                <div class="table-actions">
+                                    <button class="action-btn" title="Add Child"><i class="fas fa-plus"></i></button>
+                                </div>
+                            </div>
+                            <ul class="coa-children">
+                                <li class="coa-item expanded">
+                                    <div class="coa-header" onclick="toggleCOA(this)">
+                                        <span class="coa-toggle"><i class="fas fa-chevron-down"></i></span>
+                                        <span class="coa-code">1100</span>
+                                        <span class="coa-name">Current Assets</span>
+                                        <span class="coa-type">Asset</span>
+                                        <div class="table-actions">
+                                            <button class="action-btn" title="Add Child"><i class="fas fa-plus"></i></button>
+                                            <button class="action-btn" title="Edit"><i class="fas fa-edit"></i></button>
+                                        </div>
+                                    </div>
+                                    <ul class="coa-children">
+                                        <li class="coa-item">
+                                            <div class="coa-header">
+                                                <span class="coa-toggle"></span>
+                                                <span class="coa-code">1110</span>
+                                                <span class="coa-name">Cash on Hand</span>
+                                                <span class="coa-type">Asset</span>
+                                                <div class="table-actions">
+                                                    <button class="action-btn" title="View Ledger"><i class="fas fa-book-open"></i></button>
+                                                    <button class="action-btn" title="Edit"><i class="fas fa-edit"></i></button>
+                                                    <button class="action-btn danger" title="Delete"><i class="fas fa-trash"></i></button>
+                                                </div>
+                                            </div>
+                                        </li>
+                                        <li class="coa-item">
+                                            <div class="coa-header">
+                                                <span class="coa-toggle"></span>
+                                                <span class="coa-code">1120</span>
+                                                <span class="coa-name">Bank - NIC Asia (A/C: 003456789)</span>
+                                                <span class="coa-type">Asset</span>
+                                                <div class="table-actions">
+                                                    <button class="action-btn" title="View Ledger"><i class="fas fa-book-open"></i></button>
+                                                    <button class="action-btn" title="Edit"><i class="fas fa-edit"></i></button>
+                                                </div>
+                                            </div>
+                                        </li>
+                                        <li class="coa-item">
+                                            <div class="coa-header">
+                                                <span class="coa-toggle"></span>
+                                                <span class="coa-code">1130</span>
+                                                <span class="coa-name">Student Receivables (Control)</span>
+                                                <span class="coa-type">Asset</span>
+                                                <div class="table-actions">
+                                                    <button class="action-btn" title="View Ledger"><i class="fas fa-book-open"></i></button>
+                                                    <button class="action-btn" title="Edit"><i class="fas fa-edit"></i></button>
+                                                </div>
+                                            </div>
+                                        </li>
+                                    </ul>
+                                </li>
+                                <li class="coa-item">
+                                    <div class="coa-header" onclick="toggleCOA(this)">
+                                        <span class="coa-toggle"><i class="fas fa-chevron-right"></i></span>
+                                        <span class="coa-code">1200</span>
+                                        <span class="coa-name">Fixed Assets</span>
+                                        <span class="coa-type">Asset</span>
+                                        <div class="table-actions">
+                                            <button class="action-btn" title="Add Child"><i class="fas fa-plus"></i></button>
+                                            <button class="action-btn" title="Edit"><i class="fas fa-edit"></i></button>
+                                        </div>
+                                    </div>
+                                    <ul class="coa-children"></ul>
+                                </li>
+                            </ul>
+                        </li>
+
+                        <!-- LIABILITIES -->
+                        <li class="coa-item expanded">
+                            <div class="coa-header" onclick="toggleCOA(this)">
+                                <span class="coa-toggle"><i class="fas fa-chevron-down"></i></span>
+                                <span class="coa-code">2000</span>
+                                <span class="coa-name">LIABILITIES</span>
+                                <span class="coa-type">Liability</span>
+                                <div class="table-actions">
+                                    <button class="action-btn" title="Add Child"><i class="fas fa-plus"></i></button>
+                                </div>
+                            </div>
+                            <ul class="coa-children">
+                                <li class="coa-item">
+                                    <div class="coa-header">
+                                        <span class="coa-toggle"></span>
+                                        <span class="coa-code">2110</span>
+                                        <span class="coa-name">Advance Fee Receipts</span>
+                                        <span class="coa-type">Liability</span>
+                                        <div class="table-actions">
+                                            <button class="action-btn" title="View Ledger"><i class="fas fa-book-open"></i></button>
+                                            <button class="action-btn" title="Edit"><i class="fas fa-edit"></i></button>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li class="coa-item">
+                                    <div class="coa-header">
+                                        <span class="coa-toggle"></span>
+                                        <span class="coa-code">2120</span>
+                                        <span class="coa-name">Education Service Fee (ESF) Payable - 1%</span>
+                                        <span class="coa-type">Liability</span>
+                                        <div class="table-actions">
+                                            <button class="action-btn" title="View Ledger"><i class="fas fa-book-open"></i></button>
+                                            <button class="action-btn" title="Edit"><i class="fas fa-edit"></i></button>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li class="coa-item">
+                                    <div class="coa-header">
+                                        <span class="coa-toggle"></span>
+                                        <span class="coa-code">2130</span>
+                                        <span class="coa-name">SSF Payable (31%)</span>
+                                        <span class="coa-type">Liability</span>
+                                        <div class="table-actions">
+                                            <button class="action-btn" title="View Ledger"><i class="fas fa-book-open"></i></button>
+                                            <button class="action-btn" title="Edit"><i class="fas fa-edit"></i></button>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li class="coa-item">
+                                    <div class="coa-header">
+                                        <span class="coa-toggle"></span>
+                                        <span class="coa-code">2140</span>
+                                        <span class="coa-name">TDS Payable</span>
+                                        <span class="coa-type">Liability</span>
+                                        <div class="table-actions">
+                                            <button class="action-btn" title="View Ledger"><i class="fas fa-book-open"></i></button>
+                                            <button class="action-btn" title="Edit"><i class="fas fa-edit"></i></button>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li class="coa-item">
+                                    <div class="coa-header">
+                                        <span class="coa-toggle"></span>
+                                        <span class="coa-code">2150</span>
+                                        <span class="coa-name">Caution Deposit (Student Security)</span>
+                                        <span class="coa-type">Liability</span>
+                                        <div class="table-actions">
+                                            <button class="action-btn" title="View Ledger"><i class="fas fa-book-open"></i></button>
+                                            <button class="action-btn" title="Edit"><i class="fas fa-edit"></i></button>
+                                        </div>
+                                    </div>
+                                </li>
+                            </ul>
+                        </li>
+
+                        <!-- INCOME -->
+                        <li class="coa-item expanded">
+                            <div class="coa-header" onclick="toggleCOA(this)">
+                                <span class="coa-toggle"><i class="fas fa-chevron-down"></i></span>
+                                <span class="coa-code">4000</span>
+                                <span class="coa-name">INCOME (Unrestricted)</span>
+                                <span class="coa-type">Income</span>
+                                <div class="table-actions">
+                                    <button class="action-btn" title="Add Child"><i class="fas fa-plus"></i></button>
+                                </div>
+                            </div>
+                            <ul class="coa-children">
+                                <li class="coa-item">
+                                    <div class="coa-header">
+                                        <span class="coa-toggle"></span>
+                                        <span class="coa-code">4110</span>
+                                        <span class="coa-name">Tuition Fee Income</span>
+                                        <span class="coa-type">Income</span>
+                                        <div class="table-actions">
+                                            <button class="action-btn" title="View Ledger"><i class="fas fa-book-open"></i></button>
+                                            <button class="action-btn" title="Edit"><i class="fas fa-edit"></i></button>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li class="coa-item">
+                                    <div class="coa-header">
+                                        <span class="coa-toggle"></span>
+                                        <span class="coa-code">4120</span>
+                                        <span class="coa-name">Admission Fee Income</span>
+                                        <span class="coa-type">Income</span>
+                                        <div class="table-actions">
+                                            <button class="action-btn" title="View Ledger"><i class="fas fa-book-open"></i></button>
+                                            <button class="action-btn" title="Edit"><i class="fas fa-edit"></i></button>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li class="coa-item">
+                                    <div class="coa-header">
+                                        <span class="coa-toggle"></span>
+                                        <span class="coa-code">4130</span>
+                                        <span class="coa-name">Exam Fee Income</span>
+                                        <span class="coa-type">Income</span>
+                                        <div class="table-actions">
+                                            <button class="action-btn" title="View Ledger"><i class="fas fa-book-open"></i></button>
+                                            <button class="action-btn" title="Edit"><i class="fas fa-edit"></i></button>
+                                        </div>
+                                    </div>
+                                </li>
+                            </ul>
+                        </li>
+
+                        <!-- EXPENSES (Collapsed by default) -->
+                        <li class="coa-item">
+                            <div class="coa-header" onclick="toggleCOA(this)">
+                                <span class="coa-toggle"><i class="fas fa-chevron-right"></i></span>
+                                <span class="coa-code">5000</span>
+                                <span class="coa-name">EXPENSES</span>
+                                <span class="coa-type">Expense</span>
+                                <div class="table-actions">
+                                    <button class="action-btn" title="Add Child"><i class="fas fa-plus"></i></button>
+                                </div>
+                            </div>
+                            <ul class="coa-children"></ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<style>
+    /* COA Tree Specific Styles */
+    .coa-tree-container {
+        margin-top: 20px;
+    }
+
+    .coa-tree {
+        list-style: none;
+        padding-left: 0;
+    }
+
+    .coa-item {
+        border-left: 3px solid #E2E8F0;
+        margin-left: 20px;
+        padding: 8px 0 8px 16px;
+        position: relative;
+    }
+
+    .coa-item::before {
+        content: '';
+        position: absolute;
+        left: -3px;
+        top: 50%;
+        width: 16px;
+        height: 2px;
+        background: #E2E8F0;
+    }
+
+    .coa-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 12px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+    .coa-header:hover {
+        background: #F8FAFC;
+    }
+
+    .coa-toggle {
+        width: 20px;
+        height: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #94A3B8;
+        font-size: 12px;
+    }
+
+    .coa-code {
+        font-family: 'Courier New', monospace;
+        font-weight: 700;
+        color: #00B894;
+        min-width: 80px;
+    }
+
+    .coa-name {
+        flex: 1;
+        font-weight: 600;
+        color: #1E293B;
+    }
+
+    .coa-type {
+        font-size: 11px;
+        padding: 3px 8px;
+        border-radius: 6px;
+        background: #F8FAFC;
+        color: #64748B;
+        font-weight: 700;
+    }
+
+    .coa-children {
+        display: none;
+        list-style: none;
+        padding-left: 0;
+    }
+
+    .coa-item.expanded > .coa-children {
+        display: block;
+    }
+
+    .search-box {
+        position: relative;
+    }
+
+    .search-box i {
+        position: absolute;
+        left: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #94A3B8;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 12px 16px 12px 44px;
+        border: 1px solid #E2E8F0;
+        border-radius: 10px;
+        font-size: 14px;
+        font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+</style>
+
+<script>
+    function toggleCOA(element) {
+        const item = element.parentElement;
+        const toggle = element.querySelector('.coa-toggle i');
+        
+        item.classList.toggle('expanded');
+        
+        if (item.classList.contains('expanded')) {
+            toggle.className = 'fas fa-chevron-down';
+        } else {
+            toggle.className = 'fas fa-chevron-right';
+        }
+    }
+</script>
+
+</body>
+</html>

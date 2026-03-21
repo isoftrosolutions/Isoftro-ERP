@@ -101,6 +101,14 @@ document.addEventListener('DOMContentLoaded', () => {
             { id: "att-rep", l: "Attendance Reports", icon: "fa-clipboard-user" },
             { id: "ex-rep", l: "Exam Reports", icon: "fa-square-poll-vertical" },
         ], sec: "ANALYTICS" },
+        { id: "accounting", icon: "fa-calculator", label: "Accounting", sub: [
+            { id: "dashboard", l: "Dashboard", icon: "fa-gauge" },
+            { id: "coa", l: "Chart of Accounts", icon: "fa-tree" },
+            { id: "voucher", l: "Voucher Entry", icon: "fa-file-invoice" },
+            { id: "ledger", l: "General Ledger", icon: "fa-book" },
+            { id: "trial-balance", l: "Trial Balance", icon: "fa-scale-balanced" },
+            { id: "reports", l: "Financial Reports", icon: "fa-chart-line" }
+        ], sec: "FINANCE" },
         { id: "settings", icon: "fa-gear", label: "Settings", sub: [
             { id: "prof", l: "Institute Profile", icon: "fa-building" },
             { id: "brand", l: "Branding", icon: "fa-palette" },
@@ -210,6 +218,7 @@ document.addEventListener('DOMContentLoaded', () => {
             { id: 'overview', icon: 'fa-house', label: 'Home', action: "goNav('overview')" },
             { id: 'students', icon: 'fa-user-graduate', label: 'Students', action: "goNav('students', 'all')" },
             { id: 'fee', icon: 'fa-hand-holding-dollar', label: 'Fee', action: "goNav('fee', 'record')" },
+            { id: 'accounting', icon: 'fa-calculator', label: 'Accounts', action: "goNav('accounting', 'dashboard')" },
             { id: 'exams', icon: 'fa-file-signature', label: 'Exams', action: "goNav('exams', 'schedule')" },
             { id: 'comms', icon: 'fa-paper-plane', label: 'Comms', action: "goNav('comms', 'sms')" }
         ];
@@ -244,6 +253,12 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } else if (activeNav === 'students') {
             renderStudents();
+        } else if (activeNav === 'accounting') {
+            if (typeof AccountingModule !== 'undefined') {
+                AccountingModule.renderAction(activeSub);
+            } else {
+                renderGenericPage();
+            }
         } else {
             renderGenericPage();
         }

@@ -116,6 +116,11 @@ class AuthController {
         $_SESSION['tenant_logo'] = $tenantLogo;
         $_SESSION['last_activity'] = time();
 
+        // Load tenant modules into session at login (CRITICAL for module gating)
+        if (!empty($user['tenant_id'])) {
+            loadTenantModulesIntoSession($user['tenant_id']);
+        }
+
         // Handle Remember Me
         if ($remember === 'on' || $remember === true || $remember === 'true') {
             $token = bin2hex(random_bytes(32));
