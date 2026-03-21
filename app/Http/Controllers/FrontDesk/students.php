@@ -145,13 +145,13 @@ try {
     if ($method === 'GET' && isset($_GET['stats'])) {
         $stats = [];
 
-        // Total students
-        $stmt = $db->prepare("SELECT COUNT(*) FROM students WHERE tenant_id = :tid AND deleted_at IS NULL");
+        // Total current students (Active + Inactive)
+        $stmt = $db->prepare("SELECT COUNT(*) FROM students WHERE tenant_id = :tid AND status NOT IN ('alumni', 'dropped') AND deleted_at IS NULL");
         $stmt->execute(['tid' => $tenantId]);
         $stats['total'] = (int)$stmt->fetchColumn();
 
-        // Count new students this month
-        $stmt = $db->prepare("SELECT COUNT(*) FROM students WHERE tenant_id = :tid AND MONTH(created_at) = MONTH(CURDATE()) AND YEAR(created_at) = YEAR(CURDATE()) AND deleted_at IS NULL");
+        // Count new students this month (excluding those who already left)
+        $stmt = $db->prepare("SELECT COUNT(*) FROM students WHERE tenant_id = :tid AND status NOT IN ('alumni', 'dropped') AND MONTH(created_at) = MONTH(CURDATE()) AND YEAR(created_at) = YEAR(CURDATE()) AND deleted_at IS NULL");
         $stmt->execute(['tid' => $tenantId]);
         $stats['this_month'] = (int)$stmt->fetchColumn();
 

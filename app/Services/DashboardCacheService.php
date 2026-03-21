@@ -204,7 +204,7 @@ class DashboardCacheService {
             LEFT JOIN enrollments e ON s.id = e.student_id AND e.status = 'active'
             LEFT JOIN batches b ON e.batch_id = b.id
             LEFT JOIN courses c ON b.course_id = c.id
-            WHERE s.tenant_id = :tid AND s.deleted_at IS NULL
+            WHERE s.tenant_id = :tid AND s.deleted_at IS NULL AND s.status NOT IN ('alumni', 'dropped')
             ORDER BY s.created_at DESC LIMIT 5
         ");
         $stmt->execute(['tid' => $tenantId]);

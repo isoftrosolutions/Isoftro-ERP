@@ -38,6 +38,9 @@ window.loadStudentStats = async () => {
             
             const elBatches = document.getElementById('stat-batches');
             if(elBatches) elBatches.textContent = st.batches || 0;
+
+            const elAlumni = document.getElementById('stat-alumni');
+            if(elAlumni) elAlumni.textContent = st.alumni || 0;
         }
     } catch (error) {
         console.error('loadStudentStats error:', error);
@@ -260,6 +263,14 @@ window.renderStudentList = async () => {
         <div class="stat-info">
             <div class="stat-label">ACTIVE BATCHES</div>
             <div class="stat-value" id="stat-batches">0</div>
+        </div>
+    </div>
+    <!-- Passed Out (Alumni) Stat Card -->
+    <div class="student-stat-card">
+        <div class="stat-icon-box" style="background: #fef2f2; color: #ef4444;"><i class="fa-solid fa-graduation-cap"></i></div>
+        <div class="stat-info">
+            <div class="stat-label">PASSED OUT</div>
+            <div class="stat-value" id="stat-alumni">0</div>
         </div>
     </div>
   </div>

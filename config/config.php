@@ -86,17 +86,17 @@ if (!defined('ALLOWED_FILE_TYPES'))
 
 // Email Configuration
 if (!defined('SMTP_HOST'))
-    define('SMTP_HOST', 'smtp.gmail.com');
+    define('SMTP_HOST', getenv('MAIL_HOST') ?: 'smtp.gmail.com');
 if (!defined('SMTP_PORT'))
-    define('SMTP_PORT', 587);
+    define('SMTP_PORT', getenv('MAIL_PORT') ?: 465);
 if (!defined('SMTP_USERNAME'))
-    define('SMTP_USERNAME', 'your-email@gmail.com');
+    define('SMTP_USERNAME', getenv('MAIL_USERNAME') ?: 'isoftrosolutions@gmail.com');
 if (!defined('SMTP_PASSWORD'))
-    define('SMTP_PASSWORD', 'your-app-password');
+    define('SMTP_PASSWORD', getenv('MAIL_PASSWORD') ?: 'your-app-password');
 if (!defined('FROM_EMAIL'))
-    define('FROM_EMAIL', 'noreply@isoftro.com');
+    define('FROM_EMAIL', getenv('MAIL_FROM_ADDRESS') ?: 'noreply@isoftro.com');
 if (!defined('FROM_NAME'))
-    define('FROM_NAME', 'isoftro');
+    define('FROM_NAME', getenv('MAIL_FROM_NAME') ?: APP_NAME);
 
 // Pagination Configuration
 if (!defined('RECORDS_PER_PAGE'))
