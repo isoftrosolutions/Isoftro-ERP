@@ -117,18 +117,27 @@ class MailHelper
         $mail = new PHPMailer(true);
         $mail->isSMTP();
         
-        if ($useTenantSMTP) {
-            $mail->Host     = $branding['smtp_host'] ?? 'smtp.gmail.com';
-            $mail->Port     = (int)($branding['smtp_port'] ?? 587);
-            $mail->Username = $branding['smtp_username'];
-            $mail->Password = $branding['smtp_password'];
-            $enc = strtolower($branding['smtp_encryption'] ?? 'tls');
-        } else {
+        if ($forceSystem) {
+            // ── SYSTEM ENVELOPE (Platform Account) ──
             $mail->Host     = $sys['smtp_host']  ?? 'smtp.gmail.com';
             $mail->Port     = (int)($sys['smtp_port'] ?? 587);
             $mail->Username = $sys['smtp_user']  ?? '';
             $mail->Password = $sys['smtp_pass']  ?? '';
             $enc = strtolower($sys['smtp_encryption'] ?? 'tls');
+            $mail->sent_via = 'system_smtp';
+        } elseif ($useTenantSMTP) {
+            // ── INSTITUTE ENVELOPE (Tenant Account) ──
+            $mail->Host     = $branding['smtp_host'] ?? 'smtp.gmail.com';
+            $mail->Port     = (int)($branding['smtp_port'] ?? 587);
+            $mail->Username = $branding['smtp_username'];
+            $mail->Password = $branding['smtp_password'];
+            $enc = strtolower($branding['smtp_encryption'] ?? 'tls');
+            $mail->sent_via = 'tenant_smtp';
+        } else {
+            // ── NO RELAY PERMITTED ──
+            // As per instruction: "Only system related are sent via isoftrosolutions@gmail.com"
+            // If the institute hasn't configured SMTP, we do NOT fallback to yours.
+            throw new \Exception("The institute is not configured for outgoing emails. Please set up SMTP in Institute Settings.");
         }
 
         $mail->SMTPAuth = true;
@@ -153,17 +162,17 @@ class MailHelper
             : PHPMailer::ENCRYPTION_STARTTLS;
 
         // Set From Address
-        // If tenant SMTP: use from_email (or smtp_username if missing)
-        // If system SMTP: use system_from_email (or smtp_user if missing)
-        $fromEmail = $useTenantSMTP 
+        $fromEmail = ($mail->sent_via === 'tenant_smtp')
             ? ($branding['from_email'] ?? $branding['smtp_username']) 
             : ($sys['system_from_email'] ?? $sys['smtp_user'] ?? '');
             
-        $fromName  = $branding['sender_name'] ?? $branding['institute_name'] ?? 'Hamro ERP';
+        $fromName = ($mail->sent_via === 'system_smtp')
+            ? ($sys['system_from_name'] ?? 'iSoftro Support')
+            : ($branding['sender_name'] ?? $branding['institute_name'] ?? 'The Institute');
         
         $mail->setFrom($fromEmail, $fromName);
 
-        if ($useTenantSMTP && !empty($branding['reply_to_email'])) {
+        if ($mail->sent_via === 'tenant_smtp' && !empty($branding['reply_to_email'])) {
             $mail->addReplyTo($branding['reply_to_email'], $fromName);
         }
 
@@ -171,9 +180,25 @@ class MailHelper
         $mail->CharSet = 'UTF-8';
 
         // Add metadata to PHPMailer object (custom property) for logging later
-        $mail->sent_via = $useTenantSMTP ? 'tenant_smtp' : 'system_smtp';
+        $mail->sent_via = $forceSystem ? 'system_smtp' : 'tenant_smtp';
 
         return $mail;
+    }
+
+    /**
+     * Classify email type based on jobType
+     */
+    private static function getEmailType(string $jobType): string
+    {
+        $systemJobs = [
+            'password_reset',
+            'password_reset_request',
+            'account_verification',
+            'student_account_verification',
+            '2fa_code'
+        ];
+
+        return in_array($jobType, $systemJobs) ? 'system' : 'institute';
     }
 
     /**
@@ -220,7 +245,7 @@ class MailHelper
             if (is_scalar($val) || is_null($val)) {
                 $valStr = (string)($val ?? '');
                 // Format numbers that look like money
-                if (in_array($key, ['amount', 'amount_due', 'amount_paid', 'balance', 'total_payable', 'fine_applied'])) {
+                if (in_array($key, ['amount', 'amount_due', 'amount_paid', 'balance', 'total_payable', 'fine_applied', 'course_fee', 'previous_payments'])) {
                     $valStr = number_format((float)($val ?? 0), 2);
                 }
                 
@@ -247,9 +272,9 @@ class MailHelper
             return false;
         }
 
-        // --- System Only Jobs (Always use Hamro Labs SMTP) ---
-        $systemJobs = ['password_reset', 'password_reset_request', 'account_verification', 'student_account_verification', '2fa_code'];
-        $forceSystem = in_array($jobType, $systemJobs);
+        // --- Determine Email Category ---
+        $emailType   = self::getEmailType($jobType);
+        $forceSystem = ($emailType === 'system');
 
         if ($jobType === 'student_welcome' || $jobType === 'student_registration_success') {
             // Specialized logic for credentials
@@ -297,9 +322,10 @@ class MailHelper
         // Generic template-based processing fallback
         $templateKey = $payload['template_key'] ?? $jobType;
 
+        $sys = self::systemConfig();
         $branding = self::getTenantBranding($db, $tenantId);
         $tplData = array_merge($payload, [
-            'institute_name' => $branding['institute_name'],
+            'institute_name' => $forceSystem ? ($sys['system_from_name'] ?? 'iSoftro Support') : $branding['institute_name'],
             'student_name'   => $payload['student_name'] ?? $toName,
             'staff_name'     => $payload['staff_name'] ?? $toName,
             'name'           => $payload['name'] ?? $toName,
@@ -322,11 +348,21 @@ class MailHelper
     public static function sendDirect(\PDO $db, int $tenantId, string $toEmail, string $toName, string $subject, string $htmlBody, string $attachmentPath = '', int $campaignId = 0, bool $forceSystem = false): bool
     {
         $branding = self::getTenantBranding($db, $tenantId);
-        $sys = self::systemConfig();
-        if (empty($sys['smtp_pass'])) return false;
+        $emailType = $forceSystem ? 'system' : 'institute';
+
+        if ($emailType === 'system') {
+            $sys = self::systemConfig();
+            if (empty($sys['smtp_user']) || empty($sys['smtp_pass'])) {
+                throw new \Exception("System email is not configured properly in config/mail.php.");
+            }
+        } else {
+            // Institute email → must have own SMTP credentials (No Fallback)
+            if (empty($branding['smtp_username']) || empty($branding['smtp_password']) || empty($branding['smtp_host'])) {
+                throw new \Exception("Institute email is not configured. Please set SMTP credentials in settings.");
+            }
+        }
 
         $sentVia = 'system_smtp'; // Default
-
         try {
             $mail = self::buildMailer($branding, $forceSystem);
             $sentVia = $mail->sent_via ?? 'system_smtp';
@@ -356,9 +392,9 @@ class MailHelper
         return self::processJob($db, $tenantId, 'student_welcome', $studentData);
     }
 
-    public static function sendPaymentReceiptEmail(\PDO $db, int $tenantId, array $receiptData, string $pdfPath = ''): bool
+    public static function sendPaymentReceiptEmail(\PDO $db, int $tenantId, array $receiptData, ?string $pdfPath = ''): bool
     {
-        $payload = array_merge($receiptData, ['pdf_path' => $pdfPath]);
+        $payload = array_merge($receiptData, ['pdf_path' => $pdfPath ?? '']);
         return self::processJob($db, $tenantId, 'payment_receipt', $payload);
     }
     

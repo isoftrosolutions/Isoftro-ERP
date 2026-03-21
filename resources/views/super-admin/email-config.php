@@ -36,11 +36,11 @@ $activePage = 'email-config.php';
                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px; margin-bottom:20px;">
                     <div>
                         <label style="display:block; font-size:12px; font-weight:600; color:var(--text-dark); margin-bottom:5px;">SMTP Host</label>
-                        <input type="text" class="form-control" placeholder="smtp.example.com" value="smtp.gmail.com" style="width:100%; padding:10px; border:1px solid var(--card-border); border-radius:8px;">
+                        <input type="text" class="form-control" placeholder="smtp.example.com" value="<?php echo SMTP_HOST; ?>" style="width:100%; padding:10px; border:1px solid var(--card-border); border-radius:8px;">
                     </div>
                     <div>
                         <label style="display:block; font-size:12px; font-weight:600; color:var(--text-dark); margin-bottom:5px;">SMTP Port</label>
-                        <input type="number" class="form-control" placeholder="587" value="587" style="width:100%; padding:10px; border:1px solid var(--card-border); border-radius:8px;">
+                        <input type="number" class="form-control" placeholder="587" value="<?php echo SMTP_PORT; ?>" style="width:100%; padding:10px; border:1px solid var(--card-border); border-radius:8px;">
                     </div>
                     <div>
                         <label style="display:block; font-size:12px; font-weight:600; color:var(--text-dark); margin-bottom:5px;">Encryption Type</label>
@@ -64,7 +64,7 @@ $activePage = 'email-config.php';
                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px; margin-bottom:20px;">
                     <div>
                         <label style="display:block; font-size:12px; font-weight:600; color:var(--text-dark); margin-bottom:5px;">SMTP Username</label>
-                        <input type="text" class="form-control" placeholder="your-email@gmail.com" value="your-email@gmail.com" style="width:100%; padding:10px; border:1px solid var(--card-border); border-radius:8px;">
+                        <input type="text" class="form-control" placeholder="your-email@gmail.com" value="<?php echo SMTP_USERNAME; ?>" style="width:100%; padding:10px; border:1px solid var(--card-border); border-radius:8px;">
                     </div>
                     <div>
                         <label style="display:block; font-size:12px; font-weight:600; color:var(--text-dark); margin-bottom:5px;">SMTP Password</label>
@@ -81,7 +81,7 @@ $activePage = 'email-config.php';
                     </div>
                     <div>
                         <label style="display:block; font-size:12px; font-weight:600; color:var(--text-dark); margin-bottom:5px;">From Email</label>
-                        <input type="email" class="form-control" placeholder="noreply@hamrolabs.edu.np" value="noreply@hamrolabs.edu.np" style="width:100%; padding:10px; border:1px solid var(--card-border); border-radius:8px;">
+                        <input type="email" class="form-control" placeholder="noreply@hamrolabs.edu.np" value="<?php echo FROM_EMAIL; ?>" style="width:100%; padding:10px; border:1px solid var(--card-border); border-radius:8px;">
                     </div>
                 </div>
 

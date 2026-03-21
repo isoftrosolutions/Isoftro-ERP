@@ -1,8 +1,7 @@
 /**
  * receipt-style.css
  * Hamro Academic ERP — Professional Receipt Stylesheet
- * Print-optimized, PDF-safe, A4 dual-copy layout
- * Author: Nepal Cyber Firm / Hamro Labs
+ * Refactored to match exact branding (high-quality, clean, minimalist)
  */
 
 /* ── RESET ── */
@@ -10,470 +9,195 @@
 
 /* ── TOKENS ── */
 :root {
-    --brand:      #00B894;
-    --brand-d:    #007a62;
-    --brand-lt:   #e0f5f0;
-    --red:        #E11D48;
-    --red-lt:     #fff1f4;
-    --green:      #16a34a;
+    --brand:      #5d4037; /* Brownish from logo */
     --text-h:     #0F172A;
     --text-b:     #334155;
     --text-m:     #64748B;
-    --border:     #CBD5E1;
+    --border:     #94a3b8;
     --border-lt:  #E2E8F0;
-    --row-alt:    #F8FAFC;
+    --row-alt:    #f1f5f9;
     --white:      #ffffff;
-    --font:       'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    --font:       'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 }
 
-/* ── SCREEN WRAPPER ── */
 body {
     font-family: var(--font);
-    background: #eef2f7;
+    background: #f8fafc;
     color: var(--text-b);
-    font-size: 13px;
+    font-size: 14px;
     line-height: 1.5;
+    padding: 40px;
 }
-
-/* ── TOOLBAR (screen only) ── */
-.toolbar {
-    background: var(--white);
-    border-bottom: 1px solid var(--border-lt);
-    padding: 12px 20px;
-    text-align: center;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    box-shadow: 0 2px 8px rgba(0,0,0,.06);
-}
-.toolbar button,
-.toolbar a {
-    display: inline-block;
-    padding: 9px 20px;
-    margin: 0 5px;
-    border: none;
-    border-radius: 6px;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    text-decoration: none;
-    transition: opacity .15s;
-}
-.toolbar button:hover, .toolbar a:hover { opacity: .85; }
-.btn-pdf    { background: #E11D48; color: #fff; }
-.btn-print  { background: #00B894; color: #fff; }
-.btn-email  { background: #3b82f6; color: #fff; }
-.btn-back   { background: #64748B; color: #fff; }
 
 /* ── PAGE WRAPPER ── */
-.page-wrapper {
-    width: 210mm;
-    min-height: 297mm;
-    margin: 16px auto;
+.receipt-container {
+    max-width: 850px;
+    margin: 0 auto;
     background: var(--white);
-    box-shadow: 0 4px 24px rgba(0,0,0,.10);
-}
-
-/* ── RECEIPT COPY ── */
-.receipt-copy {
-    padding: 10mm 14mm 8mm 14mm;
+    padding: 20px;
     position: relative;
-    page-break-inside: avoid;
 }
-
-/* ── COPY BADGE ── */
-.copy-badge {
-    position: absolute;
-    top: 9mm;
-    right: 14mm;
-    font-size: 8px;
-    font-weight: 700;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    color: var(--white);
-    background: var(--brand);
-    padding: 2px 8px;
-    border-radius: 20px;
-}
-.copy-badge.office { background: var(--text-h); }
 
 /* ── HEADER ── */
 .receipt-header {
-    border-bottom: 3px solid var(--brand);
-    padding-bottom: 8px;
-    margin-bottom: 10px;
-    overflow: hidden; /* clearfix */
-}
-.header-logo-wrap {
-    float: left;
-    margin-right: 12px;
-}
-.header-logo-wrap img {
-    width: 58px;
-    height: 58px;
-    object-fit: contain;
-    border-radius: 6px;
-    border: 1px solid var(--border-lt);
-}
-.logo-placeholder {
-    width: 58px;
-    height: 58px;
-    background: var(--brand-lt);
-    border: 2px solid var(--brand);
-    border-radius: 6px;
     text-align: center;
-    line-height: 58px;
-    font-size: 26px;
-}
-.header-inst {
-    overflow: hidden;
-}
-.header-inst h1 {
-    font-size: 18px;
-    font-weight: 800;
-    color: var(--brand-d);
-    margin-bottom: 2px;
-    letter-spacing: .3px;
-}
-.header-inst .tagline {
-    font-size: 10px;
-    color: var(--brand);
-    font-style: italic;
-    margin-bottom: 3px;
-}
-.header-inst .contact-line {
-    font-size: 10.5px;
-    color: var(--text-m);
+    margin-bottom: 20px;
+    position: relative;
+    padding-top: 10px;
 }
 
-/* ── TITLE ROW ── */
-.title-row {
-    overflow: hidden;
-    margin-bottom: 10px;
-    padding-bottom: 6px;
-    border-bottom: 1px solid var(--border-lt);
+.logo-wrap {
+    position: absolute;
+    left: 0;
+    top: 0;
 }
-.title-row h2 {
-    float: left;
+
+.circular-logo {
+    width: 85px;
+    height: 85px;
+    border-radius: 50%;
+    border: 2px solid var(--brand);
+    padding: 2px;
+    background: #fff;
+    object-fit: contain;
+}
+
+.logo-placeholder {
+    width: 85px;
+    height: 85px;
+    border-radius: 50%;
+    border: 2px solid var(--brand);
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 30px;
+    font-weight: 900;
+    color: var(--brand);
+}
+
+.institute-branding h1 {
+    font-size: 24px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 5px;
+    color: var(--text-h);
+}
+
+.institute-branding p {
+    font-size: 13px;
+    color: var(--text-b);
+    margin: 2px 0;
+    font-weight: 600;
+}
+
+/* ── RECEIPT BADGE ── */
+.receipt-badge-container {
+    text-align: center;
+    margin: 25px 0;
+}
+
+.receipt-badge {
+    display: inline-block;
+    border: 1.5px solid #000;
+    padding: 8px 50px;
+    font-size: 14px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+}
+
+/* ── META INFO ── */
+.meta-info {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+    font-size: 15px;
+    font-weight: 700;
+}
+
+/* ── STUDENT INFO ── */
+.student-info {
+    margin-bottom: 25px;
+}
+
+.info-line {
+    display: flex;
+    margin-bottom: 10px;
+    font-size: 15px;
+}
+
+.info-label {
+    font-weight: 800;
+    min-width: 140px;
+}
+
+.info-value {
+    font-weight: 600;
+}
+
+/* ── FINANCIAL GRID ── */
+.financial-grid {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 40px;
+}
+
+.financial-grid td {
+    border: 1px solid var(--border);
+    padding: 10px 15px;
+    font-size: 14px;
+    width: 25%;
+}
+
+.grid-label {
+    font-weight: 700;
+    color: var(--text-h);
+}
+
+.grid-value {
+    font-weight: 600;
+    color: var(--text-b);
+}
+
+.balance-row {
+    background-color: var(--row-alt);
+}
+
+.balance-row .grid-label,
+.balance-row .grid-value {
+    font-size: 15px;
+    font-weight: 800;
+}
+
+/* ── FOOTER ── */
+.receipt-footer {
+    margin-top: 60px;
+    border-top: 1px dotted var(--border);
+    padding-top: 20px;
+    text-align: center;
+}
+
+.received-info {
+    margin-top: 10px;
+}
+
+.received-by {
     font-size: 15px;
     font-weight: 800;
     color: var(--text-h);
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    border-left: 4px solid var(--brand);
-    padding-left: 8px;
-    line-height: 1.3;
 }
-.title-meta {
-    float: right;
-    text-align: right;
-    font-size: 11px;
-    line-height: 2;
-}
-.title-meta .meta-label {
+
+.received-role {
+    font-size: 12px;
     color: var(--text-m);
-    font-weight: 600;
-    margin-right: 4px;
-}
-.title-meta .meta-val {
-    display: inline-block;
-    min-width: 110px;
-    border-bottom: 1px solid var(--text-h);
-    color: var(--text-h);
-    font-weight: 700;
-    padding-bottom: 1px;
-    text-align: center;
-}
-.title-meta .meta-val.receipt-no {
-    font-size: 13px;
-    color: var(--brand-d);
+    text-transform: capitalize;
 }
 
-/* ── STATUS BADGE ── */
-.paid-stamp {
-    display: inline-block;
-    border: 3px solid var(--green);
-    color: var(--green);
-    font-size: 18px;
-    font-weight: 900;
-    letter-spacing: 4px;
-    padding: 3px 14px;
-    border-radius: 4px;
-    transform: rotate(-8deg);
-    opacity: .6;
-    float: right;
-    margin-top: -8px;
-}
-
-/* ── SECTION TITLES ── */
-.section-title {
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    color: var(--brand-d);
-    background: var(--brand-lt);
-    padding: 4px 10px;
-    border-left: 3px solid var(--brand);
-    margin-bottom: 0;
-}
-
-/* ── DATA TABLE ── */
-.data-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 11.5px;
-    margin-bottom: 8px;
-}
-.data-table td {
-    padding: 6px 10px;
-    border: 1px solid var(--border);
-    vertical-align: middle;
-}
-.data-table .lbl {
-    width: 165px;
-    font-weight: 700;
-    color: var(--text-h);
-    background: var(--row-alt);
-    white-space: nowrap;
-}
-.data-table .val {
-    color: var(--text-b);
-}
-.data-table tr:nth-child(even) .val {
-    background: #fdfdfd;
-}
-
-/* Payment mode pills */
-.pm-pill {
-    display: inline-block;
-    padding: 1px 7px;
-    border-radius: 12px;
-    font-size: 10px;
-    font-weight: 700;
-    background: var(--border-lt);
-    color: var(--text-m);
-    margin-right: 3px;
-}
-.pm-pill.active {
-    background: var(--brand);
-    color: #fff;
-}
-
-/* ── FEE SUMMARY TABLE ── */
-.fee-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 11.5px;
-    margin-bottom: 8px;
-}
-.fee-table th {
-    background: var(--text-h);
-    color: var(--white);
-    padding: 6px 10px;
-    text-align: left;
-    font-size: 10.5px;
-    letter-spacing: .5px;
-}
-.fee-table th:last-child { text-align: right; }
-.fee-table td {
-    padding: 6px 10px;
-    border: 1px solid var(--border);
-    font-size: 11.5px;
-}
-.fee-table td:last-child { text-align: right; font-weight: 600; }
-.fee-table .subtotal td {
-    background: var(--row-alt);
-    font-weight: 700;
-}
-.fee-table .total-row td {
-    background: var(--text-h);
-    color: var(--white);
-    font-weight: 800;
-    font-size: 13px;
-    border-color: var(--text-h);
-}
-.fee-table .paid-row td {
-    background: #dcfce7;
-    color: var(--green);
-    font-weight: 800;
-    font-size: 13px;
-}
-.fee-table .due-row td {
-    background: var(--red-lt);
-    color: var(--red);
-    font-weight: 800;
-}
-.fee-table .discount-row td {
-    color: var(--brand-d);
-    font-style: italic;
-}
-.fee-table .fine-row td {
-    color: var(--red);
-}
-
-/* ── REMARKS BOX ── */
-.remarks-box {
-    border: 1px solid var(--border-lt);
-    background: #fffbeb;
-    border-left: 3px solid #d97706;
-    padding: 5px 10px;
-    font-size: 11px;
-    margin-bottom: 8px;
-    color: var(--text-b);
-}
-.remarks-box strong { color: #d97706; }
-
-/* ── QR + VERIFY ROW ── */
-.verify-row {
-    overflow: hidden;
-    margin-bottom: 8px;
-    border: 1px solid var(--border-lt);
-    border-radius: 6px;
-    background: var(--row-alt);
-    padding: 8px 12px;
-}
-.verify-qr {
-    float: left;
-    width: 70px;
-    height: 70px;
-    margin-right: 12px;
-    background: #fff;
-    border: 1px solid var(--border);
-    display: table-cell; /* PDF-safe */
-    vertical-align: middle;
-    text-align: center;
-}
-.verify-qr img { width: 70px; height: 70px; }
-.verify-qr .qr-placeholder {
-    width: 70px;
-    height: 70px;
-    display: table-cell;
-    vertical-align: middle;
-    text-align: center;
-    font-size: 9px;
-    color: var(--text-m);
-    padding: 5px;
-}
-.verify-info {
-    overflow: hidden;
-    padding-top: 6px;
-}
-.verify-info p {
-    font-size: 10px;
-    color: var(--text-m);
-    margin-bottom: 3px;
-}
-.verify-info .verify-link {
-    font-size: 10px;
-    color: var(--brand-d);
-    word-break: break-all;
-    font-weight: 600;
-}
-.verify-info .verify-note {
-    font-size: 9px;
-    color: var(--text-m);
-    margin-top: 4px;
-}
-
-/* ── SIGNATURE ROW ── */
-.sig-row {
-    margin-top: 14px;
-    overflow: hidden;
-    font-size: 10.5px;
-    color: var(--text-m);
-}
-.sig-box {
-    float: left;
-    width: 44%;
-    text-align: center;
-}
-.sig-box-right {
-    float: right;
-    width: 44%;
-    text-align: center;
-}
-.sig-line {
-    border-top: 1px solid var(--text-h);
-    padding-top: 4px;
-    font-size: 10px;
-    color: var(--text-m);
-}
-.stamp-box {
-    float: none;
-    margin: 0 auto;
-    width: 40%;
-    text-align: center;
-    font-size: 10px;
-}
-.stamp-circle {
-    width: 72px;
-    height: 72px;
-    border: 2px dashed var(--border);
-    border-radius: 50%;
-    margin: 0 auto 4px;
-    line-height: 70px;
-    font-size: 9px;
-    color: var(--border);
-    text-align: center;
-}
-
-/* ── FOOTER NOTE ── */
-.receipt-footer {
-    border-top: 1px solid var(--border-lt);
-    padding-top: 5px;
-    margin-top: 10px;
-    font-size: 9px;
-    color: var(--text-m);
-    text-align: center;
-}
-
-/* ── CUT LINE ── */
-.cut-line {
-    border: none;
-    border-top: 2px dashed var(--border);
-    position: relative;
-    margin: 0;
-}
-.cut-label {
-    position: absolute;
-    top: -9px;
-    left: 50%;
-    /* No transform — use margin-left for PDF safety */
-    margin-left: -35px;
-    background: var(--white);
-    padding: 0 10px;
-    font-size: 9px;
-    color: var(--text-m);
-    white-space: nowrap;
-}
-
-/* ── LOADER ── */
-#rcp-loader {
-    position: fixed;
-    inset: 0;
-    background: rgba(255,255,255,.9);
-    display: none;
-    z-index: 9999;
-    text-align: center;
-    padding-top: 200px;
-}
-.spinner {
-    width: 42px; height: 42px;
-    border: 4px solid #eee;
-    border-top-color: var(--brand);
-    border-radius: 50%;
-    animation: spin .75s linear infinite;
-    margin: 0 auto 14px;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-
-/* ── PRINT OVERRIDES ── */
+/* ── PRINT ── */
 @media print {
-    body { background: #fff; font-size: 12px; }
-    .toolbar, #rcp-loader { display: none !important; }
-    .page-wrapper { box-shadow: none; margin: 0; width: 100%; }
-    .receipt-copy { page-break-inside: avoid; break-inside: avoid; }
-    .cut-line { border-top: 1px dashed #bbb; }
-    a { color: inherit; text-decoration: none; }
+    body { background: #fff; padding: 0; }
+    .receipt-container { box-shadow: none; width: 100%; padding: 10mm; }
+    @page { size: auto; margin: 5mm; }
 }

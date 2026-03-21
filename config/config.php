@@ -19,6 +19,7 @@ if (file_exists(APP_ROOT . '/.env')) {
             $key = trim($key);
             $value = trim($value);
             if (!getenv($key)) {
+                $value = trim($value, "\"' ");
                 putenv("$key=$value");
             }
         }
@@ -92,9 +93,9 @@ if (!defined('SMTP_PORT'))
 if (!defined('SMTP_USERNAME'))
     define('SMTP_USERNAME', getenv('MAIL_USERNAME') ?: 'isoftrosolutions@gmail.com');
 if (!defined('SMTP_PASSWORD'))
-    define('SMTP_PASSWORD', getenv('MAIL_PASSWORD') ?: 'your-app-password');
+    define('SMTP_PASSWORD', getenv('MAIL_PASSWORD') ?: 'tpkm awve kkzl ifdm');
 if (!defined('FROM_EMAIL'))
-    define('FROM_EMAIL', getenv('MAIL_FROM_ADDRESS') ?: 'noreply@isoftro.com');
+    define('FROM_EMAIL', getenv('MAIL_FROM_ADDRESS') ?: 'isoftrosolutions@gmail.com');
 if (!defined('FROM_NAME'))
     define('FROM_NAME', getenv('MAIL_FROM_NAME') ?: APP_NAME);
 

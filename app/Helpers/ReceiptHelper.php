@@ -95,7 +95,7 @@ class ReceiptHelper {
             'batch_name'         => $txn['batch_name'] ?? '',
             'course_fee'         => floatval($txn['amount_due']),
             'paid_amount'        => $totalPaid,
-            // 'remaining' is computed (= total - paid) not stored; passed for display
+            'previous_payments'  => max(0, floatval($txn['record_paid']) - $totalPaid),
             'remaining'          => max(0, floatval($txn['amount_due']) - floatval($txn['record_paid'])),
             'fine_amount'        => $txn['fine_applied'] ?? 0,
             'address'            => $txn['student_address'] ?? '',
@@ -110,7 +110,7 @@ class ReceiptHelper {
         ];
 
         ob_start();
-        $isDownload = false; // PDF generation is handled by Dompdf, not html2pdf.js
+        // $isPdf is locally available from parameter
         require base_path('scripts/receipt_template.php');
         return ob_get_clean();
     }
@@ -119,7 +119,7 @@ class ReceiptHelper {
      * Generate PDF and return path
      */
     public static function generatePdf($db, $tenantId, $transactionId, $receiptNo = null) {
-        $html = self::getHtml($db, $tenantId, $transactionId, $receiptNo);
+        $html = self::getHtml($db, $tenantId, $transactionId, $receiptNo, true);
         if (!$html) return null;
 
         $pdfDir = __DIR__ . '/../../../public/uploads/receipts/';

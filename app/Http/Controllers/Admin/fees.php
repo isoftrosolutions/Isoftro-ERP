@@ -588,13 +588,15 @@ try {
                     try {
                         $pdfPath = ReceiptHelper::generatePdf($db, $tenantId, $transactionId, $receiptNo);
                         
-                        // Fetch student info for template (with course/batch JOINs)
+                        // Fetch student info for template (with course/batch JOINs AND financial summary)
                         $stmt = $db->prepare("SELECT u.name as name, u.email as email, s.roll_no,
-                                                     c.name as course_name, b.name as batch_name
+                                                     c.name as course_name, b.name as batch_name,
+                                                     sfs.total_fee, sfs.paid_amount, sfs.due_amount
                                             FROM students s LEFT JOIN users u ON s.user_id = u.id
                                             LEFT JOIN enrollments e ON s.id = e.student_id AND e.status = 'active'
                                             LEFT JOIN batches b ON e.batch_id = b.id
                                             LEFT JOIN courses c ON b.course_id = c.id
+                                            LEFT JOIN student_fee_summary sfs ON s.id = sfs.student_id
                                             WHERE s.id = ?");
                         $stmt->execute([$result['fee_record']['student_id']]);
                         $student = $stmt->fetch();
@@ -610,7 +612,9 @@ try {
                                 'course_name' => $student['course_name'] ?? '',
                                 'batch_name' => $student['batch_name'] ?? '',
                                 'amount' => $result['amount_paid'] ?? 0,
-                                'amount_due' => (float)$result['fee_record']['amount_due'] - (float)$result['fee_record']['amount_paid'],
+                                'course_fee' => $student['total_fee'] ?? 0,
+                                'previous_payments' => (float)($student['paid_amount'] ?? 0) - (float)($result['amount_paid'] ?? 0),
+                                'balance' => $student['due_amount'] ?? 0,
                                 'paid_date' => date('Y-m-d'),
                                 'payment_mode' => $result['payment_method'] ?? 'cash',
                                 'login_url' => (defined('APP_URL') ? APP_URL : '') . '/?page=login'
@@ -624,7 +628,7 @@ try {
                     $queueService = new QueueService();
                     $studentId = $result['fee_record']['student_id'];
                     // Fetch student and payment details
-                    $stdStmt = $db->prepare("SELECT u.name as student_name, u.email as student_email, s.roll_no, c.name as course_name, b.name as batch_name FROM students s JOIN users u ON s.user_id = u.id LEFT JOIN enrollments e ON s.id = e.student_id AND e.status = 'active' LEFT JOIN batches b ON e.batch_id = b.id LEFT JOIN courses c ON b.course_id = c.id WHERE s.id = :sid");
+                    $stdStmt = $db->prepare("SELECT u.name as student_name, u.email as student_email, s.roll_no, c.name as course_name, b.name as batch_name, sfs.total_fee, sfs.paid_amount, sfs.due_amount FROM students s JOIN users u ON s.user_id = u.id LEFT JOIN enrollments e ON s.id = e.student_id AND e.status = 'active' LEFT JOIN batches b ON e.batch_id = b.id LEFT JOIN courses c ON b.course_id = c.id LEFT JOIN student_fee_summary sfs ON s.id = sfs.student_id WHERE s.id = :sid");
                     $stdStmt->execute(['sid' => $studentId]);
                     $studentInfo = $stdStmt->fetch(PDO::FETCH_ASSOC);
                     
@@ -638,7 +642,9 @@ try {
                         'course_name' => $studentInfo['course_name'] ?? '',
                         'batch_name' => $studentInfo['batch_name'] ?? '',
                         'amount' => $result['amount_paid'] ?? 0,
-                        'amount_due' => (float)$result['fee_record']['amount_due'] - (float)$result['fee_record']['amount_paid'],
+                        'course_fee' => $studentInfo['total_fee'] ?? 0,
+                        'previous_payments' => (float)($studentInfo['paid_amount'] ?? 0) - (float)($result['amount_paid'] ?? 0),
+                        'balance' => $studentInfo['due_amount'] ?? 0,
                         'paid_date' => date('Y-m-d'),
                         'payment_mode' => $result['payment_method'] ?? 'cash',
                         'login_url' => (defined('APP_URL') ? APP_URL : '') . '/?page=login'
@@ -682,13 +688,15 @@ try {
                     try {
                         $pdfPath = ReceiptHelper::generatePdf($db, $tenantId, $transactionId, $receiptNo);
                         
-                        // Fetch student info (with course/batch JOINs)
+                        // Fetch student info (with course/batch JOINs AND summary)
                         $stmt = $db->prepare("SELECT u.name as name, u.email as email, s.roll_no,
-                                                     c.name as course_name, b.name as batch_name
+                                                     c.name as course_name, b.name as batch_name,
+                                                     sfs.total_fee, sfs.paid_amount, sfs.due_amount
                                             FROM students s LEFT JOIN users u ON s.user_id = u.id
                                             LEFT JOIN enrollments e ON s.id = e.student_id AND e.status = 'active'
                                             LEFT JOIN batches b ON e.batch_id = b.id
                                             LEFT JOIN courses c ON b.course_id = c.id
+                                            LEFT JOIN student_fee_summary sfs ON s.id = sfs.student_id
                                             WHERE s.id = ?");
                         $stmt->execute([$data['student_id']]);
                         $student = $stmt->fetch();
@@ -704,7 +712,9 @@ try {
                                 'course_name' => $student['course_name'] ?? '',
                                 'batch_name' => $student['batch_name'] ?? '',
                                 'amount' => $result['amount_paid'] ?? 0,
-                                'amount_due' => 0,
+                                'course_fee' => $student['total_fee'] ?? 0,
+                                'previous_payments' => (float)($student['paid_amount'] ?? 0) - (float)($result['amount_paid'] ?? 0),
+                                'balance' => $student['due_amount'] ?? 0,
                                 'paid_date' => date('Y-m-d'),
                                 'payment_mode' => $data['payment_mode'] ?? ($result['payment_method'] ?? 'cash'),
                                 'login_url' => (defined('APP_URL') ? APP_URL : '') . '/?page=login'
@@ -718,7 +728,7 @@ try {
                     $queueService = new QueueService();
                     $studentId = $data['student_id'];
                     // Fetch student and payment details
-                    $stdStmt = $db->prepare("SELECT u.name as student_name, u.email as student_email, s.roll_no, c.name as course_name, b.name as batch_name FROM students s JOIN users u ON s.user_id = u.id LEFT JOIN enrollments e ON s.id = e.student_id AND e.status = 'active' LEFT JOIN batches b ON e.batch_id = b.id LEFT JOIN courses c ON b.course_id = c.id WHERE s.id = :sid");
+                    $stdStmt = $db->prepare("SELECT u.name as student_name, u.email as student_email, s.roll_no, c.name as course_name, b.name as batch_name, sfs.total_fee, sfs.paid_amount, sfs.due_amount FROM students s JOIN users u ON s.user_id = u.id LEFT JOIN enrollments e ON s.id = e.student_id AND e.status = 'active' LEFT JOIN batches b ON e.batch_id = b.id LEFT JOIN courses c ON b.course_id = c.id LEFT JOIN student_fee_summary sfs ON s.id = sfs.student_id WHERE s.id = :sid");
                     $stdStmt->execute(['sid' => $studentId]);
                     $studentInfo = $stdStmt->fetch(PDO::FETCH_ASSOC);
                     
@@ -732,6 +742,9 @@ try {
                         'course_name' => $studentInfo['course_name'] ?? '',
                         'batch_name' => $studentInfo['batch_name'] ?? '',
                         'amount' => $result['amount_paid'] ?? 0,
+                        'course_fee' => $studentInfo['total_fee'] ?? 0,
+                        'previous_payments' => (float)($studentInfo['paid_amount'] ?? 0) - (float)($result['amount_paid'] ?? 0),
+                        'balance' => $studentInfo['due_amount'] ?? 0,
                         'paid_date' => date('Y-m-d'),
                         'payment_mode' => $result['payment_method'] ?? 'cash',
                         'login_url' => (defined('APP_URL') ? APP_URL : '') . '/?page=login'
@@ -782,6 +795,9 @@ try {
                     'course_name' => $txn['course_name'] ?? '',
                     'batch_name' => $txn['batch_name'] ?? '',
                     'amount' => $txn['amount'] ?? 0,
+                    'course_fee' => $txn['course_fee'] ?? 0,
+                    'previous_payments' => (float)($txn['paid_amount'] ?? 0) - (float)($txn['amount'] ?? 0),
+                    'balance' => $txn['due_amount'] ?? 0,
                     'paid_date' => !empty($txn['payment_date']) ? date('Y-m-d', strtotime($txn['payment_date'])) : date('Y-m-d'),
                     'payment_mode' => $txn['payment_method'] ?? 'cash',
                     'login_url' => (defined('APP_URL') ? APP_URL : '') . '/?page=login'

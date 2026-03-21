@@ -140,26 +140,35 @@
                 </div>'
             ],
             'payment_success_full' => [
-                'subject' => 'Payment Successful - Receipt #{{receipt_no}}',
+                'subject' => 'Payment Receipt #{{receipt_no}} - {{institute_name}}',
                 'body' => '<div style="font-family:\'Plus Jakarta Sans\',\'Helvetica Neue\',sans-serif;max-width:600px;margin:20px auto;padding:40px;border:1px solid #eef2f6;border-radius:24px;color:#2d3436;background:#ffffff;box-shadow:0 10px 30px rgba(0,0,0,0.02);">
                     <div style="text-align:center;margin-bottom:32px;">
-                        <h2 style="color:#009E7E;font-size:28px;font-weight:800;margin:0;letter-spacing:-0.5px;">Payment successful</h2>
+                        <h2 style="color:#009E7E;font-size:28px;font-weight:800;margin:0;letter-spacing:-0.5px;">Payment Successful</h2>
                     </div>
                     
-                    <p style="font-size:16px;margin-bottom:24px;line-height:1.6;">Hello , <strong style="color:#111;">{{student_name}} ji</strong></p>
+                    <p style="font-size:16px;margin-bottom:24px;line-height:1.6;">Hello <strong style="color:#111;">{{student_name}}</strong>,</p>
                     
-                    <p style="font-size:15px;margin-bottom:28px;line-height:1.6;color:#636e72;">Your payment for <span style="color:#2d3436;font-weight:600;">{{course_name}}</span> has been received successfully.</p>
+                    <p style="font-size:15px;margin-bottom:28px;line-height:1.6;color:#636e72;">Your payment for <span style="color:#2d3436;font-weight:600;">{{course_name}}</span> has been received successfully. Below are your receipt details.</p>
                     
                     <div style="background:#f8fafc;padding:24px;border-radius:16px;margin-bottom:32px;border:1px solid #f1f5f9;">
-                        <h3 style="font-size:14px;text-transform:uppercase;letter-spacing:1px;color:#94a3b8;margin-top:0;margin-bottom:16px;">Receipt details</h3>
-                        <p style="margin:8px 0;font-size:14px;"><strong>Date :-</strong> {{paid_date}}</p>
-                        <p style="margin:8px 0;font-size:14px;"><strong>Amount :-</strong> NPR {{amount}}</p>
-                        <p style="margin:8px 0;font-size:14px;"><strong>Receipt No :-</strong> {{receipt_no}}</p>
-                        <p style="margin:8px 0;font-size:14px;"><strong>portal :-</strong> <a href="{{login_url}}" style="color:#009E7E;text-decoration:none;">{{login_url}}</a></p>
+                        <table style="width:100%;border-collapse:collapse;font-size:14px;">
+                            <tr><td style="padding:4px 0;color:#94a3b8;width:50%;">Receipt No:</td><td style="padding:4px 0;color:#2d3436;font-weight:700;text-align:right;">{{receipt_no}}</td></tr>
+                            <tr><td style="padding:4px 0;color:#94a3b8;">Paid Date:</td><td style="padding:4px 0;color:#2d3436;font-weight:700;text-align:right;">{{paid_date}}</td></tr>
+                            <tr><td colspan="2" style="border-top:1px solid #e2e8f0;margin:8px 0;padding:8px 0;"></td></tr>
+                            <tr><td style="padding:4px 0;color:#94a3b8;">Course Fee:</td><td style="padding:4px 0;color:#2d3436;font-weight:700;text-align:right;">Rs. {{course_fee}}</td></tr>
+                            <tr><td style="padding:4px 0;color:#009E7E;font-weight:600;">Paid Today:</td><td style="padding:4px 0;color:#009E7E;font-weight:800;text-align:right;">Rs. {{amount}}</td></tr>
+                            <tr><td style="padding:4px 0;color:#94a3b8;">Previous Payments:</td><td style="padding:4px 0;color:#2d3436;font-weight:700;text-align:right;">Rs. {{previous_payments}}</td></tr>
+                            <tr><td colspan="2" style="border-top:1px solid #e2e8f0;margin:8px 0;padding:8px 0;"></td></tr>
+                            <tr style="font-size:16px;"><td style="padding:4px 0;color:#111;font-weight:800;">BALANCE DUE:</td><td style="padding:4px 0;color:#111;font-weight:900;text-align:right;">Rs. {{balance}}</td></tr>
+                        </table>
+                    </div>
+
+                    <div style="text-align:center;margin-top:20px;">
+                        <a href="{{login_url}}" style="display:inline-block;padding:12px 24px;background:#009E7E;color:#ffffff;text-decoration:none;border-radius:8px;font-weight:700;">View in Student Portal</a>
                     </div>
 
                     <div style="text-align:right;margin-top:40px;">
-                        <p style="margin:0;font-size:16px;color:#2d3436;">Best wishes</p>
+                        <p style="margin:0;font-size:16px;color:#2d3436;">Best wishes,</p>
                         <p style="margin:4px 0 0;font-size:18px;font-weight:800;color:#009E7E;">{{institute_name}}</p>
                     </div>
                 </div>'
@@ -168,23 +177,32 @@
                 'subject' => 'Partial Payment Received - Receipt #{{receipt_no}}',
                 'body' => '<div style="font-family:\'Plus Jakarta Sans\',\'Helvetica Neue\',sans-serif;max-width:600px;margin:20px auto;padding:40px;border:1px solid #eef2f6;border-radius:24px;color:#2d3436;background:#ffffff;box-shadow:0 10px 30px rgba(0,0,0,0.02);">
                     <div style="text-align:center;margin-bottom:32px;">
-                        <h2 style="color:#009E7E;font-size:28px;font-weight:800;margin:0;letter-spacing:-0.5px;">Payment successful (Partial)</h2>
+                        <h2 style="color:#009E7E;font-size:28px;font-weight:800;margin:0;letter-spacing:-0.5px;">Partial Payment Received</h2>
                     </div>
                     
-                    <p style="font-size:16px;margin-bottom:24px;line-height:1.6;">Hello , <strong style="color:#111;">{{student_name}} ji</strong></p>
+                    <p style="font-size:16px;margin-bottom:24px;line-height:1.6;">Hello <strong style="color:#111;">{{student_name}}</strong>,</p>
                     
-                    <p style="font-size:15px;margin-bottom:28px;line-height:1.6;color:#636e72;">Your partial payment for <span style="color:#2d3436;font-weight:600;">{{course_name}}</span> has been received successfully.</p>
+                    <p style="font-size:15px;margin-bottom:28px;line-height:1.6;color:#636e72;">Your partial payment for <span style="color:#2d3436;font-weight:600;">{{course_name}}</span> has been confirmed. Below are the updated balance details.</p>
                     
                     <div style="background:#f8fafc;padding:24px;border-radius:16px;margin-bottom:32px;border:1px solid #f1f5f9;">
-                        <h3 style="font-size:14px;text-transform:uppercase;letter-spacing:1px;color:#94a3b8;margin-top:0;margin-bottom:16px;">Receipt details</h3>
-                        <p style="margin:8px 0;font-size:14px;"><strong>Date :-</strong> {{paid_date}}</p>
-                        <p style="margin:8px 0;font-size:14px;"><strong>Amount Paid :-</strong> NPR {{amount}}</p>
-                        <p style="margin:8px 0;font-size:14px;"><strong>Receipt No :-</strong> {{receipt_no}}</p>
-                        <p style="margin:8px 0;font-size:14px;"><strong>portal :-</strong> <a href="{{login_url}}" style="color:#009E7E;text-decoration:none;">{{login_url}}</a></p>
+                        <table style="width:100%;border-collapse:collapse;font-size:14px;">
+                            <tr><td style="padding:4px 0;color:#94a3b8;width:50%;">Receipt No:</td><td style="padding:4px 0;color:#2d3436;font-weight:700;text-align:right;">{{receipt_no}}</td></tr>
+                            <tr><td style="padding:4px 0;color:#94a3b8;">Paid Date:</td><td style="padding:4px 0;color:#2d3436;font-weight:700;text-align:right;">{{paid_date}}</td></tr>
+                            <tr><td colspan="2" style="border-top:1px solid #e2e8f0;margin:8px 0;padding:8px 0;"></td></tr>
+                            <tr><td style="padding:4px 0;color:#94a3b8;">Course Fee:</td><td style="padding:4px 0;color:#2d3436;font-weight:700;text-align:right;">Rs. {{course_fee}}</td></tr>
+                            <tr><td style="padding:4px 0;color:#009E7E;font-weight:600;">Paid Today:</td><td style="padding:4px 0;color:#009E7E;font-weight:800;text-align:right;">Rs. {{amount}}</td></tr>
+                            <tr><td style="padding:4px 0;color:#94a3b8;">Previous Payments:</td><td style="padding:4px 0;color:#2d3436;font-weight:700;text-align:right;">Rs. {{previous_payments}}</td></tr>
+                            <tr><td colspan="2" style="border-top:1px solid #e2e8f0;margin:8px 0;padding:8px 0;"></td></tr>
+                            <tr style="font-size:16px;"><td style="padding:4px 0;color:#e67e22;font-weight:800;">REMAINING BALANCE:</td><td style="padding:4px 0;color:#e67e22;font-weight:900;text-align:right;">Rs. {{balance}}</td></tr>
+                        </table>
+                    </div>
+
+                    <div style="text-align:center;margin-top:20px;">
+                        <a href="{{login_url}}" style="display:inline-block;padding:12px 24px;background:#009E7E;color:#ffffff;text-decoration:none;border-radius:8px;font-weight:700;">Pay Remaining Balance</a>
                     </div>
 
                     <div style="text-align:right;margin-top:40px;">
-                        <p style="margin:0;font-size:16px;color:#2d3436;">Best wishes</p>
+                        <p style="margin:0;font-size:16px;color:#2d3436;">Best wishes,</p>
                         <p style="margin:4px 0 0;font-size:18px;font-weight:800;color:#009E7E;">{{institute_name}}</p>
                     </div>
                 </div>'
