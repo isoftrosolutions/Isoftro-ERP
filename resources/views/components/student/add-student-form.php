@@ -315,21 +315,46 @@ $initialMode = $initialMode ?? null; // 'new' or 'existing'
         <!-- Section 3: Detailed Information -->
         <div class="sc-adm">
             <h3 class="sc-title"><i class="fas fa-folder-open"></i> Background Details</h3>
-            <div class="grid-box grid-2">
+            <div class="grid-box grid-3">
                 <div class="f-grp">
                     <label class="f-lbl req">DOB (BS)</label>
-                    <input type="text" name="dob_bs" id="<?= $dobBsId ?>" class="fi" placeholder="YYYY-MM-DD" style="padding-left: 20px;" required>
+                    <input type="text" name="dob_bs" id="<?= $dobBsId ?>" class="fi" placeholder="YYYY-MM-DD" style="padding-left: 20px;" required onblur="window.handleDobSync_<?= $componentId ?>(this.value)">
+                    <input type="hidden" name="dob_ad" id="inpDobAd_<?= $componentId ?>">
                     <div class="err-msg">Date of birth (BS) is required.</div>
                 </div>
-            </div>
-
-            <div class="grid-box" style="margin-top: 1.5rem;">
                 <div class="f-grp">
-                    <label class="f-lbl req">Guardian/Father Name</label>
+                    <label class="f-lbl">Father's Name</label>
+                    <div class="ipt-box">
+                        <i class="fas fa-user-friends"></i>
+                        <input type="text" name="father_name" class="fi" placeholder="Full name of father">
+                    </div>
+                </div>
+                <div class="f-grp">
+                    <label class="f-lbl">Mother's Name</label>
+                    <div class="ipt-box">
+                        <i class="fas fa-user-friends"></i>
+                        <input type="text" name="mother_name" class="fi" placeholder="Full name of mother">
+                    </div>
+                </div>
+                <div class="f-grp">
+                    <label class="f-lbl">Guardian Name</label>
                     <div class="ipt-box">
                         <i class="fas fa-user-shield"></i>
-                        <input type="text" name="father_name" class="fi" placeholder="Full name of guardian" required>
-                        <div class="err-msg">Guardian name is required.</div>
+                        <input type="text" name="guardian_name" class="fi" placeholder="Full name of guardian">
+                    </div>
+                </div>
+                <div class="f-grp">
+                    <label class="f-lbl">Relation</label>
+                    <div class="ipt-box">
+                        <i class="fas fa-link"></i>
+                        <input type="text" name="guardian_relation" class="fi" placeholder="e.g. Brother, Uncle">
+                    </div>
+                </div>
+                <div class="f-grp">
+                    <label class="f-lbl">Husband's Name (If any)</label>
+                    <div class="ipt-box">
+                        <i class="fas fa-user-tag"></i>
+                        <input type="text" name="husband_name" class="fi" placeholder="Full name of husband">
                     </div>
                 </div>
             </div>
@@ -337,7 +362,7 @@ $initialMode = $initialMode ?? null; // 'new' or 'existing'
             <div class="grid-box" style="margin-top: 1.5rem;">
                 <div class="f-grp">
                     <label class="f-lbl req">Student Address</label>
-                    <textarea name="permanent_address" class="fi" style="padding-left: 16px; min-height: 100px;" placeholder="Full Address..." required></textarea>
+                    <textarea name="permanent_address" class="fi" style="padding-left: 16px; min-height: 80px;" placeholder="Full Address..." required></textarea>
                     <div class="err-msg">Address details are required.</div>
                 </div>
             </div>
@@ -672,11 +697,12 @@ $initialMode = $initialMode ?? null; // 'new' or 'existing'
     window['handleDobSync_' + CID] = async function(val) {
         if (!val || val.length < 10) return;
         try {
-            const res  = await fetch(`${window.APP_URL}/api/admin/date-convert?date=${encodeURIComponent(val)}&type=ad-to-bs`);
+            const res  = await fetch(`${window.APP_URL}/api/admin/date-convert?date=${encodeURIComponent(val)}&type=bs-to-ad`);
             const data = await res.json();
-            const bsEl = document.getElementById('<?= $dobBsId ?>');
-            if (bsEl && data.success && data.date) {
-                bsEl.value = data.date;
+            const adEl = document.getElementById('inpDobAd_' + CID);
+            if (adEl && data.success && data.date) {
+                adEl.value = data.date;
+                console.log('[Admission] Sync OK:', data.date);
             }
         } catch(err) {
             console.warn('[AdmissionForm] DOB conversion failed:', err);
@@ -778,12 +804,16 @@ $initialMode = $initialMode ?? null; // 'new' or 'existing'
             batch_ids:              selectedBatches.map(b => b.id),
             batch_id:               selectedBatches.length > 0 ? selectedBatches[0].id : (_form.batch_id?.value || null),
             dob_bs:                 admissionMode === 'new' ? (_form.dob_bs?.value          || '') : null,
+            dob_ad:                 admissionMode === 'new' ? (_form.dob_ad?.value          || '') : null,
             gender:                 admissionMode === 'new' ? (_form.gender?.value          || '') : null,
             father_name:            admissionMode === 'new' ? (_form.father_name?.value    || '').trim() : null,
+            mother_name:            admissionMode === 'new' ? (_form.mother_name?.value    || '').trim() : null,
+            husband_name:           admissionMode === 'new' ? (_form.husband_name?.value   || '').trim() : null,
+            guardian_name:          admissionMode === 'new' ? (_form.guardian_name?.value  || '').trim() : null,
+            guardian_relation:      admissionMode === 'new' ? (_form.guardian_relation?.value || '').trim() : null,
             permanent_address:      (admissionMode === 'new' && _form.permanent_address?.value.trim())
                                     ? JSON.stringify({ address: _form.permanent_address.value.trim() })
-                                    : null,
-            registration_status:    'fully_registered'
+                                    : null
         };
 
         if (payload.batch_ids.length === 0 && !payload.batch_id) {

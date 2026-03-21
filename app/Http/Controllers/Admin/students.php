@@ -268,9 +268,10 @@ try {
             $params['status'] = $_GET['status'];
         }
 
-        if (!empty($_GET['registration_status'])) {
-            $whereSql .= " AND s.registration_status = :reg_status";
-            $params['reg_status'] = $_GET['registration_status'];
+        // Course filter
+        if (!empty($_GET['course_id'])) {
+            $whereSql .= " AND b.course_id = :course_id";
+            $params['course_id'] = $_GET['course_id'];
         }
 
         // Course filter
@@ -296,7 +297,7 @@ try {
         $total = (int)$stmtCount->fetchColumn();
 
         // Data query
-        $query = "SELECT s.*, u.name as full_name, u.name as name, u.email, u.phone, s.registration_mode, s.registration_status, s.admission_date,
+        $query = "SELECT s.*, u.name as full_name, u.name as name, u.email, u.phone, s.admission_date,
                          b.name as batch_name, e.batch_id as batch_id, b.course_id as course_id, c.name as course_name,
                          COALESCE(sfs.fee_status, 'no_fees') as fee_status,
                          COALESCE(sfs.total_fee, 0) as total_fee,
@@ -468,7 +469,7 @@ try {
             if (!$studentId) throw new Exception("Student ID is required");
 
             // Fetch student email, name, course and batch info
-            $stmt = $db->prepare("SELECT u.name as full_name, u.email, s.registration_mode, s.roll_no, c.name as course_name, b.name as batch_name FROM students s JOIN users u ON s.user_id = u.id LEFT JOIN enrollments e ON s.id = e.student_id AND e.status = 'active' LEFT JOIN batches b ON e.batch_id = b.id LEFT JOIN courses c ON b.course_id = c.id WHERE s.id = :id AND s.tenant_id = :tid AND s.deleted_at IS NULL");
+            $stmt = $db->prepare("SELECT u.name as full_name, u.email, s.roll_no, c.name as course_name, b.name as batch_name FROM students s JOIN users u ON s.user_id = u.id LEFT JOIN enrollments e ON s.id = e.student_id AND e.status = 'active' LEFT JOIN batches b ON e.batch_id = b.id LEFT JOIN courses c ON b.course_id = c.id WHERE s.id = :id AND s.tenant_id = :tid AND s.deleted_at IS NULL");
             $stmt->execute(['id' => $studentId, 'tid' => $tenantId]);
             $student = $stmt->fetch();
 
@@ -640,9 +641,7 @@ try {
 
         $db->beginTransaction();
 
-        // Resolve registration mode — unified SOP
-        $regMode   = $input['registration_mode']   ?? 'full';
-        $regStatus = $input['registration_status']  ?? 'fully_registered';
+        // Accept contact_number (Front Desk / Admin unified form) or phone
 
         // Accept contact_number (Front Desk / Admin unified form) or phone
         $phone   = $input['contact_number'] ?? $input['phone'] ?? null;
@@ -735,7 +734,7 @@ try {
             'gender', 'blood_group', 'citizenship_no', 'national_id', 
             'father_name', 'mother_name', 'husband_name', 'guardian_name', 'guardian_relation', 
             'photo_url', 'identity_doc_url', 
-            'status', 'admission_date', 'registration_mode', 'registration_status',
+            'status', 'admission_date',
         ];
 
         foreach ($allowedFields as $f) {
@@ -815,42 +814,8 @@ try {
 
         $db->commit();
         
-        // --- Trigger ID Card & Completion Email if status changed to fully_registered ---
-        if (isset($input['registration_status']) && $input['registration_status'] === 'fully_registered') {
-            try {
-                // Fetch full fresh data for ID card
-                $stmtS = $db->prepare("
-                    SELECT s.*, u.name, u.email, t.name as institute_name 
-                    FROM students s 
-                    JOIN tenants t ON s.tenant_id = t.id 
-                    WHERE s.id = :id
-                ");
-                $stmtS->execute(['id' => $id]);
-                $sData = $stmtS->fetch();
+        // --- Trigger ID Card & Completion Email logic removed as registration_status column was dropped ---
 
-                if ($sData) {
-                    $pngData = \App\Helpers\IDCardHelper::generate(['name' => $sData['institute_name']], $sData);
-                    if ($pngData) {
-                        $tempPath = APP_ROOT . '/public/uploads/temp_id_cards/id_' . $id . '.png';
-                        if (!is_dir(dirname($tempPath))) mkdir(dirname($tempPath), 0777, true);
-                        file_put_contents($tempPath, $pngData);
-
-                        // Send Email with Attachment via Queue
-                        $emailData = [
-                            'email' => $sData['email'],
-                            'student_name' => $sData['name'],
-                            'subject' => "Profile Completed & Digital ID Card – " . $sData['institute_name'],
-                            'pdf_path' => $tempPath, // Attachment path
-                            'template_key' => 'student_profile_updated' // Or a specific ID card template
-                        ];
-                        
-                        \App\Helpers\StudentEmailHelper::notifyProfileUpdated($db, $tenantId, $emailData);
-                    }
-                }
-            } catch (\Exception $e) {
-                error_log("[IDCard] Failed to generate/email: " . $e->getMessage());
-            }
-        }
 
 
         echo json_encode(['success' => true, 'message' => 'Student updated successfully']);

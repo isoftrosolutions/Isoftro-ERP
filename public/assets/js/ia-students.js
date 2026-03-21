@@ -1407,12 +1407,6 @@ async function _loadStudentDataForEdit(id) {
             })) : [];
             window._renderAcademicQualifications(quals);
             
-            if (s.registration_status === 'quick_registered') {
-                document.getElementById('edit_reg_status').value = 'fully_registered';
-            } else {
-                document.getElementById('edit_reg_status').value = s.registration_status || 'fully_registered';
-            }
-
             // Photo
             if (s.photo_url) {
                 const img = document.getElementById('stdImgPreview');

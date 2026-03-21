@@ -93,7 +93,7 @@ try {
                          s.citizenship_no, s.father_name, s.mother_name, s.guardian_name, s.guardian_relation,
                          s.permanent_address, s.temporary_address,
                          b.name as batch_name, c.name as course_name,
-                         s.status, s.registration_status, s.admission_date, s.created_at
+                         s.status, s.admission_date, s.created_at
                   FROM students s 
                   JOIN users u ON s.user_id = u.id
                   LEFT JOIN enrollments e ON s.id = e.student_id AND e.status = 'active' LEFT JOIN batches b ON e.batch_id = b.id 
@@ -109,7 +109,7 @@ try {
         $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         // Build CSV
-        $csv = "Roll No,Full Name,Email,Phone,Gender,DOB (BS),DOB (AD),Citizenship No,Father's Name,Mother's Name,Guardian Name,Guardian Relation,Permanent Address,Temporary Address,Batch,Course,Status,Registration Status,Admission Date,Joined Date\n";
+        $csv = "Roll No,Full Name,Email,Phone,Gender,DOB (BS),DOB (AD),Citizenship No,Father's Name,Mother's Name,Guardian Name,Guardian Relation,Permanent Address,Temporary Address,Batch,Course,Status,Admission Date,Joined Date\n";
 
         foreach ($students as $s) {
             $addr = is_array($s['permanent_address']) ? json_encode($s['permanent_address']) : ($s['permanent_address'] ?: '');
@@ -131,9 +131,8 @@ try {
                     '"' . ($s['batch_name'] ?? '') . '",' .
                     '"' . ($s['course_name'] ?? '') . '",' .
                     '"' . ($s['status'] ?? '') . '",' .
-                    '"' . ($s['registration_status'] ?? '') . '",' .
                     '"' . ($s['admission_date'] ?? '') . '",' .
-                    '"' . ($s['created_at'] ?? '') . '"\n';
+                    '"' . ($s['created_at'] ?? '') . '"' . "\n";
         }
 
         header('Content-Type: text/csv');
@@ -224,11 +223,6 @@ try {
             $params['status'] = $_GET['status'];
         }
 
-        if (!empty($_GET['registration_status'])) {
-            $whereSql .= " AND s.registration_status = :reg_status";
-            $params['reg_status'] = $_GET['registration_status'];
-        }
-
         // Course filter
         if (!empty($_GET['course_id'])) {
             $whereSql .= " AND b.course_id = :course_id";
@@ -251,7 +245,7 @@ try {
         $total = (int)$stmtCount->fetchColumn();
 
         // Data query
-        $query = "SELECT s.*, u.name as name, u.name as full_name, u.email, u.phone, s.registration_mode, s.registration_status, s.admission_date,
+        $query = "SELECT s.*, u.name as name, u.name as full_name, u.email, u.phone, s.admission_date,
                          b.name as batch_name, e.batch_id as batch_id, b.course_id as course_id, c.name as course_name,
                          COALESCE(sfs.fee_status, 'no_fees') as fee_status,
                          COALESCE(sfs.total_fee, 0) as total_fee,
@@ -423,7 +417,7 @@ try {
             if (!$studentId) throw new Exception("Student ID is required");
 
             // Fetch student email, name, course and batch info
-            $stmt = $db->prepare("SELECT u.name as full_name, u.email, s.registration_mode, s.roll_no, c.name as course_name, b.name as batch_name 
+            $stmt = $db->prepare("SELECT u.name as full_name, u.email, s.roll_no, c.name as course_name, b.name as batch_name 
                 FROM students s 
                 JOIN users u ON s.user_id = u.id
                 LEFT JOIN enrollments e ON s.id = e.student_id AND e.status = 'active' 
@@ -610,9 +604,7 @@ try {
 
         $db->beginTransaction();
 
-        // Resolve registration mode — unified SOP
-        $regMode   = $input['registration_mode']   ?? 'full';
-        $regStatus = $input['registration_status']  ?? 'fully_registered';
+        // Accept contact_number (Front Desk / Admin unified form) or phone
 
         // Accept contact_number (Front Desk / Admin unified form) or phone
         $phone   = $input['contact_number'] ?? $input['phone'] ?? null;
@@ -716,7 +708,7 @@ try {
             'gender', 'blood_group', 'citizenship_no', 'national_id', 
             'father_name', 'mother_name', 'husband_name', 'guardian_name', 'guardian_relation', 
             'photo_url', 'identity_doc_url', 
-            'status', 'admission_date', 'registration_mode', 'registration_status',
+            'status', 'admission_date',
         ];
 
         foreach ($allowedFields as $f) {
@@ -777,42 +769,9 @@ try {
 
         $db->commit();
         
-        // --- Trigger ID Card & Completion Email if status changed to fully_registered ---
-        if (isset($input['registration_status']) && $input['registration_status'] === 'fully_registered') {
-            try {
-                // Fetch full fresh data for ID card
-                $stmtS = $db->prepare("
-                    SELECT s.*, t.name as institute_name 
-                    FROM students s 
-                    JOIN tenants t ON s.tenant_id = t.id 
-                    WHERE s.id = :id
-                ");
-                $stmtS->execute(['id' => $id]);
-                $sData = $stmtS->fetch();
-
-                if ($sData) {
-                    $pngData = \App\Helpers\IDCardHelper::generate(['name' => $sData['institute_name']], $sData);
-                    if ($pngData) {
-                        $tempPath = APP_ROOT . '/public/uploads/temp_id_cards/id_' . $id . '.png';
-                        if (!is_dir(dirname($tempPath))) mkdir(dirname($tempPath), 0777, true);
-                        file_put_contents($tempPath, $pngData);
-
-                        // Send Email with Attachment via Queue
-                        $emailData = [
-                            'email' => $sData['email'],
-                            'student_name' => $sData['full_name'],
-                            'subject' => "Profile Completed & Digital ID Card – " . $sData['institute_name'],
-                            'pdf_path' => $tempPath, // Attachment path
-                            'template_key' => 'student_profile_updated' // Or a specific ID card template
-                        ];
-                        
-                        \App\Helpers\StudentEmailHelper::notifyProfileUpdated($db, $tenantId, $emailData);
-                    }
-                }
-            } catch (\Exception $e) {
-                error_log("[IDCard] Failed to generate/email: " . $e->getMessage());
-            }
-        }
+        // --- Trigger ID Card & Completion Email (Cleaned up) ---
+        // Profile update trigger can go here if needed in future
+        // For now, removing dependencies on dropped registration fields
 
 
         echo json_encode(['success' => true, 'message' => 'Student updated successfully']);

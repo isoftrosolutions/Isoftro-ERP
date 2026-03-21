@@ -18,10 +18,11 @@ class Student extends Model {
     protected $with = ['user'];
 
     protected $fillable = [
-        'tenant_id', 'user_id', 'roll_no', 'dob_bs', 'gender', 'blood_group', 
-        'citizenship_no', 'national_id', 'permanent_address', 'temporary_address', 
+        'tenant_id', 'user_id', 'roll_no', 'dob_bs', 'dob_ad', 'gender', 'blood_group', 
+        'citizenship_no', 'national_id', 'father_name', 'mother_name', 'husband_name', 
+        'guardian_name', 'guardian_relation', 'permanent_address', 'temporary_address', 
         'academic_qualifications', 'admission_date', 'photo_url', 'identity_doc_url', 'status', 
-        'registration_mode', 'registration_status', 'id_card_status'
+        'id_card_status'
     ];
 
     /**
