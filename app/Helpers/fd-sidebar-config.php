@@ -35,6 +35,11 @@ function getFDSidebarConfig() {
                     'icon' => 'fa-user-plus',
                 ],
                 [
+                    'id' => 'alumni',
+                    'label' => 'Alumni Directory',
+                    'icon' => 'fa-graduation-cap',
+                ],
+                [
                     'id' => 'operations-inq-list',
                     'label' => 'Inquiries',
                     'icon' => 'fa-comments',

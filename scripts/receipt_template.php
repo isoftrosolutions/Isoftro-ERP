@@ -120,7 +120,7 @@ $autoDownload = isset($isDownload) ? (bool)$isDownload : true;
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #ffffff; /* Clean white for print */
+            background: #f2e8e8;
             color: #1a1a1a;
             font-size: 13px;
         }
@@ -159,9 +159,9 @@ $autoDownload = isset($isDownload) ? (bool)$isDownload : true;
             width: 210mm;
             min-height: 148mm;
             margin: 16px auto;
-            background: #ffffff;
+            background: #f5e8e8;   /* pinkish-beige matching the mockup */
             padding: 12mm 14mm 10mm 14mm;
-            border: 1px solid #eee;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.12);
             position: relative;
         }
 
@@ -189,9 +189,11 @@ $autoDownload = isset($isDownload) ? (bool)$isDownload : true;
         }
 
         .inst-logo {
-            width: 80px;
-            height: 80px;
+            width: 72px;
+            height: 72px;
             object-fit: contain;
+            border-radius: 50%;
+            border: 2px solid #9ab;
         }
 
         .logo-placeholder {
@@ -298,8 +300,8 @@ $autoDownload = isset($isDownload) ? (bool)$isDownload : true;
         }
 
         .payment-table td {
-            border: 1px solid #222;
-            padding: 10px 12px;
+            border: 1.5px solid #444;
+            padding: 6px 10px;
             vertical-align: middle;
         }
 
@@ -307,16 +309,14 @@ $autoDownload = isset($isDownload) ? (bool)$isDownload : true;
         .payment-table td:nth-child(odd) {
             font-weight: 700;
             color: #111;
-            width: 25%;
-            background: #fdfdfd;
+            width: 22%;
+            background: transparent;
         }
 
         /* even columns (values) */
         .payment-table td:nth-child(even) {
             color: #1a1a1a;
-            width: 25%;
-            text-align: right; /* Financial data alignment */
-            font-family: 'Courier New', Courier, monospace; /* Monospaced for numbers */
+            width: 28%;
         }
 
         /* Due amount highlight in red when >0 */
@@ -398,9 +398,9 @@ $autoDownload = isset($isDownload) ? (bool)$isDownload : true;
 
     <!-- PAN top-right -->
     <?php if ($pan): ?>
-    <div class="pan-line">PAN: <?= $pan ?></div>
+    <div class="pan-line">PAN :- <?= $pan ?></div>
     <?php else: ?>
-    <div class="pan-line">PAN: &nbsp;</div>
+    <div class="pan-line">PAN :- &nbsp;</div>
     <?php endif; ?>
 
     <!-- Header: logo + institute info -->
@@ -415,7 +415,7 @@ $autoDownload = isset($isDownload) ? (bool)$isDownload : true;
         <div class="inst-info">
             <h1><?= $inst ?></h1>
             <?php if ($phone): ?>
-            <div class="contact-line">Contact No: <?= $phone ?></div>
+            <div class="contact-line">Contact No.:- <?= $phone ?></div>
             <?php endif; ?>
             <?php if ($addr): ?>
             <div class="addr-line"><?= $addr ?></div>
@@ -450,14 +450,14 @@ $autoDownload = isset($isDownload) ? (bool)$isDownload : true;
 
         <!-- Row: Student Name -->
         <div class="info-row">
-            <span class="info-label">Student Name:</span>
+            <span class="info-label">Student Name:-</span>
             <span class="info-dotted"></span>
             <span class="info-value"><?= $student ?></span>
         </div>
 
         <!-- Row: Course (with optional batch) -->
         <div class="info-row">
-            <span class="info-label">Course:</span>
+            <span class="info-label">Course :-</span>
             <span class="info-dotted" style="margin-left:6px;"></span>
             <span class="info-value"><?= $course ?><?= $batch ? " ($batch)" : '' ?></span>
         </div>
@@ -480,7 +480,7 @@ $autoDownload = isset($isDownload) ? (bool)$isDownload : true;
         <tr>
             <td>Due Amount</td>
             <td class="<?= $dueAmt > 0 ? 'due-highlight' : '' ?>"><?= fmtMoney($dueAmt) ?></td>
-            <td>Total Outstanding</td>
+            <td>Remaining Due</td>
             <td class="<?= $remaining > 0 ? 'due-highlight' : '' ?>"><?= fmtMoney($remaining) ?></td>
         </tr>
         <?php if ($fine > 0): ?>

@@ -258,6 +258,8 @@ try {
         if (!empty($_GET['status'])) {
             $whereSql .= " AND s.status = :status";
             $params['status'] = $_GET['status'];
+        } elseif (empty($_GET['id'])) {
+            $whereSql .= " AND s.status NOT IN ('alumni', 'dropped')";
         }
 
         // Course filter
@@ -450,6 +452,71 @@ try {
         if (!$input) $input = $_POST;
 
         $action = $input['action'] ?? '';
+
+        // --- Action: Mark Alumni ---
+        if ($action === 'mark_alumni') {
+            $studentId = $input['student_id'] ?? null;
+            $alumniYear = $input['alumni_year'] ?? date('Y');
+            $completionStatus = $input['completion_status'] ?? 'completed';
+            $remarks = $input['remarks'] ?? '';
+
+            if (!$studentId) throw new Exception("Student ID is required");
+
+            $stmt = $db->prepare("UPDATE students SET 
+                status = 'alumni', 
+                is_active = 0, 
+                alumni_year = :year, 
+                completion_status = :cstatus, 
+                alumni_remarks = :remarks 
+                WHERE id = :id AND tenant_id = :tid");
+            
+            $stmt->execute([
+                'id' => $studentId, 
+                'tid' => $tenantId, 
+                'year' => $alumniYear, 
+                'cstatus' => $completionStatus, 
+                'remarks' => $remarks
+            ]);
+
+            // Also deactivate user if exists
+            $stmt = $db->prepare("SELECT user_id FROM students WHERE id = :id");
+            $stmt->execute(['id' => $studentId]);
+            $std = $stmt->fetch();
+            if ($std && $std['user_id']) {
+                $stmt = $db->prepare("UPDATE users SET status = 'inactive' WHERE id = :uid");
+                $stmt->execute(['uid' => $std['user_id']]);
+            }
+
+            echo json_encode(['success' => true, 'message' => 'Student marked as alumni successfully']);
+            exit;
+        }
+
+        // --- Action: Restore Student ---
+        if ($action === 'restore_student') {
+            $studentId = $input['student_id'] ?? null;
+            if (!$studentId) throw new Exception("Student ID is required");
+
+            $stmt = $db->prepare("UPDATE students SET 
+                status = 'active', 
+                is_active = 1,
+                alumni_year = NULL,
+                completion_status = NULL
+                WHERE id = :id AND tenant_id = :tid");
+            
+            $stmt->execute(['id' => $studentId, 'tid' => $tenantId]);
+
+            // Reactivate user if exists
+            $stmt = $db->prepare("SELECT user_id FROM students WHERE id = :id");
+            $stmt->execute(['id' => $studentId]);
+            $std = $stmt->fetch();
+            if ($std && $std['user_id']) {
+                $stmt = $db->prepare("UPDATE users SET status = 'active' WHERE id = :uid");
+                $stmt->execute(['uid' => $std['user_id']]);
+            }
+
+            echo json_encode(['success' => true, 'message' => 'Student restored to active status']);
+            exit;
+        }
 
         // --- Action: Send Email ---
         if ($action === 'send_email') {

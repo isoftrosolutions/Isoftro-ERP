@@ -359,7 +359,7 @@ window.renderAlumniList = async () => {
     </div>
     <div class="pg-acts">
       <button class="btn bs" onclick="exportAlumniCSV()"><i class="fa-solid fa-file-export"></i> <span>Export</span></button>
-      <button class="btn bt" onclick="goNav('students', 'add')"><i class="fa-solid fa-plus"></i> <span>New Student</span></button>
+      <!-- Removed New Student button as alumni are converted from existing students -->
     </div>
   </div>
 
@@ -487,9 +487,12 @@ window.loadAlumni = async (page) => {
                     </td>
                     <td style="text-align:right">
                         <div class="d-flex justify-content-end gap-2">
-                            <button class="btn-icon-p" onclick="goNav('students', 'view', ${s.id})" title="View Profile">
-                                <i class="fa-solid fa-arrow-right"></i>
-                            </button>
+                             <button class="btn-icon-p" onclick="goNav('students', 'view', {id:${s.id}})" title="View Profile">
+                                 <i class="fa-solid fa-eye"></i>
+                             </button>
+                             <button class="btn-icon-p" style="background: #f1f5f9; color: #475569;" onclick="restoreStudent(${s.id}, '${safeName}')" title="Restore to Active">
+                                 <i class="fa-solid fa-rotate-left"></i>
+                             </button>
                         </div>
                     </td>
                 </tr>
@@ -1410,7 +1413,7 @@ window.loadStudents = async (page) => {
                   <button class="act-btn act-pay btn btn-sm btn-warning" title="Collect Fee" onclick="goNav('fee', 'quick', {id:${s.id}})">
                     <i class="fa-solid fa-hand-holding-dollar"></i>
                   </button>
-                  <button class="act-btn act-email btn btn-sm btn-info" title="Send Email" onclick="sendEmailToStudent(${s.id}, '${safeName}', '${s.email || ''}')">
+                  <button class="act-btn btn btn-sm btn-info" title="Send Email" onclick="sendEmailToStudent(${s.id}, '${safeName}', '${s.email || ''}')">
                     <i class="fa-solid fa-envelope"></i>
                   </button>
                   <button class="act-btn act-delete btn btn-sm btn-danger" title="Delete Student" onclick="deleteStudent(${s.id}, '${safeName}')">
@@ -1792,6 +1795,13 @@ window.renderStudentProfile = async (id, activeTab = 'personal') => {
                         </button>
                         <button class="btn bs" onclick="window.print()"><i class="fas fa-print"></i> Print Profile</button>
                         <button class="btn bt" onclick="goNav('students','edit',{id:${s.id}})"><i class="fas fa-edit"></i> Edit Profile</button>
+                        ${s.status !== 'alumni' ? `
+                        <button class="btn btn-dark" onclick="markAlumniDialog(${s.id}, '${(s.name || '').replace(/'/g, "\\'")}')">
+                            <i class="fa-solid fa-graduation-cap"></i> Mark as Alumni
+                        </button>` : `
+                        <button class="btn btn-secondary" onclick="restoreStudent(${s.id}, '${(s.name || '').replace(/'/g, "\\'")}')">
+                            <i class="fa-solid fa-rotate-left"></i> Restore to Active
+                        </button>`}
                     </div>
                 </div>
 
@@ -2844,4 +2854,94 @@ window._showCerts = (id) => {
     } catch (e) {
         Swal.fire('Error', 'Could not parse records.', 'error');
     }
+};
+
+/* ── ALUMNI LIFECYCLE ────────────────────────────────────────── */
+window.markAlumniDialog = (id, name) => {
+    const modalHtml = `
+        <div class="modal-overlay" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;" onclick="if(event.target === this) this.remove()">
+            <div class="modal-content" style="background:#fff;border-radius:12px;width:90%;max-width:500px;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+                <div style="padding:20px;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;justify-content:between;">
+                    <h3 style="margin:0;font-size:18px;font-weight:700;">Mark as Alumni</h3>
+                    <button onclick="this.closest('.modal-overlay').remove()" style="background:none;border:none;font-size:20px;cursor:pointer;">&times;</button>
+                </div>
+                <form id="alumniForm" style="padding:20px;">
+                    <div style="margin-bottom:15px;">
+                        <label>Completion Year *</label>
+                        <input type="number" id="alumniYear" class="form-control" value="${new Date().getFullYear()}" required>
+                    </div>
+                    <div style="margin-bottom:15px;">
+                        <label>Status *</label>
+                        <select id="completionStatus" class="form-control" required>
+                            <option value="completed">Completed</option>
+                            <option value="dropped">Dropped</option>
+                        </select>
+                    </div>
+                    <div style="margin-bottom:15px;">
+                        <label>Remarks</label>
+                        <textarea id="alumniRemarks" class="form-control"></textarea>
+                    </div>
+                    <div style="text-align:right;">
+                        <button type="button" onclick="this.closest('.modal-overlay').remove()" class="btn bs">Cancel</button>
+                        <button type="submit" class="btn bt">Convert to Alumni</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    `;
+    const div = document.createElement('div');
+    div.innerHTML = modalHtml;
+    document.body.appendChild(div);
+
+    document.getElementById('alumniForm').onsubmit = async (e) => {
+        e.preventDefault();
+        const year = document.getElementById('alumniYear').value;
+        const status = document.getElementById('completionStatus').value;
+        const remarks = document.getElementById('alumniRemarks').value;
+
+        try {
+            const res = await fetch(`${window.APP_URL}/api/frontdesk/students`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'mark_alumni',
+                    student_id: id,
+                    alumni_year: year,
+                    completion_status: status,
+                    remarks: remarks
+                })
+            });
+            const data = await res.json();
+            if (data.success) {
+                Swal.fire('Success', data.message, 'success').then(() => {
+                    div.querySelector('.modal-overlay').remove();
+                    window.location.reload();
+                });
+            } else throw new Error(data.message);
+        } catch (err) { Swal.fire('Error', err.message, 'error'); }
+    }
+};
+
+window.restoreStudent = (id, name) => {
+    Swal.fire({
+        title: 'Restore Student?',
+        text: `Restore ${name} to active status?`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, Restore'
+    }).then(async (result) => {
+        if (result.isConfirmed) {
+            try {
+                const res = await fetch(`${window.APP_URL}/api/frontdesk/students`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'restore_student', student_id: id })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    Swal.fire('Restored', data.message, 'success').then(() => window.location.reload());
+                } else throw new Error(data.message);
+            } catch (err) { Swal.fire('Error', err.message, 'error'); }
+        }
+    });
 };
