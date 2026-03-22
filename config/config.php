@@ -377,6 +377,12 @@ if (!function_exists('hasModule')) {
         // Normalize input
         $module = strtolower(trim($module));
 
+        // Super admins have access to all modules
+        $user = getCurrentUser();
+        if ($user && (($user['role'] ?? '') === 'superadmin' || ($user['role'] ?? '') === 'super-admin')) {
+            return true;
+        }
+
         // Core modules are always enabled
         $coreModules = ['dashboard', 'system'];
         if (in_array($module, $coreModules)) {

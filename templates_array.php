@@ -798,4 +798,62 @@
                     </div>
                 </div>'
             ],
+            'tenant_welcome' => [
+                'subject' => 'Welcome to Isoftro ERP! Your Institute Portal is Ready',
+                'body' => '<div style="font-family:\'Plus Jakarta Sans\',\'Helvetica Neue\',sans-serif;max-width:600px;margin:20px auto;padding:40px;border:1px solid #eef2f6;border-radius:24px;color:#2d3436;background:#ffffff;box-shadow:0 10px 30px rgba(0,0,0,0.02);">
+                    <div style="text-align:center;margin-bottom:32px;">
+                        <h2 style="color:#009e7e;font-size:32px;font-weight:800;margin:0;letter-spacing:-1px;">Welcome to Isoftro ERP</h2>
+                        <p style="color:#636e72;margin-top:8px;font-size:16px;">Your digital institute management platform is live!</p>
+                    </div>
+                    
+                    <p style="font-size:16px;margin-bottom:24px;line-height:1.6;">Hello <strong style="color:#111;">{{admin_name}}</strong>,</p>
+                    
+                    <p style="font-size:15px;margin-bottom:28px;line-height:1.6;color:#636e72;">Congratulations! <strong>{{institute_name}}</strong> is now registered on Isoftro ERP. Your dedicated portal has been successfully created and is ready for use.</p>
+                    
+                    <div style="background:#f8fafc;padding:24px;border-radius:20px;margin-bottom:32px;border:1px solid #f1f5f9;box-shadow:inset 0 2px 4px rgba(0,0,0,0.02);">
+                        <h3 style="font-size:12px;text-transform:uppercase;letter-spacing:1.5px;color:#94a3b8;margin-top:0;margin-bottom:20px;font-weight:700;">Admin Access Credentials</h3>
+                        <div style="margin-bottom:16px;">
+                            <p style="margin:0 0 4px;font-size:13px;color:#94a3b8;">Portal URL</p>
+                            <a href="{{login_url}}" style="color:#009e7e;text-decoration:none;font-weight:700;font-size:15px;">{{login_url}}</a>
+                        </div>
+                        <div style="margin-bottom:16px;">
+                            <p style="margin:0 0 4px;font-size:13px;color:#94a3b8;">Admin Email</p>
+                            <p style="margin:0;font-size:15px;color:#2d3436;font-weight:600;">{{admin_email}}</p>
+                        </div>
+                        <div>
+                            <p style="margin:0 0 4px;font-size:13px;color:#94a3b8;">Temporary Password</p>
+                            <p style="margin:0;font-size:16px;color:#009e7e;font-weight:800;letter-spacing:1px;font-family:\'Courier New\', Courier, monospace;">{{admin_pass}}</p>
+                        </div>
+                    </div>
+
+                    <div style="background:linear-gradient(135deg, #009e7e 0%, #007d63 100%);padding:28px;border-radius:20px;margin-bottom:32px;color:#ffffff;box-shadow:0 12px 24px rgba(0,158,126,0.2);">
+                        <h3 style="font-size:14px;text-transform:uppercase;letter-spacing:1px;margin-top:0;margin-bottom:16px;opacity:0.9;font-weight:700;">Next Steps to Success</h3>
+                        <div style="font-size:14px;line-height:1.6;">
+                            <div style="margin-bottom:12px;display:flex;align-items:center;">
+                                <span style="background:rgba(255,255,255,0.2);width:24px;height:24px;border-radius:50%;display:inline-block;text-align:center;line-height:24px;margin-right:12px;font-weight:bold;">1</span>
+                                <span>Log in to your Dashboard</span>
+                            </div>
+                            <div style="margin-bottom:12px;display:flex;align-items:center;">
+                                <span style="background:rgba(255,255,255,0.2);width:24px;height:24px;border-radius:50%;display:inline-block;text-align:center;line-height:24px;margin-right:12px;font-weight:bold;">2</span>
+                                <span>Configure Institute Settings</span>
+                            </div>
+                            <div style="margin-bottom:12px;display:flex;align-items:center;">
+                                <span style="background:rgba(255,255,255,0.2);width:24px;height:24px;border-radius:50%;display:inline-block;text-align:center;line-height:24px;margin-right:12px;font-weight:bold;">3</span>
+                                <span>Add your first Batch and Students</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="text-align:center;margin-bottom:32px;">
+                        <a href="{{login_url}}" style="display:inline-block;padding:18px 44px;background:#009e7e;color:#ffffff;text-decoration:none;border-radius:14px;font-weight:800;font-size:16px;box-shadow:0 8px 20px rgba(0,158,126,0.3);transition:all 0.3s ease;">Launch Your Portal →</a>
+                    </div>
+
+                    <p style="font-size:13px;color:#94a3b8;line-height:1.6;text-align:center;margin-bottom:40px;">Need any assistance? Our world-class support team is just a reply away. We\'re here to help you scale your institute.</p>
+
+                    <div style="border-top:1px solid #f1f5f9;padding-top:32px;text-align:center;">
+                        <p style="margin:0;font-size:14px;color:#94a3b8;">Powered by</p>
+                        <p style="margin:4px 0 0;font-size:20px;font-weight:900;color:#009e7e;letter-spacing:-0.5px;">Isoftro<span style="color:#2d3436;">ERP</span></p>
+                    </div>
+                </div>'
+            ]
         ];

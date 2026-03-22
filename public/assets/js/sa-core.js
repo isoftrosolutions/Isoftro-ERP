@@ -3,11 +3,33 @@
  * Handles initialization, navigation, and common utilities.
  */
 
-window.SuperAdmin = window.SuperAdmin || (function () {
+window.SuperAdmin = (function (existing) {
   "use strict";
 
-  let charts     = {};
-  let dataTables = {};
+  let charts     = existing.charts || {};
+  let dataTables = existing.dataTables || {};
+  let expanded   = JSON.parse(localStorage.getItem('sa_expanded') || '{}');
+
+  /* Build flat nav from PHP-injected config */
+  function buildFlatNav() {
+    const cfg = window._SA_NAV_CONFIG || [];
+    const flat = [];
+    cfg.forEach(section => {
+        (section.items || []).forEach(item => {
+            flat.push({
+                id: item.id,
+                icon: item.icon,
+                label: item.label,
+                sub: item.sub || null,
+                sec: section.section,
+                badge_key: item.badge_key || null,
+            });
+        });
+    });
+    return flat;
+  }
+
+  const SA_NAV = buildFlatNav();
 
   const getInitialPage = () => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -31,7 +53,13 @@ window.SuperAdmin = window.SuperAdmin || (function () {
   let activeSub = initialPage.includes('-') ? initialPage.split('-')[1] : null;
 
   function init() {
+    // Restore sidebar collapse state
+    if (localStorage.getItem("sa-sb-collapsed") === "1") {
+      document.body.classList.add("sb-collapsed");
+    }
+
     initSidebar();
+    renderSidebar();
     initDropdowns();
     initCharts();
     initModals();
@@ -56,54 +84,75 @@ window.SuperAdmin = window.SuperAdmin || (function () {
     mainContent.innerHTML = '<div class="pg fu" style="display:flex;align-items:center;justify-content:center;height:50vh;"><i class="fa-solid fa-circle-notch fa-spin" style="font-size:2rem;color:var(--sa-primary);"></i></div>';
 
     // Route to appropriate page renderer
-    // These functions are defined in separate sa-*.js files
+    // All pages load via the SPA Laravel endpoint
     switch(activeNav) {
       case 'overview':
-        if (typeof SuperAdmin.renderDashboard === 'function') SuperAdmin.renderDashboard();
+        if (typeof SuperAdmin.renderDashboard === 'function') {
+          SuperAdmin.renderDashboard();
+        } else {
+          fetchSPAPage('overview');
+        }
         break;
       case 'tenants':
-        if (typeof SuperAdmin.renderTenants === 'function') SuperAdmin.renderTenants();
+        if (typeof SuperAdmin.renderTenants === 'function') {
+          SuperAdmin.renderTenants();
+        } else {
+          fetchSPAPage('tenants');
+        }
+        break;
+      case 'users':
+        fetchSPAPage('users');
         break;
       case 'plans':
-        if (typeof SuperAdmin.renderPlans === 'function') SuperAdmin.renderPlans();
+        fetchSPAPage('plans');
+        break;
+      case 'view-tenant':
+      case 'edit-tenant':
+        fetchSPAPage(activeNav);
         break;
       case 'revenue':
-        if (typeof SuperAdmin.renderRevenue === 'function') SuperAdmin.renderRevenue();
+        fetchSPAPage('revenue');
         break;
       case 'analytics':
-        if (typeof SuperAdmin.renderAnalytics === 'function') SuperAdmin.renderAnalytics();
+        fetchSPAPage('analytics');
         break;
       case 'support':
-        if (typeof SuperAdmin.renderSupport === 'function') SuperAdmin.renderSupport();
+        fetchSPAPage('support');
         break;
       case 'system':
-        if (typeof SuperAdmin.renderSystem === 'function') SuperAdmin.renderSystem();
+      case 'settings':
+        fetchSPAPage(activeNav);
         break;
       case 'logs':
-        if (typeof SuperAdmin.renderLogs === 'function') SuperAdmin.renderLogs();
-        break;
-      case 'settings':
-        if (typeof SuperAdmin.renderSettings === 'function') SuperAdmin.renderSettings();
+        fetchSPAPage('logs');
         break;
       case 'profile':
-        if (typeof SuperAdmin.renderProfile === 'function') SuperAdmin.renderProfile();
+        fetchSPAPage('profile');
         break;
       default:
         console.warn("[SuperAdmin] No renderer for:", activeNav);
-        fetchGenericPage(activeNav);
+        fetchSPAPage(activeNav);
     }
   }
 
-  function goNav(id, subId = null) {
+  function goNav(id, params = {}) {
     activeNav = id;
-    activeSub = subId;
     
     const baseUrl = window.APP_URL ? window.APP_URL + '/dash/super-admin/' : '/erp/dash/super-admin/';
     const url = new URL(baseUrl, window.location.origin);
-    const pageVal = subId ? `${id}-${subId}` : id;
-    url.searchParams.set('page', pageVal);
     
-    window.history.pushState({ pageVal }, '', url.toString());
+    // Support legacy subId-style page val or just simple id
+    url.searchParams.set('page', id);
+    
+    // Add additional parameters
+    if (typeof params === 'object') {
+        Object.keys(params).forEach(key => url.searchParams.set(key, params[key]));
+    } else if (params) {
+        // old subId behavior
+        url.searchParams.set('page', `${id}-${params}`);
+    }
+    
+    window.history.pushState({ pageVal: url.searchParams.get('page') }, '', url.toString());
     
     if (window.innerWidth < 1024) {
       document.body.classList.remove('sb-active');
@@ -111,72 +160,161 @@ window.SuperAdmin = window.SuperAdmin || (function () {
       if (overlay) overlay.classList.remove('active');
     }
     
-    updateSidebarActiveStates(id, subId);
+    updateSidebarActiveStates(id, params);
     renderPage();
   }
 
   function updateSidebarActiveStates(navId, subId) {
-    document.querySelectorAll('.nb-btn.active').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.sb-btn.active').forEach(el => el.classList.remove('active'));
     document.querySelectorAll('.sub-btn.active').forEach(el => el.classList.remove('active'));
     
-    const navButtons = document.querySelectorAll('.nb-btn');
+    const navButtons = document.querySelectorAll('.sb-btn');
     navButtons.forEach(btn => {
-      const btnText = btn.querySelector('.nbl')?.textContent?.toLowerCase() || '';
+      const btnText = btn.querySelector('.sb-lbl')?.textContent?.toLowerCase() || '';
+      
       const navToLabelMap = {
-        'overview': 'overview', 'tenants': 'tenant management', 'plans': 'plan management',
-        'revenue': 'revenue analytics', 'analytics': 'platform analytics', 'support': 'support tickets',
-        'system': 'system config', 'logs': 'system logs', 'settings': 'platform settings', 'profile': 'profile'
+        'overview': 'overview', 'tenants': 'tenant', 'institutes': 'tenant',
+        'plans': 'plan', 'revenue': 'revenue', 'analytics': 'analytics', 'support': 'support',
+        'system': 'system', 'logs': 'audit', 'settings': 'setting', 'profile': 'profile'
       };
       
       const expectedLabel = navToLabelMap[navId] || navId;
       if (btnText.includes(expectedLabel) || btnText === expectedLabel) {
         btn.classList.add('active');
+        
+        // Auto-expand if has sub
         const submenu = btn.nextElementSibling;
         if (submenu && submenu.classList.contains('sub-menu')) {
-          submenu.style.display = 'block';
+          submenu.classList.add('open');
           const chevron = btn.querySelector('.nbc');
           if (chevron) chevron.classList.add('open');
         }
       }
     });
     
+    // Sub-item active state
     if (subId) {
-      const subButtons = document.querySelectorAll('.sub-btn');
-      subButtons.forEach(btn => {
-        const btnText = btn.textContent?.toLowerCase().trim() || '';
-        const subToTextMap = {
-          'all': 'all institutes', 'add': 'add new', 'suspended': 'suspended',
-          'sub-plans': 'subscription plans', 'flags': 'feature flags', 'assign': 'plan assignment',
-          'mrr': 'mrr / arr dashboard', 'payments': 'payment history', 'invoices': 'invoice generator',
-          'users': 'active users', 'heatmap': 'feature heatmap', 'sms': 'sms credit consumption',
-          'open': 'open tickets', 'resolved': 'resolved', 'impersonate': 'impersonation log'
-        };
-        const expectedText = subToTextMap[subId];
-        if (expectedText && btnText.includes(expectedText)) {
+      document.querySelectorAll('.sub-btn').forEach(btn => {
+        const onclick = btn.getAttribute('onclick') || '';
+        if (onclick.includes(`'${navId}'`) && onclick.includes(`'${subId}'`)) {
           btn.classList.add('active');
-          const parentSubmenu = btn.closest('.sub-menu');
-          if (parentSubmenu) {
-            parentSubmenu.style.display = 'block';
-            const chevron = parentSubmenu.previousElementSibling?.querySelector('.nbc');
-            if (chevron) chevron.classList.add('open');
-          }
         }
       });
     }
   }
 
-  async function fetchAPI(url, options = {}) {
+  function toggleExp(id) {
+    expanded[id] = !expanded[id];
+    localStorage.setItem('sa_expanded', JSON.stringify(expanded));
+    
+    const btn = document.querySelector(`.sb-btn[onclick*="toggleExp('${id}')"]`);
+    const menu = document.getElementById(`sub-${id}`);
+    const chev = btn?.querySelector('.nbc');
+    
+    if (menu) {
+      if (expanded[id]) {
+        menu.classList.add('open');
+        if (chev) chev.classList.add('open');
+      } else {
+        menu.classList.remove('open');
+        if (chev) chev.classList.remove('open');
+      }
+    }
+  }
+
+  function renderSidebar(filter = '') {
+    const sbBody = document.getElementById('sbBody');
+    if (!sbBody) return;
+    
+    const badges = window._SA_BADGES || {};
+    const sections = [...new Set(SA_NAV.map(n => n.sec))];
+    let html = '';
+
+    sections.forEach(sec => {
+        const items = SA_NAV.filter(n => {
+            if (n.sec !== sec) return false;
+            if (!filter) return true;
+            return n.label.toLowerCase().includes(filter) || (n.sub && n.sub.some(s => s.l.toLowerCase().includes(filter)));
+        });
+        if (!items.length) return;
+
+        html += `<div class="sb-sec-lbl">${sec}</div>`;
+
+        items.forEach(nav => {
+            const hasSub = !!(nav.sub && nav.sub.length);
+            const isActive = activeNav === nav.id;
+            const isExp = filter ? true : !!expanded[nav.id];
+            
+            const badgeVal = nav.badge_key && badges[nav.badge_key] ? badges[nav.badge_key] : null;
+            const badgeHtml = badgeVal ? `<span class="sb-badge" style="margin-left:auto;">${badgeVal}</span>` : '';
+
+            if (hasSub) {
+                html += `
+                    <button class="sb-btn ${isActive ? 'active' : ''}" onclick="toggleExp('${nav.id}')">
+                        <i class="fa-solid ${nav.icon}"></i>
+                        <span class="sb-lbl">${nav.label}</span>
+                        ${badgeHtml}
+                        <i class="fa-solid fa-chevron-right nbc ${isExp ? 'open' : ''}"></i>
+                    </button>
+                    <div class="sub-menu ${isExp ? 'open' : ''}" id="sub-${nav.id}">
+                `;
+
+                nav.sub.forEach(s => {
+                    const subBadge = s.badge_key && badges[s.badge_key] ? `<span class="sb-badge sm" style="margin-left:auto; opacity:0.7;">${badges[s.badge_key]}</span>` : '';
+                    html += `
+                        <button class="sub-btn" onclick="goNav('${nav.id}', '${s.id}')">
+                            <i class="fa-solid ${s.icon} smi" style="font-size:11px; margin-right:8px; opacity:0.6;"></i>
+                            ${s.l}
+                            ${subBadge}
+                        </button>
+                    `;
+                });
+
+                html += `</div>`;
+            } else {
+                html += `
+                    <button class="sb-btn ${isActive ? 'active' : ''}" onclick="goNav('${nav.id}')">
+                        <i class="fa-solid ${nav.icon}"></i>
+                        <span class="sb-lbl">${nav.label}</span>
+                        ${badgeHtml}
+                    </button>
+                `;
+            }
+        });
+    });
+
+    sbBody.innerHTML = html;
+  }
+
+  async function fetchAPI(url, methodOrOptions = {}, body = null) {
+    // Support both:
+    //   fetchAPI(url, 'POST')
+    //   fetchAPI(url, { method: 'POST', body: ... })
+    let options = {};
+    if (typeof methodOrOptions === 'string') {
+        options = { method: methodOrOptions };
+        if (body !== null) {
+            options.body = typeof body === 'object' ? JSON.stringify(body) : body;
+        }
+    } else if (typeof methodOrOptions === 'object') {
+        options = { ...methodOrOptions };
+    }
+    // Default to POST when body is provided but method isn't set
+    if (options.body && !options.method) {
+        options.method = 'POST';
+    }
+
     // Get CSRF token from multiple sources for compatibility
     const csrfToken = window.CSRF_TOKEN || 
                       window.csrfToken || 
                       document.querySelector('meta[name="csrf-token"]')?.content;
     
     const defaults = {
+      method: 'GET',
       headers: {
         "Content-Type": "application/json",
         "Accept": "application/json",
         "X-Requested-With": "XMLHttpRequest",
-        // Use X-CSRF-Token (hyphen) to match PHP's HTTP_X_CSRF_TOKEN
         ...(csrfToken ? { "X-CSRF-Token": csrfToken } : {})
       },
       credentials: "same-origin",
@@ -252,20 +390,31 @@ window.SuperAdmin = window.SuperAdmin || (function () {
       });
   }
 
-  function fetchGenericPage(page) {
+  // Fetch a Super Admin SPA page via the Laravel router
+  function fetchSPAPage(page) {
     const mainContent = document.getElementById('mainContent');
     if (!mainContent) return;
 
-    let pageUrl = (window.APP_URL || '') + '/pages/super_admin/' + page.replace('.php', '');
-    pageUrl += (pageUrl.includes('?') ? '&' : '?') + 'partial=true';
-    
+    const base = (window.APP_URL || '') + '/dash/super-admin/';
+    const currentParams = new URLSearchParams(window.location.search);
+    currentParams.delete('partial');
+    currentParams.set('page', page);
+    currentParams.set('partial', 'true');
+
+    const pageUrl = base + '?' + currentParams.toString();
+
     fetch(pageUrl)
       .then(res => res.text())
       .then(html => processPartialHtml(html, mainContent))
       .catch(err => {
-        console.error("[SuperAdmin] Error loading page:", err);
-        mainContent.innerHTML = `<div class="pg fu"><div class="card">Error loading page ${page}</div></div>`;
+        console.error('[SuperAdmin] Error loading page:', err);
+        mainContent.innerHTML = `<div class="pg fu"><div class="card"><i class="fas fa-exclamation-triangle" style="color:#ef4444;"></i> Error loading page: ${page}</div></div>`;
       });
+  }
+
+  // Legacy fallback (kept for compatibility)
+  function fetchGenericPage(page) {
+    fetchSPAPage(page);
   }
 
   function initSidebar() {
@@ -398,14 +547,15 @@ window.SuperAdmin = window.SuperAdmin || (function () {
     renderPage();
   });
 
-  return {
-    init, goNav, toggleSidebar, toggleMenu, showNotification, confirmAction, fetchAPI, fetchAndRender, openModal, closeModal,
+  return Object.assign(existing, {
+    init, goNav, toggleExp, toggleSidebar, toggleMenu, showNotification, confirmAction, fetchAPI, fetchAndRender, openModal, closeModal,
     charts, dataTables,
     get activeNav() { return activeNav; },
     get activeSub() { return activeSub; }
-  };
-})();
+  });
+})(window.SuperAdmin || {});
 
 document.addEventListener("DOMContentLoaded", () => SuperAdmin.init());
 window.goNav = (id, subId) => SuperAdmin.goNav(id, subId);
+window.toggleExp = (id) => SuperAdmin.toggleExp(id);
 window.toggleMenu = (id) => SuperAdmin.toggleMenu(id);

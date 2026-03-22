@@ -15,8 +15,10 @@ class SuperAdminAuth
      */
     public function handle(Request $request, Closure $next): Response
     {
+        error_log("[SuperAdminAuth] Handling request: " . $request->url());
         // Check if user is logged in (using global function from config.php)
         if (!isLoggedIn()) {
+            error_log("[SuperAdminAuth] User not logged in");
             if ($request->expectsJson()) {
                 return response()->json(['success' => false, 'message' => 'Unauthenticated'], 401);
             }
@@ -25,7 +27,9 @@ class SuperAdminAuth
 
         // Check for superadmin role
         $user = getCurrentUser();
-        if ($user['role'] !== 'superadmin') {
+        error_log("[SuperAdminAuth] Current user role: " . ($user['role'] ?? 'none'));
+        if ($user['role'] !== 'superadmin' && $user['role'] !== 'super-admin') {
+            error_log("[SuperAdminAuth] Forbidden: Not a super admin");
             if ($request->expectsJson()) {
                 return response()->json(['success' => false, 'message' => 'Forbidden: Super Admin access required'], 403);
             }

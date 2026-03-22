@@ -162,20 +162,26 @@ Route::any('/api/admin/communications', function() {
 });
 
 // ─── Super Admin Impersonation ───────────────────────────
-Route::get('/dash/super-admin/impersonate/{id}', function ($id) {
-    if (!isLoggedIn()) return redirect('/auth/login');
+Route::post('/api/super-admin/impersonate/{id}', function ($id) {
+    if (!isLoggedIn()) return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
     $user = getCurrentUser();
-    if ($user['role'] !== 'superadmin') abort(403, "Only Super Admins can impersonate.");
+    if ($user['role'] !== 'superadmin' && $user['role'] !== 'super-admin') return response()->json(['success' => false, 'message' => 'Forbidden'], 403);
 
+    require_once app_path('Models/SuperAdmin/AuditLogModel.php');
     require_once app_path('Http/Controllers/SuperAdmin/SuperAdminController.php');
     $controller = new SuperAdminController();
     $result = $controller->impersonate($id);
+    
+    return response()->json($result);
+});
 
-    if ($result['success']) {
-        return redirect('/dash/admin');
-    } else {
-        abort(500, "Impersonation failed: " . $result['error']);
-    }
+Route::get('/impersonate-login', function () {
+    $token = request('token');
+    if (!$token) abort(400, "Token missing");
+
+    require_once app_path('Http/Controllers/SuperAdmin/SuperAdminController.php');
+    $controller = new SuperAdminController();
+    $controller->impersonateLogin($token);
 });
 
 Route::get('/dash/super-admin/stop-impersonating', function () {
@@ -826,28 +832,21 @@ Route::any('/api/admin/automation-rules', function() {
 // Tenant Management Routes
 // Tenant Management Routes (Protected)
 Route::middleware(['auth.superadmin'])->group(function () {
-    // Super Admin SPA Pages - serve from resources/views/super-admin/
+    // Super Admin SPA Pages - Refactored to use MVC architecture
     Route::get('/pages/super_admin/{page}', function ($page) {
-        $page = preg_replace('/\.php$/', '', $page);
-        $fileAttempts = [
-            resource_path("views/super-admin/{$page}.php") => resource_path("views/super-admin/{$page}.php"),
-            resource_path("views/super-admin/{$page}.blade.php") => resource_path("views/super-admin/{$page}.blade.php"),
-        ];
-        
-        foreach ($fileAttempts as $file) {
-            if (file_exists($file)) {
-                // Ensure sidebar is included as it defines functions used in super-admin views
-                $sidebarFile = resource_path('views/super-admin/sidebar.php');
-                if (file_exists($sidebarFile)) {
-                    require_once $sidebarFile;
-                }
-                
-                require_once $file;
-                return;
-            }
-        }
-        http_response_code(404);
-        echo 'Page not found';
+        // Autoload/require the models and controllers needed
+        require_once app_path('Models/SuperAdmin/TenantModel.php');
+        require_once app_path('Models/SuperAdmin/AuditLogModel.php');
+        require_once app_path('Models/SuperAdmin/PlanModel.php');
+        require_once app_path('Http/Controllers/SuperAdmin/DashboardController.php');
+        require_once app_path('Http/Controllers/SuperAdmin/TenantController.php');
+        require_once app_path('Http/Controllers/SuperAdmin/RevenueController.php');
+        require_once app_path('Http/Controllers/SuperAdmin/LogController.php');
+        require_once app_path('Http/Controllers/SuperAdmin/SystemController.php');
+        require_once app_path('Http/Controllers/SuperAdmin/SuperAdminRouter.php');
+
+        $router = new \App\Http\Controllers\SuperAdmin\SuperAdminRouter();
+        $router->handle($page);
     });
     
     Route::post('/api/super-admin/reports/generate', [App\Http\Controllers\SuperAdmin\ReportController::class, 'generate']);
@@ -875,6 +874,15 @@ Route::middleware(['auth.superadmin'])->group(function () {
     Route::post('/api/super-admin/tenants/save', function() {
         require_once app_path('Http/Controllers/save_tenant.php');
     });
+    Route::post('/api/super-admin/tenants/suspend/{id}', function($id) {
+        $controller = new \App\Http\Controllers\SuperAdmin\TenantController(getDBConnection());
+        return $controller->suspend($id);
+    });
+    Route::post('/api/super-admin/tenants/activate/{id}', function($id) {
+        $controller = new \App\Http\Controllers\SuperAdmin\TenantController(getDBConnection());
+        return $controller->activate($id);
+    });
+
     Route::post('/api/super-admin/tenants/update', function() {
         require_once app_path('Http/Controllers/update_tenant.php');
     });

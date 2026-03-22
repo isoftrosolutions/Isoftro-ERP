@@ -15,32 +15,60 @@ $studentNavConfig = [
     [
         'section' => 'Academic',
         'items' => [
-            ['id' => 'timetable', 'icon' => 'fa-calendar-alt', 'label' => 'My Timetable'],
-            ['id' => 'attendance', 'icon' => 'fa-calendar-check', 'label' => 'Attendance'],
-            ['id' => 'leave', 'icon' => 'fa-user-clock', 'label' => 'Apply Leave'],
+            [
+                'id' => 'academics', 
+                'icon' => 'fa-graduation-cap', 
+                'label' => 'Academic Info',
+                'sub' => [
+                    ['id' => 'timetable', 'l' => 'My Timetable'],
+                    ['id' => 'attendance', 'l' => 'Attendance'],
+                    ['id' => 'leave', 'l' => 'Apply Leave'],
+                ]
+            ],
         ]
     ],
     [
         'section' => 'Learning',
         'items' => [
-            ['id' => 'materials', 'icon' => 'fa-book', 'label' => 'Study Materials'],
-            ['id' => 'assignments', 'icon' => 'fa-tasks', 'label' => 'Assignments'],
-            ['id' => 'classes', 'icon' => 'fa-video', 'label' => 'Online Classes'],
+            [
+                'id' => 'learning',
+                'icon' => 'fa-book-open',
+                'label' => 'Knowledge Hub',
+                'sub' => [
+                    ['id' => 'materials', 'l' => 'Study Materials'],
+                    ['id' => 'assignments', 'l' => 'Assignments'],
+                    ['id' => 'classes', 'l' => 'Online Classes'],
+                ]
+            ],
         ]
     ],
     [
         'section' => 'Exams & Results',
         'items' => [
-            ['id' => 'exams', 'icon' => 'fa-file-alt', 'label' => 'Mock Exams'],
-            ['id' => 'results', 'icon' => 'fa-trophy', 'label' => 'My Results'],
-            ['id' => 'leaderboard', 'icon' => 'fa-medal', 'label' => 'Leaderboard'],
+            [
+                'id' => 'exams_results',
+                'icon' => 'fa-award',
+                'label' => 'Performance',
+                'sub' => [
+                    ['id' => 'exams', 'l' => 'Mock Exams'],
+                    ['id' => 'results', 'l' => 'My Results'],
+                    ['id' => 'leaderboard', 'l' => 'Leaderboard'],
+                ]
+            ],
         ]
     ],
     [
         'section' => 'Finance',
         'items' => [
-            ['id' => 'fees', 'icon' => 'fa-money-bill-wave', 'label' => 'Fee Status'],
-            ['id' => 'receipts', 'icon' => 'fa-receipt', 'label' => 'Receipts'],
+            [
+                'id' => 'finance',
+                'icon' => 'fa-wallet',
+                'label' => 'Payments',
+                'sub' => [
+                    ['id' => 'fees', 'l' => 'Fee Status'],
+                    ['id' => 'receipts', 'l' => 'Receipts'],
+                ]
+            ],
         ]
     ],
     [
@@ -59,9 +87,16 @@ $studentNavConfig = [
     [
         'section' => 'Profile',
         'items' => [
-            ['id' => 'profile', 'icon' => 'fa-user-graduate', 'label' => 'My Profile'],
-            ['id' => 'password', 'icon' => 'fa-key', 'label' => 'Change Password'],
-            ['id' => 'idcard', 'icon' => 'fa-id-card', 'label' => 'Digital ID Card'],
+            [
+                'id' => 'my_profile',
+                'icon' => 'fa-user-circle',
+                'label' => 'Account',
+                'sub' => [
+                    ['id' => 'profile', 'l' => 'My Profile'],
+                    ['id' => 'password', 'l' => 'Change Password'],
+                    ['id' => 'idcard', 'l' => 'Digital ID Card'],
+                ]
+            ],
         ]
     ],
 ];

@@ -118,6 +118,33 @@ try {
     
     $pdo->commit();
     
+    // 4. Send Welcome Email
+    try {
+        if (!class_exists('App\Helpers\MailHelper')) {
+            require_once APP_ROOT . '/app/Helpers/MailHelper.php';
+        }
+        
+        // Simple login URL using APP_URL as per requested
+        $loginUrl = APP_URL . '/auth/login';
+        
+        $welcomeData = [
+            'institute_name' => $name,
+            'admin_name'     => $adminName,
+            'admin_email'    => $adminEmail,
+            'admin_pass'     => $adminPass,
+            'subdomain'      => $subdomain,
+            'login_url'      => $loginUrl
+        ];
+        
+        $tpl = \App\Helpers\MailHelper::getStaticTemplate('tenant_welcome', $welcomeData);
+        if ($tpl) {
+            // Force system SMTP because tenant SMTP is not set up yet
+            \App\Helpers\MailHelper::sendDirect($pdo, $tenantId, $adminEmail, $adminName, $tpl['subject'], $tpl['body'], '', 0, true);
+        }
+    } catch (\Exception $mailEx) {
+        error_log("[Tenant Welcome Email Error] " . $mailEx->getMessage());
+    }
+
     // Send back the new CSRF token in header for synchronized AJAX requests
     if (function_exists('getCsrfToken')) {
         header('X-CSRF-Token: ' . getCsrfToken());

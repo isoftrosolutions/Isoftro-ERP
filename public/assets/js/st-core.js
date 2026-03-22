@@ -20,51 +20,86 @@ window.getCurrencySymbol = function() {
 
 /* ── NAV CONFIG ──────────────────────────────────────────────────────── */
 const _ST_NAV = [
-    { id: 'dashboard', icon: 'fa-house', label: 'Dashboard', action: "goST('dashboard')" },
+    { id: 'dashboard', icon: 'fa-house', label: 'Dashboard' },
     
     // Academic Section
     { section: 'Academic', items: [
-        { id: 'timetable', icon: 'fa-calendar-alt', label: 'My Timetable', action: "goST('timetable')" },
-        { id: 'attendance', icon: 'fa-calendar-check', label: 'Attendance', action: "goST('attendance')" },
-        { id: 'leave', icon: 'fa-user-clock', label: 'Apply Leave', action: "goST('leave')" },
+        { 
+            id: 'academics', 
+            icon: 'fa-graduation-cap', 
+            label: 'Academic Info',
+            sub: [
+                { id: 'timetable', l: 'My Timetable' },
+                { id: 'attendance', l: 'Attendance' },
+                { id: 'leave', l: 'Apply Leave' }
+            ]
+        },
     ]},
     
     // Learning Section
     { section: 'Learning', items: [
-        { id: 'materials', icon: 'fa-book', label: 'Study Materials', action: "goST('materials')", badge_key: 'materials' },
-        { id: 'assignments', icon: 'fa-tasks', label: 'Assignments', action: "goST('assignments')", badge_key: 'assignments' },
-        { id: 'classes', icon: 'fa-video', label: 'Online Classes', action: "goST('classes')" },
+        { 
+            id: 'learning', 
+            icon: 'fa-book-open', 
+            label: 'Knowledge Hub',
+            sub: [
+                { id: 'materials', l: 'Study Materials' },
+                { id: 'assignments', l: 'Assignments' },
+                { id: 'classes', l: 'Online Classes' }
+            ]
+        },
     ]},
     
     // Exams & Results Section
     { section: 'Exams & Results', items: [
-        { id: 'exams', icon: 'fa-file-alt', label: 'Mock Exams', action: "goST('exams')", badge_key: 'exams' },
-        { id: 'results', icon: 'fa-trophy', label: 'My Results', action: "goST('results')" },
-        { id: 'leaderboard', icon: 'fa-medal', label: 'Leaderboard', action: "goST('leaderboard')" },
+        { 
+            id: 'exams_results', 
+            icon: 'fa-award', 
+            label: 'Performance',
+            sub: [
+                { id: 'exams', l: 'Mock Exams' },
+                { id: 'results', l: 'My Results' },
+                { id: 'leaderboard', l: 'Leaderboard' }
+            ]
+        },
     ]},
     
     // Finance Section
     { section: 'Finance', items: [
-        { id: 'fees', icon: 'fa-money-bill-wave', label: 'Fee Status', action: "goST('fees')" },
-        { id: 'receipts', icon: 'fa-receipt', label: 'Receipts', action: "goST('receipts')" },
+        { 
+            id: 'finance', 
+            icon: 'fa-wallet', 
+            label: 'Payments',
+            sub: [
+                { id: 'fees', l: 'Fee Status' },
+                { id: 'receipts', l: 'Receipts' }
+            ]
+        },
     ]},
     
     // Library Section
     { section: 'Library', items: [
-        { id: 'library', icon: 'fa-book-reader', label: 'My Books', action: "goST('library')", badge_key: 'books' },
+        { id: 'library', icon: 'fa-book-reader', label: 'My Books' },
     ]},
     
     // Support Section
     { section: 'Support', items: [
-        { id: 'notices', icon: 'fa-bullhorn', label: 'Notices', action: "goST('notices')", badge_key: 'notices' },
-        { id: 'contact', icon: 'fa-headset', label: 'Contact Admin', action: "goST('contact')" },
+        { id: 'notices', icon: 'fa-bullhorn', label: 'Notices' },
+        { id: 'contact', icon: 'fa-headset', label: 'Contact Admin' },
     ]},
     
     // Profile Section
     { section: 'Profile', items: [
-        { id: 'profile', icon: 'fa-user-graduate', label: 'My Profile', action: "goST('profile')" },
-        { id: 'password', icon: 'fa-key', label: 'Change Password', action: "goST('password')" },
-        { id: 'idcard', icon: 'fa-id-card', label: 'Digital ID Card', action: "goST('idcard')" },
+        { 
+            id: 'my_profile', 
+            icon: 'fa-user-circle', 
+            label: 'Account',
+            sub: [
+                { id: 'profile', l: 'My Profile' },
+                { id: 'password', l: 'Change Password' },
+                { id: 'idcard', l: 'Digital ID Card' }
+            ]
+        },
     ]},
 ];
 
@@ -114,6 +149,7 @@ function _stRenderSidebar(filter = '') {
                 icon: item.icon,
                 label: item.label,
                 section: secName,
+                sub: item.sub || null,
                 badge_key: item.badge_key || null,
             });
         });
@@ -133,23 +169,52 @@ function _stRenderSidebar(filter = '') {
         items.forEach(item => {
             if (filter && !item.label.toLowerCase().includes(filter)) return;
             
+            const hasSub = !!(item.sub && item.sub.length);
             const isActive = _ST.activeNav === item.id ? 'active' : '';
+            const isExp = _ST.expanded[item.id];
+            
             const badge = item.badge_key && badges[item.badge_key] 
                 ? `<span class="sb-badge primary">${badges[item.badge_key]}</span>` 
                 : '';
             
-            html += `
-                <button class="sb-btn ${isActive}" onclick="goST('${item.id}');">
-                    <i class="fa-solid ${item.icon}"></i>
-                    <span class="sb-lbl">${item.label}</span>
-                    ${badge}
-                </button>
-            `;
+            if (hasSub) {
+                html += `
+                    <button class="sb-btn ${isActive}" onclick="toggleSTExp('${item.id}');">
+                        <i class="fa-solid ${item.icon}"></i>
+                        <span class="sb-lbl">${item.label}</span>
+                        <i class="fa-solid fa-chevron-right nbc ${isExp ? 'open' : ''}" style="margin-left:auto; font-size:10px;"></i>
+                    </button>
+                    <div class="sub-menu ${isExp ? 'open' : ''}" id="sub-${item.id}" style="${isExp ? 'display:block' : 'display:none'}">
+                `;
+                item.sub.forEach(s => {
+                    const isSubActive = _ST.activeNav === item.id && _ST.activeSub === s.id ? 'active' : '';
+                    html += `
+                        <button class="sub-btn ${isSubActive}" onclick="goST('${item.id}', '${s.id}');">
+                            ${s.l}
+                        </button>
+                    `;
+                });
+                html += `</div>`;
+            } else {
+                html += `
+                    <button class="sb-btn ${isActive}" onclick="goST('${item.id}');">
+                        <i class="fa-solid ${item.icon}"></i>
+                        <span class="sb-lbl">${item.label}</span>
+                        ${badge}
+                    </button>
+                `;
+            }
         });
     });
     
     sbBody.innerHTML = html;
 }
+
+window.toggleSTExp = function(id) {
+    _ST.expanded[id] = !_ST.expanded[id];
+    _stSaveExpanded();
+    _stRenderSidebar();
+};
 
 /* ── PAGE RENDERER ───────────────────────────────────────────────────── */
 function _stRenderPage() {

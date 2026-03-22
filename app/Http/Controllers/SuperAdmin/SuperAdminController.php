@@ -8,6 +8,9 @@ if (!defined('LARAVEL_START')) {
     require_once '../../config.php';
 }
 
+require_once app_path('Models/SuperAdmin/AuditLogModel.php');
+require_once app_path('Models/SuperAdmin/TenantModel.php');
+
 class SuperAdminController {
     private $db;
     
@@ -358,67 +361,95 @@ class SuperAdminController {
     /**
      * Impersonate tenant admin
      */
-    public function impersonate($tenantId, $targetUserId = null) {
+    public function impersonate($tenantId) {
         try {
-            // Find target user if not provided (default to active admin)
+            // Check if user is superadmin
+            $currentUser = getCurrentUser();
+            if ($currentUser['role'] !== 'superadmin' && $currentUser['role'] !== 'super-admin') {
+                return ['success' => false, 'message' => 'Unauthorized'];
+            }
+
+            // Find target admin user
+            $stmt = $this->db->prepare("SELECT id FROM users WHERE tenant_id = ? AND role = 'instituteadmin' AND status = 'active' LIMIT 1");
+            $stmt->execute([$tenantId]);
+            $targetUserId = $stmt->fetchColumn();
+
             if (!$targetUserId) {
-                $stmt = $this->db->prepare("SELECT id FROM users WHERE tenant_id = ? AND role = 'instituteadmin' AND status = 'active' LIMIT 1");
-                $stmt->execute([$tenantId]);
-                $targetUserId = $stmt->fetchColumn();
-                
-                if (!$targetUserId) {
-                    return ['success' => false, 'error' => 'No active admin found for this tenant.'];
-                }
+                return ['success' => false, 'message' => 'No active admin found for this institute.'];
             }
-    
-            // Get target user data
-            $stmt = $this->db->prepare("SELECT * FROM users WHERE id = ? AND status = 'active' LIMIT 1");
-            $stmt->execute([$targetUserId]);
-            $targetUser = $stmt->fetch();
-    
-            if (!$targetUser) {
-                return ['success' => false, 'error' => 'Target user not found or inactive.'];
-            }
-    
-            // Log impersonation
+
+            // Generate token
+            $token = bin2hex(random_bytes(32));
+            $expiresAt = date('Y-m-d H:i:s', strtotime('+5 minutes'));
+
+            // Store token
             $stmt = $this->db->prepare("
-                INSERT INTO impersonation_logs (super_admin_id, tenant_id, target_user_id, ip_address, user_agent)
-                VALUES (:super_admin_id, :tenant_id, :target_user_id, :ip, :user_agent)
+                INSERT INTO impersonation_tokens (token, user_id, created_by, expires_at)
+                VALUES (:token, :user_id, :created_by, :expires_at)
             ");
-            
             $stmt->execute([
-                'super_admin_id' => $_SESSION['userData']['id'] ?? 1,
-                'tenant_id' => $tenantId,
-                'target_user_id' => $targetUserId,
-                'ip' => $_SERVER['REMOTE_ADDR'] ?? null,
-                'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? null
+                'token' => $token,
+                'user_id' => $targetUserId,
+                'created_by' => $currentUser['id'],
+                'expires_at' => $expiresAt
             ]);
-            $logId = $this->db->lastInsertId();
-            
-            // Backup original admin session if not already impersonating
-            if (!isset($_SESSION['original_userData'])) {
-                $_SESSION['original_userData'] = $_SESSION['userData'];
+
+            // Audit Log
+            $audit = new \App\Models\SuperAdmin\AuditLogModel($this->db);
+            $audit->logAction($currentUser['id'], $tenantId, 'impersonation_initiated', ['target_user_id' => $targetUserId]);
+
+            return ['success' => true, 'token' => $token];
+        } catch (Exception $e) {
+            return ['success' => false, 'message' => $e->getMessage()];
+        }
+    }
+
+    /**
+     * Complete impersonation login via token
+     */
+    public function impersonateLogin($token) {
+        try {
+            // Find and validate token
+            $stmt = $this->db->prepare("
+                SELECT it.*, u.email, u.name, u.role, u.tenant_id, u.avatar
+                FROM impersonation_tokens it
+                JOIN users u ON it.user_id = u.id
+                WHERE it.token = :token AND it.expires_at > NOW()
+                LIMIT 1
+            ");
+            $stmt->execute(['token' => $token]);
+            $data = $stmt->fetch();
+
+            if (!$data) {
+                die("Invalid or expired impersonation token.");
             }
-    
-            // Set impersonation markers
+
+            // Delete token after use
+            $stmt = $this->db->prepare("DELETE FROM impersonation_tokens WHERE id = ?");
+            $stmt->execute([$data['id']]);
+
+            // Setup session
+            $_SESSION['original_userData'] = $_SESSION['userData'];
             $_SESSION['impersonating'] = true;
-            $_SESSION['impersonation_log_id'] = $logId;
             
-            // Swap user data to the target user
             $_SESSION['userData'] = [
-                'id' => $targetUser['id'],
-                'email' => $targetUser['email'],
-                'name' => $targetUser['full_name'] ?? $targetUser['name'] ?? $targetUser['email'],
-                'role' => $targetUser['role'],
-                'tenant_id' => $targetUser['tenant_id'],
-                'avatar' => $targetUser['avatar'] ?? $targetUser['photo_url'] ?? null,
-                'last_login' => date('Y-m-d H:i:s'),
+                'id' => $data['user_id'],
+                'email' => $data['email'],
+                'name' => $data['name'] ?? $data['email'],
+                'role' => $data['role'],
+                'tenant_id' => $data['tenant_id'],
+                'avatar' => $data['avatar'],
                 'is_impersonated' => true
             ];
-            
-            return ['success' => true];
-        } catch (PDOException $e) {
-            return ['success' => false, 'error' => $e->getMessage()];
+
+            // Load tenant modules
+            loadTenantModulesIntoSession($data['tenant_id']);
+
+            // Redirect to admin dash
+            header("Location: " . APP_URL . "/dash/admin");
+            exit;
+        } catch (Exception $e) {
+            die("Impersonation error: " . $e->getMessage());
         }
     }
     
