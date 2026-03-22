@@ -369,6 +369,72 @@ class FinanceService {
             'desc' => $description
         ];
         
-        return $stmt2->execute($params2);
+        $stmt2->execute($params2);
+
+        // 3. Log to integrated Double-Entry Accounting module
+        // -- BEGIN NEW ACCOUNTING ENGINE INTEGRATION --
+        try {
+            // Find appropriate Asset (Cash/Bank) and Income (Fee) accounts for this tenant
+            $stmtAsset = $this->db->prepare("SELECT id FROM acc_accounts WHERE tenant_id = ? AND type = 'asset' AND (name LIKE '%Cash%' OR name LIKE '%Bank%') LIMIT 1");
+            $stmtAsset->execute([$tenantId]);
+            $assetAccountId = $stmtAsset->fetchColumn();
+            
+            // Fallback to auto-creating a standard Cash account
+            if (!$assetAccountId) {
+                $stmtInsertAsset = $this->db->prepare("INSERT INTO acc_accounts (tenant_id, name, type, is_group, opening_balance, created_at) VALUES (?, 'Cash in Hand', 'asset', 0, 0, NOW())");
+                $stmtInsertAsset->execute([$tenantId]);
+                $assetAccountId = $this->db->lastInsertId();
+            }
+
+            $stmtIncome = $this->db->prepare("SELECT id FROM acc_accounts WHERE tenant_id = ? AND type = 'income' AND (name LIKE '%Fee%' OR name LIKE '%Tuition%') LIMIT 1");
+            $stmtIncome->execute([$tenantId]);
+            $incomeAccountId = $stmtIncome->fetchColumn();
+            
+            // Fallback to auto-creating a standard Fee Income account
+            if (!$incomeAccountId) {
+                $stmtInsertIncome = $this->db->prepare("INSERT INTO acc_accounts (tenant_id, name, type, is_group, opening_balance, created_at) VALUES (?, 'Student Fee Income', 'income', 0, 0, NOW())");
+                $stmtInsertIncome->execute([$tenantId]);
+                $incomeAccountId = $this->db->lastInsertId();
+            }
+
+            // Find Active Fiscal Year
+            $stmtFy = $this->db->prepare("SELECT id FROM acc_fiscal_years WHERE tenant_id = ? AND is_active = 1 LIMIT 1");
+            $stmtFy->execute([$tenantId]);
+            $fyId = $stmtFy->fetchColumn();
+
+            if ($assetAccountId && $incomeAccountId && $fyId) {
+                // Generate a Voucher No matching the Receipt No roughly
+                preg_match('/Receipt #(.*)/', $description, $matches);
+                $voucherNo = 'RV-' . ($matches[1] ?? time());
+
+                $stmt = $this->db->prepare("INSERT INTO acc_vouchers (tenant_id, fiscal_year_id, voucher_no, date, type, narration, status, created_by, created_at) VALUES (?, ?, ?, ?, 'receipt', ?, 'approved', ?, NOW())");
+                $stmt->execute([
+                    $tenantId, 
+                    $fyId,
+                    $voucherNo, 
+                    $date, 
+                    $description, 
+                    $_SESSION['userData']['id'] ?? null
+                ]);
+                $voucherId = $this->db->lastInsertId();
+
+                if ($type === 'credit') { // Fee collection = Debit Asset, Credit Income
+                    $debitAcc = $assetAccountId;
+                    $creditAcc = $incomeAccountId;
+                } else { // Refund = Credit Asset, Debit Income
+                    $debitAcc = $incomeAccountId;
+                    $creditAcc = $assetAccountId;
+                }
+
+                $stmtPosting = $this->db->prepare("INSERT INTO acc_ledger_postings (voucher_id, account_id, debit, credit, description) VALUES (?, ?, ?, ?, ?)");
+                
+                $stmtPosting->execute([$voucherId, $debitAcc, $amount, 0, $description]); // Debit
+                $stmtPosting->execute([$voucherId, $creditAcc, 0, $amount, $description]); // Credit
+            }
+        } catch (Exception $e) {
+            error_log("Accounting Integration Error: " . $e->getMessage());
+        }
+
+        return true;
     }
 }

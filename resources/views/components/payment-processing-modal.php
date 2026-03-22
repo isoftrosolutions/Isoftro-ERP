@@ -410,7 +410,7 @@
 </style>
 
 <!-- Modal Overlay -->
-<div class="pm-overlay" id="paymentProcessingOverlay">
+<div class="pm-overlay" id="paymentProcessingOverlay" onclick="PaymentProcessor.handleOverlayClick(event)">
     <div class="pm-card" id="paymentProcessingCard">
         <div class="pm-close-x" id="pmCloseBtn" onclick="PaymentProcessor.close()">
             <i class="fas fa-times"></i>
@@ -707,6 +707,26 @@
         onViewRecords: function() {
             this.close();
             if (window.onPaymentRecordsView) window.onPaymentRecordsView();
+        },
+
+        /**
+         * handleOverlayClick(event) — Close modal if clicking on background after completion
+         */
+        handleOverlayClick: function(e) {
+            // Only trigger if clicking exactly on the overlay background
+            if (e.target.id === 'paymentProcessingOverlay') {
+                if (this._isRunning) return; // Ignore clicks while actively processing
+                
+                const isSuccess = document.getElementById('pmSuccessContent').classList.contains('active');
+                if (isSuccess) {
+                    this.onViewRecords();
+                } else {
+                    const isError = document.getElementById('pmErrorContent').classList.contains('active');
+                    if (isError) {
+                        this.close();
+                    }
+                }
+            }
         },
 
         /* ── Legacy compatibility: start() maps to new API ── */

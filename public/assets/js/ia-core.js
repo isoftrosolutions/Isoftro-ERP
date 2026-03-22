@@ -294,6 +294,14 @@ function _iaRenderPage() {
         }
         return;
     }
+    if (nav==='expenses') {
+        if (window.renderExpenses) {
+            window.renderExpenses();
+        } else {
+            mc.innerHTML = '<div class="pg fu"><div class="pg-loading">Loading Expense Module...</div></div>';
+        }
+        return;
+    }
     if (nav==='auditlogs') {
         window.renderAuditLogs?.();
         return;

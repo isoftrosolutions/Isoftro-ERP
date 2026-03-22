@@ -53,6 +53,10 @@ class AccountingController
                     return $this->ledger();
                 case 'fiscal-years':
                     return $this->getFiscalYears();
+                case 'day-book':
+                    return $this->dayBook();
+                case 'dashboard-stats':
+                    return $this->dashboardStats();
                 default:
                     throw new Exception("Action '{$action}' not found");
             }
@@ -143,8 +147,19 @@ class AccountingController
         $totalDebit = 0;
         $totalCredit = 0;
         foreach ($postings as $p) {
-            $totalDebit += (float)($p['debit'] ?? 0);
-            $totalCredit += (float)($p['credit'] ?? 0);
+            $debit = (float)($p['debit'] ?? 0);
+            $credit = (float)($p['credit'] ?? 0);
+            
+            if ($debit < 0 || $credit < 0) {
+                throw new Exception("Debit and Credit values cannot be negative.");
+            }
+            
+            $totalDebit += $debit;
+            $totalCredit += $credit;
+        }
+
+        if ($totalDebit == 0 && $totalCredit == 0) {
+            throw new Exception("Voucher must have a non-zero value.");
         }
 
         if (abs($totalDebit - $totalCredit) > 0.001) {
@@ -154,6 +169,27 @@ class AccountingController
         $this->db->beginTransaction();
 
         try {
+            // Validate fiscal year belongs to tenant
+            $stmt = $this->db->prepare("SELECT id FROM acc_fiscal_years WHERE id = ? AND tenant_id = ? AND is_active = 1");
+            $stmt->execute([$input['fiscal_year_id'], $this->tenantId]);
+            if (!$stmt->fetch()) {
+                throw new Exception("Invalid or inactive fiscal year.");
+            }
+
+            // Validate all accounts belong to tenant
+            $accountIds = array_filter(array_column($postings, 'account_id'));
+            if (!empty($accountIds)) {
+                $placeholders = str_repeat('?,', count($accountIds) - 1) . '?';
+                $stmt = $this->db->prepare("SELECT COUNT(*) FROM acc_accounts WHERE id IN ($placeholders) AND tenant_id = ?");
+                $params = array_merge($accountIds, [$this->tenantId]);
+                $stmt->execute($params);
+                $validCount = $stmt->fetchColumn();
+
+                if ($validCount < count(array_unique($accountIds))) {
+                    throw new Exception("One or more accounts do not belong to this tenant or are invalid.");
+                }
+            }
+
             $stmt = $this->db->prepare("INSERT INTO acc_vouchers (tenant_id, fiscal_year_id, voucher_no, date, type, narration, status, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, 'approved', ?, NOW())");
             $stmt->execute([
                 $this->tenantId,
@@ -194,17 +230,80 @@ class AccountingController
      */
     public function trialBalance()
     {
-        $sql = "SELECT a.id, a.code, a.name, a.type, 
-                       COALESCE(SUM(p.debit), 0) as total_debit, 
-                       COALESCE(SUM(p.credit), 0) as total_credit 
+        $dateFrom = $_GET['date_from'] ?? null;
+        $dateTo = $_GET['date_to'] ?? null;
+
+        $dateFilter = "";
+        $actualParams = [];
+        
+        if ($dateFrom) {
+            $dateFilter .= " AND v.date >= ?";
+            $actualParams[] = $dateFrom;
+        }
+        if ($dateTo) {
+            $dateFilter .= " AND v.date <= ?";
+            $actualParams[] = $dateTo;
+        }
+        $actualParams[] = $this->tenantId;
+
+        // 1. Calculate Historical Roll-Forward (before $dateFrom)
+        $historicalData = [];
+        if ($dateFrom) {
+            $sqlHistorical = "SELECT p.account_id, SUM(p.debit) as hist_debit, SUM(p.credit) as hist_credit 
+                              FROM acc_ledger_postings p 
+                              JOIN acc_vouchers v ON p.voucher_id = v.id 
+                              WHERE v.deleted_at IS NULL AND v.status = 'approved' AND v.date < ? AND v.tenant_id = ?
+                              GROUP BY p.account_id";
+            $stmtHist = $this->db->prepare($sqlHistorical);
+            $stmtHist->execute([$dateFrom, $this->tenantId]);
+            while ($r = $stmtHist->fetch(PDO::FETCH_ASSOC)) {
+                $historicalData[$r['account_id']] = $r;
+            }
+        }
+
+        // 2. Fetch Period Transactions
+        $sql = "SELECT a.id, a.code, a.name, a.type, a.opening_balance,
+                       COALESCE(SUM(pv.debit), 0) as period_debit, 
+                       COALESCE(SUM(pv.credit), 0) as period_credit 
                 FROM acc_accounts a 
-                LEFT JOIN acc_ledger_postings p ON a.id = p.account_id 
+                LEFT JOIN (
+                    SELECT p.account_id, p.debit, p.credit 
+                    FROM acc_ledger_postings p
+                    JOIN acc_vouchers v ON p.voucher_id = v.id 
+                    WHERE v.deleted_at IS NULL AND v.status = 'approved' $dateFilter
+                ) pv ON a.id = pv.account_id
                 WHERE a.tenant_id = ? AND a.deleted_at IS NULL
-                GROUP BY a.id, a.code, a.name, a.type";
+                GROUP BY a.id, a.code, a.name, a.type, a.opening_balance
+                ORDER BY a.code ASC";
         
         $stmt = $this->db->prepare($sql);
-        $stmt->execute([$this->tenantId]);
+        $stmt->execute($actualParams);
         $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        foreach ($data as &$row) {
+            $hist = $historicalData[$row['id']] ?? ['hist_debit' => 0, 'hist_credit' => 0];
+            $ob = (float)$row['opening_balance'];
+            
+            if (in_array($row['type'], ['asset', 'expense'])) {
+                $ob = $ob + (float)$hist['hist_debit'] - (float)$hist['hist_credit'];
+            } else {
+                $ob = $ob + (float)$hist['hist_credit'] - (float)$hist['hist_debit'];
+            }
+            $row['opening_balance'] = $ob;
+
+            $pd = (float)$row['period_debit'];
+            $pc = (float)$row['period_credit'];
+            
+            if (in_array($row['type'], ['asset', 'expense'])) {
+                $net = $ob + $pd - $pc;
+                $row['total_debit'] = $net > 0 ? $net : 0;
+                $row['total_credit'] = $net < 0 ? abs($net) : 0;
+            } else {
+                $net = $ob + $pc - $pd;
+                $row['total_credit'] = $net > 0 ? $net : 0;
+                $row['total_debit'] = $net < 0 ? abs($net) : 0;
+            }
+        }
 
         return [
             'success' => true,
@@ -218,6 +317,11 @@ class AccountingController
     public function ledger()
     {
         $accountId = $_GET['account_id'] ?? null;
+        $page = max(1, (int)($_GET['page'] ?? 1));
+        $limit = max(10, (int)($_GET['limit'] ?? 50));
+        $dateFrom = $_GET['date_from'] ?? null;
+        $dateTo = $_GET['date_to'] ?? null;
+
         if (!$accountId) throw new Exception("Account ID required");
 
         $stmt = $this->db->prepare("SELECT * FROM acc_accounts WHERE id = ? AND tenant_id = ?");
@@ -226,14 +330,84 @@ class AccountingController
 
         if (!$account) throw new Exception("Account not found");
 
-        $stmt = $this->db->prepare("SELECT p.*, v.voucher_no, v.date, v.type as voucher_type FROM acc_ledger_postings p JOIN acc_vouchers v ON p.voucher_id = v.id WHERE p.account_id = ? AND v.deleted_at IS NULL ORDER BY v.date ASC, v.id ASC");
-        $stmt->execute([$accountId]);
-        $postings = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $dateFilter = "";
+        $params = [$accountId];
+        
+        if ($dateFrom) {
+            $dateFilter .= " AND v.date >= ?";
+            $params[] = $dateFrom;
+        }
+        if ($dateTo) {
+            $dateFilter .= " AND v.date <= ?";
+            $params[] = $dateTo;
+        }
+
+        $offset = ($page - 1) * $limit;
+        
+        $stmtCount = $this->db->prepare("SELECT COUNT(*) FROM acc_ledger_postings p JOIN acc_vouchers v ON p.voucher_id = v.id WHERE p.account_id = ? AND v.deleted_at IS NULL AND v.status = 'approved' $dateFilter");
+        $stmtCount->execute($params);
+        $totalItems = $stmtCount->fetchColumn();
+        
+        // B/F (Brought Forward) Before the Period
+        $bfParams = [$accountId];
+        $bfQuery = "SELECT COALESCE(SUM(p.debit), 0) as hist_debit, COALESCE(SUM(p.credit), 0) as hist_credit 
+                    FROM acc_ledger_postings p 
+                    JOIN acc_vouchers v ON p.voucher_id = v.id 
+                    WHERE p.account_id = ? AND v.deleted_at IS NULL AND v.status = 'approved' ";
+        if ($dateFrom) {
+            $bfQuery .= " AND v.date < ?";
+            $bfParams[] = $dateFrom;
+        } else {
+            $bfQuery .= " AND 1=0 "; 
+        }
+        $stmtBF = $this->db->prepare($bfQuery);
+        $stmtBF->execute($bfParams);
+        $bfRows = $stmtBF->fetch(PDO::FETCH_ASSOC);
+        
+        $ob = (float)$account['opening_balance'];
+        $bfDebit = (float)$bfRows['hist_debit'];
+        $bfCredit = (float)$bfRows['hist_credit'];
+        
+        $broughtForward = $ob + (in_array($account['type'], ['asset', 'expense']) ? ($bfDebit - $bfCredit) : ($bfCredit - $bfDebit));
+
+        // B/F Up to the specific page offset
+        $offsetSumDebit = 0;
+        $offsetSumCredit = 0;
+        if ($offset > 0) {
+            $offsetSql = "SELECT COALESCE(SUM(off_debit), 0) as off_debit, COALESCE(SUM(off_credit), 0) as off_credit FROM (
+                SELECT p.debit as off_debit, p.credit as off_credit FROM acc_ledger_postings p 
+                JOIN acc_vouchers v ON p.voucher_id = v.id 
+                WHERE p.account_id = ? AND v.deleted_at IS NULL AND v.status = 'approved' $dateFilter
+                ORDER BY v.date ASC, v.id ASC LIMIT $offset
+            ) t";
+            $stmtOff = $this->db->prepare($offsetSql);
+            $stmtOff->execute($params);
+            $offRows = $stmtOff->fetch(PDO::FETCH_ASSOC);
+            $offsetSumDebit = (float)$offRows['off_debit'];
+            $offsetSumCredit = (float)$offRows['off_credit'];
+        }
+        
+        $broughtForwardPage = $broughtForward + (in_array($account['type'], ['asset', 'expense']) ? ($offsetSumDebit - $offsetSumCredit) : ($offsetSumCredit - $offsetSumDebit));
+
+        $stmtPostings = $this->db->prepare("SELECT p.*, v.voucher_no, v.date, v.type as voucher_type, v.narration FROM acc_ledger_postings p JOIN acc_vouchers v ON p.voucher_id = v.id WHERE p.account_id = ? AND v.deleted_at IS NULL AND v.status = 'approved' $dateFilter ORDER BY v.date ASC, v.id ASC LIMIT $limit OFFSET $offset");
+        $stmtPostings->execute($params);
+        $postings = $stmtPostings->fetchAll(PDO::FETCH_ASSOC);
+
+        $runningBalance = $broughtForwardPage;
+        foreach ($postings as &$post) {
+            $d = (float)$post['debit'];
+            $c = (float)$post['credit'];
+            $runningBalance += in_array($account['type'], ['asset', 'expense']) ? ($d - $c) : ($c - $d);
+            $post['running_balance'] = $runningBalance;
+        }
 
         return [
             'success' => true,
             'account' => $account,
-            'postings' => $postings
+            'brought_forward_period' => $broughtForward,
+            'brought_forward_page' => $broughtForwardPage,
+            'postings' => $postings,
+            'pagination' => ['total' => $totalItems, 'page' => $page, 'limit' => $limit, 'total_pages' => ceil($totalItems / $limit)]
         ];
     }
 
@@ -245,6 +419,117 @@ class AccountingController
         $stmt = $this->db->prepare("SELECT * FROM acc_fiscal_years WHERE tenant_id = ? ORDER BY is_active DESC, start_date DESC");
         $stmt->execute([$this->tenantId]);
         return ['success' => true, 'data' => $stmt->fetchAll(PDO::FETCH_ASSOC)];
+    }
+
+    /**
+     * Report: Day Book
+     */
+    public function dayBook()
+    {
+        $dateFrom = $_GET['date_from'] ?? date('Y-m-d');
+        $dateTo = $_GET['date_to'] ?? date('Y-m-d');
+
+        $stmt = $this->db->prepare("SELECT v.*, u.name as creator_name 
+            FROM acc_vouchers v 
+            LEFT JOIN users u ON v.created_by = u.id
+            WHERE v.tenant_id = ? AND v.deleted_at IS NULL AND v.status = 'approved' AND v.date BETWEEN ? AND ? 
+            ORDER BY v.date DESC, v.id DESC");
+        $stmt->execute([$this->tenantId, $dateFrom, $dateTo]);
+        $vouchers = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        foreach ($vouchers as &$voucher) {
+            $stmt = $this->db->prepare("SELECT p.*, a.name as account_name FROM acc_ledger_postings p JOIN acc_accounts a ON p.account_id = a.id WHERE p.voucher_id = ?");
+            $stmt->execute([$voucher['id']]);
+            $voucher['postings'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        }
+
+        return ['success' => true, 'data' => $vouchers];
+    }
+
+    /**
+     * Report: Dashboard Stats
+     */
+    public function dashboardStats()
+    {
+        // Get Active Fiscal Year
+        $stmtFy = $this->db->prepare("SELECT id FROM acc_fiscal_years WHERE tenant_id = ? AND is_active = 1 LIMIT 1");
+        $stmtFy->execute([$this->tenantId]);
+        $activeFyId = $stmtFy->fetchColumn();
+
+        $fyFilter = $activeFyId ? " AND v.fiscal_year_id = " . (int)$activeFyId : "";
+
+        $sql = "SELECT a.id, a.type, a.name, a.opening_balance,
+                       COALESCE(SUM(pv.debit), 0) as period_debit, 
+                       COALESCE(SUM(pv.credit), 0) as period_credit 
+                FROM acc_accounts a 
+                LEFT JOIN (
+                    SELECT p.account_id, p.debit, p.credit 
+                    FROM acc_ledger_postings p
+                    JOIN acc_vouchers v ON p.voucher_id = v.id 
+                    WHERE v.deleted_at IS NULL AND v.status = 'approved' {$fyFilter}
+                ) pv ON a.id = pv.account_id
+                WHERE a.tenant_id = ? AND a.deleted_at IS NULL
+                GROUP BY a.id, a.type, a.name, a.opening_balance";
+        
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$this->tenantId]);
+        $accounts = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $cashBank = 0;
+        $ar = 0;
+        $ap = 0;
+        $income = 0;
+        $expense = 0;
+
+        foreach ($accounts as $row) {
+            $name = strtolower($row['name']);
+            $ob = (float)$row['opening_balance'];
+            $pd = (float)$row['period_debit'];
+            $pc = (float)$row['period_credit'];
+            
+            if ($row['type'] === 'asset') {
+                $bal = $ob + $pd - $pc;
+                if (strpos($name, 'cash') !== false || strpos($name, 'bank') !== false) {
+                    $cashBank += $bal;
+                } elseif (strpos($name, 'receivable') !== false || strpos($name, 'debtor') !== false) {
+                    $ar += $bal;
+                }
+            } elseif ($row['type'] === 'liability') {
+                $bal = $ob + $pc - $pd;
+                if (strpos($name, 'payable') !== false || strpos($name, 'creditor') !== false) {
+                    $ap += $bal;
+                }
+            } elseif ($row['type'] === 'income') {
+                $income += ($ob + $pc - $pd);
+            } elseif ($row['type'] === 'expense') {
+                $expense += ($ob + $pd - $pc);
+            }
+        }
+
+        $stmt = $this->db->prepare("SELECT v.id, v.voucher_no, v.date, v.type, v.narration 
+            FROM acc_vouchers v 
+            WHERE v.tenant_id = ? AND v.deleted_at IS NULL AND v.status = 'approved' 
+            ORDER BY v.date DESC, v.id DESC LIMIT 5");
+        $stmt->execute([$this->tenantId]);
+        $recent = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        foreach ($recent as &$voucher) {
+            $stmt = $this->db->prepare("SELECT SUM(debit) as amount FROM acc_ledger_postings WHERE voucher_id = ?");
+            $stmt->execute([$voucher['id']]);
+            $voucher['amount'] = $stmt->fetchColumn() ?: 0;
+        }
+
+        return [
+            'success' => true,
+            'data' => [
+                'cash_bank' => $cashBank,
+                'accounts_receivable' => $ar,
+                'accounts_payable' => $ap,
+                'total_income' => $income,
+                'total_expense' => $expense,
+                'recent_transactions' => $recent
+            ]
+        ];
     }
 
     private function getInput()

@@ -802,8 +802,7 @@ Route::any('/api/admin/billing', function() {
 });
 
 Route::any('/api/admin/accounting', function() {
-    requireAuth();
-    requireModule('finance');
+    enforceAccess('expenses.view', 'finance');
     require_once app_path('Http/Controllers/Admin/accounting.php');
 });
 
