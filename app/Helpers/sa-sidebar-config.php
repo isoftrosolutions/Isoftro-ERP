@@ -22,14 +22,14 @@ function getSASidebarConfig()
                     'label' => 'Overview',
                     'icon' => 'fa-house',
                     'permission' => 'dashboard.view',
-                    'module' => 'dashboard',
+                    'feature' => 'dashboard',
                 ],
                 [
                     'id' => 'tenants',
                     'label' => 'Tenant Management',
                     'icon' => 'fa-building',
                     'permission' => 'tenants.view',
-                    'module' => 'tenants',
+                    'feature' => 'tenants',
                     'sub' => [
                         ['id' => 'all', 'l' => 'All Institutes', 'icon' => 'fa-list'],
                         ['id' => 'add', 'l' => 'Add New Institute', 'icon' => 'fa-plus-circle'],
@@ -48,7 +48,7 @@ function getSASidebarConfig()
                     'label' => 'Plan Management',
                     'icon' => 'fa-clipboard-list',
                     'permission' => 'plans.view',
-                    'module' => 'plans',
+                    'feature' => 'plans',
                     'sub' => [
                         ['id' => 'sub-plans', 'l' => 'Subscription Plans', 'icon' => 'fa-tags'],
                         ['id' => 'flags', 'l' => 'Feature Flags', 'icon' => 'fa-toggle-on'],
@@ -60,7 +60,7 @@ function getSASidebarConfig()
                     'label' => 'Revenue Analytics',
                     'icon' => 'fa-money-bill-wave',
                     'permission' => 'revenue.view',
-                    'module' => 'revenue',
+                    'feature' => 'revenue',
                     'sub' => [
                         ['id' => 'mrr', 'l' => 'MRR / ARR Dashboard', 'icon' => 'fa-chart-line'],
                         ['id' => 'payments', 'l' => 'Payment History', 'icon' => 'fa-history'],
@@ -79,7 +79,7 @@ function getSASidebarConfig()
                     'label' => 'Platform Analytics',
                     'icon' => 'fa-chart-pie',
                     'permission' => 'analytics.view',
-                    'module' => 'analytics',
+                    'feature' => 'analytics',
                     'sub' => [
                         ['id' => 'users', 'l' => 'Active Users', 'icon' => 'fa-users'],
                         ['id' => 'heatmap', 'l' => 'Feature Usage Heatmap', 'icon' => 'fa-fire'],
@@ -91,7 +91,7 @@ function getSASidebarConfig()
                     'label' => 'Support Tickets',
                     'icon' => 'fa-ticket',
                     'permission' => 'support.view',
-                    'module' => 'support',
+                    'feature' => 'support',
                     'sub' => [
                         ['id' => 'open', 'l' => 'Open Tickets', 'icon' => 'fa-envelope-open-text'],
                         ['id' => 'impersonate', 'l' => 'Tenant Impersonation Log', 'icon' => 'fa-user-secret'],
@@ -110,7 +110,7 @@ function getSASidebarConfig()
                     'label' => 'System Configuration',
                     'icon' => 'fa-wrench',
                     'permission' => 'system.view',
-                    'module' => 'system',
+                    'feature' => 'system',
                     'sub' => [
                         ['id' => 'toggles', 'l' => 'Feature Toggles', 'icon' => 'fa-toggle-off'],
                         ['id' => 'maintenance', 'l' => 'Maintenance Mode', 'icon' => 'fa-hammer'],
@@ -122,7 +122,7 @@ function getSASidebarConfig()
                     'label' => 'System Logs',
                     'icon' => 'fa-scroll',
                     'permission' => 'logs.view',
-                    'module' => 'logs',
+                    'feature' => 'logs',
                     'sub' => [
                         ['id' => 'audit', 'l' => 'Audit Logs', 'icon' => 'fa-shield-halved'],
                         ['id' => 'errors', 'l' => 'Error Logs', 'icon' => 'fa-bug'],
@@ -134,7 +134,7 @@ function getSASidebarConfig()
                     'label' => 'Settings',
                     'icon' => 'fa-gear',
                     'permission' => 'settings.view',
-                    'module' => 'settings',
+                    'feature' => 'settings',
                     'sub' => [
                         ['id' => 'brand', 'l' => 'Platform Branding', 'icon' => 'fa-palette'],
                         ['id' => 'sms-tpl', 'l' => 'Default SMS Templates', 'icon' => 'fa-message'],
@@ -157,29 +157,30 @@ function filterSASidebarByPermission($config)
         $allowedItems = [];
         foreach ($section['items'] as $item) {
             $perm = $item['permission'] ?? 'dashboard.view';
-            $module = $item['module'] ?? null;
+            $feature = $item['feature'] ?? null;
 
-            // Check both permission AND module access for parent item
-            if (!hasPermission($perm) || ($module !== null && !hasModule($module))) {
+            // Check both permission AND feature access for parent item
+            if (!hasPermission($perm) || ($feature !== null && !hasFeature($feature))) {
                 continue;
             }
 
-            // Filter sub-items if they have their own permission/module constraints
+            // Filter sub-items if they have their own permission/feature constraints
             if (!empty($item['sub'])) {
                 $allowedSubs = [];
                 foreach ($item['sub'] as $sub) {
                     $subPerm = $sub['permission'] ?? null;
-                    $subModule = $sub['module'] ?? null;
+                    $subFeature = $sub['feature'] ?? null;
                     // If sub-item has its own permission check, enforce it
                     if ($subPerm !== null && !hasPermission($subPerm)) {
                         continue;
                     }
-                    // If sub-item has its own module check, enforce it
-                    if ($subModule !== null && !hasModule($subModule)) {
+                    // If sub-item has its own feature check, enforce it
+                    if ($subFeature !== null && !hasFeature($subFeature)) {
                         continue;
                     }
                     $allowedSubs[] = $sub;
                 }
+
                 $item['sub'] = $allowedSubs;
                 // If all children were filtered out, skip the parent too
                 if (empty($allowedSubs)) {

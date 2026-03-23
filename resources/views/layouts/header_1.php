@@ -129,7 +129,7 @@ function renderAppConfig() {
     echo '    <script>' . "\n";
     echo '        window.APP_URL = "' . APP_URL . '";' . "\n";
     echo '        window.SA_THEME = "' . SUPERADMIN_THEME_COLOR . '";' . "\n";
-    echo '        window.CSRF_TOKEN = "' . getCsrfToken() . '";' . "\n";
+    echo '        window.JWT_STATE = true;' . "\n";
     echo '    </script>' . "\n";
 }
 
@@ -306,11 +306,7 @@ if (isset($_GET['partial']) && $_GET['partial'] == 'true') {
     <!-- App Configuration -->
     <?php renderAppConfig(); ?>
     
-    <!-- CSRF Protection -->
-    <?php 
-        echo csrfMetaTag() . "\n";
-        echo csrfJsHeader() . "\n";
-    ?>
+    <!-- CSRF disabled - Using JWT for security -->
 </head>
 <body class="<?php echo htmlspecialchars($bodyClass); ?>">
     <?php if (isset($_SESSION['impersonating']) && $_SESSION['impersonating']): ?>

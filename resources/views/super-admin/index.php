@@ -45,8 +45,12 @@ $monthlyRevenue = $stmt->fetchColumn();
     <!-- Global Config -->
     <script>
         window.APP_URL = "<?= APP_URL ?>";
-        window.CSRF_TOKEN = "<?= getCsrfToken() ?>";
     </script>
+
+    <!-- CSRF Protection -->
+    <?= \App\Helpers\CsrfHelper::csrfMetaTag() ?>
+    <?= \App\Helpers\CsrfHelper::csrfJsHeader() ?>
+
 </head>
 <body>
     <div class="root">

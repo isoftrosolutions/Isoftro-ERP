@@ -6,13 +6,14 @@
 
 $PDO = getDBConnection();
 
-// Fetch available modules for selection
+// Fetch available features for selection
 try {
-    $stmt = $PDO->query("SELECT * FROM modules ORDER BY name ASC");
-    $modules = $stmt->fetchAll();
+    $stmt = $PDO->query("SELECT * FROM system_features ORDER BY feature_name ASC");
+    $features = $stmt->fetchAll();
 } catch (Exception $e) {
-    $modules = [];
+    $features = [];
 }
+
 
 ?>
 <div class="pg-hdr">
@@ -41,9 +42,23 @@ try {
             <div class="card">
                 <div class="ct"><i class="fas fa-building"></i> Organization Profile</div>
                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-top:15px;">
-                    <div class="form-group" style="grid-column: span 2;">
+                    <div class="form-group" style="grid-column: span 1;">
                         <label class="form-label">Institute Name *</label>
                         <input type="text" name="name" class="form-control" placeholder="e.g. Kathmandu Model College" required>
+                    </div>
+                    <div class="form-group" style="grid-column: span 1;">
+                        <label class="form-label">Nepali Name</label>
+                        <input type="text" name="nepaliName" class="form-control" placeholder="e.g. काठमाडौं मोडल कलेज">
+                    </div>
+                    <div class="form-group" style="grid-column: span 1;">
+                        <label class="form-label">Institute Type *</label>
+                        <select name="instituteType" class="form-control" required>
+                            <option value="" disabled selected>Select Type</option>
+                            <option value="bridge course">Bridge Course Center</option>
+                            <option value="loksewa preparation">Loksewa Preparation Center</option>
+                            <option value="tuition">Tuition Center</option>
+                            <option value="other">Other Training Center</option>
+                        </select>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Subdomain *</label>
@@ -61,6 +76,23 @@ try {
                         <input type="text" name="phone" class="form-control" placeholder="+977-984xxxxxxx">
                     </div>
                     <div class="form-group">
+                        <label class="form-label">PAN Number</label>
+                        <input type="text" name="panNumber" class="form-control" placeholder="e.g. 123456789">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Brand Color</label>
+                        <input type="color" name="brandColor" class="form-control" value="#009E7E" style="padding:2px; height:40px; cursor:pointer;">
+                    </div>
+                    
+                    <div class="form-group" style="grid-column: span 2;">
+                        <label class="form-label">Institute Logo (Optional)</label>
+                        <input type="file" name="logo" class="form-control" accept="image/*" style="padding: 7px;">
+                    </div>
+                    <div class="form-group" style="grid-column: span 2;">
+                        <label class="form-label">Tagline</label>
+                        <input type="text" name="tagline" class="form-control" placeholder="Empowering Education...">
+                    </div>
+                    <div class="form-group" style="grid-column: span 2;">
                         <label class="form-label">Institute Address</label>
                         <input type="text" name="address" class="form-control" placeholder="City, Location">
                     </div>
@@ -113,12 +145,13 @@ try {
                 <p style="font-size:11px; color:var(--text-light); margin-bottom:15px;">Enable specific features for this institute.</p>
                 
                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; max-height:300px; overflow-y:auto; padding-right:5px;" id="moduleGrid">
-                    <?php foreach ($modules as $mod): ?>
+                    <?php foreach ($features as $f): ?>
                     <label class="mod-check-item">
-                        <input type="checkbox" name="modules[]" value="<?= $mod['id'] ?>" data-slug="<?= $mod['name'] ?>" checked>
-                        <span><?= ucfirst($mod['name']) ?></span>
+                        <input type="checkbox" name="features[]" value="<?= $f['id'] ?>" data-slug="<?= $f['feature_key'] ?>" <?= $f['is_core'] ? 'checked' : '' ?>>
+                        <span><?= htmlspecialchars($f['feature_name']) ?></span>
                     </label>
                     <?php endforeach; ?>
+
                 </div>
             </div>
 
@@ -129,15 +162,23 @@ try {
                 <div style="display:grid; grid-template-columns: 1fr; gap:16px;">
                     <div class="form-group">
                         <label class="form-label">Admin Full Name *</label>
-                        <input type="text" name="admin_name" class="form-control" placeholder="e.g. Principal's Name" required>
+                        <input type="text" name="adminName" class="form-control" placeholder="e.g. Principal's Name" required>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Login Email *</label>
-                        <input type="email" name="admin_email" class="form-control" placeholder="admin@institute.com" required>
+                        <input type="email" name="adminEmail" class="form-control" placeholder="admin@institute.com" required>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Login Password *</label>
-                        <input type="text" name="admin_password" class="form-control" value="<?= substr(str_shuffle("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"), 0, 10); ?>" required>
+                        <?php
+                        $lower = 'abcdefghijklmnopqrstuvwxyz';
+                        $upper = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+                        $num = '0123456789';
+                        $special = '@#$!*^';
+                        $pass = $lower[rand(0,25)] . $upper[rand(0,25)] . $num[rand(0,9)] . $special[rand(0,5)] . substr(str_shuffle($lower.$upper.$num.$special), 0, 6);
+                        $pass = str_shuffle($pass);
+                        ?>
+                        <input type="text" name="adminPass" class="form-control" value="<?= $pass ?>" required>
                         <small style="color:var(--text-light); display:block; margin-top:5px;">Randomly generated. Institute can change this later.</small>
                     </div>
                 </div>
@@ -203,17 +244,19 @@ function toggleAllModules(checked) {
 }
 
 function updateModulePresets(plan) {
-    const starterModules = ['attendance', 'admission', 'student', 'finance', 'system', 'dashboard'];
-    const growthModules = [...starterModules, 'exams', 'homework', 'frontdesk', 'report'];
+    const starterModules = ['attendance', 'inquiry', 'students', 'accounting', 'system', 'dashboard', 'academic'];
+    const growthModules = [...starterModules, 'exams', 'homework', 'lms', 'reports', 'frontdesk', 'payroll'];
     
     if (plan === 'starter') {
-        document.querySelectorAll('#moduleGrid input').forEach(i => {
-            i.checked = starterModules.includes(i.dataset.slug.toLowerCase());
+        document.querySelectorAll('#featureGrid input').forEach(i => {
+            const slug = i.dataset.slug ? i.dataset.slug.toLowerCase() : '';
+            i.checked = starterModules.includes(slug);
         });
         document.querySelector('[name="student_limit"]').value = 200;
     } else if (plan === 'growth') {
-        document.querySelectorAll('#moduleGrid input').forEach(i => {
-            i.checked = growthModules.includes(i.dataset.slug.toLowerCase());
+        document.querySelectorAll('#featureGrid input').forEach(i => {
+            const slug = i.dataset.slug ? i.dataset.slug.toLowerCase() : '';
+            i.checked = growthModules.includes(slug);
         });
         document.querySelector('[name="student_limit"]').value = 500;
     } else if (plan === 'professional') {
@@ -224,20 +267,23 @@ function updateModulePresets(plan) {
     }
 }
 
+
+
 async function submitNewTenant() {
     const form = document.getElementById('addTenantForm');
     if (!form.reportValidity()) return;
 
     const formData = new FormData(form);
     
-    SuperAdmin.showNotification("Initiating deployment...", "loading");
+    SuperAdmin.showNotification("Initiating deployment...", "info");
 
     try {
-        const res = await fetch(window.APP_URL + '/api/super-admin/tenants/store', {
+        const csrfToken = window.CSRF_TOKEN || document.querySelector('meta[name="csrf-token"]')?.content || '';
+        const res = await fetch(window.APP_URL + '/api/super-admin/tenants/save', {
             method: 'POST',
             body: formData,
             headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+                'X-CSRF-TOKEN': csrfToken
             }
         });
         
@@ -246,7 +292,7 @@ async function submitNewTenant() {
             SuperAdmin.showNotification("Institute launched successfully!", "success");
             goNav('tenants');
         } else {
-            SuperAdmin.showNotification(result.error || "Launch failed", "error");
+            SuperAdmin.showNotification(result.error || result.message || "Launch failed", "error");
         }
     } catch (e) {
         console.error(e);

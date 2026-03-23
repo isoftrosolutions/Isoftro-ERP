@@ -442,8 +442,8 @@ class SuperAdminController {
                 'is_impersonated' => true
             ];
 
-            // Load tenant modules
-            loadTenantModulesIntoSession($data['tenant_id']);
+            // Load tenant features
+            loadFeatures($data['tenant_id']);
 
             // Redirect to admin dash
             header("Location: " . APP_URL . "/dash/admin");

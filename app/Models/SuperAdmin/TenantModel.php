@@ -58,9 +58,10 @@ class TenantModel {
         $stmt = $this->db->prepare("UPDATE tenants SET plan = ? WHERE id = ?");
         return $stmt->execute([$plan, $id]);
     }
-    public function getModules($tenantId) {
-        $stmt = $this->db->prepare("SELECT module_id FROM institute_modules WHERE tenant_id = ? AND is_enabled = 1");
+    public function getFeatures($tenantId) {
+        $stmt = $this->db->prepare("SELECT feature_id FROM institute_feature_access WHERE tenant_id = ? AND is_enabled = 1");
         $stmt->execute([$tenantId]);
         return $stmt->fetchAll(PDO::FETCH_COLUMN);
     }
+
 }

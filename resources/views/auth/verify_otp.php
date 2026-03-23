@@ -41,6 +41,7 @@ try {
         'message' => 'Verification successful!',
         'reset_token' => $resetToken
     ]);
-} catch (Exception $e) {
-    echo json_encode(['success' => false, 'message' => 'An error occurred during verification.']);
+} catch (\Throwable $e) {
+    error_log("[VerifyOTP Error] " . $e->getMessage());
+    echo json_encode(['success' => false, 'message' => "An error occurred during verification. " . (APP_ENV === 'development' ? $e->getMessage() : "")]);
 }

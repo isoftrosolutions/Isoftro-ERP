@@ -1,17 +1,55 @@
-<?php 
+<?php
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\Traits\TenantScoped;
+use Illuminate\Support\Facades\DB;
+use Tymon\JWTAuth\Contracts\JWTSubject;
 
-class User extends Model {
-    use SoftDeletes, TenantScoped;
+class User extends Authenticatable implements JWTSubject {
+    use SoftDeletes, TenantScoped, Notifiable;
 
     protected $table = 'users';
+
+    /**
+     * Get the identifier that will be stored in the subject claim of the JWT.
+     *
+     * @return mixed
+     */
+    public function getJWTIdentifier()
+    {
+        return $this->getKey();
+    }
+
+    /**
+     * Return a key value array, containing any custom claims to be added to the JWT.
+     *
+     * @return array
+     */
+    public function getJWTCustomClaims()
+    {
+        return [
+            'role' => $this->role,
+            'tenant_id' => $this->tenant_id,
+            'name' => $this->name,
+            'email' => $this->email,
+            'impersonated_by' => $this->impersonated_by,
+        ];
+    }
+    
+    /**
+     * Overriding password column name for Laravel Auth
+     */
+    public function getAuthPasswordName()
+    {
+        return 'password_hash';
+    }
     
     protected $fillable = [
-        'tenant_id', 'role', 'email', 'password_hash', 'name', 'phone', 'status', 'two_fa_enabled', 'locked_until'
+        'tenant_id', 'role', 'email', 'password_hash', 'name', 'phone', 'status', 'two_fa_enabled', 'locked_until',
+        'impersonated_by', 'impersonation_started_at'
     ];
 
     protected $hidden = [
@@ -87,5 +125,55 @@ class User extends Model {
     public function recordFailedLogin($userId, $ipAddress) {
         // This is handled by AuditLogger now in updated AuthController
         return \App\Helpers\AuditLogger::log('LOGIN_FAILURE', $userId, null, ['ip' => $ipAddress]);
+    }
+    /**
+     * Relationship with Tenant
+     */
+    public function tenant() {
+        return $this->belongsTo(Tenant::class, 'tenant_id');
+    }
+
+    /**
+     * Relationship with Impersonator
+     */
+    public function impersonator() {
+        return $this->belongsTo(User::class, 'impersonated_by');
+    }
+
+    // ========================
+    // HELPER METHODS
+    // ========================
+
+    public function isSuperAdmin(): bool {
+        return $this->role === 'superadmin';
+    }
+
+    public function isTenantAdmin(): bool {
+        return $this->role === 'instituteadmin';
+    }
+
+    public function isStaff(): bool {
+        return in_array($this->role, ['frontdesk', 'teacher', 'librarian']);
+    }
+
+    public function isImpersonating(): bool {
+        return !is_null($this->impersonated_by);
+    }
+
+    public function canAccessModule(string $moduleSlug): bool {
+        if ($this->isSuperAdmin()) {
+            return true;
+        }
+
+        if (!$this->tenant_id) {
+            return false;
+        }
+
+        return \DB::table('institute_modules')
+            ->join('modules', 'institute_modules.module_id', '=', 'modules.id')
+            ->where('institute_modules.tenant_id', $this->tenant_id)
+            ->where('modules.name', $moduleSlug)
+            ->where('institute_modules.is_enabled', true)
+            ->exists();
     }
 }

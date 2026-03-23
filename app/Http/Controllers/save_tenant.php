@@ -38,6 +38,7 @@ try {
     $address = sanitizeInput($_POST['address'] ?? '');
     $phone = sanitizeInput($_POST['phone'] ?? '');
     $email = sanitizeInput($_POST['email'] ?? ''); // Institute Email
+    $panNumber = sanitizeInput($_POST['panNumber'] ?? '');
     
     $adminName = sanitizeInput($_POST['adminName'] ?? '');
     $adminEmail = sanitizeInput($_POST['adminEmail'] ?? '');
@@ -82,8 +83,8 @@ try {
     $pdo->beginTransaction();
     
     // 1. Insert Tenant
-    $stmt = $pdo->prepare("INSERT INTO tenants (name, nepali_name, subdomain, institute_type, brand_color, tagline, address, phone, email, plan, status, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())");
-    $stmt->execute([$name, $nepaliName, $subdomain, $instituteType, $brandColor, $tagline, $address, $phone, $email, $plan, $status, $currentUserId]);
+    $stmt = $pdo->prepare("INSERT INTO tenants (name, nepali_name, subdomain, institute_type, brand_color, tagline, address, phone, email, pan_number, plan, status, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())");
+    $stmt->execute([$name, $nepaliName, $subdomain, $instituteType, $brandColor, $tagline, $address, $phone, $email, $panNumber, $plan, $status, $currentUserId]);
     $tenantId = $pdo->lastInsertId();
 
     // Process logo if uploaded
@@ -115,6 +116,19 @@ try {
 
     $stmt = $pdo->prepare("INSERT INTO audit_logs (user_id, action, ip_address, user_agent, description, created_at) VALUES (?, 'Tenant Created', ?, ?, ?, NOW())");
     $stmt->execute([$currentUserId, $userIp, $userAgent, "New tenant '$name' ($subdomain) created with admin '$adminEmail'"]);
+    
+    // 3.5 Attach Features
+    $features = $_POST['features'] ?? [];
+    if (is_array($features) && count($features) > 0) {
+        $stmtFeats = $pdo->prepare("INSERT INTO institute_feature_access (tenant_id, feature_id, is_enabled) VALUES (?, ?, 1)");
+        foreach ($features as $f) {
+            $featId = (int)$f;
+            if ($featId > 0) {
+                $stmtFeats->execute([$tenantId, $featId]);
+            }
+        }
+    }
+
     
     $pdo->commit();
     

@@ -10,27 +10,21 @@ require_once __DIR__ . '/legacy.php';
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
+        api: __DIR__.'/../routes/api.php',
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([
             'auth.superadmin' => \App\Http\Middleware\SuperAdminAuth::class,
+            'super_admin' => \App\Http\Middleware\SuperAdminMiddleware::class,
+            'module' => \App\Http\Middleware\CheckModuleAccess::class,
+            'jwt.auth' => \App\Http\Middleware\JwtAuthMiddleware::class, // Added JWT middleware
         ]);
 
+        // Disable CSRF globally for JWT system
         $middleware->validateCsrfTokens(except: [
-            '/api/login',
-            '/api/admin/*',
-            '/api/frontdesk/*',
-            '/api/student/*',
-            '/api/institute_search.php',
-            '/api/superadmin/*',
-            '/api/super-admin/*',
-            '/api/update_plan_features.php',
-            '/api/auth/change-password',
-            '/auth/send_password_reset',
-            '/auth/verify-otp',
-            '/auth/reset-password',
+            '*',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

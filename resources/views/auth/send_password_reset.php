@@ -51,10 +51,11 @@ try {
     if ($success) {
         echo json_encode(['success' => true, 'message' => 'A 6-digit verification code has been sent to your email!']);
     } else {
-        throw new Exception("Failed to dispatch password reset email.");
+        throw new \Exception("Failed to dispatch password reset email.");
     }
-} catch (Exception $e) {
-    echo json_encode(['success' => false, 'message' => "We couldn't send the reset email. Please try again later."]);
+} catch (\Throwable $e) {
+    error_log("[PasswordReset Error] " . $e->getMessage());
+    echo json_encode(['success' => false, 'message' => "We couldn't send the reset email. " . (APP_ENV === 'development' ? $e->getMessage() : "Please try again later.")]);
 }
 ?>
 

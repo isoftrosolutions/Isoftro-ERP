@@ -116,9 +116,9 @@ class AuthController {
         $_SESSION['tenant_logo'] = $tenantLogo;
         $_SESSION['last_activity'] = time();
 
-        // Load tenant modules into session at login (CRITICAL for module gating)
+        // Load tenant features into session at login (CRITICAL for feature gating)
         if (!empty($user['tenant_id'])) {
-            loadTenantModulesIntoSession($user['tenant_id']);
+            loadFeatures($user['tenant_id']);
         }
 
         // Handle Remember Me

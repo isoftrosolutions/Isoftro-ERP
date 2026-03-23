@@ -5,13 +5,14 @@
 
 $PDO = getDBConnection();
 
-// Fetch available modules
+// Fetch available features
 try {
-    $stmt = $PDO->query("SELECT * FROM modules ORDER BY name ASC");
-    $allModules = $stmt->fetchAll();
+    $stmt = $PDO->query("SELECT * FROM system_features ORDER BY feature_name ASC");
+    $allFeatures = $stmt->fetchAll();
 } catch (Exception $e) {
-    $allModules = [];
+    $allFeatures = [];
 }
+
 
 // $tenant and $assignedModules are passed from controller
 if (!$tenant) {
@@ -47,13 +48,70 @@ if (!$tenant) {
                 <div class="ct"><i class="fas fa-building"></i> Profile & Branding</div>
                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-top:15px;">
                     <div class="form-group" style="grid-column: span 2;">
-                        <label class="form-label">Institute Name</label>
+                        <label class="form-label">Institute Name *</label>
                         <input type="text" name="name" class="form-control" value="<?= htmlspecialchars($tenant['name']) ?>" required>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Subdomain (Read-only)</label>
-                        <input type="text" class="form-control" value="<?= htmlspecialchars($tenant['subdomain']) ?>" readonly style="background:#f8fafc; opacity:0.7;">
+                        <label class="form-label">Nepali Name</label>
+                        <input type="text" name="nepaliName" class="form-control" value="<?= htmlspecialchars($tenant['nepali_name'] ?? '') ?>">
                     </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Subdomain * (Read-only)</label>
+                        <input type="text" name="subdomain" class="form-control" value="<?= htmlspecialchars($tenant['subdomain']) ?>" readonly style="background:#f8fafc; opacity:0.7;">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Institute Type *</label>
+                        <select name="instituteType" class="form-control" required>
+                            <option value="bridge course" <?= $tenant['institute_type'] === 'bridge course' ? 'selected' : '' ?>>Bridge Course Center</option>
+                            <option value="loksewa preparation" <?= $tenant['institute_type'] === 'loksewa preparation' ? 'selected' : '' ?>>Loksewa Preparation Center</option>
+                            <option value="tuition" <?= $tenant['institute_type'] === 'tuition' ? 'selected' : '' ?>>Tuition Center</option>
+                            <option value="other" <?= $tenant['institute_type'] === 'other' ? 'selected' : '' ?>>Other Training Center</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Primary Email</label>
+                        <input type="email" name="email" class="form-control" value="<?= htmlspecialchars($tenant['email'] ?? '') ?>">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Contact Phone</label>
+                        <input type="text" name="phone" class="form-control" value="<?= htmlspecialchars($tenant['phone'] ?? '') ?>">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">PAN Number</label>
+                        <input type="text" name="panNumber" class="form-control" value="<?= htmlspecialchars($tenant['pan_number'] ?? '') ?>">
+                    </div>
+                    <div class="form-group" style="grid-column: span 1;">
+                        <label class="form-label">Brand Color</label>
+                        <input type="color" name="brandColor" class="form-control" value="<?= htmlspecialchars($tenant['brand_color'] ?? '#009e7e') ?>" style="padding:2px; height:40px; cursor:pointer;">
+                    </div>
+                    
+                    <div class="form-group" style="grid-column: span 2;">
+                        <label class="form-label">Institute Logo (Optional)</label>
+                        <div style="display:flex; align-items:center; gap:15px;">
+                            <?php if(!empty($tenant['logo_path'])): ?>
+                                <img src="<?= APP_URL . htmlspecialchars($tenant['logo_path']) ?>" style="height:40px; border-radius:4px; border:1px solid #ccc; object-fit:contain;">
+                            <?php endif; ?>
+                            <input type="file" name="logo" class="form-control" accept="image/*" style="padding: 7px;">
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="grid-column: span 2;">
+                        <label class="form-label">Tagline</label>
+                        <input type="text" name="tagline" class="form-control" value="<?= htmlspecialchars($tenant['tagline'] ?? '') ?>">
+                    </div>
+                    <div class="form-group" style="grid-column: span 2;">
+                        <label class="form-label">Address</label>
+                        <input type="text" name="address" class="form-control" value="<?= htmlspecialchars($tenant['address'] ?? '') ?>">
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="ct"><i class="fas fa-cogs"></i> Preferences & Status</div>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-top:15px;">
                     <div class="form-group">
                         <label class="form-label">Quota Plan</label>
                         <select name="plan" class="form-control" required>
@@ -62,10 +120,6 @@ if (!$tenant) {
                             <option value="professional" <?= $tenant['plan'] === 'professional' ? 'selected' : '' ?>>Professional</option>
                             <option value="enterprise" <?= $tenant['plan'] === 'enterprise' ? 'selected' : '' ?>>Enterprise</option>
                         </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Student Limit</label>
-                        <input type="number" name="student_limit" class="form-control" value="<?= $tenant['student_limit'] ?>" required>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Account Status</label>
@@ -81,6 +135,10 @@ if (!$tenant) {
             <div class="card">
                 <div class="ct"><i class="fas fa-coins"></i> Resource Allocation</div>
                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-top:15px;">
+                    <div class="form-group">
+                        <label class="form-label">Student Limit</label>
+                        <input type="number" name="student_limit" class="form-control" value="<?= $tenant['student_limit'] ?>" required>
+                    </div>
                     <div class="form-group">
                         <label class="form-label">SMS Credits Balance</label>
                         <input type="number" name="sms_credits" class="form-control" value="<?= $tenant['sms_credits'] ?? 0 ?>">
@@ -98,14 +156,15 @@ if (!$tenant) {
                 </div>
                 <p style="font-size:11px; color:var(--text-light); margin-bottom:15px;">Modify feature access for this institute.</p>
                 
-                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; max-height:400px; overflow-y:auto; padding-right:5px;" id="moduleGrid">
-                    <?php foreach ($allModules as $mod): ?>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; max-height:400px; overflow-y:auto; padding-right:5px;" id="featureGrid">
+                    <?php foreach ($allFeatures as $f): ?>
                     <label class="mod-check-item">
-                        <input type="checkbox" name="modules[]" value="<?= $mod['id'] ?>" <?= in_array($mod['id'], $assignedModules) ? 'checked' : '' ?>>
-                        <span><?= ucfirst($mod['name']) ?></span>
+                        <input type="checkbox" name="features[]" value="<?= $f['id'] ?>" <?= in_array($f['id'], $assignedModules) ? 'checked' : '' ?>>
+                        <span><?= htmlspecialchars($f['feature_name']) ?></span>
                     </label>
                     <?php endforeach; ?>
                 </div>
+
             </div>
         </div>
     </div>
@@ -141,7 +200,7 @@ async function updateTenant() {
     if (!form.reportValidity()) return;
 
     const formData = new FormData(form);
-    SuperAdmin.showNotification("Updating configuration...", "loading");
+    SuperAdmin.showNotification("Updating configuration...", "info");
 
     try {
         const res = await fetch(window.APP_URL + '/api/super-admin/tenants/update', {
@@ -157,7 +216,7 @@ async function updateTenant() {
             SuperAdmin.showNotification("Institute updated successfully!", "success");
             goNav('tenants');
         } else {
-            SuperAdmin.showNotification(result.error || "Update failed", "error");
+            SuperAdmin.showNotification(result.message || "Update failed", "error");
         }
     } catch (e) {
         SuperAdmin.showNotification("Network error", "error");

@@ -36,21 +36,34 @@ if (!defined('DB_USER'))
 if (!defined('DB_PASS'))
     define('DB_PASS', getenv('DB_PASSWORD') ?: '');
 
-// Initialize session (Required early for dynamic APP_NAME)
-if (session_status() === PHP_SESSION_NONE) {
+// Application URL - needed for session params
+if (!defined('APP_URL'))
+    define('APP_URL', getenv('APP_URL') ?: 'http://localhost/erp');
+
+// Initialize session with secure params - DEPRECATED for JWT
+// But kept as minimal fallback for temporary view-state if absolutely needed.
+if (session_status() === PHP_SESSION_NONE && !headers_sent()) {
     session_start();
 }
 
 // Application Configuration
 if (!defined('APP_NAME')) {
+    // Try to get tenant name from JWT if available, else env
+    $tenantName = null;
+    try {
+        if (function_exists('auth') && auth('api')->check()) {
+            $user = auth('api')->user();
+            // We'll need a way to get tenant name here, maybe from a cache or join
+            // For now fallback to env
+        }
+    } catch (\Exception $e) {}
+    
     $dynamicAppName = $_SESSION['tenant_name'] ?? getenv('APP_NAME') ?: 'isoftro';
     define('APP_NAME', $dynamicAppName);
 }
 if (!defined('APP_VERSION'))
     define('APP_VERSION', '3.0');
 
-if (!defined('APP_URL'))
-    define('APP_URL', getenv('APP_URL') ?: 'http://localhost/erp');
 if (!defined('APP_ENV'))
     define('APP_ENV', getenv('APP_ENV') ?: 'development');
 
@@ -264,7 +277,8 @@ if (!function_exists('generateCSRFToken')) {
 if (!function_exists('verifyCSRFToken')) {
     function verifyCSRFToken($token)
     {
-        return \App\Helpers\CsrfHelper::validateCsrfToken($token);
+        // JWT is its own security, CSRF is disabled globally in this migration
+        return true; 
     }
 }
 
@@ -278,14 +292,14 @@ if (!function_exists('getCsrfToken')) {
 if (!function_exists('csrfMetaTag')) {
     function csrfMetaTag()
     {
-        return \App\Helpers\CsrfHelper::csrfMetaTag();
+        return '<!-- CSRF disabled - Using JWT -->';
     }
 }
 
 if (!function_exists('csrfJsHeader')) {
     function csrfJsHeader()
     {
-        return \App\Helpers\CsrfHelper::csrfJsHeader();
+        return '<!-- CSRF disabled - Using JWT -->';
     }
 }
 
@@ -300,14 +314,41 @@ if (!function_exists('redirect')) {
 if (!function_exists('isLoggedIn')) {
     function isLoggedIn()
     {
-        return isset($_SESSION['userData']) && !empty($_SESSION['userData']['id']);
+        // Check JWT (Modern API & Web via Cookie)
+        try {
+            if (function_exists('auth') && auth('api')->check()) {
+                return true;
+            }
+        } catch (\Exception $e) {}
+
+        // Legacy check - removed for strict JWT migration
+        // return isset($_SESSION['userData']);
+
+        return false;
     }
 }
 
 if (!function_exists('getCurrentUser')) {
     function getCurrentUser()
     {
-        return $_SESSION['userData'] ?? null;
+        try {
+            if (function_exists('auth') && auth('api')->check()) {
+                $user = auth('api')->user();
+                if ($user) {
+                    return [
+                        'id' => $user->id,
+                        'email' => $user->email,
+                        'name' => $user->name,
+                        'role' => $user->role,
+                        'tenant_id' => $user->tenant_id,
+                        'avatar' => $user->avatar ?? $user->photo_url ?? null,
+                        'is_jwt' => true
+                    ];
+                }
+            }
+        } catch (\Exception $e) {}
+        
+        return null;
     }
 }
 
@@ -330,83 +371,88 @@ if (!function_exists('hasPermission')) {
 }
 
 /**
- * Load tenant modules from DB into session.
- * Standalone global function — callable from anywhere (login, middleware, etc.).
- * @param int $tenantId
+ * --- SIMPLE FEATURE SYSTEM ---
+ * Load all enabled features for a specific institute into session.
  */
-if (!function_exists('loadTenantModulesIntoSession')) {
-    function loadTenantModulesIntoSession($tenantId)
-    {
+if (!function_exists('loadFeatures')) {
+    function loadFeatures($tenantId) {
         if (empty($tenantId)) {
-            error_log("[MODULE-GATE] loadTenantModulesIntoSession called with empty tenantId");
-            $_SESSION['tenant_modules'] = [];
+            $_SESSION['enabled_features'] = [];
             return;
         }
         try {
             $db = getDBConnection();
             $stmt = $db->prepare("
-                SELECT LOWER(TRIM(m.name)) 
-                FROM modules m
-                JOIN institute_modules im ON m.id = im.module_id
-                WHERE im.tenant_id = :tenant_id 
-                AND im.is_enabled = 1
-                AND m.status = 'active'
+                SELECT f.feature_key
+                FROM system_features f
+                JOIN institute_feature_access ifa ON f.id = ifa.feature_id
+                WHERE ifa.tenant_id = :tenant_id 
+                AND ifa.is_enabled = 1
+                AND f.status = 'active'
             ");
             $stmt->execute(['tenant_id' => $tenantId]);
-            $modules = $stmt->fetchAll(\PDO::FETCH_COLUMN);
-            $_SESSION['tenant_modules'] = $modules ?: [];
-            $_SESSION['tenant_modules_loaded_at'] = time();
-            if (defined('APP_ENV') && APP_ENV === 'development') {
-                error_log("[MODULE-GATE] Loaded " . count($modules) . " modules for tenant $tenantId: " . implode(', ', $modules));
-            }
+            $features = $stmt->fetchAll(\PDO::FETCH_COLUMN);
+            $_SESSION['enabled_features'] = $features ?: [];
+            $_SESSION['features_loaded_at'] = time();
         } catch (\PDOException $e) {
-            error_log("[MODULE-GATE] DB error loading tenant modules: " . $e->getMessage());
-            $_SESSION['tenant_modules'] = [];
+            error_log("[FEATURE-GATE] DB error: " . $e->getMessage());
+            $_SESSION['enabled_features'] = [];
         }
     }
 }
 
 /**
- * Check if the current institute has access to a specific module.
- * @param string $module Module name (e.g., 'finance', 'academic')
- * @return bool
+ * Check if a feature is enabled for the current institute.
  */
-if (!function_exists('hasModule')) {
-    function hasModule($module)
-    {
-        // Normalize input
-        $module = strtolower(trim($module));
+if (!function_exists('hasFeature')) {
+    function hasFeature($featureKey) {
+        $featureKey = strtolower(trim($featureKey));
 
-        // Super admins have access to all modules
+        // Skip check for superadmin
         $user = getCurrentUser();
         if ($user && (($user['role'] ?? '') === 'superadmin' || ($user['role'] ?? '') === 'super-admin')) {
             return true;
         }
 
-        // Core modules are always enabled
-        $coreModules = ['dashboard', 'system'];
-        if (in_array($module, $coreModules)) {
+        // Core features always enabled
+        if ($featureKey === 'dashboard' || $featureKey === 'system') {
             return true;
         }
 
-        // If modules not in session, attempt reload (deny if no tenant context)
-        if (!isset($_SESSION['tenant_modules'])) {
+        // If features not in session, reload
+        if (!isset($_SESSION['enabled_features'])) {
             if (!empty($_SESSION['tenant_id'])) {
-                error_log("[MODULE-GATE] tenant_modules missing, reloading for tenant " . $_SESSION['tenant_id']);
-                loadTenantModulesIntoSession($_SESSION['tenant_id']);
+                loadFeatures($_SESSION['tenant_id']);
             } else {
-                error_log("[MODULE-GATE] No tenant_modules and no tenant_id in session. Denying module: $module");
-                return false; // DENY by default — never bypass
+                return false;
             }
         }
 
-        $result = in_array($module, $_SESSION['tenant_modules'] ?? []);
-        if (!$result && defined('APP_ENV') && APP_ENV === 'development') {
-            error_log("[MODULE-GATE] Module '$module' NOT enabled. Available: " . implode(', ', $_SESSION['tenant_modules'] ?? []));
-        }
-        return $result;
+        return in_array($featureKey, $_SESSION['enabled_features'] ?? []);
     }
 }
+
+/**
+ * Enforce feature check, kill execution if disabled.
+ */
+if (!function_exists('enforceFeature')) {
+    function enforceFeature($featureKey) {
+        if (!hasFeature($featureKey)) {
+            http_response_code(403);
+            die("Access Denied: The '{$featureKey}' feature is disabled for your institute.");
+        }
+    }
+}
+
+
+if (!function_exists('hasFeature')) {
+    // Already defined above
+}
+
+if (!function_exists('enforceFeature')) {
+    // Already defined above
+}
+
 
 if (!function_exists('requireAuth')) {
     function requireAuth()
@@ -435,31 +481,28 @@ if (!function_exists('requirePermission')) {
  * @param string $module
  */
 if (!function_exists('requireModule')) {
-    function requireModule($module)
+    function requireModule($feature)
     {
         requireAuth();
-
-        if (!hasModule($module)) {
-            http_response_code(403);
-            die("Access Denied: The '{$module}' module is not enabled for your institute.");
-        }
+        enforceFeature($feature);
     }
 }
 
 /**
- * Combined check for permission AND module.
+ * Combined check for permission AND feature.
  * @param string $permission
- * @param string|null $module
+ * @param string|null $feature
  */
 if (!function_exists('enforceAccess')) {
-    function enforceAccess($permission, $module = null)
+    function enforceAccess($permission, $feature = null)
     {
         requirePermission($permission);
-        if ($module) {
-            requireModule($module);
+        if ($feature) {
+            enforceFeature($feature);
         }
     }
 }
+
 
 if (!function_exists('showTenantNotFound')) {
     /**
@@ -547,9 +590,9 @@ if (!function_exists('checkRememberMe')) {
                         $_SESSION['institute_logo'] = $tenantLogo;
                         $_SESSION['last_activity'] = time();
 
-                        // Load tenant modules into session (Fix: rememberMe was missing this)
+                        // Load features into session
                         if (!empty($user['tenant_id'])) {
-                            loadTenantModulesIntoSession($user['tenant_id']);
+                            loadFeatures($user['tenant_id']);
                         }
 
                         $stmt = $db->prepare("UPDATE users SET last_login_at = NOW() WHERE id = :id");

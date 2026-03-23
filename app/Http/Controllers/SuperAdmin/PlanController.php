@@ -12,68 +12,56 @@ class PlanController {
     }
 
     public function index() {
-        // Get plans with their features and active tenant counts
         try {
-            // Get plan features from plan_features table
-            $planFeatures = $this->db->query("SELECT * FROM plan_features ORDER BY plan_name, feature_name")->fetchAll();
+            // Get all plans from subscription_plans table
+            $plansStmt = $this->db->query("
+                SELECT p.*, 
+                (SELECT COUNT(*) FROM tenants WHERE plan = p.slug AND status IN ('active', 'trial')) as active_tenants
+                FROM subscription_plans p 
+                ORDER BY p.sort_order ASC, p.id ASC
+            ");
+            $plansRaw = $plansStmt->fetchAll(PDO::FETCH_ASSOC);
 
-            // Group features by plan
+            // Get features for each plan
+            $featuresStmt = $this->db->query("SELECT * FROM plan_features ORDER BY sort_order ASC");
+            $featuresRaw = $featuresStmt->fetchAll(PDO::FETCH_ASSOC);
+            
             $featuresByPlan = [];
-            foreach ($planFeatures as $pf) {
-                $featuresByPlan[$pf['plan_name']][] = $pf;
+            foreach ($featuresRaw as $f) {
+                $featuresByPlan[$f['plan_id']][] = $f;
             }
-
-            // Count active tenants per plan
-            $tenantCountsRaw = $this->db->query("
-                SELECT plan, COUNT(*) as cnt 
-                FROM tenants 
-                WHERE status IN ('active','trial') 
-                GROUP BY plan
-            ")->fetchAll();
-            $tenantCounts = [];
-            foreach ($tenantCountsRaw as $row) {
-                $tenantCounts[$row['plan']] = $row['cnt'];
-            }
-
-            // Get distinct plan names from tenants table
-            $planNames = array_unique(array_merge(
-                array_keys($featuresByPlan),
-                array_column($tenantCountsRaw, 'plan')
-            ));
 
             $plans = [];
-            foreach ($planNames as $name) {
-                if (!$name) continue;
-
-                // Try to get price from platform_settings or plan_features
-                $priceRow = $this->db->prepare("SELECT setting_value FROM platform_settings WHERE setting_key = ?");
-                $priceRow->execute(["plan_{$name}_price"]);
-                $price = $priceRow->fetchColumn() ?: 0;
-
-                $studentLimitRow = $this->db->prepare("SELECT setting_value FROM platform_settings WHERE setting_key = ?");
-                $studentLimitRow->execute(["plan_{$name}_student_limit"]);
-                $studentLimit = $studentLimitRow->fetchColumn() ?: 0;
-
-                $smsRow = $this->db->prepare("SELECT setting_value FROM platform_settings WHERE setting_key = ?");
-                $smsRow->execute(["plan_{$name}_sms_credits"]);
-                $smsCredits = $smsRow->fetchColumn() ?: 0;
-
+            foreach ($plansRaw as $p) {
                 $plans[] = [
-                    'id'             => $name,
-                    'name'           => ucfirst($name),
-                    'price'          => (int)$price,
-                    'students'       => (int)$studentLimit,
-                    'sms'            => (int)$smsCredits,
-                    'active_tenants' => $tenantCounts[$name] ?? 0,
-                    'features'       => $featuresByPlan[$name] ?? [],
+                    'id'             => $p['id'],
+                    'slug'           => $p['slug'],
+                    'name'           => $p['name'],
+                    'price'          => (float)$p['price_monthly'],
+                    'students'       => (int)$p['student_limit'],
+                    'description'    => $p['description'],
+                    'badge_text'     => $p['badge_text'],
+                    'is_featured'    => (bool)$p['is_featured'],
+                    'status'         => $p['status'],
+                    'active_tenants' => (int)$p['active_tenants'],
+                    'features'       => $featuresByPlan[$p['id']] ?? [],
                 ];
             }
+
+            // Get all system features for the "Global Feature Toggles" or feature management
+            $systemFeaturesStmt = $this->db->query("SELECT * FROM system_features ORDER BY feature_name ASC");
+            $systemFeatures = $systemFeaturesStmt->fetchAll(PDO::FETCH_ASSOC);
+
         } catch (\Exception $e) {
             error_log("[PlanController] Error: " . $e->getMessage());
             $plans = [];
+            $systemFeatures = [];
         }
 
-        return view('super-admin.plans', ['plans' => $plans]);
+        return view('super-admin.plans', [
+            'plans' => $plans,
+            'systemFeatures' => $systemFeatures
+        ]);
     }
 
     public function handle($action = 'index') {

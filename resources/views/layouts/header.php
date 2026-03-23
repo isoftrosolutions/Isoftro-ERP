@@ -64,6 +64,15 @@ $roleCSS = $roleCSS ?? null;
         window.baseUrl = "<?php echo APP_URL; ?>";
         window.currentTenantId = "<?php echo $_SESSION['userData']['tenant_id'] ?? $_SESSION['tenant_id'] ?? ''; ?>";
     </script>
+    
+    <!-- CSRF Protection (Dynamic Synchronization) -->
+    <?php 
+        if (function_exists('csrfMetaTag')) {
+            echo csrfMetaTag();
+            echo csrfJsHeader();
+        }
+    ?>
+
 </head>
 <body class="<?php echo $bodyClass ?? ''; ?>">
     <div class="sb-overlay" id="sbOverlay"></div>

@@ -28,7 +28,7 @@ class TenantController {
     public function edit() {
         $id = request('id');
         $tenant = $this->tenantModel->find($id);
-        $assignedModules = $this->tenantModel->getModules($id);
+        $assignedModules = $this->tenantModel->getFeatures($id);
         
         return view('super-admin.edit-tenant', [
             'tenant' => $tenant,
@@ -39,7 +39,7 @@ class TenantController {
     public function show() {
         $id = request('id');
         $tenant = $this->tenantModel->find($id);
-        $assignedModules = $this->tenantModel->getModules($id);
+        $assignedModules = $this->tenantModel->getFeatures($id);
         $auditLogs = $this->auditModel->getLogsByTenant($id, 10);
         
         return view('super-admin.view-tenant', [

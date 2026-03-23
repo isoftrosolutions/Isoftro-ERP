@@ -48,9 +48,15 @@ window.SuperAdmin = (function (existing) {
     return lastPart.replace('.php', '');
   };
 
+  const compoundPages = ['view-tenant', 'edit-tenant', 'add-tenant'];
   let initialPage = getInitialPage();
-  let activeNav = initialPage.includes('-') ? initialPage.split('-')[0] : initialPage;
-  let activeSub = initialPage.includes('-') ? initialPage.split('-')[1] : null;
+  let activeNav = initialPage;
+  let activeSub = null;
+  
+  if (initialPage.includes('-') && !compoundPages.includes(initialPage)) {
+    activeNav = initialPage.split('-')[0];
+    activeSub = initialPage.split('-')[1];
+  }
 
   function init() {
     // Restore sidebar collapse state
@@ -108,6 +114,7 @@ window.SuperAdmin = (function (existing) {
         break;
       case 'view-tenant':
       case 'edit-tenant':
+      case 'add-tenant':
         fetchSPAPage(activeNav);
         break;
       case 'revenue':
@@ -304,10 +311,8 @@ window.SuperAdmin = (function (existing) {
         options.method = 'POST';
     }
 
-    // Get CSRF token from multiple sources for compatibility
-    const csrfToken = window.CSRF_TOKEN || 
-                      window.csrfToken || 
-                      document.querySelector('meta[name="csrf-token"]')?.content;
+    // JWT state check
+    const isJwtSecure = window.JWT_STATE || false;
     
     const defaults = {
       method: 'GET',
@@ -315,9 +320,9 @@ window.SuperAdmin = (function (existing) {
         "Content-Type": "application/json",
         "Accept": "application/json",
         "X-Requested-With": "XMLHttpRequest",
-        ...(csrfToken ? { "X-CSRF-Token": csrfToken } : {})
       },
-      credentials: "same-origin",
+      // Ensure cookies are sent for JWT stateless auth
+      credentials: "include",
     };
 
     // Deep merge headers
@@ -395,21 +400,15 @@ window.SuperAdmin = (function (existing) {
     const mainContent = document.getElementById('mainContent');
     if (!mainContent) return;
 
-    const base = (window.APP_URL || '') + '/dash/super-admin/';
     const currentParams = new URLSearchParams(window.location.search);
     currentParams.delete('partial');
-    currentParams.set('page', page);
-    currentParams.set('partial', 'true');
+    currentParams.delete('page');
 
-    const pageUrl = base + '?' + currentParams.toString();
+    let qs = currentParams.toString();
+    let urlPath = 'pages/super_admin/' + page;
+    if (qs) urlPath += '?' + qs;
 
-    fetch(pageUrl)
-      .then(res => res.text())
-      .then(html => processPartialHtml(html, mainContent))
-      .catch(err => {
-        console.error('[SuperAdmin] Error loading page:', err);
-        mainContent.innerHTML = `<div class="pg fu"><div class="card"><i class="fas fa-exclamation-triangle" style="color:#ef4444;"></i> Error loading page: ${page}</div></div>`;
-      });
+    fetchAndRender(urlPath);
   }
 
   // Legacy fallback (kept for compatibility)
@@ -541,8 +540,14 @@ window.SuperAdmin = (function (existing) {
   // Handle browser back/forward navigation
   window.addEventListener('popstate', (e) => {
     let pageVal = e.state?.pageVal || (new URLSearchParams(window.location.search)).get('page') || 'overview';
-    activeNav = pageVal.includes('-') ? pageVal.split('-')[0] : pageVal;
-    activeSub = pageVal.includes('-') ? pageVal.split('-')[1] : null;
+    activeNav = pageVal;
+    activeSub = null;
+    
+    if (pageVal.includes('-') && !compoundPages.includes(pageVal)) {
+      activeNav = pageVal.split('-')[0];
+      activeSub = pageVal.split('-')[1];
+    }
+    
     updateSidebarActiveStates(activeNav, activeSub);
     renderPage();
   });

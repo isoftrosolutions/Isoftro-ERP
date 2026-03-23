@@ -47,11 +47,12 @@ class CsrfHelper
      * @param int $expiryTime Token expiry time in seconds
      * @return bool True if expired
      */
-    public static function isCsrfTokenExpired($expiryTime = 1800)
+    public static function isCsrfTokenExpired($expiryTime = 86400) // 24 hours
     {
         $tokenTime = $_SESSION['csrf_token_time'] ?? 0;
         return (time() - $tokenTime) > $expiryTime;
     }
+
 
     /**
      * Validate CSRF token from request

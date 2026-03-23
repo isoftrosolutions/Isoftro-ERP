@@ -52,36 +52,10 @@ Route::get('/login', function() {
 });
 
 // Login API (POST) — session-based authentication
-Route::post('/api/login', function () {
-    header('Content-Type: application/json');
-    
-    $isApi = isset($_GET['api']) || 
-             (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest') ||
-             (isset($_SERVER['HTTP_ACCEPT']) && strpos($_SERVER['HTTP_ACCEPT'], 'application/json') !== false);
-
-    if (!$isApi && !\App\Helpers\CsrfHelper::validateCsrfToken()) {
-        echo json_encode(['success' => false, 'message' => 'Security token expired. Please refresh the page.']);
-        exit;
-    }
-
-    $_GET['api'] = 1;
-    $_POST['action'] = 'login';
-    require_once app_path('Http/Controllers/AuthController.php');
-});
+Route::post('/api/login', [App\Http\Controllers\API\AuthController::class, 'login']);
 
 // Change Password API (Internal)
-Route::post('/api/auth/change-password', function() {
-    requireAuth();
-    header('Content-Type: application/json');
-    if (!\App\Helpers\CsrfHelper::validateCsrfToken()) {
-        echo json_encode(['success' => false, 'error' => 'Security token expired. Please refresh the page.']);
-        exit;
-    }
-    
-    $_GET['api'] = 1;
-    $_POST['action'] = 'change_password';
-    require_once app_path('Http/Controllers/AuthController.php');
-});
+Route::post('/api/auth/change-password', [App\Http\Controllers\API\AuthController::class, 'changePassword'])->middleware('auth:api');
 
 // Forgot Password Page (GET)
 Route::get('/auth/forgot-password', function () {
@@ -846,7 +820,7 @@ Route::middleware(['auth.superadmin'])->group(function () {
         require_once app_path('Http/Controllers/SuperAdmin/SuperAdminRouter.php');
 
         $router = new \App\Http\Controllers\SuperAdmin\SuperAdminRouter();
-        $router->handle($page);
+        return $router->handle($page);
     });
     
     Route::post('/api/super-admin/reports/generate', [App\Http\Controllers\SuperAdmin\ReportController::class, 'generate']);
@@ -868,30 +842,14 @@ Route::middleware(['auth.superadmin'])->group(function () {
         require_once app_path('Http/Controllers/SuperAdmin/SupportApi.php');
     });
     
-    Route::get('/api/super-admin/tenants', function() {
-        require_once app_path('Http/Controllers/tenants.php');
-    });
-    Route::post('/api/super-admin/tenants/save', function() {
-        require_once app_path('Http/Controllers/save_tenant.php');
-    });
-    Route::post('/api/super-admin/tenants/suspend/{id}', function($id) {
-        $controller = new \App\Http\Controllers\SuperAdmin\TenantController(getDBConnection());
-        return $controller->suspend($id);
-    });
-    Route::post('/api/super-admin/tenants/activate/{id}', function($id) {
-        $controller = new \App\Http\Controllers\SuperAdmin\TenantController(getDBConnection());
-        return $controller->activate($id);
-    });
+    Route::get('/api/super-admin/tenants', [App\Http\Controllers\API\SuperAdminController::class, 'tenants']);
+    Route::post('/api/super-admin/tenants/save', [App\Http\Controllers\API\SuperAdminController::class, 'saveTenant']);
+    Route::post('/api/super-admin/tenants/suspend/{id}', [App\Http\Controllers\API\SuperAdminController::class, 'suspendTenant']);
+    Route::post('/api/super-admin/tenants/activate/{id}', [App\Http\Controllers\API\SuperAdminController::class, 'activateTenant']);
 
-    Route::post('/api/super-admin/tenants/update', function() {
-        require_once app_path('Http/Controllers/update_tenant.php');
-    });
-    Route::post('/api/super-admin/tenants/delete', function() {
-        require_once app_path('Http/Controllers/delete_tenant.php');
-    });
-    Route::post('/api/super-admin/tenants/update-plan', function() {
-        require_once app_path('Http/Controllers/update_plan.php');
-    });
+    Route::post('/api/super-admin/tenants/update', [App\Http\Controllers\API\SuperAdminController::class, 'updateTenant']);
+    Route::post('/api/super-admin/tenants/delete', [App\Http\Controllers\API\SuperAdminController::class, 'deleteTenant']);
+    Route::post('/api/super-admin/tenants/update-plan', [App\Http\Controllers\API\SuperAdminController::class, 'updatePlan']);
 
     // Plan and Pricing Management
     Route::get('/api/get_plan_features.php', function() {

@@ -102,15 +102,16 @@ $tenant['teacher_count'] = $tenant['teacher_count'] ?? 0;
             <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:15px;" id="profileModuleList">
                 <?php 
                 $PDO = getDBConnection();
-                $stmt = $PDO->prepare("SELECT name FROM modules WHERE id IN (".(!empty($assignedModules) ? implode(',', array_fill(0, count($assignedModules), '?')) : '0').")");
+                $stmt = $PDO->prepare("SELECT feature_name FROM system_features WHERE id IN (".(!empty($assignedModules) ? implode(',', array_fill(0, count($assignedModules), '?')) : '0').")");
                 $stmt->execute($assignedModules);
-                $mods = $stmt->fetchAll(PDO::FETCH_COLUMN);
+                $feats = $stmt->fetchAll(PDO::FETCH_COLUMN);
                 
-                if (empty($mods)): ?>
-                    <p style="font-size:13px; color:var(--text-light);">No custom modules enabled.</p>
-                <?php else: foreach($mods as $m): ?>
-                    <span class="mod-pill"><i class="fas fa-check-circle"></i> <?= ucfirst($m) ?></span>
+                if (empty($feats)): ?>
+                    <p style="font-size:13px; color:var(--text-light);">No custom features enabled.</p>
+                <?php else: foreach($feats as $f): ?>
+                    <span class="mod-pill"><i class="fas fa-check-circle"></i> <?= htmlspecialchars($f) ?></span>
                 <?php endforeach; endif; ?>
+
             </div>
         </div>
     </div>
