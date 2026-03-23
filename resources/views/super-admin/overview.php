@@ -16,8 +16,7 @@ $sysHealth = $sysHealth ?? [];
         <h1>Platform Overview</h1>
     </div>
     <div class="toolbar-right">
-        <button class="btn bs" data-modal="announcementModal"><i class="fas fa-bullhorn"></i> Announcement</button>
-        <button class="btn bt" data-modal="addTenantModal"><i class="fas fa-plus"></i> New Institute</button>
+        <button class="btn bt" onclick="goNav('add-tenant')"><i class="fas fa-plus"></i> New Institute</button>
     </div>
 </div>
 
@@ -158,7 +157,7 @@ $sysHealth = $sysHealth ?? [];
 <div class="card mt-20" style="background: linear-gradient(to right, #009E7E, #007a62); border:none; color:white;">
     <div class="ct" style="color:white; border-bottom-color: rgba(255,255,255,0.2);">Quick Platform Actions</div>
     <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px;">
-        <button class="btn" style="background:rgba(255,255,255,0.2); border:none; color:white;" onclick="openModal('addTenantModal')"><i class="fas fa-plus"></i> Add New Institute</button>
+        <button class="btn" style="background:rgba(255,255,255,0.2); border:none; color:white;" onclick="goNav('add-tenant')"><i class="fas fa-plus"></i> Add New Institute</button>
         <button class="btn" style="background:rgba(255,255,255,0.2); border:none; color:white;"><i class="fas fa-user-tag"></i> Assign Plan</button>
         <button class="btn" style="background:rgba(255,255,255,0.2); border:none; color:white;"><i class="fas fa-bullhorn"></i> Send Announcement</button>
         <button class="btn" style="background:rgba(255,255,255,0.2); border:none; color:white;"><i class="fas fa-toggle-on"></i> Toggle Feature</button>

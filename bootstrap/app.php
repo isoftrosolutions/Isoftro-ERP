@@ -19,7 +19,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'auth.superadmin' => \App\Http\Middleware\SuperAdminAuth::class,
             'super_admin' => \App\Http\Middleware\SuperAdminMiddleware::class,
             'module' => \App\Http\Middleware\CheckModuleAccess::class,
-            'jwt.auth' => \App\Http\Middleware\JwtAuthMiddleware::class, // Added JWT middleware
+            'jwt.auth' => \App\Http\Middleware\JwtAuthMiddleware::class,
+            'tenant.identify' => \App\Http\Middleware\IdentifyTenant::class, // Added tenant identification
         ]);
 
         // Disable CSRF globally for JWT system

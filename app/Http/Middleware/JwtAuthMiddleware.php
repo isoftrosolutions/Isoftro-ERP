@@ -67,6 +67,11 @@ class JwtAuthMiddleware extends BaseMiddleware
             
             if ($resolvedTenantId) {
                 $_SESSION['tenant_id'] = $resolvedTenantId;
+                
+                // CRITICAL: Load features for the legacy hasFeature() helper
+                if (function_exists('loadFeatures')) {
+                    loadFeatures($resolvedTenantId);
+                }
             }
 
         } catch (Exception $e) {

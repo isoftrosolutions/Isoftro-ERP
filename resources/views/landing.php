@@ -504,57 +504,9 @@
       <p class="section-subtitle mx-auto">Choose the perfect plan for your institution's growth.</p>
     </div>
     
-    <?php
-    $db = getDBConnection();
-    try {
-        $plans = $db->query("SELECT * FROM subscription_plans WHERE status = 'active' ORDER BY sort_order ASC")->fetchAll();
-        $hasDynamicPlans = count($plans) > 0;
-    } catch (Exception $e) {
-        $hasDynamicPlans = false;
-        $plans = [];
-    }
-    ?>
+
 
     <div class="l-pricing__grid">
-      <?php if ($hasDynamicPlans): ?>
-        <?php foreach ($plans as $index => $plan): 
-            $plan_id = $plan['id'];
-            $features = $db->prepare("SELECT * FROM plan_features WHERE plan_id = :plan_id ORDER BY sort_order ASC");
-            $features->execute(['plan_id' => $plan_id]);
-            $features = $features->fetchAll();
-            $delayClass = "reveal-delay-" . ($index + 1);
-            $featuredClass = $plan['is_featured'] ? 'pricing-card--featured' : '';
-            $cssClass = !empty($plan['css_class']) ? "pricing-card--" . $plan['css_class'] : '';
-            $btnClass = $plan['is_featured'] ? 'btn--primary' : 'btn--outline';
-        ?>
-          <div class="pricing-card <?php echo $cssClass; ?> <?php echo $featuredClass; ?> reveal <?php echo $delayClass; ?>">
-            <?php if (!empty($plan['badge_text'])): ?>
-              <div class="pricing-card__badge"><?php echo htmlspecialchars($plan['badge_text']); ?></div>
-            <?php endif; ?>
-            <h3 class="pricing-card__name"><?php echo htmlspecialchars($plan['name']); ?></h3>
-            <p class="pricing-card__desc"><?php echo htmlspecialchars($plan['description']); ?></p>
-            <div class="pricing-card__price">
-              <span class="pricing-card__currency">Rs</span>
-              <span class="pricing-card__amount"><?php echo number_format($plan['price_monthly'], 0); ?></span>
-              <span class="pricing-card__period">/month</span>
-            </div>
-            <div class="pricing-card__divider"></div>
-            <div class="pricing-card__features-title">Includes:</div>
-            <div class="pricing-card__features">
-              <?php foreach ($features as $feature): ?>
-                <div class="pricing-feature">
-                  <i class="fa-solid <?php echo $feature['is_included'] ? 'fa-check' : 'fa-xmark text-muted'; ?>"></i> 
-                  <?php echo htmlspecialchars($feature['feature_text']); ?>
-                </div>
-              <?php endforeach; ?>
-            </div>
-            <a href="#contact" class="btn <?php echo $btnClass; ?>">
-              <?php echo $plan['slug'] === 'professional' ? 'Contact Sales' : 'Get Started'; ?>
-            </a>
-          </div>
-        <?php endforeach; ?>
-      <?php else: ?>
-        <!-- Fallback to static if table not found -->
         <!-- Starter Plan -->
         <div class="pricing-card pricing-card--starter reveal reveal-delay-1">
           <h3 class="pricing-card__name">Starter Plan</h3>
@@ -580,7 +532,7 @@
         <div class="pricing-card pricing-card--growth pricing-card--featured reveal reveal-delay-2">
           <div class="pricing-card__badge">Most Popular</div>
           <h3 class="pricing-card__name">Growth Plan</h3>
-          <p class="pricing-card__desc">👈 Complete institute management system</p>
+          <p class="pricing-card__desc">Complete institute management system</p>
           <div class="pricing-card__price"><span class="pricing-card__currency">Rs</span><span class="pricing-card__amount">8000</span><span class="pricing-card__period">/month</span></div>
           <div class="pricing-card__divider"></div>
           <div class="pricing-card__features-title">Everything in Starter +</div>
@@ -599,7 +551,7 @@
         <!-- Professional Plan -->
         <div class="pricing-card pricing-card--pro reveal reveal-delay-3">
           <h3 class="pricing-card__name">Professional Plan</h3>
-          <p class="pricing-card__desc">👈 Enterprise level institute ERP</p>
+          <p class="pricing-card__desc">Enterprise level institute ERP</p>
           <div class="pricing-card__price"><span class="pricing-card__currency">Rs</span><span class="pricing-card__amount">12000</span><span class="pricing-card__period">/month</span></div>
           <div class="pricing-card__divider"></div>
           <div class="pricing-card__features-title">Everything in Growth +</div>
@@ -614,7 +566,6 @@
           </div>
           <a href="#contact" class="btn btn--outline">Contact Sales</a>
         </div>
-      <?php endif; ?>
     </div>
   </div>
 </section>

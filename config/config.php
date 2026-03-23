@@ -314,15 +314,21 @@ if (!function_exists('redirect')) {
 if (!function_exists('isLoggedIn')) {
     function isLoggedIn()
     {
-        // Check JWT (Modern API & Web via Cookie)
         try {
+            // Check native Laravel auth check (usually expects Bearer header)
             if (function_exists('auth') && auth('api')->check()) {
                 return true;
             }
-        } catch (\Exception $e) {}
 
-        // Legacy check - removed for strict JWT migration
-        // return isset($_SESSION['userData']);
+            // Fallback: Check jwt token cookie manually
+            $token = $_COOKIE['token'] ?? null;
+            if ($token) {
+                $user = auth('api')->setToken($token)->user();
+                return (bool)$user;
+            }
+        } catch (\Exception $e) {
+            error_log("isLoggedIn error: " . $e->getMessage());
+        }
 
         return false;
     }
@@ -332,21 +338,30 @@ if (!function_exists('getCurrentUser')) {
     function getCurrentUser()
     {
         try {
+            $user = null;
             if (function_exists('auth') && auth('api')->check()) {
                 $user = auth('api')->user();
-                if ($user) {
-                    return [
-                        'id' => $user->id,
-                        'email' => $user->email,
-                        'name' => $user->name,
-                        'role' => $user->role,
-                        'tenant_id' => $user->tenant_id,
-                        'avatar' => $user->avatar ?? $user->photo_url ?? null,
-                        'is_jwt' => true
-                    ];
+            } else {
+                $token = $_COOKIE['token'] ?? null;
+                if ($token) {
+                    $user = auth('api')->setToken($token)->user();
                 }
             }
-        } catch (\Exception $e) {}
+
+            if ($user) {
+                return [
+                    'id' => $user->id,
+                    'email' => $user->email,
+                    'name' => $user->name,
+                    'role' => $user->role,
+                    'tenant_id' => $user->tenant_id,
+                    'avatar' => $user->avatar ?? $user->photo_url ?? null,
+                    'is_jwt' => true
+                ];
+            }
+        } catch (\Exception $e) {
+            error_log("getCurrentUser error: " . $e->getMessage());
+        }
         
         return null;
     }
@@ -438,8 +453,21 @@ if (!function_exists('hasFeature')) {
 if (!function_exists('enforceFeature')) {
     function enforceFeature($featureKey) {
         if (!hasFeature($featureKey)) {
+            $message = "Access Denied: The '{$featureKey}' feature is disabled for your institute.";
+            
+            // Check if it's an API request
+            $isApi = (isset($_SERVER['HTTP_ACCEPT']) && str_contains($_SERVER['HTTP_ACCEPT'], 'application/json')) ||
+                     (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest');
+            
+            if ($isApi) {
+                header('Content-Type: application/json');
+                http_response_code(403);
+                echo json_encode(['success' => false, 'message' => $message]);
+                exit;
+            }
+
             http_response_code(403);
-            die("Access Denied: The '{$featureKey}' feature is disabled for your institute.");
+            die($message);
         }
     }
 }

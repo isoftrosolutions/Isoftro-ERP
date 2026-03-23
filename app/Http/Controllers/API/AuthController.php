@@ -25,25 +25,27 @@ class AuthController extends Controller
      */
     public function login(Request $request): JsonResponse
     {
+        // Support both 'email' and 'username' (standard JS) field names
+        $emailKey = $request->has('username') ? 'username' : 'email';
+        
         $validator = Validator::make($request->all(), [
-            'email' => 'required|email',
+            $emailKey => 'required|email',
             'password' => 'required|string|min:6',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
+                'message' => 'Please provide valid credentials.',
                 'errors' => $validator->errors()
             ], 422);
         }
 
         $credentials = [
-            'email' => $request->email,
+            'email' => $request->input($emailKey),
             'password' => $request->password,
         ];
 
-        // JWT Auth attempt using custom password column (if configured in User model)
-        // Since we overridden getAuthPasswordName, attempt() should work with password key
         if (!$token = auth('api')->attempt($credentials)) {
             return response()->json([
                 'success' => false,
@@ -59,7 +61,7 @@ class AuthController extends Controller
                 auth('api')->logout();
                 return response()->json([
                     'success' => false,
-                    'message' => 'Your tenant account is not active. Please contact support.'
+                    'message' => 'Your tenant account is prohibited or inactive. Please contact support.'
                 ], 403);
             }
         }
@@ -117,12 +119,38 @@ class AuthController extends Controller
     {
         $user = auth('api')->user();
         $ttl = auth('api')->factory()->getTTL() * 60;
+        $baseUrl = defined('APP_URL') ? APP_URL : '/erp';
+
+        // Role-based redirection logic
+        $role = str_replace(['_', ' '], '-', strtolower($user->role));
+        $roleSlugMap = [
+            'superadmin' => 'super-admin',
+            'instituteadmin' => 'admin',
+            'frontdesk' => 'front-desk',
+            'teacher' => 'teacher',
+            'student' => 'student',
+            'guardian' => 'guardian',
+        ];
+        $slug = $roleSlugMap[$user->role] ?? $role;
+        $redirectUrl = $baseUrl . '/dash/' . $slug;
+
+        // Calculate cookie domain – support subdomains if on a proper domain
+        $host = $_SERVER['HTTP_HOST'] ?? '';
+        $cookieDomain = null;
+        if ($host && !in_array($host, ['localhost', '127.0.0.1'])) {
+            $parts = explode('.', $host);
+            if (count($parts) >= 2) {
+                $cookieDomain = '.' . implode('.', array_slice($parts, -2));
+            }
+        }
 
         return response()->json([
             'success' => true,
             'access_token' => $token,
             'token_type' => 'bearer',
             'expires_in' => $ttl,
+            'loading_screen' => $baseUrl . '/loading',
+            'redirect' => $redirectUrl,
             'user' => [
                 'id' => $user->id,
                 'name' => $user->name,
@@ -136,7 +164,7 @@ class AuthController extends Controller
             $token, 
             $ttl / 60, 
             '/', 
-            null, 
+            $cookieDomain, 
             isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on', 
             true, 
             false, 

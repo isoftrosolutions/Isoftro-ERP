@@ -239,7 +239,7 @@ class SuperAdminController extends Controller
                 'tenant_id' => $tenant->id,
                 'role' => 'instituteadmin',
                 'email' => $request->adminEmail,
-                'password' => $request->adminPass, // Model should handle hashing or use Hash::make
+                'password_hash' => password_hash($request->adminPass, PASSWORD_BCRYPT, ['cost' => 12]),
                 'name' => $request->adminName ?? 'Admin',
                 'phone' => $request->adminPhone,
                 'status' => 'active',
@@ -251,8 +251,7 @@ class SuperAdminController extends Controller
                     DB::table('institute_feature_access')->insert([
                         'tenant_id' => $tenant->id,
                         'feature_id' => $featureId,
-                        'is_enabled' => true,
-                        'updated_at' => now()
+                        'is_enabled' => true
                     ]);
                 }
             }
@@ -357,8 +356,7 @@ class SuperAdminController extends Controller
                     DB::table('institute_feature_access')->insert([
                         'tenant_id' => $tenant->id,
                         'feature_id' => $featureId,
-                        'is_enabled' => true,
-                        'updated_at' => now()
+                        'is_enabled' => true
                     ]);
                 }
             }
