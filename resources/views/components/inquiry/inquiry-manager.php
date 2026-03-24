@@ -30,7 +30,11 @@ $canAddInquiry = $canAddInquiry ?? true;
                 <p class="pg-sub">Capture, track and convert admission leads effectively</p>
             </div>
         </div>
-        <div class="pg-acts">
+        <div class="pg-acts" style="display: flex; gap: 8px;">
+            <div class="btn-group" style="display: flex; background: #e2e8f0; border-radius: 8px; padding: 4px; gap: 4px;">
+                <button class="btn bt sm active" id="btnListView" onclick="toggleInqView('list')" style="background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border:none; margin:0;"><i class="fa-solid fa-list"></i> List</button>
+                <button class="btn bt sm" id="btnKanbanView" onclick="toggleInqView('kanban')" style="border:none; margin:0; background: transparent;"><i class="fa-solid fa-table-columns"></i> Kanban</button>
+            </div>
             <button class="btn bt" onclick="refreshInquiries()">
                 <i class="fa-solid fa-rotate"></i>
             </button>
@@ -96,8 +100,8 @@ $canAddInquiry = $canAddInquiry ?? true;
         </div>
     </div>
 
-    <!-- ── DATA TABLE ── -->
-    <div class="card" style="border-radius: 14px; overflow: hidden;">
+    <!-- ── DATA TABLE (List View) ── -->
+    <div class="card" id="inq_table_view" style="border-radius: 14px; overflow: hidden;">
         <div class="table-responsive">
             <table class="table" id="inq_table">
                 <thead style="background: #f8fafc;">
@@ -119,6 +123,11 @@ $canAddInquiry = $canAddInquiry ?? true;
             <!-- Pagination Rendered by JS -->
         </div>
     </div>
+
+    <!-- ── KANBAN BOARD (Hidden by default) ── -->
+    <div id="inq_kanban_view" style="display: none; height: calc(100vh - 350px); min-height: 500px; gap: 16px; overflow-x: auto; padding-bottom: 16px;">
+        <!-- Columns will be injected here by JS -->
+    </div>
 </div>
 
 <!-- Modal Structure for Follow-ups or Details -->
@@ -139,7 +148,29 @@ $canAddInquiry = $canAddInquiry ?? true;
     const API_URL = "<?= $apiEndpoint ?>";
     let allInquiries = [];
     let filteredInquiries = [];
+    let currentView = 'list';
     
+    window.toggleInqView = (view) => {
+        currentView = view;
+        const btnL = document.getElementById('btnListView');
+        const btnK = document.getElementById('btnKanbanView');
+        if(btnL) {
+            btnL.style.background = view === 'list' ? '#fff' : 'transparent';
+            btnL.style.boxShadow = view === 'list' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none';
+        }
+        if(btnK) {
+            btnK.style.background = view === 'kanban' ? '#fff' : 'transparent';
+            btnK.style.boxShadow = view === 'kanban' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none';
+        }
+        
+        const tbl = document.getElementById('inq_table_view');
+        const kbn = document.getElementById('inq_kanban_view');
+        if(tbl) tbl.style.display = view === 'list' ? 'block' : 'none';
+        if(kbn) kbn.style.display = view === 'kanban' ? 'flex' : 'none';
+        
+        if (view === 'kanban') window.renderKanban();
+    };
+
     window.refreshInquiries = async () => {
         const tbody = document.getElementById('inq_table_body');
         tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 60px;"><i class="fa-solid fa-circle-notch fa-spin"></i> Refreshing...</td></tr>';
@@ -190,6 +221,7 @@ $canAddInquiry = $canAddInquiry ?? true;
         });
         
         renderInqTable();
+        if (currentView === 'kanban') window.renderKanban();
     };
 
     function renderInqTable() {
@@ -268,6 +300,89 @@ $canAddInquiry = $canAddInquiry ?? true;
 
     window.closeInqModal = () => {
         document.getElementById('inq_modal').style.display = 'none';
+    };
+
+    window.renderKanban = () => {
+        const board = document.getElementById('inq_kanban_view');
+        if(!board) return;
+        
+        const cols = [
+            { id: 'pending', title: 'Pending / New', color: '#b45309', bg: '#fef3c7' },
+            { id: 'contacted', title: 'In Discussion', color: '#0369a1', bg: '#e0f2fe' },
+            { id: 'follow_up', title: 'Action Needed', color: '#4f46e5', bg: '#e0e7ff' },
+            { id: 'admitted', title: 'Admitted / Closed', color: '#15803d', bg: '#dcfce7' }
+        ];
+        
+        board.innerHTML = cols.map(c => {
+            const items = filteredInquiries.filter(i => {
+                const s = (i.status || '').toLowerCase();
+                if (c.id === 'admitted') return ['admitted', 'converted', 'not_interested', 'closed'].includes(s);
+                if (c.id === 'contacted') return ['contacted', 'in_progress', 'interested'].includes(s);
+                if (c.id === 'follow_up') return s === 'follow_up';
+                return s === c.id || !s; 
+            });
+            
+            return `
+                <div data-status="${c.id}" ondragover="window.allowDrop(event)" ondrop="window.dropCard(event, '${c.id}')" style="flex: 1; min-width: 280px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; display: flex; flex-direction: column; overflow:hidden;">
+                    <div style="padding: 14px 16px; border-top: 3px solid ${c.color}; border-bottom: 1px solid #e2e8f0; font-weight: 800; color: #1e293b; display: flex; justify-content: space-between; align-items: center; background: #fff;">
+                        ${c.title} <span style="background: ${c.bg}; color: ${c.color}; padding: 2px 8px; border-radius: 12px; font-size: 11px;">${items.length}</span>
+                    </div>
+                    <div style="padding: 12px; flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; min-height: 100px;">
+                        ${items.map(i => `
+                            <div draggable="true" ondragstart="window.dragCard(event, ${i.id})" style="background: #fff; padding: 14px; border-radius: 10px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; cursor: grab; transition: transform 0.2s;" onmouseenter="this.style.transform='translateY(-2px)'" onmouseleave="this.style.transform='none'">
+                                <div style="font-weight: 800; font-size: 14px; margin-bottom: 6px; color: var(--text-dark);">${i.full_name}</div>
+                                <div style="font-size: 12px; color: var(--text-light); margin-bottom: 10px;"><i class="fa-solid fa-phone" style="font-size: 11px; margin-right: 4px;"></i>${i.phone}</div>
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <span style="font-size: 11px; font-weight: 700; color: #64748b; background: #f1f5f9; padding: 3px 8px; border-radius: 6px; max-width: 140px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${i.course_name || 'Generic Inquiry'}</span>
+                                    <button class="btn bt sm" onclick="quickViewInq(${i.id})" style="padding: 4px 8px; border-radius: 6px;"><i class="fa-solid fa-eye"></i></button>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }).join('');
+    };
+
+    window.allowDrop = (ev) => ev.preventDefault();
+    window.dragCard = (ev, id) => ev.dataTransfer.setData("inq_id", id);
+    window.dropCard = async (ev, newStatus) => {
+        ev.preventDefault();
+        const id = ev.dataTransfer.getData("inq_id");
+        if (!id) return;
+        
+        const inq = allInquiries.find(i => i.id == id);
+        if (inq) {
+            let targetStatus = newStatus;
+            if (newStatus === 'admitted') targetStatus = 'converted';
+            
+            if (inq.status !== targetStatus) {
+                const oldStatus = inq.status;
+                inq.status = targetStatus;
+                updateInqStats();
+                filterInq(); 
+                
+                try {
+                    let reqHeaders = {'Content-Type': 'application/json'};
+                    if (window.CSRF_TOKEN) reqHeaders['X-CSRF-Token'] = window.CSRF_TOKEN;
+                    if (typeof getHeaders === 'function') reqHeaders = {...reqHeaders, ...getHeaders()};
+                    
+                    const res = await fetch(API_URL, {
+                        method: 'POST',
+                        headers: reqHeaders,
+                        body: JSON.stringify({ action: 'update_status', inquiry_id: id, status: targetStatus })
+                    });
+                    const r = await res.json();
+                    if (!r.success) throw new Error(r.message);
+                } catch (e) {
+                    console.error("Failed to update status", e);
+                    inq.status = oldStatus;
+                    updateInqStats();
+                    filterInq();
+                    if (window.Swal) Swal.fire('Error', 'Failed to save status.', 'error');
+                }
+            }
+        }
     };
 
     loadInquiries();

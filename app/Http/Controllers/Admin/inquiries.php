@@ -102,6 +102,20 @@ try {
         $input = json_decode(file_get_contents('php://input'), true);
         if (!$input) $input = $_POST;
 
+        // ── Status update action ────────────────────────────────────────
+        if (!empty($input['action']) && $input['action'] === 'update_status') {
+            $inquiryId = (int)($input['inquiry_id'] ?? 0);
+            $newStatus = trim($input['status'] ?? '');
+            if (!$inquiryId || !$newStatus) {
+                echo json_encode(['success' => false, 'message' => 'Inquiry ID and status are required.']);
+                exit;
+            }
+            $stmt = $db->prepare("UPDATE inquiries SET status = :status, updated_at = NOW() WHERE id = :id AND tenant_id = :tid AND deleted_at IS NULL");
+            $stmt->execute(['status' => $newStatus, 'id' => $inquiryId, 'tid' => $tenantId]);
+            echo json_encode(['success' => true, 'message' => 'Status updated successfully.']);
+            exit;
+        }
+
         // ── Follow-up action ────────────────────────────────────────
         if (!empty($input['action']) && $input['action'] === 'followup') {
             $inquiryId = (int)($input['inquiry_id'] ?? 0);

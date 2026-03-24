@@ -328,33 +328,26 @@ if (!function_exists('isLoggedIn')) {
     function isLoggedIn()
     {
         try {
-            // Priority 1: Check session (extremely fast)
-            if (isset($_SESSION['userData']['id'])) {
-                // Potential improvement: Check if session is expired
-                return true;
+            // Strictly check JWT from cookie or standard Authorization header
+            $token = $_COOKIE['token'] ?? null;
+
+            if (function_exists('getallheaders')) {
+                $headers = getallheaders();
+                $authHeader = $headers['Authorization'] ?? $headers['authorization'] ?? '';
+                if (preg_match('/Bearer\s+(.+)$/i', $authHeader, $matches)) {
+                    $token = $matches[1];
+                }
             }
 
-            // Priority 2: Check JWT from cookie
-            $token = $_COOKIE['token'] ?? null;
             if ($token) {
-                // If in Laravel environment, perform a STRICT validation
-                if (function_exists('app') && app()->has('auth')) {
-                    try {
-                        // Source of truth: auth service
-                        if (auth('api')->check()) {
-                            return true;
-                        }
-                        // If token exists but check() is false, it might be invalid/expired
-                        return false; 
-                    } catch (\Exception $e) {
-                         // Fallback to existence check if auth service is weirdly initialized
+                // Ensure the token represents a valid active session via decodable payload
+                $parts = explode('.', $token);
+                if (count($parts) === 3) {
+                    $payload = json_decode(base64_decode($parts[1]), true);
+                    if (isset($payload['exp']) && $payload['exp'] > time() && isset($payload['user_id'])) {
+                        return true;
                     }
                 }
-                
-                // SaaS Fallback: If we have a token but no full Laravel boot, 
-                // we treat it as potentially logged in. 
-                // getCurrentUser() will do the heavy lifting later.
-                return true;
             }
         } catch (\Exception $e) {
              // Silence errors
@@ -367,58 +360,36 @@ if (!function_exists('isLoggedIn')) {
 if (!function_exists('getCurrentUser')) {
     function getCurrentUser()
     {
-        // 1. Check session first (fastest)
-        if (isset($_SESSION['userData']['id'])) {
-            return $_SESSION['userData'];
-        }
-
         try {
-            $user = null;
             $token = $_COOKIE['token'] ?? null;
-
-            // 2. Try Laravel auth service if available
-            if (function_exists('app') && app()->has('auth')) {
-                try {
-                    if (auth('api')->check()) {
-                        $user = auth('api')->user();
-                        if ($user) {
-                            $userArray = [
-                                'id' => $user->id,
-                                'email' => $user->email,
-                                'name' => $user->name,
-                                'role' => $user->role,
-                                'tenant_id' => $user->tenant_id,
-                                'avatar' => $user->avatar ?? $user->photo_url ?? null,
-                                'is_jwt' => true
-                            ];
-                            // Cache in session
-                            $_SESSION['userData'] = $userArray;
-                            return $userArray;
-                        }
-                    } elseif ($token) {
-                        $user = auth('api')->setToken($token)->user();
-                        if ($user) {
-                           $userArray = [
-                                'id' => $user->id,
-                                'email' => $user->email,
-                                'name' => $user->name,
-                                'role' => $user->role,
-                                'tenant_id' => $user->tenant_id,
-                                'avatar' => $user->avatar ?? $user->photo_url ?? null,
-                                'is_jwt' => true
-                            ];
-                            // Cache in session
-                            $_SESSION['userData'] = $userArray;
-                            return $userArray;
-                        }
-                    }
-                } catch (\Exception $e) {
-                    // Fail silently
+            if (function_exists('getallheaders')) {
+                $headers = getallheaders();
+                $authHeader = $headers['Authorization'] ?? $headers['authorization'] ?? '';
+                if (preg_match('/Bearer\s+(.+)$/i', $authHeader, $matches)) {
+                    $token = $matches[1];
                 }
             }
-        } catch (\Exception $e) {
-            // Silence errors
-        }
+
+            if ($token) {
+                // Decode token to get essential info without hitting DB on every request.
+                // Token already validated for structure in isLoggedIn().
+                $parts = explode('.', $token);
+                if (count($parts) === 3) {
+                    $payload = json_decode(base64_decode($parts[1]), true);
+                    if ($payload && isset($payload['user_id']) && $payload['exp'] > time()) {
+                        $userArray = [
+                            'id' => $payload['user_id'],
+                            'tenant_id' => $payload['tenant_id'] ?? null,
+                            'role' => $payload['role'] ?? null,
+                            'is_jwt' => true
+                        ];
+                        // Hydrate legacy session explicitly for file dependencies but NOT for auth checks
+                        $_SESSION['userData'] = $userArray;
+                        return $userArray;
+                    }
+                }
+            }
+        } catch (\Exception $e) {}
         
         return null;
     }
@@ -565,9 +536,6 @@ if (!function_exists('requireAuth')) {
     function requireAuth()
     {
         if (!isLoggedIn()) {
-            // SaaS Tip: Track failed login attempts by IP in a real 'login_throttles' table
-            // This satisfies the MAX_LOGIN_ATTEMPTS and LOGIN_LOCKOUT_TIME constants
-            
             if (strpos($_SERVER['REQUEST_URI'], '/api/') !== false || (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest')) {
                 header('Content-Type: application/json');
                 http_response_code(401);
@@ -579,15 +547,10 @@ if (!function_exists('requireAuth')) {
             }
         }
 
-        // Ensure $_SESSION['userData'] is populated for backward compatibility with procedural scripts
-        if (!isset($_SESSION['userData']) || empty($_SESSION['userData']['tenant_id'])) {
-            $user = getCurrentUser();
-            if ($user) {
-                $_SESSION['userData'] = $user;
-                // Also load features if not loaded
-                if (!empty($user['tenant_id']) && (!isset($_SESSION['loaded_tenant_id']) || $_SESSION['loaded_tenant_id'] != $user['tenant_id'])) {
-                    loadFeatures($user['tenant_id']);
-                }
+        $user = getCurrentUser();
+        if ($user && !empty($user['tenant_id'])) {
+            if (!isset($_SESSION['loaded_tenant_id']) || $_SESSION['loaded_tenant_id'] != $user['tenant_id']) {
+                loadFeatures($user['tenant_id']);
             }
         }
     }

@@ -628,6 +628,36 @@ $initialMode = $initialMode ?? null; // 'new' or 'existing'
     // ── Pre-set Initial Mode ──
     const urlParams = new URLSearchParams(window.location.search);
     const preSelectedStuId = urlParams.get('student_id');
+    const incomingInquiryId = urlParams.get('inquiry_id');
+
+    if (incomingInquiryId) {
+        // Phase 3: One-Click Inquiry Conversion feature
+        setTimeout(async () => {
+            try {
+                const apiRolePath = window._userRole === 'admin' ? 'admin' : 'frontdesk';
+                const inqRes = await fetch(`${window.APP_URL}/api/${apiRolePath}/inquiries?id=${incomingInquiryId}`, {
+                    headers: typeof getHeaders === 'function' ? getHeaders() : {}
+                });
+                const inqData = await inqRes.json();
+                if (inqData.success && inqData.data && admissionMode === 'new') {
+                    const inq = inqData.data;
+                    const frm = document.getElementById('<?= $formId ?>');
+                    if (frm) {
+                        if (frm.full_name) frm.full_name.value = inq.full_name || '';
+                        if (frm.contact_number) frm.contact_number.value = inq.phone || '';
+                        if (frm.email) frm.email.value = inq.email || '';
+                        if (frm.permanent_address) frm.permanent_address.value = inq.address || '';
+                        
+                        if (frm.course_id && inq.course_id) {
+                            frm.course_id.value = inq.course_id;
+                            frm.course_id.dispatchEvent(new Event('change'));
+                        }
+                    }
+                    window.convertedInquiryId = incomingInquiryId;
+                }
+            } catch(e) { console.error("Error pre-filling inquiry:", e); }
+        }, 500); // Allow DOM and course dropdowns to settle first
+    }
 
     if (admissionMode === 'existing') {
         setTimeout(async () => {
@@ -792,6 +822,22 @@ $initialMode = $initialMode ?? null; // 'new' or 'existing'
                 body:    JSON.stringify(payload),
             });
             const result = await res.json();
+
+            // Background update: Converted pipeline sync
+            if (result.success && window.convertedInquiryId) {
+                try {
+                    const apiRolePath = window._userRole === 'admin' ? 'admin' : 'frontdesk';
+                    let reqHeaders = {'Content-Type': 'application/json'};
+                    if (window.CSRF_TOKEN) reqHeaders['X-CSRF-Token'] = window.CSRF_TOKEN;
+                    if (typeof getHeaders === 'function') reqHeaders = {...reqHeaders, ...getHeaders()};
+                    
+                    fetch(`${window.APP_URL}/api/${apiRolePath}/inquiries`, {
+                        method: 'POST',
+                        headers: reqHeaders,
+                        body: JSON.stringify({ action: 'update_status', inquiry_id: window.convertedInquiryId, status: 'converted' })
+                    });
+                } catch(e) { console.error("Inquiry status sync failed", e); }
+            }
 
             // Name for success message
             const displayName = admissionMode === 'existing' 

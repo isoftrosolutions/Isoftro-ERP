@@ -12,34 +12,37 @@ namespace App\Http\Controllers;
  * - 2FA mandatory for Super Admin and Institute Admin
  */
 
-class AuthController {
+class AuthController
+{
     private $db;
     private $jwtSecret;
     private $accessTokenExpiry = 28800; // 8 hours in seconds
     private $refreshTokenExpiry = 2592000; // 30 days in seconds
-    
-    public function __construct() {
+
+    public function __construct()
+    {
         $this->db = getDBConnection();
         $this->jwtSecret = defined('JWT_SECRET') ? JWT_SECRET : 'hamrolabs-erp-secret-key-2026';
     }
-    
+
     /**
      * User login - handles both session-based (web) and JWT-based (API) authentication
      */
-    public function login() {
+    public function login()
+    {
         $email = sanitizeInput($_POST['username'] ?? $_POST['email'] ?? '');
         $password = $_POST['password'] ?? '';
         $otp = $_POST['otp'] ?? null;
         $remember = $_POST['remember'] ?? '';
-        $isApi = isset($_GET['api']) || php_sapi_name() === 'api' || 
-                 (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest') ||
-                 (isset($_SERVER['HTTP_ACCEPT']) && strpos($_SERVER['HTTP_ACCEPT'], 'application/json') !== false);
-        
+        $isApi = isset($_GET['api']) || php_sapi_name() === 'api' ||
+            (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest') ||
+            (isset($_SERVER['HTTP_ACCEPT']) && strpos($_SERVER['HTTP_ACCEPT'], 'application/json') !== false);
+
         // Validate input
         if (empty($email) || empty($password)) {
             return ['success' => false, 'message' => 'Email and password are required'];
         }
-        
+
         // Check rate limiting (IP-based)
         if (!$this->checkRateLimit($_SERVER['REMOTE_ADDR'])) {
             return ['success' => false, 'message' => 'Too many login attempts. Please try again in 15 minutes.'];
@@ -47,18 +50,18 @@ class AuthController {
 
         // Find user by email
         $user = $this->findUserByEmail($email);
-        
+
         if (!$user) {
             $this->logAuthEvent('LOGIN_FAILURE', null, null, $email, 'failed', 'User not found');
             return ['success' => false, 'message' => 'Invalid email or password.'];
         }
-        
+
         // Check if user is active
         if ($user['status'] !== 'active') {
             $this->logAuthEvent('LOGIN_FAILURE', $user['id'], $user['tenant_id'], $email, 'failed', 'Account inactive');
             return ['success' => false, 'message' => 'Your account is currently inactive.'];
         }
-        
+
         // Check explicit account lock (DB field)
         if (!empty($user['locked_until']) && strtotime($user['locked_until']) > time()) {
             return ['success' => false, 'message' => 'Account locked due to security reasons. Try again later.'];
@@ -69,32 +72,34 @@ class AuthController {
             $this->logAuthEvent('LOGIN_FAILURE', $user['id'], $user['tenant_id'], $email, 'failed', 'Invalid password');
             return ['success' => false, 'message' => 'Invalid email or password.'];
         }
-        
+
         // Check if 2FA is required
         if (!empty($user['two_fa_enabled']) && ($user['role'] === 'superadmin' || $user['role'] === 'instituteadmin')) {
             if (empty($otp)) {
                 return ['success' => true, 'requires_otp' => true, 'user_id' => $user['id']];
             }
-            
+
             if (!$this->verifyOTP($user['id'], $otp)) {
                 $this->logAuthEvent('LOGIN_FAILURE', $user['id'], $user['tenant_id'], $email, 'failed', 'Invalid OTP');
                 return ['success' => false, 'message' => 'Invalid verification code.'];
             }
         }
-        
+
         // SUCCESSFUL LOGIN START
-        
+
         // Update session for web users
-        if (session_status() === PHP_SESSION_NONE) session_start();
+        if (session_status() === PHP_SESSION_NONE)
+            session_start();
         session_regenerate_id(true);
 
-        // Fetch tenant branding
+        // Fetch tenant branding mapping locally
         $tenantLogo = null;
         if (!empty($user['tenant_id'])) {
             $stmt = $this->db->prepare("SELECT name, logo_path FROM tenants WHERE id = ? LIMIT 1");
             $stmt->execute([$user['tenant_id']]);
             $tenant = $stmt->fetch(\PDO::FETCH_ASSOC);
             if ($tenant) {
+                // Not saving into active sessions, mapped purely for loading screen compatibility
                 $_SESSION['tenant_name'] = $tenant['name'];
                 $tenantLogo = $tenant['logo_path'];
                 if ($tenantLogo && strpos($tenantLogo, '/uploads/') === 0 && strpos($tenantLogo, '/public/') !== 0) {
@@ -103,18 +108,11 @@ class AuthController {
             }
         }
 
-        $_SESSION['userData'] = [
-            'id' => $user['id'],
-            'email' => $user['email'],
-            'name' => $user['full_name'] ?? $user['name'] ?? $user['email'],
-            'role' => $user['role'],
-            'tenant_id' => $user['tenant_id'],
-            'avatar' => $user['avatar'] ?? $user['photo_url'] ?? null,
-            'last_login' => date('Y-m-d H:i:s'),
-            'ip_address' => $_SERVER['REMOTE_ADDR'],
-        ];
+        // Essential temporary markers
         $_SESSION['tenant_logo'] = $tenantLogo;
         $_SESSION['last_activity'] = time();
+        $_SESSION['institute_logo'] = $tenantLogo;
+        $_SESSION['userData'] = $this->sanitizeUser($user);
 
         // Load tenant features into session at login (CRITICAL for feature gating)
         if (!empty($user['tenant_id'])) {
@@ -129,14 +127,16 @@ class AuthController {
             try {
                 $stmt = $this->db->prepare("INSERT INTO remember_tokens (user_id, token, expires_at) VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 30 DAY))");
                 $stmt->execute([$user['id'], hash('sha256', $token)]);
-            } catch (\Exception $e) {}
+            }
+            catch (\Exception $e) {
+            }
         }
 
         // Generate loading token
         $loadingToken = bin2hex(random_bytes(16));
         $_SESSION['loading_token'] = $loadingToken;
         $_SESSION['loading_token_expires'] = time() + 60;
-        
+
         $roleSlugMap = [
             'superadmin' => 'super-admin',
             'instituteadmin' => 'admin',
@@ -161,6 +161,20 @@ class AuthController {
         $refreshToken = $this->generateRefreshToken($user);
         $this->storeRefreshToken($user['id'], $refreshToken);
 
+        // Strict cookie dispatching to mathematically nullify CSRF scope
+        if (PHP_VERSION_ID >= 70300) {
+            setcookie('token', $accessToken, [
+                'expires' => time() + $this->accessTokenExpiry,
+                'path' => '/',
+                'secure' => false, // Recommend true in Prod
+                'httponly' => true,
+                'samesite' => 'Strict'
+            ]);
+        }
+        else {
+            setcookie('token', $accessToken, time() + $this->accessTokenExpiry, '/; samesite=Strict', '', false, true);
+        }
+
         return [
             'success' => true,
             'message' => 'Login successful!',
@@ -171,41 +185,42 @@ class AuthController {
             'user' => $this->sanitizeUser($user)
         ];
     }
-    
+
     /**
      * Refresh access token
      */
-    public function refresh() {
+    public function refresh()
+    {
         $refreshToken = $_POST['refresh_token'] ?? '';
-        
+
         if (empty($refreshToken)) {
             return ['success' => false, 'error' => 'Refresh token required'];
         }
-        
+
         // Verify refresh token
         $tokenData = $this->verifyRefreshToken($refreshToken);
-        
+
         if (!$tokenData) {
             return ['success' => false, 'error' => 'Invalid or expired refresh token'];
         }
-        
+
         // Get user
         $user = $this->findUserById($tokenData['user_id']);
-        
+
         if (!$user || $user['status'] !== 'active') {
             return ['success' => false, 'error' => 'User not found or inactive'];
         }
-        
+
         // Rotate refresh token (invalidate old one)
         $this->invalidateRefreshToken($refreshToken);
-        
+
         // Generate new tokens
         $newAccessToken = $this->generateAccessToken($user);
         $newRefreshToken = $this->generateRefreshToken($user);
-        
+
         // Store new refresh token
         $this->storeRefreshToken($user['id'], $newRefreshToken);
-        
+
         $this->logAuthEvent('TOKEN_REFRESH', $user['id'], $user['tenant_id'], $user['email'], 'success');
 
         return [
@@ -215,17 +230,18 @@ class AuthController {
             'expires_in' => $this->accessTokenExpiry
         ];
     }
-    
+
     /**
      * Logout - invalidate tokens
      */
-    public function logout() {
+    public function logout()
+    {
         $refreshToken = $_POST['refresh_token'] ?? '';
-        
+
         if (!empty($refreshToken)) {
             $this->invalidateRefreshToken($refreshToken);
         }
-        
+
         // Clear session and JWT cookies
         $_SESSION = [];
         $host = $_SERVER['HTTP_HOST'] ?? '';
@@ -236,7 +252,7 @@ class AuthController {
                 $cookieDomain = '.' . implode('.', array_slice($parts, -2));
             }
         }
-        
+
         if (ini_get("session.use_cookies")) {
             $params = session_get_cookie_params();
             // Clear session cookie
@@ -248,111 +264,116 @@ class AuthController {
             setcookie('token', '', time() - 42000, '/', $cookieDomain, $params["secure"], true);
         }
         session_destroy();
-        
+
         $this->logAuthEvent('LOGOUT', null, null, '', 'success');
 
         return ['success' => true];
     }
-    
+
     /**
      * Change password for logged-in user
      */
-    public function changePassword() {
+    public function changePassword()
+    {
         if (!isLoggedIn()) {
             return ['success' => false, 'error' => 'Access denied. Please log in.'];
         }
-        
+
         $oldPassword = $_POST['old_password'] ?? '';
         $newPassword = $_POST['new_password'] ?? '';
         $confirmPassword = $_POST['confirm_password'] ?? '';
-        
+
         if (empty($oldPassword) || empty($newPassword) || empty($confirmPassword)) {
             return ['success' => false, 'error' => 'All password fields are required.'];
         }
-        
+
         if ($newPassword !== $confirmPassword) {
             return ['success' => false, 'error' => 'New passwords do not match.'];
         }
-        
+
         if (strlen($newPassword) < 8) {
             return ['success' => false, 'error' => 'New password must be at least 8 characters long.'];
         }
-        
+
         $user = getCurrentUser();
-        
+
         // Fetch full user record to check current password
         $stmt = $this->db->prepare("SELECT password_hash FROM users WHERE id = ? LIMIT 1");
         $stmt->execute([$user['id']]);
         $passwordHash = $stmt->fetchColumn();
-        
+
         if (!$passwordHash || !password_verify($oldPassword, $passwordHash)) {
             return ['success' => false, 'error' => 'Current password is incorrect.'];
         }
-        
+
         // Update password
         $newHash = password_hash($newPassword, PASSWORD_DEFAULT);
         $stmt = $this->db->prepare("UPDATE users SET password_hash = ? WHERE id = ?");
         if ($stmt->execute([$newHash, $user['id']])) {
             return ['success' => true, 'message' => 'Password updated successfully!'];
         }
-        
+
         return ['success' => false, 'error' => 'System error. Failed to update password.'];
     }
-    
+
     /**
      * Send OTP for 2FA
      */
-    public function sendOTP($userId) {
+    public function sendOTP($userId)
+    {
         $user = $this->findUserById($userId);
-        
+
         if (!$user) {
             return ['success' => false, 'error' => 'User not found'];
         }
-        
+
         if (empty($user['phone'])) {
             return ['success' => false, 'error' => 'No phone number on file'];
         }
-        
+
         // Generate OTP
         $otp = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
-        
+
         // Store OTP (in production, use proper OTP storage with expiration)
         $this->storeOTP($userId, $otp);
-        
+
         // Send SMS (in production, use Sparrow SMS API)
         $message = "Your HamroLabs ERP verification code is: $otp";
         // $this->sendSMS($user['phone'], $message);
-        
+
         // For development, return OTP in response
         if (APP_ENV === 'development') {
             return ['success' => true, 'otp' => $otp, 'message' => 'OTP sent (development mode)'];
         }
-        
+
         return ['success' => true, 'message' => 'OTP sent to your phone'];
     }
-    
+
     /**
      * 00
      */
-    private function findUserByEmail($email) {
+    private function findUserByEmail($email)
+    {
         $stmt = $this->db->prepare("SELECT * FROM users WHERE email = ? LIMIT 1");
         $stmt->execute([$email]);
         return $stmt->fetch(\PDO::FETCH_ASSOC) ?: null;
     }
-    
+
     /**
      * Find user by ID (PDO)
      */
-    private function findUserById($userId) {
+    private function findUserById($userId)
+    {
         $stmt = $this->db->prepare("SELECT * FROM users WHERE id = ? LIMIT 1");
         $stmt->execute([$userId]);
         return $stmt->fetch(\PDO::FETCH_ASSOC) ?: null;
     }
-    
+
     /**
      * Generate JWT access token
      */
-    private function generateAccessToken($user) {
+    private function generateAccessToken($user)
+    {
         $payload = [
             'iss' => APP_URL,
             'aud' => APP_URL,
@@ -364,14 +385,15 @@ class AuthController {
             'type' => 'access'
             // TC-067: password and password_hash are EXPLICITLY excluded
         ];
-        
+
         return $this->jwtEncode($payload);
     }
-    
+
     /**
      * Generate JWT refresh token
      */
-    private function generateRefreshToken($user) {
+    private function generateRefreshToken($user)
+    {
         $payload = [
             'iss' => APP_URL,
             'aud' => APP_URL,
@@ -381,44 +403,47 @@ class AuthController {
             'type' => 'refresh',
             'jti' => bin2hex(random_bytes(16)) // Unique token ID
         ];
-        
+
         return $this->jwtEncode($payload);
     }
-    
+
     /**
      * Encode JWT
      */
-    private function jwtEncode($payload) {
+    private function jwtEncode($payload)
+    {
         $header = base64_encode(json_encode(['typ' => 'JWT', 'alg' => 'HS256']));
         $payloadEncoded = base64_encode(json_encode($payload));
         $signature = base64_encode(hash_hmac('sha256', "$header.$payloadEncoded", $this->jwtSecret, true));
-        
+
         return "$header.$payloadEncoded.$signature";
     }
-    
+
     /**
      * Decode JWT
      */
-    public function jwtDecode($token) {
+    public function jwtDecode($token)
+    {
         $parts = explode('.', $token);
-        
+
         if (count($parts) !== 3) {
             return null;
         }
-        
+
         $signature = base64_encode(hash_hmac('sha256', "$parts[0].$parts[1]", $this->jwtSecret, true));
-        
+
         if ($signature !== $parts[2]) {
             return null;
         }
-        
+
         return json_decode(base64_decode($parts[1]), true);
     }
-    
+
     /**
      * Store refresh token
      */
-    private function storeRefreshToken($userId, $token) {
+    private function storeRefreshToken($userId, $token)
+    {
         $stmt = $this->db->prepare("
             INSERT INTO refresh_tokens (user_id, token, expires_at)
             VALUES (:user_id, :token, DATE_ADD(NOW(), INTERVAL 30 DAY))
@@ -428,13 +453,14 @@ class AuthController {
             'token' => hash('sha256', $token)
         ]);
     }
-    
+
     /**
      * Verify refresh token
      */
-    private function verifyRefreshToken($token) {
+    private function verifyRefreshToken($token)
+    {
         $tokenHash = hash('sha256', $token);
-        
+
         $stmt = $this->db->prepare("
             SELECT * FROM refresh_tokens 
             WHERE token = :token AND expires_at > NOW() AND invalidated = 0
@@ -442,30 +468,32 @@ class AuthController {
         ");
         $stmt->execute(['token' => $tokenHash]);
         $result = $stmt->fetch();
-        
+
         if (!$result) {
             return null;
         }
-        
+
         return $this->jwtDecode($token);
     }
-    
+
     /**
      * Invalidate refresh token
      */
-    private function invalidateRefreshToken($token) {
+    private function invalidateRefreshToken($token)
+    {
         $tokenHash = hash('sha256', $token);
-        
+
         $stmt = $this->db->prepare("
             UPDATE refresh_tokens SET invalidated = 1 WHERE token = :token
         ");
         $stmt->execute(['token' => $tokenHash]);
     }
-    
+
     /**
      * Store OTP
      */
-    private function storeOTP($userId, $otp) {
+    private function storeOTP($userId, $otp)
+    {
         $stmt = $this->db->prepare("
             INSERT INTO otp_codes (user_id, code, expires_at)
             VALUES (:user_id, :code, DATE_ADD(NOW(), INTERVAL 10 MINUTE))
@@ -475,11 +503,12 @@ class AuthController {
             'code' => $otp
         ]);
     }
-    
+
     /**
      * Verify OTP
      */
-    private function verifyOTP($userId, $otp) {
+    private function verifyOTP($userId, $otp)
+    {
         $stmt = $this->db->prepare("
             SELECT * FROM otp_codes 
             WHERE user_id = :user_id AND code = :code AND expires_at > NOW() AND used = 0
@@ -487,21 +516,22 @@ class AuthController {
         ");
         $stmt->execute(['user_id' => $userId, 'code' => $otp]);
         $result = $stmt->fetch();
-        
+
         if ($result) {
             // Mark OTP as used
             $stmt = $this->db->prepare("UPDATE otp_codes SET used = 1 WHERE id = :id");
             $stmt->execute(['id' => $result['id']]);
             return true;
         }
-        
+
         return false;
     }
-    
+
     /**
      * Log login attempt using SRS AuditLogger
      */
-    private function logAuthEvent($action, $userId, $tenantId, $email, $status, $reason = null) {
+    private function logAuthEvent($action, $userId, $tenantId, $email, $status, $reason = null)
+    {
         if (class_exists('\App\Helpers\AuditLogger')) {
             \App\Helpers\AuditLogger::log($action, $userId, $tenantId, [
                 'email' => $email,
@@ -514,15 +544,17 @@ class AuthController {
     /**
      * Update last login
      */
-    private function updateLastLogin($userId) {
+    private function updateLastLogin($userId)
+    {
         $stmt = $this->db->prepare("UPDATE users SET last_login_at = NOW() WHERE id = :id");
         $stmt->execute(['id' => $userId]);
     }
-    
+
     /**
      * Get redirect URL based on role
      */
-    private function getRedirectUrl($role) {
+    private function getRedirectUrl($role)
+    {
         $roleSlugMap = [
             'superadmin' => 'super-admin',
             'instituteadmin' => 'admin',
@@ -531,15 +563,16 @@ class AuthController {
             'student' => 'student',
             'guardian' => 'guardian',
         ];
-        
+
         $slug = $roleSlugMap[$role] ?? 'login';
         return APP_URL . '/dash/' . $slug;
     }
-    
+
     /**
      * Check rate limiting
      */
-    private function checkRateLimit($ip) {
+    private function checkRateLimit($ip)
+    {
         $stmt = $this->db->prepare("
             SELECT COUNT(*) as attempts FROM audit_logs
             WHERE ip_address = :ip AND action = 'LOGIN_FAILURE'
@@ -547,10 +580,11 @@ class AuthController {
         ");
         $stmt->execute(['ip' => $ip]);
         $result = $stmt->fetch();
-        
+
         return ($result['attempts'] ?? 0) < MAX_LOGIN_ATTEMPTS;
     }
-    private function sanitizeUser($user) {
+    private function sanitizeUser($user)
+    {
         return [
             'id' => $user['id'],
             'name' => $user['name'],
@@ -559,27 +593,28 @@ class AuthController {
             'tenant_id' => $user['tenant_id']
         ];
     }
-    
+
     /**
      * Validate JWT token (for API auth)
      */
-    public static function validateToken() {
+    public static function validateToken()
+    {
         $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
-        
+
         if (empty($authHeader)) {
             return null;
         }
-        
+
         if (preg_match('/Bearer\s+(.+)$/i', $authHeader, $matches)) {
             $token = $matches[1];
             $auth = new self();
             $payload = $auth->jwtDecode($token);
-            
+
             if ($payload && $payload['exp'] > time()) {
                 return $payload;
             }
         }
-        
+
         return null;
     }
 }
@@ -587,36 +622,36 @@ class AuthController {
 // Handle API requests
 if (php_sapi_name() === 'api' || isset($_GET['api'])) {
     header('Content-Type: application/json');
-    
+
     $auth = new AuthController();
     $action = $_GET['action'] ?? $_POST['action'] ?? '';
-    
+
     switch ($action) {
         case 'login':
             echo json_encode($auth->login());
             break;
-            
+
         case 'refresh':
             echo json_encode($auth->refresh());
             break;
-            
+
         case 'logout':
             echo json_encode($auth->logout());
             break;
-            
+
         case 'send_otp':
             $userId = $_POST['user_id'] ?? 0;
             echo json_encode($auth->sendOTP($userId));
             break;
-            
+
         case 'change_password':
             echo json_encode($auth->changePassword());
             break;
-            
+
         default:
             echo json_encode(['success' => false, 'error' => 'Unknown action']);
     }
-    
+
     exit;
 }
 ?>
