@@ -36,7 +36,7 @@ function getIASidebarConfig()
                     'label' => 'Students',
                     'icon' => 'fa-user-graduate',
                     'permission' => 'students.view',
-                    'feature' => 'students',
+                    'feature' => 'student',
                     'badge_key' => 'total_students',
                     'sub' => [
                         ['id' => 'all', 'l' => 'All Students', 'icon' => 'fa-list'],
@@ -51,7 +51,7 @@ function getIASidebarConfig()
                     'label' => 'Teachers',
                     'icon' => 'fa-user-tie',
                     'permission' => 'teachers.view',
-                    'feature' => 'teachers',
+                    'feature' => 'teacher',
                     'sub' => [
                         ['id' => 'profiles', 'l' => 'Teacher List', 'icon' => 'fa-id-badge'],
                         ['id' => 'add', 'l' => 'Add Teacher', 'icon' => 'fa-user-plus'],
@@ -93,7 +93,7 @@ function getIASidebarConfig()
                     'label' => 'Examinations',
                     'icon' => 'fa-file-signature',
                     'permission' => 'exams.view',
-                    'feature' => 'exams',
+                    'feature' => 'exam',
                     'sub' => [
                         ['id' => 'qbank', 'l' => 'Question Bank', 'icon' => 'fa-database'],
                         ['id' => 'create-ex', 'l' => 'Create Exam', 'icon' => 'fa-circle-plus'],

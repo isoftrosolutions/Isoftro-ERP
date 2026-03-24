@@ -76,17 +76,24 @@ if (!empty($tenantLogo)) {
             <!-- Navigation (rendered by JS from config) -->
         </div>
 
-        <!-- System Branding / Context (Desktop only, subtle) -->
-        <div class="sb-footer" style="padding: 15px 20px; border-top: 1px solid var(--cb); margin-top: auto;">
+        <!-- Sidebar Footer & Collapse Toggle -->
+        <div class="sb-footer" style="padding: 15px 20px; border-top: 1px solid var(--card-border); margin-top: auto; position: relative;">
              <div style="display: flex; align-items: center; gap: 10px;">
-                <div style="width: 32px; height: 32px; background: var(--teal-lt); color: var(--teal); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 12px;">
+                <div style="width: 32px; height: 32px; background: #f3f4f6; color: var(--green); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 12px; flex-shrink: 0;">
                     <?php echo htmlspecialchars(substr($tenantName, 0, 2)); ?>
                 </div>
-                <div style="flex: 1; min-width: 0;">
-                    <div style="font-size: 12px; font-weight: 700; color: var(--td); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><?php echo htmlspecialchars($tenantName); ?></div>
-                    <div style="font-size: 10px; color: var(--tl);"><?php echo htmlspecialchars($planName); ?></div>
+                <div class="sb-footer-text" style="flex: 1; min-width: 0;">
+                    <div style="font-size: 12px; font-weight: 700; color: var(--text-dark); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><?php echo htmlspecialchars($tenantName); ?></div>
+                    <div style="font-size: 10px; color: var(--text-light);"><?php echo htmlspecialchars($planName); ?></div>
                 </div>
              </div>
+             
+             <!-- Desktop Collapse Toggle (Absolute positioned) -->
+             <button class="js-sidebar-toggle desktop-collapse-btn" 
+                     style="position: absolute; right: -12px; top: -14px; width: 24px; height: 24px; background: white; border: 1px solid var(--card-border); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-light); z-index: 10;"
+                     onmouseover="this.style.color='var(--green)'" onmouseout="this.style.color='var(--text-light)'">
+                 <i class="fa-solid fa-chevron-left"></i>
+             </button>
         </div>
     </nav>
 

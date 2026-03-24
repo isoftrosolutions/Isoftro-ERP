@@ -1,1 +1,0 @@
-Refactor the super admin sidebar and make it as same as institute admin , padding , spacing coloring , fonts etc

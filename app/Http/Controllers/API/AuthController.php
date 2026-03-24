@@ -94,14 +94,20 @@ class AuthController extends Controller
     /**
      * Log the user out (Invalidate the token).
      */
-    public function logout(): JsonResponse
+    public function logout(Request $request)
     {
         auth('api')->logout();
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Successfully logged out'
-        ])->withoutCookie('token');
+        $cookie = cookie()->forget('token');
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Successfully logged out'
+            ])->withCookie($cookie);
+        }
+
+        return redirect('/login')->withCookie($cookie);
     }
 
     /**

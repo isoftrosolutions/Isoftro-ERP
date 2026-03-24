@@ -728,7 +728,7 @@ $currentPage = basename($_SERVER['PHP_SELF'], '.php');
     <header class="header">
         <!-- Left Section -->
         <div class="header-left">
-            <button class="menu-toggle" id="menuToggle" aria-label="Toggle Menu">
+            <button class="menu-toggle js-sidebar-toggle" id="menuToggle" aria-label="Toggle Menu">
                 <span></span>
                 <span></span>
                 <span></span>
@@ -913,7 +913,12 @@ $currentPage = basename($_SERVER['PHP_SELF'], '.php');
             if (menuToggle) {
                 menuToggle.addEventListener('click', function() {
                     this.classList.toggle('active');
+                    
+                    // On mobile, this toggles the overlay view
                     document.body.classList.toggle('sb-active');
+                    
+                    // On desktop, this toggles the collapsed state (rail view)
+                    document.body.classList.toggle('sb-collapsed');
 
                     // Toggle sidebar overlay if present
                     if (sbOverlay) {

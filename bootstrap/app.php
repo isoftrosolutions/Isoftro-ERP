@@ -20,10 +20,13 @@ return Application::configure(basePath: dirname(__DIR__))
             'super_admin' => \App\Http\Middleware\SuperAdminMiddleware::class,
             'module' => \App\Http\Middleware\CheckModuleAccess::class,
             'jwt.auth' => \App\Http\Middleware\JwtAuthMiddleware::class,
-            'tenant.identify' => \App\Http\Middleware\IdentifyTenant::class, // Added tenant identification
+            'tenant.identify' => \App\Http\Middleware\IdentifyTenant::class,
         ]);
 
-        // Disable CSRF globally for JWT system
+        $middleware->encryptCookies(except: [
+            'token',
+        ]);
+
         $middleware->validateCsrfTokens(except: [
             '*',
         ]);

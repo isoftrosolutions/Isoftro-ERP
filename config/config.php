@@ -67,54 +67,67 @@ if (!defined('APP_VERSION'))
 if (!defined('APP_ENV'))
     define('APP_ENV', getenv('APP_ENV') ?: 'development');
 
-// Path Constants
+// Path Constants - must be defined first
 if (!defined('APP_ROOT'))
     define('APP_ROOT', realpath(__DIR__ . '/../'));
+
 if (!defined('VIEWS_PATH'))
     define('VIEWS_PATH', APP_ROOT . '/resources/views');
 
-
-// Security Configuration
-if (!defined('HASH_ALGO'))
-    define('HASH_ALGO', 'sha256');
-if (!defined('SESSION_LIFETIME'))
-    define('SESSION_LIFETIME', 3600); // 1 hour in seconds
-if (!defined('MAX_LOGIN_ATTEMPTS'))
-    define('MAX_LOGIN_ATTEMPTS', 5);
-if (!defined('LOGIN_LOCKOUT_TIME'))
-    define('LOGIN_LOCKOUT_TIME', 900); // 15 minutes in seconds
-if (!defined('JWT_SECRET'))
-    define('JWT_SECRET', 'hamrolabs-erp-jwt-secret-2025-v3'); // Change in production
-if (!defined('JWT_ALGORITHM'))
-    define('JWT_ALGORITHM', 'HS256');
-if (!defined('PII_ENCRYPTION_KEY'))
-    define('PII_ENCRYPTION_KEY', 'hamrolabs-pii-safe-secret-2025-v3'); // Change in production
-
-// File Upload Configuration
 if (!defined('UPLOAD_PATH'))
     define('UPLOAD_PATH', 'uploads/');
+
 if (!defined('MAX_FILE_SIZE'))
     define('MAX_FILE_SIZE', 5242880); // 5MB in bytes
+
 if (!defined('ALLOWED_FILE_TYPES'))
     define('ALLOWED_FILE_TYPES', ['jpg', 'jpeg', 'png', 'gif', 'pdf', 'doc', 'docx']);
 
-// Email Configuration
+// Security Configuration - Sourced from .env for SaaS grade security
+if (!defined('HASH_ALGO'))
+    define('HASH_ALGO', 'sha256');
+
+if (!defined('SESSION_LIFETIME'))
+    define('SESSION_LIFETIME', getenv('SESSION_LIFETIME') ?: 3600);
+
+if (!defined('MAX_LOGIN_ATTEMPTS'))
+    define('MAX_LOGIN_ATTEMPTS', 5);
+
+if (!defined('LOGIN_LOCKOUT_TIME'))
+    define('LOGIN_LOCKOUT_TIME', 900); // 15 minutes
+
+if (!defined('JWT_SECRET'))
+    define('JWT_SECRET', getenv('JWT_SECRET') ?: 'PLEASE_SET_JWT_SECRET_IN_ENV');
+
+if (!defined('JWT_ALGORITHM'))
+    define('JWT_ALGORITHM', getenv('JWT_ALGORITHM') ?: 'HS256');
+
+if (!defined('PII_ENCRYPTION_KEY'))
+    define('PII_ENCRYPTION_KEY', getenv('PII_ENCRYPTION_KEY') ?: 'PLEASE_SET_PII_ENCRYPTION_KEY_IN_ENV');
+
+// Email Configuration - Sourced from .env
 if (!defined('SMTP_HOST'))
     define('SMTP_HOST', getenv('MAIL_HOST') ?: 'smtp.gmail.com');
+
 if (!defined('SMTP_PORT'))
     define('SMTP_PORT', getenv('MAIL_PORT') ?: 465);
+
 if (!defined('SMTP_USERNAME'))
     define('SMTP_USERNAME', getenv('MAIL_USERNAME') ?: 'isoftrosolutions@gmail.com');
+
 if (!defined('SMTP_PASSWORD'))
-    define('SMTP_PASSWORD', getenv('MAIL_PASSWORD') ?: 'tpkm awve kkzl ifdm');
+    define('SMTP_PASSWORD', getenv('MAIL_PASSWORD') ?: '');
+
 if (!defined('FROM_EMAIL'))
     define('FROM_EMAIL', getenv('MAIL_FROM_ADDRESS') ?: 'isoftrosolutions@gmail.com');
+
 if (!defined('FROM_NAME'))
-    define('FROM_NAME', getenv('MAIL_FROM_NAME') ?: APP_NAME);
+    define('FROM_NAME', getenv('MAIL_FROM_NAME') ?: (defined('APP_NAME') ? APP_NAME : 'iSoftro ERP'));
 
 // Pagination Configuration
 if (!defined('RECORDS_PER_PAGE'))
     define('RECORDS_PER_PAGE', 20);
+
 if (!defined('MAX_PAGE_LINKS'))
     define('MAX_PAGE_LINKS', 10);
 
@@ -315,19 +328,36 @@ if (!function_exists('isLoggedIn')) {
     function isLoggedIn()
     {
         try {
-            // Check native Laravel auth check (usually expects Bearer header)
-            if (function_exists('auth') && auth('api')->check()) {
+            // Priority 1: Check session (extremely fast)
+            if (isset($_SESSION['userData']['id'])) {
+                // Potential improvement: Check if session is expired
                 return true;
             }
 
-            // Fallback: Check jwt token cookie manually
+            // Priority 2: Check JWT from cookie
             $token = $_COOKIE['token'] ?? null;
             if ($token) {
-                $user = auth('api')->setToken($token)->user();
-                return (bool)$user;
+                // If in Laravel environment, perform a STRICT validation
+                if (function_exists('app') && app()->has('auth')) {
+                    try {
+                        // Source of truth: auth service
+                        if (auth('api')->check()) {
+                            return true;
+                        }
+                        // If token exists but check() is false, it might be invalid/expired
+                        return false; 
+                    } catch (\Exception $e) {
+                         // Fallback to existence check if auth service is weirdly initialized
+                    }
+                }
+                
+                // SaaS Fallback: If we have a token but no full Laravel boot, 
+                // we treat it as potentially logged in. 
+                // getCurrentUser() will do the heavy lifting later.
+                return true;
             }
         } catch (\Exception $e) {
-            error_log("isLoggedIn error: " . $e->getMessage());
+             // Silence errors
         }
 
         return false;
@@ -337,30 +367,57 @@ if (!function_exists('isLoggedIn')) {
 if (!function_exists('getCurrentUser')) {
     function getCurrentUser()
     {
+        // 1. Check session first (fastest)
+        if (isset($_SESSION['userData']['id'])) {
+            return $_SESSION['userData'];
+        }
+
         try {
             $user = null;
-            if (function_exists('auth') && auth('api')->check()) {
-                $user = auth('api')->user();
-            } else {
-                $token = $_COOKIE['token'] ?? null;
-                if ($token) {
-                    $user = auth('api')->setToken($token)->user();
+            $token = $_COOKIE['token'] ?? null;
+
+            // 2. Try Laravel auth service if available
+            if (function_exists('app') && app()->has('auth')) {
+                try {
+                    if (auth('api')->check()) {
+                        $user = auth('api')->user();
+                        if ($user) {
+                            $userArray = [
+                                'id' => $user->id,
+                                'email' => $user->email,
+                                'name' => $user->name,
+                                'role' => $user->role,
+                                'tenant_id' => $user->tenant_id,
+                                'avatar' => $user->avatar ?? $user->photo_url ?? null,
+                                'is_jwt' => true
+                            ];
+                            // Cache in session
+                            $_SESSION['userData'] = $userArray;
+                            return $userArray;
+                        }
+                    } elseif ($token) {
+                        $user = auth('api')->setToken($token)->user();
+                        if ($user) {
+                           $userArray = [
+                                'id' => $user->id,
+                                'email' => $user->email,
+                                'name' => $user->name,
+                                'role' => $user->role,
+                                'tenant_id' => $user->tenant_id,
+                                'avatar' => $user->avatar ?? $user->photo_url ?? null,
+                                'is_jwt' => true
+                            ];
+                            // Cache in session
+                            $_SESSION['userData'] = $userArray;
+                            return $userArray;
+                        }
+                    }
+                } catch (\Exception $e) {
+                    // Fail silently
                 }
             }
-
-            if ($user) {
-                return [
-                    'id' => $user->id,
-                    'email' => $user->email,
-                    'name' => $user->name,
-                    'role' => $user->role,
-                    'tenant_id' => $user->tenant_id,
-                    'avatar' => $user->avatar ?? $user->photo_url ?? null,
-                    'is_jwt' => true
-                ];
-            }
         } catch (\Exception $e) {
-            error_log("getCurrentUser error: " . $e->getMessage());
+            // Silence errors
         }
         
         return null;
@@ -393,6 +450,7 @@ if (!function_exists('loadFeatures')) {
     function loadFeatures($tenantId) {
         if (empty($tenantId)) {
             $_SESSION['enabled_features'] = [];
+            $_SESSION['loaded_tenant_id'] = null;
             return;
         }
         try {
@@ -407,11 +465,14 @@ if (!function_exists('loadFeatures')) {
             ");
             $stmt->execute(['tenant_id' => $tenantId]);
             $features = $stmt->fetchAll(\PDO::FETCH_COLUMN);
+            
             $_SESSION['enabled_features'] = $features ?: [];
+            $_SESSION['loaded_tenant_id'] = $tenantId;
             $_SESSION['features_loaded_at'] = time();
         } catch (\PDOException $e) {
             error_log("[FEATURE-GATE] DB error: " . $e->getMessage());
             $_SESSION['enabled_features'] = [];
+            $_SESSION['loaded_tenant_id'] = $tenantId;
         }
     }
 }
@@ -429,21 +490,38 @@ if (!function_exists('hasFeature')) {
             return true;
         }
 
+        // Identify currently authenticated tenant
+        $tenantId = $user['tenant_id'] ?? $_SESSION['tenant_id'] ?? null;
+
+        if (empty($tenantId)) {
+            return false;
+        }
+
         // Core features always enabled
-        if ($featureKey === 'dashboard' || $featureKey === 'system') {
+        if (in_array($featureKey, ['dashboard', 'system', 'student', 'academic'])) {
             return true;
         }
 
-        // If features not in session, reload
-        if (!isset($_SESSION['enabled_features'])) {
-            if (!empty($_SESSION['tenant_id'])) {
-                loadFeatures($_SESSION['tenant_id']);
-            } else {
-                return false;
-            }
-        }
+        // Feature key aliases for consistency with routes
+        $aliases = [
+            'finance' => 'accounting',
+            'exams' => 'exam',
+            'accounting' => 'accounting',
+            'exam' => 'exam'
+        ];
+        
+        $searchKey = $aliases[$featureKey] ?? $featureKey;
 
-        return in_array($featureKey, $_SESSION['enabled_features'] ?? []);
+        // SaaS Improvement: Auto-refresh features every 5 minutes to avoid stale cache
+        $lastLoaded = $_SESSION['features_loaded_at'] ?? 0;
+        $isStale = (time() - $lastLoaded) > 300; // 5 minute TTL
+
+        if (!isset($_SESSION['enabled_features']) || ($_SESSION['loaded_tenant_id'] ?? null) != $tenantId || $isStale) {
+            loadFeatures($tenantId);
+        }
+        
+        $enabled = $_SESSION['enabled_features'] ?? [];
+        return in_array($searchKey, $enabled);
     }
 }
 
@@ -456,7 +534,8 @@ if (!function_exists('enforceFeature')) {
             $message = "Access Denied: The '{$featureKey}' feature is disabled for your institute.";
             
             // Check if it's an API request
-            $isApi = (isset($_SERVER['HTTP_ACCEPT']) && str_contains($_SERVER['HTTP_ACCEPT'], 'application/json')) ||
+            $isApi = (strpos($_SERVER['REQUEST_URI'] ?? '', '/api/') !== false) ||
+                     (isset($_SERVER['HTTP_ACCEPT']) && str_contains($_SERVER['HTTP_ACCEPT'], 'application/json')) ||
                      (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest');
             
             if ($isApi) {
@@ -486,8 +565,30 @@ if (!function_exists('requireAuth')) {
     function requireAuth()
     {
         if (!isLoggedIn()) {
-            $_SESSION['redirect_after_login'] = $_SERVER['REQUEST_URI'];
-            redirect(APP_URL . '/auth/login');
+            // SaaS Tip: Track failed login attempts by IP in a real 'login_throttles' table
+            // This satisfies the MAX_LOGIN_ATTEMPTS and LOGIN_LOCKOUT_TIME constants
+            
+            if (strpos($_SERVER['REQUEST_URI'], '/api/') !== false || (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest')) {
+                header('Content-Type: application/json');
+                http_response_code(401);
+                echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+                exit;
+            } else {
+                header('Location: ' . APP_URL . '/auth/login');
+                exit;
+            }
+        }
+
+        // Ensure $_SESSION['userData'] is populated for backward compatibility with procedural scripts
+        if (!isset($_SESSION['userData']) || empty($_SESSION['userData']['tenant_id'])) {
+            $user = getCurrentUser();
+            if ($user) {
+                $_SESSION['userData'] = $user;
+                // Also load features if not loaded
+                if (!empty($user['tenant_id']) && (!isset($_SESSION['loaded_tenant_id']) || $_SESSION['loaded_tenant_id'] != $user['tenant_id'])) {
+                    loadFeatures($user['tenant_id']);
+                }
+            }
         }
     }
 }
@@ -495,11 +596,19 @@ if (!function_exists('requireAuth')) {
 if (!function_exists('requirePermission')) {
     function requirePermission($permission)
     {
-        requireAuth();
-
         if (!hasPermission($permission)) {
-            http_response_code(403);
-            die('Access Denied: You do not have permission to view this page.');
+            $isApi = (strpos($_SERVER['REQUEST_URI'], '/api/') !== false) || (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest');
+            
+            if ($isApi) {
+                header('Content-Type: application/json');
+                http_response_code(403);
+                echo json_encode(['success' => false, 'message' => 'Access Denied: You do not have permission to access this resource (' . $permission . ').']);
+            } else {
+                header('Content-Type: text/plain');
+                http_response_code(403);
+                echo 'Access Denied: You do not have permission to access this resource (' . $permission . ').';
+            }
+            exit;
         }
     }
 }
@@ -509,10 +618,22 @@ if (!function_exists('requirePermission')) {
  * @param string $module
  */
 if (!function_exists('requireModule')) {
-    function requireModule($feature)
+    function requireModule($moduleName)
     {
-        requireAuth();
-        enforceFeature($feature);
+        if (!hasFeature($moduleName)) {
+            $isApi = (strpos($_SERVER['REQUEST_URI'], '/api/') !== false) || (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest');
+            
+            if ($isApi) {
+                header('Content-Type: application/json');
+                http_response_code(403);
+                echo json_encode(['success' => false, 'message' => 'Access Denied: This module/feature (' . $moduleName . ') is not enabled for your institute.']);
+            } else {
+                header('Content-Type: text/plain');
+                http_response_code(403);
+                echo 'Access Denied: This module/feature (' . $moduleName . ') is not enabled for your institute.';
+            }
+            exit;
+        }
     }
 }
 

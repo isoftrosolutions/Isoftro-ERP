@@ -34,21 +34,20 @@ $roleCSS = $roleCSS ?? null;
 
 
     <!-- Custom Styles (Using APP_URL for absolute paths) -->
-    <link rel="stylesheet" href="<?php echo APP_URL; ?>/public/assets/css/core.css">
+    <?php $cssVer = defined('APP_DEBUG') && APP_DEBUG ? time() : filemtime(__DIR__ . '/../../../public/assets/css/core.css'); ?>
+    <link rel="stylesheet" href="<?php echo APP_URL; ?>/public/assets/css/core.css?v=<?php echo $cssVer; ?>">
     <?php if (empty($roleCSS) || $roleCSS !== 'ia-dashboard-new.css'): ?>
-    <link rel="stylesheet" href="<?php echo APP_URL; ?>/public/assets/css/layout.css">
+    <link rel="stylesheet" href="<?php echo APP_URL; ?>/public/assets/css/layout.css?v=<?php echo $cssVer; ?>">
     <?php endif; ?>
-    <link rel="stylesheet" href="<?php echo APP_URL; ?>/public/assets/css/components.css">
-    <link rel="stylesheet" href="<?php echo APP_URL; ?>/public/assets/css/utilities.css">
+    <link rel="stylesheet" href="<?php echo APP_URL; ?>/public/assets/css/components.css?v=<?php echo $cssVer; ?>">
+    <link rel="stylesheet" href="<?php echo APP_URL; ?>/public/assets/css/utilities.css?v=<?php echo $cssVer; ?>">
 
-    
     <!-- Nexus Design System -->
-    <link rel="stylesheet" href="<?php echo APP_URL; ?>/public/assets/css/ia-form-components.css">
-    <link rel="stylesheet" href="<?php echo APP_URL; ?>/public/assets/css/ia-add-student-v2.css">
+    <link rel="stylesheet" href="<?php echo APP_URL; ?>/public/assets/css/ia-form-components.css?v=<?php echo $cssVer; ?>">
+    <link rel="stylesheet" href="<?php echo APP_URL; ?>/public/assets/css/ia-add-student-v2.css?v=<?php echo $cssVer; ?>">
 
-    
     <?php if ($roleCSS): ?>
-    <link rel="stylesheet" href="<?php echo APP_URL; ?>/public/assets/css/<?php echo $roleCSS; ?>">
+    <link rel="stylesheet" href="<?php echo APP_URL; ?>/public/assets/css/<?php echo $roleCSS; ?>?v=<?php echo $cssVer; ?>">
     <?php endif; ?>
 
     <!-- PWA Settings -->

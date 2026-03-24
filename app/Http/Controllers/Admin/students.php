@@ -30,9 +30,15 @@ if (!isLoggedIn()) {
     exit;
 }
 
-$tenantId = $_SESSION['userData']['tenant_id'] ?? null;
+$currUser = getCurrentUser();
+$tenantId = $_SESSION['userData']['tenant_id'] ?? $currUser['tenant_id'] ?? null;
+
 if (!$tenantId) {
-    echo json_encode(['success' => false, 'message' => 'Tenant ID missing']);
+    if (!isLoggedIn()) {
+        echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Tenant ID missing']);
+    }
     exit;
 }
 

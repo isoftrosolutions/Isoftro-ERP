@@ -22,19 +22,26 @@ if (!isLoggedIn()) {
     exit;
 }
 
-$role = $_SESSION['userData']['role'] ?? '';
+$currentUser = getCurrentUser();
+$userData = $_SESSION['userData'] ?? $currentUser;
+$role = $userData['role'] ?? '';
+
 if (!in_array($role, ['instituteadmin', 'superadmin'])) {
     echo json_encode(['success' => false, 'message' => 'Forbidden']);
     exit;
 }
 
-$tenantId = $_SESSION['userData']['tenant_id'] ?? null;
+$tenantId = $userData['tenant_id'] ?? null;
 if (!$tenantId) {
-    echo json_encode(['success' => false, 'message' => 'Tenant ID missing']);
+    if (!isLoggedIn()) {
+        echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Tenant ID missing']);
+    }
     exit;
 }
 
-$userId = $_SESSION['userData']['id'] ?? null;
+$userId = $userData['id'] ?? null;
 $method = $_SERVER['REQUEST_METHOD'];
 
 try {

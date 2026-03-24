@@ -226,14 +226,26 @@ class AuthController {
             $this->invalidateRefreshToken($refreshToken);
         }
         
-        // Clear session
+        // Clear session and JWT cookies
         $_SESSION = [];
+        $host = $_SERVER['HTTP_HOST'] ?? '';
+        $cookieDomain = null;
+        if ($host && !in_array($host, ['localhost', '127.0.0.1'])) {
+            $parts = explode('.', $host);
+            if (count($parts) >= 2) {
+                $cookieDomain = '.' . implode('.', array_slice($parts, -2));
+            }
+        }
+        
         if (ini_get("session.use_cookies")) {
             $params = session_get_cookie_params();
+            // Clear session cookie
             setcookie(session_name(), '', time() - 42000,
                 $params["path"], $params["domain"],
                 $params["secure"], $params["httponly"]
             );
+            // Clear JWT token cookie (Critical for logout sync)
+            setcookie('token', '', time() - 42000, '/', $cookieDomain, $params["secure"], true);
         }
         session_destroy();
         
