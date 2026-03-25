@@ -55,6 +55,7 @@ $roleCSS = $roleCSS ?? null;
     <meta name="theme-color" content="<?php echo $themeColor; ?>">
     <link rel="apple-touch-icon" href="<?php echo APP_URL; ?>/public/assets/images/logo.png">
     <link rel="icon" type="image/svg+xml" href="<?php echo APP_URL; ?>/public/assets/images/favicon.svg">
+    <script src="<?php echo APP_URL; ?>/public/assets/js/auth-helper.js"></script>
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 

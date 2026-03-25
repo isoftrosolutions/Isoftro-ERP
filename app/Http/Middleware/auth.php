@@ -4,8 +4,12 @@
  * Platform Blueprint V3.0
  */
 
-require_once 'config.php';
-
+// Use absolute path for inclusion to avoid path-guessing issues during bootstrap
+if (defined('APP_ROOT')) {
+    require_once APP_ROOT . '/config/config.php';
+} else {
+    require_once __DIR__ . '/../../../config/config.php';
+}
 // User Authentication Functions
 if (!function_exists('authenticateUser')) {
 function authenticateUser($username, $password) {
