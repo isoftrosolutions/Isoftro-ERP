@@ -330,7 +330,7 @@ class SuperAdminController {
                 'priority' => $data['priority'] ?? 'normal',
                 'starts_at' => $data['starts_at'] ?? date('Y-m-d H:i:s'),
                 'ends_at' => $data['ends_at'] ?? null,
-                'created_by' => $_SESSION['userData']['id'] ?? 1
+                'created_by' => getCurrentUser()['id'] ?? 1
             ]);
             
             return ['success' => true];
@@ -428,19 +428,62 @@ class SuperAdminController {
             $stmt = $this->db->prepare("DELETE FROM impersonation_tokens WHERE id = ?");
             $stmt->execute([$data['id']]);
 
-            // Setup session
-            $_SESSION['original_userData'] = $_SESSION['userData'];
+            // Setup session for legacy support
+            $currentUser = getCurrentUser();
+            $_SESSION['original_userData'] = $currentUser;
             $_SESSION['impersonating'] = true;
             
-            $_SESSION['userData'] = [
+            $userData = [
                 'id' => $data['user_id'],
                 'email' => $data['email'],
                 'name' => $data['name'] ?? $data['email'],
                 'role' => $data['role'],
                 'tenant_id' => $data['tenant_id'],
                 'avatar' => $data['avatar'],
-                'is_impersonated' => true
+                'is_impersonated' => true,
+                'impersonated_by' => $currentUser['id'] ?? null
             ];
+            $_SESSION['userData'] = $userData;
+
+            // CRITICAL: Issue a NEW JWT for the impersonated user so the rest of the 
+            // system (which is now stateless JWT-based) recognizes the new identity.
+            if (function_exists('auth')) {
+                $user = \App\Models\User::find($data['user_id']);
+                if ($user) {
+                    // Set impersonation metadata on the user model for JWT claims
+                    $user->impersonated_by = $currentUser['id'] ?? null;
+                    
+                    // Generate token with custom claims via auth('api')->login()
+                    $token = auth('api')->claims([
+                        'impersonated_by' => $currentUser['id'] ?? null,
+                        'is_impersonation' => true
+                    ])->login($user);
+
+                    // Set the cookie (using standard Laravel cookie param order)
+                    $ttl = auth('api')->factory()->getTTL(); // in minutes
+                    
+                    // Calculate domain for cookie
+                    $host = $_SERVER['HTTP_HOST'] ?? '';
+                    $cookieDomain = null;
+                    if ($host && !in_array($host, ['localhost', '127.0.0.1'])) {
+                        $parts = explode('.', $host);
+                        if (count($parts) >= 2) {
+                            $cookieDomain = '.' . implode('.', array_slice($parts, -2));
+                        }
+                    }
+
+                    // Set the token cookie manually since we're in a legacy redirect flow
+                    setcookie(
+                        'token',
+                        $token,
+                        time() + ($ttl * 60),
+                        '/',
+                        $cookieDomain,
+                        isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on',
+                        true // HttpOnly
+                    );
+                }
+            }
 
             // Load tenant features
             loadFeatures($data['tenant_id']);
@@ -470,9 +513,31 @@ class SuperAdminController {
             }
         }
         
-        // Restore original session if it exists
+        // Restore original session and JWT if it exists
         if (isset($_SESSION['original_userData'])) {
-            $_SESSION['userData'] = $_SESSION['original_userData'];
+            $original = $_SESSION['original_userData'];
+            $_SESSION['userData'] = $original;
+            
+            // Re-issue original SuperAdmin JWT
+            if (function_exists('auth')) {
+                $user = \App\Models\User::find($original['id']);
+                if ($user) {
+                    $token = auth('api')->login($user);
+                    $ttl = auth('api')->factory()->getTTL();
+                    
+                    $host = $_SERVER['HTTP_HOST'] ?? '';
+                    $cookieDomain = null;
+                    if ($host && !in_array($host, ['localhost', '127.0.0.1'])) {
+                        $parts = explode('.', $host);
+                        if (count($parts) >= 2) {
+                            $cookieDomain = '.' . implode('.', array_slice($parts, -2));
+                        }
+                    }
+
+                    setcookie('token', $token, time() + ($ttl * 60), '/', $cookieDomain, isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on', true);
+                }
+            }
+            
             unset($_SESSION['original_userData']);
         }
         

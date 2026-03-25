@@ -7,6 +7,7 @@
 require_once 'config.php';
 
 // User Authentication Functions
+if (!function_exists('authenticateUser')) {
 function authenticateUser($username, $password) {
     $db = getDBConnection();
     
@@ -56,8 +57,10 @@ function authenticateUser($username, $password) {
         return ['success' => false, 'message' => 'Authentication system error. Please try again later.'];
     }
 }
+}
 
 // Failed Login Functions
+if (!function_exists('recordFailedLogin')) {
 function recordFailedLogin($userId) {
     $db = getDBConnection();
     
@@ -81,7 +84,9 @@ function recordFailedLogin($userId) {
         error_log("Failed login recording error: " . $e->getMessage());
     }
 }
+}
 
+if (!function_exists('clearFailedLogins')) {
 function clearFailedLogins($userId) {
     $db = getDBConnection();
     
@@ -92,7 +97,9 @@ function clearFailedLogins($userId) {
         error_log("Failed login clearing error: " . $e->getMessage());
     }
 }
+}
 
+if (!function_exists('isAccountLocked')) {
 function isAccountLocked($userId) {
     $db = getDBConnection();
     
@@ -107,7 +114,9 @@ function isAccountLocked($userId) {
         return false;
     }
 }
+}
 
+if (!function_exists('lockAccount')) {
 function lockAccount($userId) {
     $db = getDBConnection();
     
@@ -118,8 +127,10 @@ function lockAccount($userId) {
         error_log("Account locking error: " . $e->getMessage());
     }
 }
+}
 
 // Session Management Functions
+if (!function_exists('login')) {
 function login($userData) {
     session_regenerate_id(true);
     $_SESSION['userData'] = $userData;
@@ -143,7 +154,9 @@ function login($userData) {
         ]);
     }
 }
+}
 
+if (!function_exists('logout')) {
 function logout() {
     // Clear remember me cookie
     if (isset($_COOKIE['remember_token'])) {
@@ -168,7 +181,9 @@ function logout() {
         );
     }
 }
+}
 
+if (!function_exists('checkRememberMe')) {
 function checkRememberMe() {
     if (isset($_COOKIE['remember_token']) && !isLoggedIn()) {
         $token = $_COOKIE['remember_token'];
@@ -206,16 +221,26 @@ function checkRememberMe() {
     
     return false;
 }
-
-// Password Management Functions
-function hashPassword($password) {
-    return password_hash($password, PASSWORD_ARGON2ID, ['memory_cost' => 65536, 'time_cost' => 4, 'threads' => 3]);
 }
 
+// Password Management Functions
+if (!function_exists('hashPassword')) {
+function hashPassword($password) {
+    // FIX BUG 9: Must use PASSWORD_BCRYPT (cost 12) — NOT Argon2ID.
+    // Laravel's Hash::check() (used by auth()->attempt()) relies on bcrypt.
+    // Mixing Argon2ID and bcrypt causes intermittent auth failures where
+    // login works via custom PDO path but fails via tymon/jwt-auth's attempt().
+    return password_hash($password, PASSWORD_BCRYPT, ['cost' => 12]);
+}
+}
+
+if (!function_exists('verifyPassword')) {
 function verifyPassword($password, $hash) {
     return password_verify($password, $hash);
 }
+}
 
+if (!function_exists('generatePasswordResetToken')) {
 function generatePasswordResetToken($userId) {
     $db = getDBConnection();
     $token = bin2hex(random_bytes(32));
@@ -233,7 +258,9 @@ function generatePasswordResetToken($userId) {
         return false;
     }
 }
+}
 
+if (!function_exists('validatePasswordResetToken')) {
 function validatePasswordResetToken($token) {
     $db = getDBConnection();
     
@@ -248,7 +275,9 @@ function validatePasswordResetToken($token) {
         return false;
     }
 }
+}
 
+if (!function_exists('clearPasswordResetToken')) {
 function clearPasswordResetToken($token) {
     $db = getDBConnection();
     
@@ -259,8 +288,10 @@ function clearPasswordResetToken($token) {
         error_log("Password reset token clearing error: " . $e->getMessage());
     }
 }
+}
 
 // User Management Functions
+if (!function_exists('getUserById')) {
 function getUserById($id) {
     $db = getDBConnection();
     
@@ -273,7 +304,9 @@ function getUserById($id) {
         return false;
     }
 }
+}
 
+if (!function_exists('getUserByUsername')) {
 function getUserByUsername($email) {
     $db = getDBConnection();
     
@@ -286,7 +319,9 @@ function getUserByUsername($email) {
         return false;
     }
 }
+}
 
+if (!function_exists('createUser')) {
 function createUser($userData) {
     $db = getDBConnection();
     
@@ -306,7 +341,9 @@ function createUser($userData) {
         return false;
     }
 }
+}
 
+if (!function_exists('updateUser')) {
 function updateUser($id, $userData) {
     $db = getDBConnection();
     
@@ -348,8 +385,10 @@ function updateUser($id, $userData) {
         return false;
     }
 }
+}
 
 // Permission Functions
+if (!function_exists('hasRole')) {
 function hasRole($role) {
     if (!isLoggedIn()) {
         return false;
@@ -358,7 +397,9 @@ function hasRole($role) {
     $user = getCurrentUser();
     return $user['role'] === $role;
 }
+}
 
+if (!function_exists('hasAnyRole')) {
 function hasAnyRole($roles) {
     if (!isLoggedIn()) {
         return false;
@@ -367,22 +408,28 @@ function hasAnyRole($roles) {
     $user = getCurrentUser();
     return in_array($user['role'], $roles);
 }
+}
 
+if (!function_exists('requireRole')) {
 function requireRole($role) {
     if (!hasRole($role)) {
         http_response_code(403);
         die('Access Denied: You must be a ' . $role . ' to view this page.');
     }
 }
+}
 
+if (!function_exists('requireAnyRole')) {
 function requireAnyRole($roles) {
     if (!hasAnyRole($roles)) {
         http_response_code(403);
         die('Access Denied: You must be one of these roles: ' . implode(', ', $roles) . ' to view this page.');
     }
 }
+}
 
 // Session Security Functions
+if (!function_exists('validateSession')) {
 function validateSession() {
     if (!isLoggedIn()) {
         return false;
@@ -406,6 +453,7 @@ function validateSession() {
     }
     
     return true;
+}
 }
 
 // Initialize authentication

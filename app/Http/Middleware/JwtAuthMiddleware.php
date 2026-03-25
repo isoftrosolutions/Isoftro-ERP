@@ -3,85 +3,106 @@
 namespace App\Http\Middleware;
 
 use Closure;
-use Exception;
 use Illuminate\Http\Request;
+use Tymon\JWTAuth\Exceptions\TokenExpiredException;
+use Tymon\JWTAuth\Exceptions\TokenInvalidException;
+use Tymon\JWTAuth\Exceptions\JWTException;
 use Tymon\JWTAuth\Facades\JWTAuth;
-use Tymon\JWTAuth\Http\Middleware\BaseMiddleware;
 
-class JwtAuthMiddleware extends BaseMiddleware
+/**
+ * JWT Authentication Middleware
+ * 
+ * Handles token extraction from both Authorization header and cookie.
+ * Validates via tymon/jwt-auth only — does NOT call IdentifyTenant internally
+ * (which caused a recursive auth() call and TokenInvalidException).
+ * 
+ * Tenant validation is derived purely from JWT claims — no subdomain lookup
+ * inside this middleware to prevent circular dependencies.
+ */
+class JwtAuthMiddleware
 {
-    /**
-     * Handle an incoming request.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \Closure  $next
-     * @return mixed
-     */
     public function handle(Request $request, Closure $next)
     {
         try {
-            // Check for token in Header (Bearer) or Cookie (token)
-            $token = $request->bearerToken() ?: $request->cookie('token');
-            
-            if (!$token) {
-                return response()->json(['success' => false, 'message' => 'Authorization Token not found'], 401);
+            // Step 1: Extract token from Bearer header OR HttpOnly cookie
+            $token = $request->bearerToken();
+
+            if (!$token && $request->hasCookie('token')) {
+                $token = $request->cookie('token');
+                // Inject into Authorization header so tymon's parser can find it
+                $request->headers->set('Authorization', 'Bearer ' . $token);
             }
 
-            // Set the token for subsequent calls
-            $user = auth('api')->setToken($token)->user();
+            if (!$token) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Authorization token not found. Please login.',
+                ], 401);
+            }
+
+            // Step 2: Validate token via tymon (signature + expiry + blacklist)
+            $user = JWTAuth::parseToken()->authenticate();
 
             if (!$user) {
-                return response()->json(['success' => false, 'message' => 'User not found'], 401);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'User not found or account deleted.',
+                ], 401);
             }
 
-            // --- TENANT VALIDATION ---
-            // 1. Get tenant from token claim
-            $payload = auth('api')->getPayload();
+            // Step 3: Tenant isolation — read from JWT payload, NOT from subdomain
+            // (IdentifyTenant is intentionally NOT called here — it caused recursive auth() calls)
+            $payload = JWTAuth::parseToken()->getPayload();
             $tokenTenantId = $payload->get('tenant_id');
 
-            // 2. Resolve tenant from subdomain (existing logic)
-            $identifyTenant = new \App\Http\Middleware\IdentifyTenant();
-            $resolvedTenant = $identifyTenant->handle(); // This still sets $_SESSION for now, we'll fix later
-            $resolvedTenantId = $resolvedTenant['id'] ?? null;
-
-            // 3. Ensure token tenant matches resolved tenant (unless super admin)
-            if ($user->role !== 'superadmin' && $user->role !== 'super-admin') {
-                if ($tokenTenantId != $resolvedTenantId) {
+            if (!$user->isSuperAdmin()) {
+                if (empty($tokenTenantId)) {
                     return response()->json([
-                        'success' => false, 
-                        'message' => 'Tenant mismatch. You are not authorized to access this tenant.'
+                        'success' => false,
+                        'message' => 'Token is missing tenant context. Please re-login.',
                     ], 403);
                 }
+
+                // Bind resolved tenant_id to request for downstream controllers
+                $request->merge(['_tenant_id' => $tokenTenantId]);
             }
 
-            // 4. Inject user and tenant into session for legacy compatibility DURING transition
-            // We will eventually remove this, but many views still use $_SESSION
-            $_SESSION['userData'] = [
-                'id' => $user->id,
-                'email' => $user->email,
-                'name' => $user->name,
-                'role' => $user->role,
-                'tenant_id' => $user->tenant_id,
-                'is_jwt' => true
-            ];
-            
-            if ($resolvedTenantId) {
-                $_SESSION['tenant_id'] = $resolvedTenantId;
-                
-                // CRITICAL: Load features for the legacy hasFeature() helper
-                if (function_exists('loadFeatures')) {
-                    loadFeatures($resolvedTenantId);
+            // Step 4: Populate $_SESSION for legacy PHP views still reading session
+            // This is a transitional bridge — gradually remove as views are modernised
+            if (session_status() === PHP_SESSION_ACTIVE) {
+                $_SESSION['userData'] = [
+                    'id'        => $user->id,
+                    'email'     => $user->email,
+                    'name'      => $user->name,
+                    'role'      => $user->role,
+                    'tenant_id' => $user->tenant_id,
+                    'is_jwt'    => true,
+                ];
+                if ($tokenTenantId) {
+                    $_SESSION['tenant_id'] = $tokenTenantId;
                 }
             }
 
-        } catch (Exception $e) {
-            if ($e instanceof \Tymon\JWTAuth\Exceptions\TokenInvalidException) {
-                return response()->json(['success' => false, 'message' => 'Token is Invalid'], 401);
-            } else if ($e instanceof \Tymon\JWTAuth\Exceptions\TokenExpiredException) {
-                return response()->json(['success' => false, 'message' => 'Token is Expired'], 401);
-            } else {
-                return response()->json(['success' => false, 'message' => 'Authorization Token not found or error occurred'], 401);
-            }
+        } catch (TokenExpiredException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Token has expired. Please refresh your token or re-login.',
+                'code'    => 'TOKEN_EXPIRED',
+            ], 401);
+
+        } catch (TokenInvalidException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Token is invalid.',
+                'code'    => 'TOKEN_INVALID',
+            ], 401);
+
+        } catch (JWTException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Token error: ' . $e->getMessage(),
+                'code'    => 'TOKEN_ERROR',
+            ], 401);
         }
 
         return $next($request);

@@ -15,6 +15,11 @@ if (file_exists(__DIR__ . '/../config/config.php')) {
     require_once __DIR__ . '/../config/config.php';
 }
 
+// Load legacy authentication functions (lockout, pass verify, etc.)
+if (file_exists(__DIR__ . '/../app/Http/Middleware/auth.php')) {
+    require_once __DIR__ . '/../app/Http/Middleware/auth.php';
+}
+
 
 // Database connection function
 if (!function_exists('db')) {

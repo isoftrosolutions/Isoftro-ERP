@@ -107,7 +107,7 @@ class AuthController extends Controller
             ])->withCookie($cookie);
         }
 
-        return redirect('/login')->withCookie($cookie);
+        return redirect('/auth/login')->withCookie($cookie);
     }
 
     /**
@@ -151,30 +151,29 @@ class AuthController extends Controller
         }
 
         return response()->json([
-            'success' => true,
-            'access_token' => $token,
-            'token_type' => 'bearer',
-            'expires_in' => $ttl,
-            'loading_screen' => $baseUrl . '/loading',
-            'redirect' => $redirectUrl,
+            'success'        => true,
+            'access_token'   => $token,
+            'token_type'     => 'bearer',
+            'expires_in'     => $ttl,
+            'redirect'       => $redirectUrl,
             'user' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'role' => $user->role,
-                'tenant_id' => $user->tenant_id,
+                'id'             => $user->id,
+                'name'           => $user->name,
+                'email'          => $user->email,
+                'role'           => $user->role,
+                'tenant_id'      => $user->tenant_id,
                 'is_impersonating' => $user->isImpersonating(),
             ]
         ])->cookie(
-            'token', 
-            $token, 
-            $ttl / 60, 
-            '/', 
-            $cookieDomain, 
-            isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on', 
-            true, 
-            false, 
-            'Lax'
+            'token',
+            $token,
+            $ttl / 60,   // Laravel cookie() expects minutes
+            '/',
+            $cookieDomain,
+            isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on',
+            true,        // HttpOnly — prevents JS from reading the token (XSS protection)
+            false,       // Raw
+            'Lax'        // SameSite=Lax — allows cookie on top-level navigations (loading screen redirect)
         );
     }
 }

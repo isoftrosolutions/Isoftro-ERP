@@ -15,6 +15,11 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
+        // Apply tenant identify globally for all routes
+        $middleware->append([
+             \App\Http\Middleware\IdentifyTenant::class,
+        ]);
+
         $middleware->alias([
             'auth.superadmin' => \App\Http\Middleware\SuperAdminAuth::class,
             'super_admin' => \App\Http\Middleware\SuperAdminMiddleware::class,

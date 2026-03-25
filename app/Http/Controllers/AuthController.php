@@ -583,14 +583,15 @@ class AuthController
 
         return ($result['attempts'] ?? 0) < MAX_LOGIN_ATTEMPTS;
     }
-    private function sanitizeUser($user)
+    private function sanitizeUser(array $user): array
     {
         return [
-            'id' => $user['id'],
-            'name' => $user['name'],
-            'email' => $user['email'],
-            'role' => $user['role'],
-            'tenant_id' => $user['tenant_id']
+            'id'        => $user['id'],
+            // FIX BUG 11: DB column is 'full_name', not 'name'
+            'name'      => $user['full_name'] ?? $user['name'] ?? $user['email'],
+            'email'     => $user['email'],
+            'role'      => $user['role'],
+            'tenant_id' => $user['tenant_id'] ?? null,
         ];
     }
 

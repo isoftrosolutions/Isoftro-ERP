@@ -2,33 +2,65 @@
 
 namespace App\Http\Middleware;
 
+use Closure;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+
 /**
  * Tenant Identification Middleware
- * CRITICAL: Reads subdomain → sets tenant context
  * 
- * This middleware must be applied to ALL tenant-scoped routes
- * Refactored to remove session-based source of truth.
+ * Standard Laravel Middleware refactored from legacy logic.
+ * Identifies the tenant from:
+ * 1. Subdomain (for public and authenticated routes)
+ * 2. Authenticated user's tenant_id (as fallback for authenticated routes)
+ * 
+ * Sets context in:
+ * - Request object (as '_tenant_id' and '_tenant')
+ * - PHP $_SESSION (for legacy views and helpers)
+ * - Static property for global access via IdentifyTenant::current()
  */
-
 class IdentifyTenant {
     
     private static $currentTenant = null;
 
     /**
-     * Handle tenant identification from subdomain
+     * Handle tenant identification
+     * 
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \Closure  $next
+     * @return mixed
      */
-    public function handle() {
-        $host = $_SERVER['HTTP_HOST'] ?? '';
+    public function handle(Request $request, Closure $next) {
+        $host = $request->getHost();
         $subdomain = $this->extractSubdomain($host);
         
-        if ($subdomain && $subdomain !== 'www' && $subdomain !== 'localhost') {
+        $tenant = null;
+        
+        // Priority 1: Subdomain lookup
+        if ($subdomain && !in_array($subdomain, ['www', 'localhost', '127.0.0.1'])) {
             $tenant = $this->lookupTenant($subdomain);
+        }
+        
+        // Priority 2: JWT / Authenticated User (if already authenticated by previous middleware)
+        // This is safe because JwtAuthMiddleware runs before this in the stack
+        if (!$tenant && function_exists('auth') && auth('api')->check()) {
+            $user = auth('api')->user();
+            if ($user && $user->tenant_id) {
+                $tenant = $this->getTenantById($user->tenant_id);
+            }
+        }
+        
+        // Priority 3: Session fallback (for pure legacy flows)
+        if (!$tenant && isset($_SESSION['tenant_id'])) {
+            $tenant = $this->getTenantById($_SESSION['tenant_id']);
+        }
+        
+        if ($tenant) {
+            self::$currentTenant = $tenant;
             
-            if ($tenant) {
-                self::$currentTenant = $tenant;
-                
-                // For transitional support only, we'll keep the session populated
-                // but our logic won't RELY on it as source of truth.
+            // Populate sessions ONLY if not already populated to avoid unnecessary DB calls 
+            // from loadFeatures in subsequent requests if session is already active
+            if (!isset($_SESSION['tenant_id']) || $_SESSION['tenant_id'] != $tenant['id']) {
                 $_SESSION['tenant_id'] = $tenant['id'];
                 $_SESSION['tenant_name'] = $tenant['name'];
                 $_SESSION['tenant_subdomain'] = $tenant['subdomain'];
@@ -42,35 +74,26 @@ class IdentifyTenant {
                 $_SESSION['tenant_logo'] = $logoPath;
                 $_SESSION['institute_logo'] = $logoPath;
                 
-                $this->loadTenantModules($tenant['id']);
-                
-                return $tenant;
-            }
-        }
-        
-        // If not resolved from subdomain, check if we have a token that tells us
-        try {
-            if (function_exists('auth') && auth('api')->check()) {
-                $user = auth('api')->user();
-                if ($user && $user->tenant_id) {
-                    if (!self::$currentTenant || self::$currentTenant['id'] != $user->tenant_id) {
-                        $tenant = $this->getTenantById($user->tenant_id);
-                        if ($tenant) {
-                            self::$currentTenant = $tenant;
-                        }
-                    }
+                // Load features into session for legacy hasFeature() calls
+                if (function_exists('loadFeatures')) {
+                    loadFeatures($tenant['id']);
                 }
             }
-        } catch (\Exception $e) {}
-
-        return self::$currentTenant;
+            
+            // Merge into request for Laravel controllers
+            $request->merge([
+                'tenant' => $tenant,
+                'tenant_id' => $tenant['id']
+            ]);
+        }
+        
+        return $next($request);
     }
     
     /**
      * Extract subdomain from host
      */
     private function extractSubdomain($host) {
-        $host = explode(':', $host)[0];
         if ($host === 'localhost' || $host === '127.0.0.1') return null;
         $parts = explode('.', $host);
         if (count($parts) > 2) return $parts[0];
@@ -94,7 +117,7 @@ class IdentifyTenant {
             $stmt->execute(['subdomain' => $subdomain]);
             return $stmt->fetch() ?: null;
         } catch (\PDOException $e) {
-            error_log("Tenant lookup failed: " . $e->getMessage());
+            error_log("Tenant lookup failed (subdomain=$subdomain): " . $e->getMessage());
             return null;
         }
     }
@@ -107,57 +130,24 @@ class IdentifyTenant {
             $db = getDBConnection();
             $stmt = $db->prepare("SELECT id, name, subdomain, plan, status, logo_path FROM tenants WHERE id = :id LIMIT 1");
             $stmt->execute(['id' => $tenantId]);
-            return $stmt->fetch();
+            return $stmt->fetch() ?: null;
         } catch (\PDOException $e) {
             return null;
         }
     }
     
     /**
-     * Get current tenant ID
+     * Global accessors
      */
-    public static function getTenantId() {
-        if (self::$currentTenant) return self::$currentTenant['id'];
-        
-        // Priority 1: JWT
-        try {
-            if (function_exists('auth') && auth('api')->check()) {
-                $user = auth('api')->user();
-                return $user->tenant_id ?? null;
-            }
-        } catch (\Exception $e) {}
-
-        return $_SESSION['tenant_id'] ?? null;
+    public static function current() {
+        return self::$currentTenant;
     }
     
-    /**
-     * Get current tenant info
-     */
     public static function getTenant() {
-        if (self::$currentTenant) return self::$currentTenant;
-
-        $tenantId = self::getTenantId();
-        if ($tenantId) {
-            return (new self())->getTenantById($tenantId);
-        }
-        
-        return null;
+        return self::current();
     }
     
-    /**
-     * Check if tenant is active
-     */
-    public static function isTenantActive() {
-        $tenant = self::getTenant();
-        return $tenant && in_array($tenant['status'], ['active', 'trial']);
-    }
-
-    /**
-     * Load enabled modules for the tenant
-     */
-    private function loadTenantModules($tenantId) {
-        if (function_exists('loadFeatures')) {
-            loadFeatures($tenantId);
-        }
+    public static function getTenantId() {
+        return self::$currentTenant['id'] ?? null;
     }
 }

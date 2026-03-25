@@ -47,19 +47,28 @@ if (session_status() === PHP_SESSION_NONE && !headers_sent()) {
 }
 
 // Application Configuration
+// Application Configuration
 if (!defined('APP_NAME')) {
-    // Try to get tenant name from JWT if available, else env
-    $tenantName = null;
-    try {
-        if (function_exists('auth') && auth('api')->check()) {
-            $user = auth('api')->user();
-            // We'll need a way to get tenant name here, maybe from a cache or join
-            // For now fallback to env
-        }
-    } catch (\Exception $e) {}
+    $dynamicName = getenv('APP_NAME') ?: 'iSoftro Academic ERP';
     
-    $dynamicAppName = $_SESSION['tenant_name'] ?? getenv('APP_NAME') ?: 'isoftro';
-    define('APP_NAME', $dynamicAppName);
+    // Attempt dynamic tenant branding from subdomain if not already in session
+    if (empty($_SESSION['tenant_name'])) {
+        $host = $_SERVER['HTTP_HOST'] ?? '';
+        $parts = explode('.', explode(':', $host)[0]);
+        if (count($parts) > 2 && !in_array($parts[0], ['www', 'localhost', '127.0.0.1'])) {
+            try {
+                $db = getDBConnection();
+                $stmt = $db->prepare("SELECT name FROM tenants WHERE subdomain = ? AND status != 'suspended' LIMIT 1");
+                $stmt->execute([$parts[0]]);
+                $name = $stmt->fetchColumn();
+                if ($name) $dynamicName = $name;
+            } catch (\Exception $e) {}
+        }
+    } else {
+        $dynamicName = $_SESSION['tenant_name'];
+    }
+
+    define('APP_NAME', $dynamicName);
 }
 if (!defined('APP_VERSION'))
     define('APP_VERSION', '3.0');
@@ -324,74 +333,109 @@ if (!function_exists('redirect')) {
     }
 }
 
-if (!function_exists('isLoggedIn')) {
-    function isLoggedIn()
-    {
-        try {
-            // Strictly check JWT from cookie or standard Authorization header
-            $token = $_COOKIE['token'] ?? null;
+/**
+ * Verify and decode a JWT token with FULL HMAC signature validation.
+ * Uses hash_equals() to prevent timing attacks.
+ * Supports both URL-safe (standard) and plain base64 encoded JWTs.
+ */
+if (!function_exists('verifyJwtToken')) {
+    function verifyJwtToken(string $token): ?array {
+        $parts = explode('.', $token);
+        if (count($parts) !== 3) return null;
 
-            if (function_exists('getallheaders')) {
-                $headers = getallheaders();
-                $authHeader = $headers['Authorization'] ?? $headers['authorization'] ?? '';
-                if (preg_match('/Bearer\s+(.+)$/i', $authHeader, $matches)) {
-                    $token = $matches[1];
-                }
-            }
+        [$headerB64, $payloadB64, $sigB64] = $parts;
 
-            if ($token) {
-                // Ensure the token represents a valid active session via decodable payload
-                $parts = explode('.', $token);
-                if (count($parts) === 3) {
-                    $payload = json_decode(base64_decode($parts[1]), true);
-                    if (isset($payload['exp']) && $payload['exp'] > time() && isset($payload['user_id'])) {
-                        return true;
-                    }
-                }
-            }
-        } catch (\Exception $e) {
-             // Silence errors
+        $secret = defined('JWT_SECRET') ? JWT_SECRET : null;
+        if (!$secret || $secret === 'PLEASE_SET_JWT_SECRET_IN_ENV') {
+            error_log('[AUTH] CRITICAL: JWT_SECRET is not set in .env!');
+            return null;
         }
 
-        return false;
+        // Reconstruct expected signature using URL-safe base64 (RFC 7519 standard)
+        $expectedSig = rtrim(strtr(base64_encode(
+            hash_hmac('sha256', "$headerB64.$payloadB64", $secret, true)
+        ), '+/', '-_'), '=');
+
+        // Constant-time comparison to prevent timing attacks
+        if (!hash_equals($expectedSig, $sigB64)) {
+            return null; // Signature invalid — token forged or tampered
+        }
+
+        // Decode payload (handle both URL-safe and padded base64)
+        $padded = str_pad(strtr($payloadB64, '-_', '+/'), strlen($payloadB64) % 4 === 0 ? strlen($payloadB64) : strlen($payloadB64) + (4 - strlen($payloadB64) % 4), '=');
+        $payload = json_decode(base64_decode($padded), true);
+
+        if (!is_array($payload)) return null;
+
+        // Check expiry
+        if (!isset($payload['exp']) || $payload['exp'] < time()) {
+            return null; // Token expired
+        }
+
+        return $payload;
+    }
+}
+
+if (!function_exists('isLoggedIn')) {
+    function isLoggedIn(): bool {
+        $token = null;
+
+        // Priority 1: Authorization header (API / AJAX requests)
+        if (function_exists('getallheaders')) {
+            $headers = getallheaders();
+            $authHeader = $headers['Authorization'] ?? $headers['authorization'] ?? '';
+            if (preg_match('/Bearer\s+(.+)$/i', $authHeader, $matches)) {
+                $token = $matches[1];
+            }
+        }
+
+        // Priority 2: Cookie (web browser requests)
+        if (!$token && isset($_COOKIE['token'])) {
+            $token = $_COOKIE['token'];
+        }
+
+        if (!$token) return false;
+
+        return verifyJwtToken($token) !== null;
     }
 }
 
 if (!function_exists('getCurrentUser')) {
-    function getCurrentUser()
-    {
-        try {
-            $token = $_COOKIE['token'] ?? null;
-            if (function_exists('getallheaders')) {
-                $headers = getallheaders();
-                $authHeader = $headers['Authorization'] ?? $headers['authorization'] ?? '';
-                if (preg_match('/Bearer\s+(.+)$/i', $authHeader, $matches)) {
-                    $token = $matches[1];
-                }
-            }
+    function getCurrentUser(): ?array {
+        $token = null;
 
-            if ($token) {
-                // Decode token to get essential info without hitting DB on every request.
-                // Token already validated for structure in isLoggedIn().
-                $parts = explode('.', $token);
-                if (count($parts) === 3) {
-                    $payload = json_decode(base64_decode($parts[1]), true);
-                    if ($payload && isset($payload['user_id']) && $payload['exp'] > time()) {
-                        $userArray = [
-                            'id' => $payload['user_id'],
-                            'tenant_id' => $payload['tenant_id'] ?? null,
-                            'role' => $payload['role'] ?? null,
-                            'is_jwt' => true
-                        ];
-                        // Hydrate legacy session explicitly for file dependencies but NOT for auth checks
-                        $_SESSION['userData'] = $userArray;
-                        return $userArray;
-                    }
-                }
+        // Priority 1: Authorization header (API / AJAX)
+        if (function_exists('getallheaders')) {
+            $headers = getallheaders();
+            $authHeader = $headers['Authorization'] ?? $headers['authorization'] ?? '';
+            if (preg_match('/Bearer\s+(.+)$/i', $authHeader, $matches)) {
+                $token = $matches[1];
             }
-        } catch (\Exception $e) {}
-        
-        return null;
+        }
+
+        // Priority 2: Cookie (web browser)
+        if (!$token && isset($_COOKIE['token'])) {
+            $token = $_COOKIE['token'];
+        }
+
+        if (!$token) return null;
+
+        // Use FULL signature-verified decode (not raw base64)
+        $payload = verifyJwtToken($token);
+        if (!$payload) return null;
+
+        // Support both tymon (sub) and custom (user_id) JWT subject claims
+        $userId = $payload['sub'] ?? $payload['user_id'] ?? null;
+        if (!$userId) return null;
+
+        return [
+            'id'        => $userId,
+            'tenant_id' => $payload['tenant_id'] ?? null,
+            'role'      => $payload['role'] ?? null,
+            'name'      => $payload['name'] ?? null,
+            'email'     => $payload['email'] ?? null,
+            'is_jwt'    => true,
+        ];
     }
 }
 
@@ -452,47 +496,66 @@ if (!function_exists('loadFeatures')) {
  * Check if a feature is enabled for the current institute.
  */
 if (!function_exists('hasFeature')) {
-    function hasFeature($featureKey) {
+    function hasFeature(string $featureKey): bool {
         $featureKey = strtolower(trim($featureKey));
 
-        // Skip check for superadmin
         $user = getCurrentUser();
-        if ($user && (($user['role'] ?? '') === 'superadmin' || ($user['role'] ?? '') === 'super-admin')) {
+        $role = $user['role'] ?? '';
+
+        // Superadmin bypasses all feature checks
+        if (in_array($role, ['superadmin', 'super-admin'])) {
             return true;
         }
 
-        // Identify currently authenticated tenant
-        $tenantId = $user['tenant_id'] ?? $_SESSION['tenant_id'] ?? null;
-
-        if (empty($tenantId)) {
-            return false;
-        }
-
-        // Core features always enabled
+        // Core features always enabled for all authenticated users
         if (in_array($featureKey, ['dashboard', 'system', 'student', 'academic'])) {
             return true;
         }
 
-        // Feature key aliases for consistency with routes
+        $tenantId = $user['tenant_id'] ?? null;
+        if (empty($tenantId)) {
+            return false;
+        }
+
+        // Feature key aliases for route consistency
         $aliases = [
-            'finance' => 'accounting',
-            'exams' => 'exam',
+            'finance'    => 'accounting',
+            'exams'      => 'exam',
             'accounting' => 'accounting',
-            'exam' => 'exam'
+            'exam'       => 'exam',
         ];
-        
         $searchKey = $aliases[$featureKey] ?? $featureKey;
 
-        // SaaS Improvement: Auto-refresh features every 5 minutes to avoid stale cache
-        $lastLoaded = $_SESSION['features_loaded_at'] ?? 0;
-        $isStale = (time() - $lastLoaded) > 300; // 5 minute TTL
-
-        if (!isset($_SESSION['enabled_features']) || ($_SESSION['loaded_tenant_id'] ?? null) != $tenantId || $isStale) {
-            loadFeatures($tenantId);
+        // Static per-request in-memory cache — no $_SESSION dependency.
+        // Single DB query per tenant per PHP process. Survives stateless API calls.
+        static $featureCache = [];
+        if (array_key_exists($tenantId, $featureCache)) {
+            return in_array($searchKey, $featureCache[$tenantId]);
         }
-        
-        $enabled = $_SESSION['enabled_features'] ?? [];
-        return in_array($searchKey, $enabled);
+
+        try {
+            $db = getDBConnection();
+            $stmt = $db->prepare("
+                SELECT f.feature_key
+                FROM system_features f
+                JOIN institute_feature_access ifa ON f.id = ifa.feature_id
+                WHERE ifa.tenant_id = :tenant_id
+                AND ifa.is_enabled = 1
+                AND f.status = 'active'
+            ");
+            $stmt->execute(['tenant_id' => $tenantId]);
+            $featureCache[$tenantId] = $stmt->fetchAll(\PDO::FETCH_COLUMN) ?: [];
+        } catch (\PDOException $e) {
+            error_log('[FEATURE-GATE] DB error: ' . $e->getMessage());
+            $featureCache[$tenantId] = [];
+        }
+
+        // Also sync to session for legacy views that still read $_SESSION['enabled_features']
+        $_SESSION['enabled_features']  = $featureCache[$tenantId];
+        $_SESSION['loaded_tenant_id']  = $tenantId;
+        $_SESSION['features_loaded_at'] = time();
+
+        return in_array($searchKey, $featureCache[$tenantId]);
     }
 }
 

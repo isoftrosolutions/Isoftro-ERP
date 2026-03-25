@@ -51,8 +51,15 @@ Route::get('/login', function() {
     return redirect('/auth/login');
 });
 
-// Login API (POST) — session-based authentication
+// Login API (POST) — JWT authentication via tymon/jwt-auth
+// login.js posts to /api/login; this is the single authoritative login endpoint
 Route::post('/api/login', [App\Http\Controllers\API\AuthController::class, 'login']);
+
+// Alias: web form may also post to /auth/login — redirect to the same handler
+Route::post('/auth/login', [App\Http\Controllers\API\AuthController::class, 'login']);
+
+// Token refresh (used by frontend when access token expires)
+Route::post('/api/auth/refresh', [App\Http\Controllers\API\AuthController::class, 'refresh'])->middleware('auth:api');
 
 // Change Password API (Internal)
 Route::post('/api/auth/change-password', [App\Http\Controllers\API\AuthController::class, 'changePassword'])->middleware('auth:api');
@@ -95,14 +102,14 @@ Route::post('/auth/verify-otp', function () {
     require_once resource_path('views/auth/verify_otp.php');
 });
 
-// Logout
+// Logout — Use the API AuthController (JWT-aware: blacklists token + clears cookie)
+// The old custom AuthController::logout() was replaced to eliminate the dual-auth conflict.
 Route::match(['get', 'post'], '/auth/logout', function () {
-    require_once app_path('Http/Controllers/AuthController.php');
-    $auth = new \App\Http\Controllers\AuthController();
-    $auth->logout();
-    
-    return redirect('/auth/login');
+    $request = request();
+    $controller = new App\Http\Controllers\API\AuthController();
+    return $controller->logout($request);
 });
+
 
 // Legacy logout redirect
 Route::get('/logout', function() {

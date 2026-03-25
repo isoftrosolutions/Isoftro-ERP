@@ -138,9 +138,36 @@ class RoleMiddleware {
     }
     
     /**
-     * Get current user from session
+     * Get current user — JWT-first, session as legacy fallback.
+     * FIX BUG 4: Was reading $_SESSION only, which is null on stateless API requests.
      */
-    private static function getCurrentUser() {
+    private static function getCurrentUser(): ?array {
+        // Priority 1: tymon/jwt-auth (Laravel Eloquent layer, API routes)
+        try {
+            if (function_exists('auth') && auth('api')->check()) {
+                $u = auth('api')->user();
+                if ($u) {
+                    return [
+                        'id'        => $u->id,
+                        'role'      => $u->role,
+                        'tenant_id' => $u->tenant_id,
+                        'name'      => $u->name,
+                        'email'     => $u->email,
+                    ];
+                }
+            }
+        } catch (\Exception $e) {
+            // tymon not in context (legacy web page) — fall through
+        }
+
+        // Priority 2: Verified JWT from header/cookie (legacy PHP pages using config.php helpers)
+        if (function_exists('getCurrentUser')) {
+            // Note: calling the global function defined in config.php — NOT this method
+            $user = \getCurrentUser();
+            if ($user) return $user;
+        }
+
+        // Priority 3: Session hydrated by JwtAuthMiddleware (transitional bridge only)
         return $_SESSION['userData'] ?? null;
     }
     
