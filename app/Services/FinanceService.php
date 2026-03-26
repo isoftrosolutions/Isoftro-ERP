@@ -134,8 +134,21 @@ class FinanceService {
                 'status' => 'completed'
             ]);
 
-            // 7. Log to General Ledger (Bonus)
-            $this->logLedgerEntry($tenantId, $feeRecord['student_id'], 'payment', $transactionId, $amountPaid, 'credit', "Fee Payment - Receipt #$receiptNo", $paidDate);
+            // 7. Log to General Ledger (Integrated Accounting)
+            try {
+                $accountingService = new \App\Services\AccountingService();
+                $accountingService->createFeeReceiptVoucher(
+                    $tenantId,
+                    $feeRecord['student_id'],
+                    $amountPaid,
+                    $paymentMode,
+                    $paidDate,
+                    "Fee Payment - Receipt #$receiptNo"
+                );
+            } catch (Exception $e) {
+                \Illuminate\Support\Facades\Log::error("Accounting Integration Error in FinanceService: " . $e->getMessage());
+                // Don't fail the whole payment if accounting fails
+            }
 
             $this->db->commit();
             return [

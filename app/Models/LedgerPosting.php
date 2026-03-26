@@ -12,9 +12,17 @@ class LedgerPosting extends Model
     protected $fillable = [
         'voucher_id',
         'account_id',
+        'tenant_id',
         'debit',
         'credit',
         'description',
+        'sub_ledger_type',
+        'sub_ledger_id',
+    ];
+
+    protected $casts = [
+        'debit' => 'decimal:2',
+        'credit' => 'decimal:2',
     ];
 
     public function voucher(): BelongsTo

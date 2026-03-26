@@ -412,9 +412,9 @@ class AuthController
      */
     private function jwtEncode($payload)
     {
-        $header = base64_encode(json_encode(['typ' => 'JWT', 'alg' => 'HS256']));
-        $payloadEncoded = base64_encode(json_encode($payload));
-        $signature = base64_encode(hash_hmac('sha256', "$header.$payloadEncoded", $this->jwtSecret, true));
+        $header = rtrim(strtr(base64_encode(json_encode(['typ' => 'JWT', 'alg' => 'HS256'])), '+/', '-_'), '=');
+        $payloadEncoded = rtrim(strtr(base64_encode(json_encode($payload)), '+/', '-_'), '=');
+        $signature = rtrim(strtr(base64_encode(hash_hmac('sha256', "$header.$payloadEncoded", $this->jwtSecret, true)), '+/', '-_'), '=');
 
         return "$header.$payloadEncoded.$signature";
     }
@@ -430,13 +430,23 @@ class AuthController
             return null;
         }
 
-        $signature = base64_encode(hash_hmac('sha256', "$parts[0].$parts[1]", $this->jwtSecret, true));
+        $header = $parts[0];
+        $payload = $parts[1];
+        $sig = $parts[2];
 
-        if ($signature !== $parts[2]) {
+        // Reconstruct signature to verify
+        $expectedSig = rtrim(strtr(base64_encode(hash_hmac('sha256', "$header.$payload", $this->jwtSecret, true)), '+/', '-_'), '=');
+        
+        // Also support standard base64 for decoding legacy/transition tokens
+        $stdSig = base64_encode(hash_hmac('sha256', "$header.$payload", $this->jwtSecret, true));
+
+        if (!hash_equals($expectedSig, $sig) && !hash_equals($stdSig, $sig)) {
             return null;
         }
 
-        return json_decode(base64_decode($parts[1]), true);
+        // Handle URL-safe decoding of payload
+        $payloadDecoded = base64_decode(str_pad(strtr($payload, '-_', '+/'), strlen($payload) % 4, '=', STR_PAD_RIGHT));
+        return json_decode($payloadDecoded, true);
     }
 
     /**

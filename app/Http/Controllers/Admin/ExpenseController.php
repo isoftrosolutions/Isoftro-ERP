@@ -70,67 +70,44 @@ class ExpenseController
 
         $this->db->beginTransaction();
         try {
-            // Find Active Fiscal Year
-            $stmtFy = $this->db->prepare("SELECT id FROM acc_fiscal_years WHERE tenant_id = ? AND is_active = 1 LIMIT 1");
-            $stmtFy->execute([$this->tenantId]);
-            $fyId = $stmtFy->fetchColumn();
-            if (!$fyId) throw new Exception("No active fiscal year found.");
-
-            // Determine Asset (Credit) Account
-            $paymentModeStr = strtolower($paymentMode) === 'bank' ? 'Bank' : 'Cash';
-            $stmtAsset = $this->db->prepare("SELECT id FROM acc_accounts WHERE tenant_id = ? AND type = 'asset' AND name LIKE ? LIMIT 1");
-            $stmtAsset->execute([$this->tenantId, "%$paymentModeStr%"]);
-            $assetAccountId = $stmtAsset->fetchColumn();
-
-            if (!$assetAccountId) {
-                // Auto create Cash/Bank
-                $name = $paymentModeStr === 'Bank' ? 'Bank Account' : 'Cash in Hand';
-                $stmtInst = $this->db->prepare("INSERT INTO acc_accounts (tenant_id, name, type, is_group, opening_balance, created_at) VALUES (?, ?, 'asset', 0, 0, NOW())");
-                $stmtInst->execute([$this->tenantId, $name]);
-                $assetAccountId = $this->db->lastInsertId();
-            }
-
-            // Create Voucher
-            $voucherNo = 'EXP-' . time() . rand(10,99);
-            $stmtV = $this->db->prepare("INSERT INTO acc_vouchers (tenant_id, fiscal_year_id, voucher_no, date, type, narration, status, created_by, created_at) VALUES (?, ?, ?, ?, 'payment', ?, 'approved', ?, NOW())");
-            // created_by might be missing in session, fallback to NULL
-            $userId = isset($_SESSION['userData']['id']) ? $_SESSION['userData']['id'] : null;
-            $stmtV->execute([
-                $this->tenantId, $fyId, $voucherNo, $date, $notes, $userId
+            // Use the new AccountingService for robust bookkeeping
+            $accountingService = new \App\Services\AccountingService();
+            
+            // Log the expense via Accounting Service
+            $voucher = $accountingService->createExpenseVoucher(
+                $this->tenantId,
+                $expenseAccountId,
+                $amount,
+                $paymentMode,
+                $date,
+                $notes
+            );
+            
+            // Also, record in the 'expenses' table to ensure data consistency as per audit report
+            $stmtExp = $this->db->prepare("
+                INSERT INTO expenses (
+                    tenant_id, expense_category_id, amount, date_ad, date_bs, 
+                    description, payment_method, status, created_by, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+            ");
+            
+            $dateBs = \App\Helpers\DateUtils::adToBs($date);
+            $userId = $_SESSION['userData']['id'] ?? null;
+            
+            $stmtExp->execute([
+                $this->tenantId,
+                $expenseAccountId,
+                $amount,
+                $date,
+                $dateBs,
+                $notes,
+                strtolower($paymentMode),
+                'approved', // Auto-approved when recorded via accounting
+                $userId
             ]);
-            $voucherId = $this->db->lastInsertId();
-
-            $stmtPost = $this->db->prepare("INSERT INTO acc_ledger_postings (voucher_id, account_id, debit, credit, description) VALUES (?, ?, ?, ?, ?)");
-
-            if ($tdsPercent > 0) {
-                // TDS Liability Account creation if absent
-                $stmtLiab = $this->db->prepare("SELECT id FROM acc_accounts WHERE tenant_id = ? AND type = 'liability' AND name LIKE '%TDS Payable%' LIMIT 1");
-                $stmtLiab->execute([$this->tenantId]);
-                $tdsAccountId = $stmtLiab->fetchColumn();
-                
-                if (!$tdsAccountId) {
-                    $stmtInstTds = $this->db->prepare("INSERT INTO acc_accounts (tenant_id, name, type, is_group, opening_balance, created_at) VALUES (?, 'TDS Payable', 'liability', 0, 0, NOW())");
-                    $stmtInstTds->execute([$this->tenantId]);
-                    $tdsAccountId = $this->db->lastInsertId();
-                }
-
-                $tdsAmount = round($amount * ($tdsPercent / 100), 2);
-                $netAmount = round($amount - $tdsAmount, 2);
-
-                // DEBIT Full Gross Expense
-                $stmtPost->execute([$voucherId, $expenseAccountId, $amount, 0, $notes]);
-                // CREDIT Asset (Net payout)
-                $stmtPost->execute([$voucherId, $assetAccountId, 0, $netAmount, "Payout for " . $notes]);
-                // CREDIT Liability (TDS to be paid later)
-                $stmtPost->execute([$voucherId, $tdsAccountId, 0, $tdsAmount, "TDS Deducted @ {$tdsPercent}%"]);
-            } else {
-                // Standard 2-leg entry
-                $stmtPost->execute([$voucherId, $expenseAccountId, $amount, 0, $notes]);
-                $stmtPost->execute([$voucherId, $assetAccountId, 0, $amount, $notes]);
-            }
 
             $this->db->commit();
-            return ['success' => true, 'message' => "Expense logged successfully.", 'voucher_no' => $voucherNo];
+            return ['success' => true, 'message' => "Expense logged and accounting voucher created.", 'voucher_no' => $voucher->voucher_no];
 
         } catch (Exception $e) {
             $this->db->rollBack();

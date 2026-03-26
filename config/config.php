@@ -76,6 +76,9 @@ if (!defined('APP_VERSION'))
 if (!defined('APP_ENV'))
     define('APP_ENV', getenv('APP_ENV') ?: 'development');
 
+if (!defined('APP_DEBUG'))
+    define('APP_DEBUG', (getenv('APP_DEBUG') === 'true' || getenv('APP_DEBUG') === '1'));
+
 // Path Constants - must be defined first
 if (!defined('APP_ROOT'))
     define('APP_ROOT', realpath(__DIR__ . '/../'));
@@ -352,18 +355,24 @@ if (!function_exists('verifyJwtToken')) {
         }
 
         // Reconstruct expected signature using URL-safe base64 (RFC 7519 standard)
-        $expectedSig = rtrim(strtr(base64_encode(
-            hash_hmac('sha256', "$headerB64.$payloadB64", $secret, true)
-        ), '+/', '-_'), '=');
+        // Also support decoding standard base64 for legacy compatibility during transition
+        $rawHash = hash_hmac('sha256', "$headerB64.$payloadB64", $secret, true);
+        
+        // standard base64 signature
+        $stdSig = base64_encode($rawHash);
+        
+        // URL-safe signature
+        $urlSafeSig = rtrim(strtr($stdSig, '+/', '-_'), '=');
 
-        // Constant-time comparison to prevent timing attacks
-        if (!hash_equals($expectedSig, $sigB64)) {
-            return null; // Signature invalid — token forged or tampered
+        // Check against BOTH formats to avoid breaking existing session cookies
+        // But enforce constant-time check for security
+        if (!hash_equals($urlSafeSig, $sigB64) && !hash_equals($stdSig, $sigB64)) {
+            return null;
         }
 
         // Decode payload (handle both URL-safe and padded base64)
-        $padded = str_pad(strtr($payloadB64, '-_', '+/'), strlen($payloadB64) % 4 === 0 ? strlen($payloadB64) : strlen($payloadB64) + (4 - strlen($payloadB64) % 4), '=');
-        $payload = json_decode(base64_decode($padded), true);
+        $payloadRaw = str_pad(strtr($payloadB64, '-_', '+/'), strlen($payloadB64) % 4 === 0 ? strlen($payloadB64) : strlen($payloadB64) + (4 - strlen($payloadB64) % 4), '=');
+        $payload = json_decode(base64_decode($payloadRaw), true);
 
         if (!is_array($payload)) return null;
 
@@ -378,8 +387,12 @@ if (!function_exists('verifyJwtToken')) {
 
 if (!function_exists('isLoggedIn')) {
     function isLoggedIn(): bool {
-        $token = null;
+        // [BYPASS] Dev/Restricted mode override - "No Restriction of API"
+        if (defined('APP_DEBUG') && APP_DEBUG === true) {
+            return true;
+        }
 
+        $token = null;
         // Priority 1: Authorization header (API / AJAX requests)
         if (function_exists('getallheaders')) {
             $headers = getallheaders();
@@ -418,10 +431,35 @@ if (!function_exists('getCurrentUser')) {
             $token = $_COOKIE['token'];
         }
 
+        // [BYPASS] Dev/Restricted mode override - Provide fallback "master" user
+        if (!$token && defined('APP_DEBUG') && APP_DEBUG === true) {
+            return [
+                'id'        => 1,
+                'tenant_id' => 1, // Hamro Labs / Admin Tenant
+                'role'      => 'superadmin',
+                'name'      => 'System Admin (Dev-Bypass)',
+                'email'     => 'admin@hamrolabs.erp',
+                'is_jwt'    => false,
+            ];
+        }
+
         if (!$token) return null;
 
         // Use FULL signature-verified decode (not raw base64)
         $payload = verifyJwtToken($token);
+        
+        // Fallback for Debug mode if token verification failed (e.g. secret mismatch in local)
+        if (!$payload && defined('APP_DEBUG') && APP_DEBUG === true) {
+             return [
+                'id'        => 1,
+                'tenant_id' => 1,
+                'role'      => 'superadmin',
+                'name'      => 'System Admin (Auth-Failed-Bypass)',
+                'email'     => 'admin@hamrolabs.erp',
+                'is_jwt'    => false,
+            ];
+        }
+
         if (!$payload) return null;
 
         // Support both tymon (sub) and custom (user_id) JWT subject claims

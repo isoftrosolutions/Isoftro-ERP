@@ -169,11 +169,23 @@ class User extends Authenticatable implements JWTSubject {
             return false;
         }
 
-        return \DB::table('institute_modules')
-            ->join('modules', 'institute_modules.module_id', '=', 'modules.id')
-            ->where('institute_modules.tenant_id', $this->tenant_id)
-            ->where('modules.name', $moduleSlug)
-            ->where('institute_modules.is_enabled', true)
+        // BUG 6 RESOLUTION: Aligning with the new system_features schema
+        // Some legacy slugs differ from new feature keys
+        $aliasMap = [
+            'admissions' => 'inquiry',
+            'exams'      => 'exam',
+            'finance'    => 'accounting',
+            'staff'      => 'teacher',
+        ];
+
+        $featureKey = $aliasMap[$moduleSlug] ?? $moduleSlug;
+
+        return \DB::table('system_features')
+            ->join('institute_feature_access', 'system_features.id', '=', 'institute_feature_access.feature_id')
+            ->where('institute_feature_access.tenant_id', $this->tenant_id)
+            ->where('system_features.feature_key', $featureKey)
+            ->where('institute_feature_access.is_enabled', 1)
+            ->where('system_features.status', 'active')
             ->exists();
     }
 }

@@ -11,13 +11,34 @@ class Account extends Model
     protected $table = 'acc_accounts';
 
     protected $fillable = [
+        'tenant_id',
         'code',
         'name',
         'type',
         'parent_id',
         'is_group',
         'opening_balance',
+        'balance_type',
+        'is_system',
+        'status',
     ];
+
+    protected $casts = [
+        'opening_balance' => 'decimal:2',
+        'is_system' => 'boolean',
+        'is_group' => 'boolean',
+    ];
+
+    protected static function boot()
+    {
+        parent::boot();
+        
+        static::deleting(function ($account) {
+            if ($account->is_system) {
+                throw new \Exception('Cannot delete system account: ' . $account->name);
+            }
+        });
+    }
 
     public function parent(): BelongsTo
     {

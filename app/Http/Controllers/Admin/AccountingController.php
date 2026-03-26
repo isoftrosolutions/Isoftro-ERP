@@ -53,6 +53,12 @@ class AccountingController
                     return $this->ledger();
                 case 'fiscal-years':
                     return $this->getFiscalYears();
+                case 'income-expenditure':
+                    return $this->incomeExpenditure();
+                case 'balance-sheet':
+                    return $this->balanceSheet();
+                case 'sub-ledger':
+                    return $this->subLedger();
                 case 'day-book':
                     return $this->dayBook();
                 case 'dashboard-stats':
@@ -529,6 +535,148 @@ class AccountingController
                 'total_expense' => $expense,
                 'recent_transactions' => $recent
             ]
+        ];
+    }
+
+    /**
+     * Report: Income & Expenditure Statement
+     */
+    public function incomeExpenditure()
+    {
+        $dateFrom = $_GET['date_from'] ?? date('Y-01-01');
+        $dateTo = $_GET['date_to'] ?? date('Y-12-31');
+
+        $sql = "SELECT 
+                    a.code,
+                    a.name as account_name,
+                    a.type,
+                    SUM(COALESCE(lp.credit, 0)) as total_credit,
+                    SUM(COALESCE(lp.debit, 0)) as total_debit,
+                    CASE 
+                        WHEN a.type = 'income' THEN SUM(COALESCE(lp.credit, 0)) - SUM(COALESCE(lp.debit, 0))
+                        ELSE SUM(COALESCE(lp.debit, 0)) - SUM(COALESCE(lp.credit, 0))
+                    END as net_balance
+                FROM acc_accounts a
+                LEFT JOIN acc_ledger_postings lp ON a.id = lp.account_id
+                LEFT JOIN acc_vouchers v ON lp.voucher_id = v.id
+                WHERE a.tenant_id = ? 
+                    AND a.deleted_at IS NULL
+                    AND a.type IN ('income', 'expense')
+                    AND v.status IN ('posted', 'approved')
+                    AND v.date BETWEEN ? AND ?
+                GROUP BY a.id, a.code, a.name, a.type
+                ORDER BY a.type, a.code";
+        
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$this->tenantId, $dateFrom, $dateTo]);
+        $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $totalIncome = 0;
+        $totalExpense = 0;
+        foreach ($data as $row) {
+            if ($row['type'] === 'income') $totalIncome += $row['net_balance'];
+            else $totalExpense += $row['net_balance'];
+        }
+
+        return [
+            'success' => true,
+            'data' => [
+                'items' => $data,
+                'total_income' => $totalIncome,
+                'total_expense' => $totalExpense,
+                'surplus_deficit' => $totalIncome - $totalExpense
+            ]
+        ];
+    }
+
+    /**
+     * Report: Balance Sheet
+     */
+    public function balanceSheet()
+    {
+        $dateTo = $_GET['date_to'] ?? date('Y-12-31');
+
+        $sql = "SELECT a.id, a.code, a.name, a.type, a.opening_balance,
+                       COALESCE(SUM(lp.debit), 0) as total_debit, 
+                       COALESCE(SUM(lp.credit), 0) as total_credit
+                FROM acc_accounts a
+                LEFT JOIN acc_ledger_postings lp ON a.id = lp.account_id
+                LEFT JOIN acc_vouchers v ON lp.voucher_id = v.id
+                WHERE a.tenant_id = ? AND a.type IN ('asset', 'liability', 'equity')
+                  AND (v.status IN ('posted', 'approved') OR v.id IS NULL)
+                  AND (v.date <= ? OR v.date IS NULL)
+                GROUP BY a.id, a.code, a.name, a.type, a.opening_balance
+                ORDER BY a.type, a.code";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$this->tenantId, $dateTo]);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $assets = [];
+        $liabilities = [];
+        $totalAssets = 0;
+        $totalLiabilities = 0;
+
+        foreach ($rows as $row) {
+            $ob = (float)$row['opening_balance'];
+            $dr = (float)$row['total_debit'];
+            $cr = (float)$row['total_credit'];
+            
+            if ($row['type'] === 'asset') {
+                $balance = $ob + $dr - $cr;
+                $assets[] = array_merge($row, ['balance' => $balance]);
+                $totalAssets += $balance;
+            } else {
+                $balance = $ob + $cr - $dr;
+                $liabilities[] = array_merge($row, ['balance' => $balance]);
+                $totalLiabilities += $balance;
+            }
+        }
+
+        return [
+            'success' => true,
+            'data' => [
+                'assets' => $assets,
+                'liabilities' => $liabilities,
+                'total_assets' => $totalAssets,
+                'total_liabilities' => $totalLiabilities,
+                'net_worth' => $totalAssets - $totalLiabilities
+            ]
+        ];
+    }
+
+    /**
+     * Report: Sub-Ledger (Student, Vendor, etc.)
+     */
+    public function subLedger()
+    {
+        $type = $_GET['sub_ledger_type'] ?? 'student';
+        $id = $_GET['sub_ledger_id'] ?? null;
+        $dateFrom = $_GET['date_from'] ?? date('Y-01-01');
+        $dateTo = $_GET['date_to'] ?? date('Y-12-31');
+
+        if (!$id) throw new Exception("Sub-ledger ID required");
+
+        $sql = "SELECT v.date, v.voucher_no, v.type as voucher_type,
+                       lp.debit, lp.credit, lp.description,
+                       a.name as account_name
+                FROM acc_ledger_postings lp
+                JOIN acc_vouchers v ON lp.voucher_id = v.id
+                JOIN acc_accounts a ON lp.account_id = a.id
+                WHERE lp.tenant_id = ? 
+                    AND lp.sub_ledger_type = ? 
+                    AND lp.sub_ledger_id = ?
+                    AND v.status IN ('posted', 'approved')
+                    AND v.date BETWEEN ? AND ?
+                ORDER BY v.date, v.id";
+        
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$this->tenantId, $type, $id, $dateFrom, $dateTo]);
+        $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        return [
+            'success' => true,
+            'data' => $data
         ];
     }
 

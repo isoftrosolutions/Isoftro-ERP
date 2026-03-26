@@ -109,7 +109,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function loadStats() {
         isLoading = true;
         try {
-            const r = await fetch(`${window.APP_URL}/api/super_admin_stats.php`);
+            const r = await window.authFetch(`${window.APP_URL}/api/super_admin_stats.php`);
             const res = await r.json();
             if (res.success) {
                 platformStats = res.data;
@@ -122,7 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function loadTenants(onlySuspended = false) {
         isLoading = true;
         try {
-            const r = await fetch(`${window.APP_URL}/api/tenants.php?status=${onlySuspended ? 'suspended' : ''}`);
+            const r = await window.authFetch(`${window.APP_URL}/api/tenants.php?status=${onlySuspended ? 'suspended' : ''}`);
             const res = await r.json();
             if (res.success) tenantData = res.data;
         } catch (e) { console.error(e); }
@@ -132,7 +132,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function loadDatabaseInsights() {
         isLoading = true;
         try {
-            const r = await fetch(`${window.APP_URL}/api/database_insights.php`);
+            const r = await window.authFetch(`${window.APP_URL}/api/database_insights.php`);
             const res = await r.json();
             if (res.success) dbInsights = res.data;
         } catch (e) { console.error(e); }
@@ -386,7 +386,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function fetchPage(file) {
         mainContent.innerHTML = '<div class="page fu">Loading...</div>';
-        fetch(file)
+        window.authFetch(file)
             .then(res => res.text())
             .then(html => {
                 const isFullPage = (file.endsWith('.html') || file.endsWith('.php')) &&

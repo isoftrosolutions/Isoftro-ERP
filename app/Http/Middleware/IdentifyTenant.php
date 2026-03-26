@@ -42,12 +42,31 @@ class IdentifyTenant {
         }
         
         // Priority 2: JWT / Authenticated User (if already authenticated by previous middleware)
-        // This is safe because JwtAuthMiddleware runs before this in the stack
-        if (!$tenant && function_exists('auth') && auth('api')->check()) {
-            $user = auth('api')->user();
-            if ($user && $user->tenant_id) {
-                $tenant = $this->getTenantById($user->tenant_id);
+        // This is safe because IdentifyTenant runs as global middleware or via groups
+        try {
+            if (function_exists('auth') && auth('api')->check()) {
+                $user = auth('api')->user();
+                if ($user) {
+                    // Populate legacy session if missing or stale
+                    if (empty($_SESSION['userData']) || $_SESSION['userData']['id'] != $user->id) {
+                        $_SESSION['userData'] = [
+                            'id'        => $user->id,
+                            'email'     => $user->email,
+                            'name'      => $user->name,
+                            'role'      => $user->role,
+                            'tenant_id' => $user->tenant_id,
+                            'is_jwt'    => true,
+                        ];
+                    }
+                    
+                    if (!$tenant && $user->tenant_id) {
+                        $tenant = $this->getTenantById($user->tenant_id);
+                    }
+                }
             }
+        } catch (\Exception $e) {
+            // Silently fail auth identification and continue (non-blocking)
+            error_log("[IdentifyTenant] Silent Auth Error: " . $e->getMessage());
         }
         
         // Priority 3: Session fallback (for pure legacy flows)
