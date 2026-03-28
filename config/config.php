@@ -96,11 +96,36 @@ if (!defined('ALLOWED_FILE_TYPES'))
     define('ALLOWED_FILE_TYPES', ['jpg', 'jpeg', 'png', 'gif', 'pdf', 'doc', 'docx']);
 
 // Security Configuration - Sourced from .env for SaaS grade security
+if (!defined('ABS_PATH')) define('ABS_PATH', dirname(__DIR__));
+
+// --- BULLETPROOF .ENV LOADER (Hybrid Fix) ---
+if (!defined('JWT_SECRET_LOADED')) {
+    $envFile = ABS_PATH . '/.env';
+    if (file_exists($envFile)) {
+        $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        foreach ($lines as $line) {
+            if (strpos(trim($line), '#') === 0) continue;
+            if (strpos($line, '=') !== false) {
+                list($name, $value) = explode('=', $line, 2);
+                $name = trim($name);
+                $value = trim($value, " \t\n\r\0\x0B\"'");
+                if (!putenv("$name=$value")) {
+                    // Fallback to superglobals
+                    $_ENV[$name] = $value;
+                    $_SERVER[$name] = $value;
+                }
+            }
+        }
+    }
+    define('JWT_SECRET_LOADED', true);
+}
+// ---------------------------------------------
+
 if (!defined('HASH_ALGO'))
     define('HASH_ALGO', 'sha256');
 
 if (!defined('SESSION_LIFETIME'))
-    define('SESSION_LIFETIME', getenv('SESSION_LIFETIME') ?: 3600);
+    define('SESSION_LIFETIME', getenv('SESSION_LIFETIME') ?: ($_ENV['SESSION_LIFETIME'] ?? ($_SERVER['SESSION_LIFETIME'] ?? 3600)));
 
 if (!defined('MAX_LOGIN_ATTEMPTS'))
     define('MAX_LOGIN_ATTEMPTS', 5);
@@ -109,26 +134,26 @@ if (!defined('LOGIN_LOCKOUT_TIME'))
     define('LOGIN_LOCKOUT_TIME', 900); // 15 minutes
 
 if (!defined('JWT_SECRET'))
-    define('JWT_SECRET', getenv('JWT_SECRET') ?: 'PLEASE_SET_JWT_SECRET_IN_ENV');
+    define('JWT_SECRET', getenv('JWT_SECRET') ?: ($_ENV['JWT_SECRET'] ?? ($_SERVER['JWT_SECRET'] ?? 'PLEASE_SET_JWT_SECRET_IN_ENV')));
 
 if (!defined('JWT_ALGORITHM'))
-    define('JWT_ALGORITHM', getenv('JWT_ALGORITHM') ?: 'HS256');
+    define('JWT_ALGORITHM', getenv('JWT_ALGORITHM') ?: ($_ENV['JWT_ALGORITHM'] ?? ($_SERVER['JWT_ALGORITHM'] ?? 'HS256')));
 
 if (!defined('PII_ENCRYPTION_KEY'))
-    define('PII_ENCRYPTION_KEY', getenv('PII_ENCRYPTION_KEY') ?: 'PLEASE_SET_PII_ENCRYPTION_KEY_IN_ENV');
+    define('PII_ENCRYPTION_KEY', getenv('PII_ENCRYPTION_KEY') ?: ($_ENV['PII_ENCRYPTION_KEY'] ?? ($_SERVER['PII_ENCRYPTION_KEY'] ?? 'PLEASE_SET_PII_ENCRYPTION_KEY_IN_ENV')));
 
 // Email Configuration - Sourced from .env
 if (!defined('SMTP_HOST'))
-    define('SMTP_HOST', getenv('MAIL_HOST') ?: 'smtp.gmail.com');
+    define('SMTP_HOST', getenv('MAIL_HOST') ?: ($_ENV['MAIL_HOST'] ?? ($_SERVER['MAIL_HOST'] ?? 'smtp.gmail.com')));
 
 if (!defined('SMTP_PORT'))
-    define('SMTP_PORT', getenv('MAIL_PORT') ?: 465);
+    define('SMTP_PORT', getenv('MAIL_PORT') ?: ($_ENV['MAIL_PORT'] ?? ($_SERVER['MAIL_PORT'] ?? 465)));
 
 if (!defined('SMTP_USERNAME'))
-    define('SMTP_USERNAME', getenv('MAIL_USERNAME') ?: 'isoftrosolutions@gmail.com');
+    define('SMTP_USERNAME', getenv('MAIL_USERNAME') ?: ($_ENV['MAIL_USERNAME'] ?? ($_SERVER['MAIL_USERNAME'] ?? 'isoftrosolutions@gmail.com')));
 
 if (!defined('SMTP_PASSWORD'))
-    define('SMTP_PASSWORD', getenv('MAIL_PASSWORD') ?: '');
+    define('SMTP_PASSWORD', getenv('MAIL_PASSWORD') ?: ($_ENV['MAIL_PASSWORD'] ?? ($_SERVER['MAIL_PASSWORD'] ?? 'tpkm awve kkzl ifdm')));
 
 if (!defined('FROM_EMAIL'))
     define('FROM_EMAIL', getenv('MAIL_FROM_ADDRESS') ?: 'isoftrosolutions@gmail.com');
@@ -387,10 +412,7 @@ if (!function_exists('verifyJwtToken')) {
 
 if (!function_exists('isLoggedIn')) {
     function isLoggedIn(): bool {
-        // [BYPASS] Dev/Restricted mode override - "No Restriction of API"
-        if (defined('APP_DEBUG') && APP_DEBUG === true) {
-            return true;
-        }
+        // [PROD-READY] JWT validation enforced (Bypass removed)
 
         $token = null;
         // Priority 1: Authorization header (API / AJAX requests)
@@ -431,34 +453,10 @@ if (!function_exists('getCurrentUser')) {
             $token = $_COOKIE['token'];
         }
 
-        // [BYPASS] Dev/Restricted mode override - Provide fallback "master" user
-        if (!$token && defined('APP_DEBUG') && APP_DEBUG === true) {
-            return [
-                'id'        => 1,
-                'tenant_id' => 1, // Hamro Labs / Admin Tenant
-                'role'      => 'superadmin',
-                'name'      => 'System Admin (Dev-Bypass)',
-                'email'     => 'admin@hamrolabs.erp',
-                'is_jwt'    => false,
-            ];
-        }
-
-        if (!$token) return null;
+        // [PROD-READY] Fallback master user removed
 
         // Use FULL signature-verified decode (not raw base64)
         $payload = verifyJwtToken($token);
-        
-        // Fallback for Debug mode if token verification failed (e.g. secret mismatch in local)
-        if (!$payload && defined('APP_DEBUG') && APP_DEBUG === true) {
-             return [
-                'id'        => 1,
-                'tenant_id' => 1,
-                'role'      => 'superadmin',
-                'name'      => 'System Admin (Auth-Failed-Bypass)',
-                'email'     => 'admin@hamrolabs.erp',
-                'is_jwt'    => false,
-            ];
-        }
 
         if (!$payload) return null;
 
@@ -602,6 +600,9 @@ if (!function_exists('hasFeature')) {
  */
 if (!function_exists('enforceFeature')) {
     function enforceFeature($featureKey) {
+        // [RESTRICTION BYPASS FOR DEMO] Allow all features regardless of DB check
+        if (defined('APP_DEBUG') && APP_DEBUG === true) return;
+        
         if (!hasFeature($featureKey)) {
             $message = "Access Denied: The '{$featureKey}' feature is disabled for your institute.";
             
@@ -660,6 +661,9 @@ if (!function_exists('requireAuth')) {
 if (!function_exists('requirePermission')) {
     function requirePermission($permission)
     {
+        // [RESTRICTION BYPASS FOR DEMO] Allow all permissions regardless of DB check
+        if (defined('APP_DEBUG') && APP_DEBUG === true) return;
+
         if (!hasPermission($permission)) {
             $isApi = (strpos($_SERVER['REQUEST_URI'], '/api/') !== false) || (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest');
             
@@ -684,6 +688,9 @@ if (!function_exists('requirePermission')) {
 if (!function_exists('requireModule')) {
     function requireModule($moduleName)
     {
+        // [RESTRICTION BYPASS FOR DEMO] Allow all modules regardless of DB check
+        if (defined('APP_DEBUG') && APP_DEBUG === true) return;
+
         if (!hasFeature($moduleName)) {
             $isApi = (strpos($_SERVER['REQUEST_URI'], '/api/') !== false) || (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest');
             
@@ -709,6 +716,9 @@ if (!function_exists('requireModule')) {
 if (!function_exists('enforceAccess')) {
     function enforceAccess($permission, $feature = null)
     {
+        // [RESTRICTION BYPASS FOR DEMO] Allow all access regardless of DB check
+        if (defined('APP_DEBUG') && APP_DEBUG === true) return;
+
         requirePermission($permission);
         if ($feature) {
             enforceFeature($feature);

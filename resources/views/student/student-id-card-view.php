@@ -5,6 +5,53 @@ requirePermission('dashboard.view');
 $pageTitle = "Student ID Card - Student";
 $themeColor = "#009E7E";
 $roleCSS = "student.css";
+
+// --- DYNAMIC DATA FETCHING ---
+$user = getCurrentUser();
+$db = getDBConnection();
+$tenantId = $user['tenant_id'];
+
+// 1. Fetch Tenant/Institute Details
+$stmt = $db->prepare("SELECT * FROM tenants WHERE id = ?");
+$stmt->execute([$tenantId]);
+$tenant = $stmt->fetch(PDO::FETCH_ASSOC);
+
+// 2. Fetch Student Details
+$stmt = $db->prepare("
+    SELECT s.*, u.name as full_name, u.phone, u.profile_image, 
+           c.name as course_name, b.name as batch_name,
+           u.email
+    FROM students s 
+    JOIN users u ON s.user_id = u.id 
+    LEFT JOIN enrollments e ON s.id = e.student_id AND e.status = 'active'
+    LEFT JOIN batches b ON e.batch_id = b.id 
+    LEFT JOIN courses c ON b.course_id = c.id
+    WHERE u.id = ? AND s.tenant_id = ?
+    LIMIT 1
+");
+$stmt->execute([$user['id'], $tenantId]);
+$student = $stmt->fetch(PDO::FETCH_ASSOC);
+
+// 3. Prepare Logo & Photo
+$instituteLogo = $_SESSION['institute_logo'] ?? $tenant['logo_path'] ?? '';
+if ($instituteLogo && strpos($instituteLogo, 'http') !== 0) {
+    if (strpos($instituteLogo, '/uploads/') === 0 && strpos($instituteLogo, '/public/') !== 0) {
+        $instituteLogo = '/public' . $instituteLogo;
+    }
+    $instituteLogo = APP_URL . $instituteLogo;
+}
+
+$studentPhoto = $student['profile_image'] ?? '';
+if ($studentPhoto && strpos($studentPhoto, 'http') !== 0) {
+    if (strpos($studentPhoto, '/uploads/') === 0 && strpos($studentPhoto, '/public/') !== 0) {
+        $studentPhoto = '/public' . $studentPhoto;
+    }
+    $studentPhoto = APP_URL . $studentPhoto;
+} else if (empty($studentPhoto)) {
+    $studentPhoto = 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80';
+}
+// -----------------------------
+
 include VIEWS_PATH . '/layouts/header.php';
 ?>
 
@@ -21,9 +68,9 @@ include VIEWS_PATH . '/layouts/header.php';
                 </button>
                 <div class="hdr-logo-box">
                     <div style="width:28px; height:28px; border-radius:50%; overflow:hidden; display:flex; align-items:center; justify-content:center; background:#fff;">
-                        <img src="<?php echo APP_URL; ?>/assets/images/logo.png" alt="Logo" style="width:100%; height:auto;">
+                        <img src="<?php echo $instituteLogo ?: (APP_URL . '/assets/images/logo.png'); ?>" alt="Logo" style="width:100%; height:auto;">
                     </div>
-                    <span class="logo-txt">Isoftro ERP</span>
+                    <span class="logo-txt"><?php echo htmlspecialchars($tenant['name'] ?? 'Nepal ERP'); ?></span>
                 </div>
             </div>
 
@@ -36,10 +83,9 @@ include VIEWS_PATH . '/layouts/header.php';
                 <!-- Student Dropdown -->
                 <div style="position:relative;">
                     <div class="u-chip" id="userChip">
-                        <div class="u-av">SK</div>
                         <div style="display:flex; flex-direction:column; margin-left:8px; line-height:1.2;">
-                            <span style="font-size:12px; font-weight:700;">Suman Karki</span>
-                            <span style="font-size:10px; opacity:0.8;">HL-KH-047 (Student)</span>
+                            <span style="font-size:12px; font-weight:700;"><?php echo htmlspecialchars($student['full_name'] ?? 'Student'); ?></span>
+                            <span style="font-size:10px; opacity:0.8;"><?php echo htmlspecialchars($student['roll_no'] ?? ''); ?> (Student)</span>
                         </div>
                         <i class="fa-solid fa-chevron-down" style="font-size:9px; margin-left:6px; opacity:0.7;"></i>
                     </div>
@@ -111,11 +157,15 @@ include VIEWS_PATH . '/layouts/header.php';
                         
                         <div class="card-header-content">
                             <div class="card-logo">
-                                <i class="fas fa-graduation-cap" style="font-size: 38px; color: #fff;"></i>
+                                <?php if ($instituteLogo): ?>
+                                    <img src="<?php echo $instituteLogo; ?>" alt="Institute Logo" style="height: 60px; width: auto; max-width: 120px;">
+                                <?php else: ?>
+                                    <i class="fas fa-graduation-cap" style="font-size: 38px; color: #fff;"></i>
+                                <?php endif; ?>
                             </div>
                             <div class="card-institute">
-                                <h2>Ginyard International Co.</h2>
-                                <p>Address</p>
+                                <h2><?php echo htmlspecialchars($tenant['name'] ?? 'Institute Name'); ?></h2>
+                                <p><?php echo htmlspecialchars($tenant['address'] ?? 'City, Nepal'); ?></p>
                             </div>
                         </div>
 
@@ -123,18 +173,18 @@ include VIEWS_PATH . '/layouts/header.php';
                         <div class="card-body">
                             <h1 class="card-title">STUDENT CARD</h1>
                             <table class="card-details">
-                                <tr><td>Name</td><td>:</td><td>Suman Karki</td></tr>
-                                <tr><td>Roll No</td><td>:</td><td>HL-KH-047</td></tr>
-                                <tr><td>Course</td><td>:</td><td>Nayab Subba</td></tr>
-                                <tr><td>Batch</td><td>:</td><td>Morning 2025</td></tr>
-                                <tr><td>Address</td><td>:</td><td>Kathmandu, Nepal</td></tr>
-                                <tr><td>Contact No</td><td>:</td><td>9841234567</td></tr>
+                                <tr><td>Name</td><td>:</td><td><?php echo htmlspecialchars($student['full_name'] ?? 'N/A'); ?></td></tr>
+                                <tr><td>Roll No</td><td>:</td><td><?php echo htmlspecialchars($student['roll_no'] ?? 'N/A'); ?></td></tr>
+                                <tr><td>Course</td><td>:</td><td><?php echo htmlspecialchars($student['course_name'] ?? 'N/A'); ?></td></tr>
+                                <tr><td>Batch</td><td>:</td><td><?php echo htmlspecialchars($student['batch_name'] ?? 'N/A'); ?></td></tr>
+                                <tr><td>Address</td><td>:</td><td><?php echo htmlspecialchars($student['address'] ?? 'Kathmandu, Nepal'); ?></td></tr>
+                                <tr><td>Contact No</td><td>:</td><td><?php echo htmlspecialchars($student['phone'] ?? 'N/A'); ?></td></tr>
                             </table>
                         </div>
 
                         <!-- Photo -->
                         <div class="card-photo">
-                            <div class="photo-inner"></div>
+                            <div class="photo-inner" style="background: url('<?php echo $studentPhoto; ?>') center/cover;"></div>
                         </div>
 
                         <!-- Bottom Decor -->
@@ -289,7 +339,6 @@ include VIEWS_PATH . '/layouts/header.php';
                     height: 100%;
                     border-radius: 20px;
                     border: 4px solid #3cb4cd;
-                    background: url('https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80') center/cover;
                 }
 
                 /* Bottom Decorations */

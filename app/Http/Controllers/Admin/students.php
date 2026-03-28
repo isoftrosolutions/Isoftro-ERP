@@ -274,12 +274,6 @@ try {
             $params['course_id'] = $_GET['course_id'];
         }
 
-        // Course filter
-        if (!empty($_GET['course_id'])) {
-            $whereSql .= " AND b.course_id = :course_id";
-            $params['course_id'] = $_GET['course_id'];
-        }
-
         // Batch filter
         if (!empty($_GET['batch_id'])) {
             $whereSql .= " AND e.batch_id = :batch_id";
@@ -325,21 +319,23 @@ try {
 
         // Calculate fee status for each student (only if not requesting single detailed view)
         if (empty($_GET['id']) || ($_GET['include'] ?? '') !== 'details') {
+            // Prepare statement once outside the loop for efficiency
+            $feeStmt = $db->prepare("
+                SELECT 
+                    sfs.fee_status,
+                    COALESCE(sfs.total_fee, 0) as total_due,
+                    COALESCE(sfs.paid_amount, 0) as total_paid,
+                    COALESCE(sfs.due_amount, 0) as pending_amount
+                FROM student_fee_summary sfs
+                JOIN enrollments e ON sfs.enrollment_id = e.id
+                WHERE sfs.student_id = :sid AND sfs.tenant_id = :tid AND e.status = 'active'
+                LIMIT 1
+            ");
+
             foreach ($students as &$student) {
                 $sid = $student['id'];
                 
                 // Get accurate fee status, total due, and total paid from unified flow table
-                $feeStmt = $db->prepare("
-                    SELECT 
-                        sfs.fee_status,
-                        COALESCE(sfs.total_fee, 0) as total_due,
-                        COALESCE(sfs.paid_amount, 0) as total_paid,
-                        COALESCE(sfs.due_amount, 0) as pending_amount
-                    FROM student_fee_summary sfs
-                    JOIN enrollments e ON sfs.enrollment_id = e.id
-                    WHERE sfs.student_id = :sid AND sfs.tenant_id = :tid AND e.status = 'active'
-                    LIMIT 1
-                ");
                 $feeStmt->execute(['sid' => $sid, 'tid' => $tenantId]);
                 $feeData = $feeStmt->fetch(PDO::FETCH_ASSOC);
                 
@@ -693,7 +689,7 @@ try {
                 } else {
                     throw new Exception($result['message'] ?? 'Failed to record payment');
                 }
-            } catch (Exception $e) {
+            } catch (Throwable $e) {
                 if ($db->inTransaction()) {
                     $db->rollBack();
                 }
@@ -920,11 +916,20 @@ try {
             }
             $db->commit();
             echo json_encode(['success' => true, 'message' => count($ids) > 1 ? 'Students deleted successfully' : 'Student deleted successfully']);
-        } catch (Exception $e) {
+        } catch (\Throwable $e) {
             $db->rollBack();
             throw $e;
         }
     }
-} catch (Exception $e) {
-    echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+} catch (\Throwable $e) {
+    if (isset($db) && $db->inTransaction()) {
+        $db->rollBack();
+    }
+    header('Content-Type: application/json', true, 500);
+    echo json_encode([
+        'success' => false,
+        'message' => 'Internal Server Error: ' . $e->getMessage(),
+        'file' => basename($e->getFile()),
+        'line' => $e->getLine()
+    ]);
 }

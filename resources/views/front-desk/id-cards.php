@@ -208,7 +208,20 @@ async function printIDCard(studentId) {
         const roll = s.roll_no || s.student_id || 'N/A';
         const course = s.course_name || (s.enrollments && s.enrollments.length > 0 ? s.enrollments[0].course_name : 'N/A');
         const batch = s.batch_name || (s.enrollments && s.enrollments.length > 0 ? s.enrollments[0].batch_name : 'N/A');
-        const instituteName = '<?= addslashes(html_entity_decode(APP_NAME ?? "Ginyard International Co.")) ?>';
+        
+        // --- DYNAMIC INSTITUTE DATA ---
+        <?php 
+            $iLogo = $_SESSION['tenant_logo'] ?? $_SESSION['institute_logo'] ?? '';
+            if ($iLogo && strpos($iLogo, 'http') !== 0) {
+                if (strpos($iLogo, '/uploads/') === 0 && strpos($iLogo, '/public/') !== 0) {
+                    $iLogo = '/public' . $iLogo;
+                }
+                $iLogo = APP_URL . $iLogo;
+            }
+        ?>
+        const instituteName = '<?= addslashes(html_entity_decode($_SESSION['tenant_name'] ?? APP_NAME ?? "Institute Name")) ?>';
+        const instituteLogo = '<?= $iLogo ?>';
+        // ------------------------------
 
         const esc = (str) => {
             if (!str) return '';
@@ -217,6 +230,7 @@ async function printIDCard(studentId) {
 
         // Hidden wrapping container
         const ghost = document.createElement('div');
+        ghost.style.setProperty('--vh', '1vh');
         ghost.style.position = 'fixed';
         ghost.style.top = '-9999px';
         ghost.style.left = '-9999px';
@@ -230,9 +244,11 @@ async function printIDCard(studentId) {
             </svg>
             
             <div style="position: absolute; top: 0; left: 0; width: 100%; height: 80px; z-index: 4; display: flex; align-items: center; justify-content: center; padding: 0 30px; gap: 15px; text-align: center; box-sizing: border-box;">
-                <div style="display: flex; align-items: center; justify-content: center;"><i class="fas fa-graduation-cap" style="font-size: 38px; color: #fff;"></i></div>
+                <div style="display: flex; align-items: center; justify-content: center;">
+                    ${instituteLogo ? `<img src="${instituteLogo}" style="height: 55px; width: auto; max-width: 100px; object-fit: contain;" crossorigin="anonymous">` : `<i class="fas fa-graduation-cap" style="font-size: 38px; color: #fff;"></i>`}
+                </div>
                 <div style="color: #fff; display: flex; flex-direction: column; align-items: center;">
-                    <h2 style="margin: 0; font-size: 24px; font-weight: 800; letter-spacing: 0.5px;">${esc(instituteName)}</h2>
+                    <h2 style="margin: 0; font-size: 22px; font-weight: 800; letter-spacing: 0.5px;">${esc(instituteName)}</h2>
                 </div>
             </div>
 

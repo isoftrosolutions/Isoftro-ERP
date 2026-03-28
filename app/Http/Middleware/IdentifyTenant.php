@@ -124,18 +124,12 @@ class IdentifyTenant {
      */
     private function lookupTenant($subdomain) {
         try {
-            $db = getDBConnection();
-            $stmt = $db->prepare("
-                SELECT id, name, subdomain, plan, status, 
-                       student_limit, sms_credits, logo_path
-                FROM tenants 
-                WHERE subdomain = :subdomain 
-                AND status != 'suspended'
-                LIMIT 1
-            ");
-            $stmt->execute(['subdomain' => $subdomain]);
-            return $stmt->fetch() ?: null;
-        } catch (\PDOException $e) {
+            return (array)DB::table('tenants')
+                ->select('id', 'name', 'subdomain', 'plan', 'status', 'student_limit', 'sms_credits', 'logo_path')
+                ->where('subdomain', $subdomain)
+                ->where('status', '!=', 'suspended')
+                ->first() ?: null;
+        } catch (\Exception $e) {
             error_log("Tenant lookup failed (subdomain=$subdomain): " . $e->getMessage());
             return null;
         }
@@ -146,11 +140,11 @@ class IdentifyTenant {
      */
     private function getTenantById($tenantId) {
         try {
-            $db = getDBConnection();
-            $stmt = $db->prepare("SELECT id, name, subdomain, plan, status, logo_path FROM tenants WHERE id = :id LIMIT 1");
-            $stmt->execute(['id' => $tenantId]);
-            return $stmt->fetch() ?: null;
-        } catch (\PDOException $e) {
+            return (array)DB::table('tenants')
+                ->select('id', 'name', 'subdomain', 'plan', 'status', 'logo_path')
+                ->where('id', $tenantId)
+                ->first() ?: null;
+        } catch (\Exception $e) {
             return null;
         }
     }

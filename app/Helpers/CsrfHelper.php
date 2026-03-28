@@ -163,10 +163,13 @@ class CsrfHelper
 
                 const originalFetch = window.fetch;
                 window.fetch = function(...args) {
-                    const [resource, config] = args;
+                    let [resource, config] = args;
+                    config = config || {};
+                    config.credentials = config.credentials || 'include';
+                    
                     const freshToken = document.querySelector('meta[name=\"csrf-token\"]')?.content || window.CSRF_TOKEN || window.csrfToken;
                     
-                    if (config && freshToken && ['POST', 'PUT', 'DELETE', 'PATCH'].includes(config.method?.toUpperCase())) {
+                    if (freshToken && ['POST', 'PUT', 'DELETE', 'PATCH'].includes(config.method?.toUpperCase())) {
                         config.headers = config.headers || {};
                         // Handle both Headers object and plain object
                         // Use X-CSRF-Token (with hyphen) which PHP expects
@@ -176,6 +179,9 @@ class CsrfHelper
                             config.headers['X-CSRF-Token'] = freshToken;
                         }
                     }
+
+                    // Update args for originalFetch call
+                    args[1] = config;
 
                     return originalFetch.apply(this, args).then(response => {
                         // Synchronize token if provided in response header
