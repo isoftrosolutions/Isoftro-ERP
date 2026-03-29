@@ -117,12 +117,14 @@ if (!function_exists('renderSuperAdminJS')) {
 
 function renderPWAMeta() {
     global $themeColor;
-    echo '    <link rel="manifest" href="'    . APP_URL . '/public/manifest.json">'             . "\n";
-    echo '    <meta name="theme-color" content="' . $themeColor . '">'                  . "\n";
-    echo '    <link rel="apple-touch-icon" href="' . APP_URL . '/public/assets/images/logo.png">'             . "\n";
+    echo '    <link rel="manifest" href="' . APP_URL . '/manifest.json">' . "\n";
+    echo '    <meta name="theme-color" content="' . $themeColor . '">' . "\n";
     echo '    <link rel="icon" type="image/svg+xml" href="' . APP_URL . '/public/assets/images/favicon.svg">' . "\n";
-    echo '    <meta name="mobile-web-app-capable" content="yes">'                        . "\n";
+    echo '    <link rel="apple-touch-icon" href="' . APP_URL . '/public/assets/images/logo.png">' . "\n";
+    echo '    <meta name="mobile-web-app-capable" content="yes">' . "\n";
+    echo '    <meta name="apple-mobile-web-app-capable" content="yes">' . "\n";
     echo '    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">' . "\n";
+    echo '    <meta name="apple-mobile-web-app-title" content="iSoftro ERP">' . "\n";
 }
 
 function renderAppConfig() {

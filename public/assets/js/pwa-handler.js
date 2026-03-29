@@ -1,74 +1,92 @@
 /**
- * Hamro ERP — PWA Handler
+ * iSoftro ERP — PWA Handler
  * Handles service worker registration and installation prompts.
  */
 
 let deferredPrompt;
+let isAppInstalled = false;
 
-// Register Service Worker
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        const swPath = (window.APP_URL || '/erp') + '/public/sw.js';
+        const swPath = (window.APP_URL || '/erp') + '/sw.js';
         navigator.serviceWorker.register(swPath)
             .then(reg => console.log('SW Registered', reg))
             .catch(err => console.log('SW Registration Failed', err));
     });
 }
 
-// Catch the install prompt
 window.addEventListener('beforeinstallprompt', (e) => {
-    // Prevent Chrome 67 and earlier from automatically showing the prompt
     e.preventDefault();
-    // Stash the event so it can be triggered later.
     deferredPrompt = e;
     
-    // Show the install buttons and banners
-    const installUI = document.querySelectorAll('.pwa-install-btn, .install-btn-trigger, .pwa-install-banner, #pwaInstallBanner');
-    installUI.forEach(el => {
-        el.style.display = 'block'; // Or flex, based on the element
-        if (el.classList.contains('pwa-install-banner')) {
-            el.style.display = 'block';
-        }
-        if (el.classList.contains('pwa-install-btn') || el.classList.contains('install-btn-trigger')) {
-             if (el.tagName !== 'DIV') el.style.display = 'flex';
-        }
-    });
-
-    console.log('PWA Prompt Captured');
+    showInstallUI();
+    
+    console.log('PWA Install Prompt Captured');
 });
 
-// Function to trigger installation
+function showInstallUI() {
+    const installUI = document.querySelectorAll('.pwa-install-btn, .install-btn-trigger, .pwa-install-banner, #pwaInstallBanner, #mobileInstallBtn');
+    installUI.forEach(el => {
+        if (el) {
+            el.style.display = el.classList.contains('pwa-install-banner') || el.classList.contains('mobile-install-btn') || el.tagName === 'DIV' ? 'block' : 'flex';
+        }
+    });
+}
+
+function hideInstallUI() {
+    const installUI = document.querySelectorAll('.pwa-install-btn, .install-btn-trigger, .pwa-install-banner, #pwaInstallBanner, #mobileInstallBtn');
+    installUI.forEach(el => {
+        if (el) el.style.display = 'none';
+    });
+}
+
 async function triggerPwaInstall() {
     if (!deferredPrompt) {
-        console.log('No deferred prompt available');
+        const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+        if (isStandalone) {
+            console.log('App already installed');
+            alert('App is already installed on your device!');
+            return;
+        }
+        console.log('No deferred prompt available - trying native prompt');
         return;
     }
     
-    // Show the prompt
     deferredPrompt.prompt();
     
-    // Wait for the user to respond to the prompt
     const { outcome } = await deferredPrompt.userChoice;
     console.log(`User response to install prompt: ${outcome}`);
     
-    // We've used the prompt, and can't use it again, throw it away
     deferredPrompt = null;
     
-    // Hide UI if successful or chosen
-    const installUI = document.querySelectorAll('.pwa-install-btn, .install-btn-trigger, .pwa-install-banner, #pwaInstallBanner');
-    installUI.forEach(el => {
-        el.style.display = 'none';
-    });
-}
-
-// Sidebar Modal logic (if still used)
-function openPwaModal(triggerNative = true) {
-    if (triggerNative) {
-        triggerPwaInstall();
+    if (outcome === 'accepted') {
+        isAppInstalled = true;
+        hideInstallUI();
     }
 }
 
-// Listen for successful installation
+window.triggerPwaInstall = triggerPwaInstall;
+
 window.addEventListener('appinstalled', (evt) => {
-    console.log('App was installed');
+    console.log('App was installed successfully');
+    isAppInstalled = true;
+    hideInstallUI();
+});
+
+if (window.matchMedia('(display-mode: standalone)').matches) {
+    isAppInstalled = true;
+    hideInstallUI();
+}
+
+window.addEventListener('load', () => {
+    setTimeout(() => {
+        const mobileBtn = document.getElementById('mobileInstallBtn');
+        if (mobileBtn && !deferredPrompt && !isAppInstalled) {
+            if (window.matchMedia('(display-mode: standalone)').matches) {
+                mobileBtn.style.display = 'none';
+            } else {
+                mobileBtn.style.display = 'flex';
+            }
+        }
+    }, 3000);
 });

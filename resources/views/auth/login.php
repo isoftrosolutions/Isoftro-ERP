@@ -15,12 +15,14 @@
   <link rel="stylesheet" href="<?= $BASE ?>/public/assets/css/login.css">
   
   <!-- PWA Settings -->
-  <link rel="manifest" href="<?= $BASE ?>/public/manifest.json">
+  <link rel="manifest" href="<?= $BASE ?>/manifest.json">
   <meta name="theme-color" content="#006D44">
-  <link rel="apple-touch-icon" href="<?= $BASE ?>/public/assets/images/logo.png">
   <link rel="icon" type="image/svg+xml" href="<?= $BASE ?>/public/assets/images/favicon.svg">
+  <link rel="apple-touch-icon" href="<?= $BASE ?>/public/assets/images/logo.png">
   <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="iSoftro ERP">
   <style>
     :root {
       --green: #006D44;
@@ -80,7 +82,15 @@
     <!-- RIGHT SIDE: LOGIN FORM -->
     <div class="lp-right">
       <div class="lp-form-box">
-        <div class="lp-header">
+        <div class="mobile-header">
+            <img src="<?= $BASE ?>/public/assets/images/logo.png" alt="Logo">
+            <div class="mobile-header-text">
+              <span class="mh-top">ISOFTRO</span>
+              <span class="mh-bot">ACADEMIC ERP</span>
+            </div>
+          </div>
+
+          <div class="lp-header">
           <div class="lp-logo">
             <img src="<?= $BASE ?>/public/assets/images/logo.png" alt="Logo" style="height:32px; width:auto; margin-right:12px;">
             <div class="logo-text">
@@ -214,9 +224,67 @@
       from { opacity: 0; transform: translateY(20px); }
       to { opacity: 1; transform: translateY(0); }
     }
+
+    @media (max-width: 991px) {
+      .mobile-header {
+        display: flex !important;
+      }
+    }
+    .mobile-header {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px 16px 30px;
+      gap: 12px;
+    }
+    .mobile-header img {
+      height: 36px;
+    }
+    .mobile-header-text {
+      display: flex;
+      flex-direction: column;
+    }
+    .mobile-header-text .mh-top {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--green);
+      line-height: 1;
+    }
+    .mobile-header-text .mh-bot {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--text-dark);
+      letter-spacing: 1px;
+      opacity: 0.8;
+    }
     @media (max-width: 480px) {
       .pwa-content { flex-direction: column; text-align: center; }
       .pwa-install-btn { width: 100%; }
+    }
+    .mobile-install-btn {
+      display: none;
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: var(--green);
+      color: #fff;
+      border: none;
+      padding: 14px 20px;
+      border-radius: 50px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(0,109,68,0.3);
+      z-index: 1000;
+      align-items: center;
+      gap: 8px;
+    }
+    .mobile-install-btn:hover {
+      background: var(--green-d);
+      transform: translateY(-2px);
+    }
+    @media (max-width: 991px) {
+      .mobile-install-btn { display: flex; }
     }
   </style>
 
@@ -227,5 +295,8 @@
   <?= \App\Helpers\CsrfHelper::csrfJsHeader() ?>
   <script src="<?= $BASE ?>/public/assets/js/pwa-handler.js"></script>
   <script src="<?= $BASE ?>/public/assets/js/login.js"></script>
+  <button class="mobile-install-btn" id="mobileInstallBtn" onclick="triggerPwaInstall()">
+    <i class="fa-solid fa-download"></i> Install App
+  </button>
 </body>
 </html>

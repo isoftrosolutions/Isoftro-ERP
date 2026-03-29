@@ -241,33 +241,76 @@
         display: none;
     }
     .lp-right {
-        padding: 20px;
+        min-height: 100vh;
+        padding: 30px 20px;
+    }
+    .lp-form-box {
+        max-width: 100%;
     }
 }
 
 @media (max-width: 480px) {
     .lp-right {
-        padding: 15px;
+        padding: 20px 16px;
     }
     .lp-form-box {
-        padding: 0 5px;
+        padding: 0;
     }
     .lp-logo {
         margin-bottom: 30px;
+        gap: 10px;
+    }
+    .lp-logo img {
+        height: 28px;
+    }
+    .logo-text {
+        display: flex;
+        flex-direction: column;
     }
     .lt-top {
-        font-size: 26px;
+        font-size: 22px;
+    }
+    .lt-bot {
+        font-size: 11px;
     }
     .lp-title {
-        font-size: 28px;
+        font-size: 24px;
+    }
+    .lp-subtitle {
+        font-size: 14px;
+    }
+    .lp-form {
+        margin-top: 24px;
+    }
+    .lp-input {
+        padding: 14px 16px;
+        font-size: 16px;
+        border-radius: 10px;
     }
     .lp-options {
         flex-direction: column;
-        gap: 15px;
+        gap: 12px;
         align-items: flex-start;
+        margin-bottom: 28px;
+    }
+    .lp-check {
+        font-size: 14px;
+    }
+    .lp-forgot {
+        font-size: 14px;
     }
     .lp-btn {
         width: 100%;
+        padding: 14px 24px;
+        border-radius: 10px;
+        font-size: 15px;
+    }
+    .form-group {
+        margin-bottom: 4px;
+    }
+    .form-group .lp-label {
+        font-size: 13px;
+        margin-bottom: 6px;
     }
 }
 

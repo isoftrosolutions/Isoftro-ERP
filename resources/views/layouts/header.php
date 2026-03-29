@@ -51,13 +51,15 @@ $roleCSS = $roleCSS ?? null;
     <?php endif; ?>
 
     <!-- PWA Settings -->
-    <link rel="manifest" href="<?php echo APP_URL; ?>/public/manifest.json">
+    <link rel="manifest" href="<?php echo APP_URL; ?>/manifest.json">
     <meta name="theme-color" content="<?php echo $themeColor; ?>">
-    <link rel="apple-touch-icon" href="<?php echo APP_URL; ?>/public/assets/images/logo.png">
     <link rel="icon" type="image/svg+xml" href="<?php echo APP_URL; ?>/public/assets/images/favicon.svg">
+    <link rel="apple-touch-icon" href="<?php echo APP_URL; ?>/public/assets/images/logo.png">
     <script src="<?php echo APP_URL; ?>/public/assets/js/auth-helper.js"></script>
     <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="iSoftro ERP">
 
     <script>
         window.APP_URL = "<?php echo APP_URL; ?>";
