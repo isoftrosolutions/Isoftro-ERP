@@ -92,7 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
             showAlert('Connection error. Please check your internet and try again.', 'error');
         } finally {
             loginBtn.disabled = false;
-            btnText.textContent = 'Login';
+            btnText.textContent = 'Sign In';
             if (btnSpinner) btnSpinner.style.display = 'none';
         }
     });
@@ -118,10 +118,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const icon = togglePassword.querySelector('i');
             if (type === 'text') {
                 icon.classList.replace('fa-eye', 'fa-eye-slash');
-                togglePassword.style.color = 'var(--green)';
+                togglePassword.style.color = 'var(--g1)';
             } else {
                 icon.classList.replace('fa-eye-slash', 'fa-eye');
-                togglePassword.style.color = 'var(--text-light)';
+                togglePassword.style.color = 'var(--text-m)';
             }
         });
     }

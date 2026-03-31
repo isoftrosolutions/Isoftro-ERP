@@ -16,7 +16,8 @@ function renderSuperAdminSidebar() {
         return; // Silent exit — unauthorized users see nothing
     }
 
-    // ── Load config & badges ──
+    // ── Load config, badges & shared utils ──
+    require_once APP_ROOT . '/app/Helpers/sidebar-utils.php';
     require_once APP_ROOT . '/app/Helpers/sa-sidebar-config.php';
     require_once APP_ROOT . '/app/Helpers/sa-sidebar-badges.php';
 
@@ -34,64 +35,44 @@ function renderSuperAdminSidebar() {
     $brandColor = $_SESSION['brand_color'] ?? '#00B894'; // Super admin green
 
     // User info
-    $initials = 'SA';
-    if ($user && isset($user['name'])) {
-        $parts = explode(' ', $user['name']);
-        $initials = strtoupper(substr($parts[0], 0, 1) . (isset($parts[1]) ? substr($parts[1], 0, 1) : ''));
-    }
-
-    // Institute logo - use tenant logo if available, otherwise fallback to default
-    $tenantLogo = $_SESSION['institute_logo'] ?? $_SESSION['tenant_logo'] ?? null;
-    if (!empty($tenantLogo)) {
-        $logoRelativePath = $tenantLogo;
-        // Fix old paths that don't have /public prefix
-        if (strpos($logoRelativePath, '/uploads/') === 0 && strpos($logoRelativePath, '/public/') !== 0) {
-            $logoRelativePath = '/public' . $logoRelativePath;
-        }
-        // Ensure logo path has proper prefix
-        $logoPath = (strpos($logoRelativePath, 'http') === 0)
-            ? $logoRelativePath
-            : APP_URL . $logoRelativePath;
-    }
-    else {
-        $logoPath = APP_URL . '/assets/images/logo.png';
-    }
+    $initials = generateInitials($user['name'] ?? '', 'SA');
+    $logoPath  = resolveLogoPath($_SESSION['institute_logo'] ?? $_SESSION['tenant_logo'] ?? null);
     ?>
     <!-- Dynamic Brand Color -->
     <style>
-        :root {
-            --brand: <?php echo htmlspecialchars($brandColor); ?>;
-        }
+        :root { --brand: <?php echo htmlspecialchars($brandColor); ?>; }
     </style>
 
-        <!-- ── SIDEBAR (mirrors institute-admin structure) ── -->
-        <nav class="sb" id="sidebar">
-            <!-- Mobile-only header inside sidebar -->
-            <div class="sb-header">
-                <img src="<?php echo htmlspecialchars($logoPath); ?>" alt="Logo" style="height:28px; width:auto; margin-right:10px; filter: brightness(0) invert(1);">
-                <div class="logo-txt">ISOFTRO Platform</div>
-                <button class="sb-toggle" id="sbClose">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
+    <!-- ── SIDEBAR ── -->
+    <nav class="sb" id="sidebar" aria-label="Main navigation">
+        <!-- Mobile-only header -->
+        <div class="sb-header">
+            <img src="<?php echo htmlspecialchars($logoPath); ?>" alt="iSoftro Platform logo" class="sb-header-logo">
+            <div class="logo-txt">ISOFTRO Platform</div>
+            <button class="sb-toggle" id="sbClose" aria-label="Close sidebar">
+                <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+            </button>
+        </div>
 
-            <div class="sb-body" id="sbBody">
-                <!-- Navigation (rendered by JS from config) -->
-            </div>
+        <div class="sb-body" id="sbBody">
+            <!-- Navigation rendered by sa-core.js from window._SA_NAV_CONFIG -->
+        </div>
 
-            <!-- System Branding / Context (Desktop only, subtle) -->
-            <div class="sb-footer" style="padding: 15px 20px; border-top: 1px solid var(--cb); margin-top: auto;">
-                 <div style="display: flex; align-items: center; gap: 10px;">
-                    <div style="width: 32px; height: 32px; background: var(--teal-lt); color: var(--teal); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 12px;">
-                        <?php echo htmlspecialchars(substr($tenantName, 0, 2)); ?>
-                    </div>
-                    <div style="flex: 1; min-width: 0;">
-                        <div style="font-size: 12px; font-weight: 700; color: var(--td); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><?php echo htmlspecialchars($tenantName); ?></div>
-                        <div style="font-size: 10px; color: var(--tl);"><?php echo htmlspecialchars($planName); ?></div>
-                    </div>
-                 </div>
+        <!-- Footer: context + desktop collapse toggle -->
+        <div class="sb-footer">
+            <div class="sb-footer-inner">
+                <div class="sb-tenant-av" aria-hidden="true"><?php echo htmlspecialchars(substr($tenantName, 0, 2)); ?></div>
+                <div class="sb-footer-text">
+                    <div class="sb-tenant-name"><?php echo htmlspecialchars($tenantName); ?></div>
+                    <div class="sb-tenant-plan"><?php echo htmlspecialchars($planName); ?></div>
+                </div>
             </div>
-        </nav>
+            <!-- Desktop collapse toggle -->
+            <button class="js-sidebar-toggle sb-collapse-btn" aria-label="Toggle sidebar">
+                <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
+            </button>
+        </div>
+    </nav>
 
     <!-- Inject sidebar config as JSON for JS consumption -->
     <script>

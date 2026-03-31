@@ -87,8 +87,9 @@ class IdentifyTenant {
                 $_SESSION['tenant_status'] = $tenant['status'];
                 
                 $logoPath = $tenant['logo_path'];
-                if (!empty($logoPath) && strpos($logoPath, '/uploads/') === 0 && strpos($logoPath, '/public/') !== 0) {
-                    $logoPath = '/public' . $logoPath;
+                // Strip any legacy /public prefix — production web root IS public/
+                if (!empty($logoPath) && strpos($logoPath, '/public/') === 0) {
+                    $logoPath = substr($logoPath, 7);
                 }
                 $_SESSION['tenant_logo'] = $logoPath;
                 $_SESSION['institute_logo'] = $logoPath;

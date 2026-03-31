@@ -205,6 +205,146 @@ body.sb-active .sb-overlay {
     }
 }
 
+/* ── SIDEBAR FOOTER ── */
+.sb-footer {
+    padding: 14px 16px;
+    border-top: 1px solid var(--card-border);
+    position: relative;
+    flex-shrink: 0;
+}
+
+.sb-footer-inner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.sb-tenant-av {
+    width: 32px;
+    height: 32px;
+    background: #f3f4f6;
+    color: var(--green);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 12px;
+    flex-shrink: 0;
+}
+
+.sb-footer-text {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.sb-tenant-name {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-dark);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.sb-tenant-plan {
+    font-size: 10px;
+    color: var(--text-light);
+}
+
+/* Desktop collapse toggle — sits at top-right edge of footer */
+.sb-collapse-btn {
+    display: none;
+    position: absolute;
+    right: -12px;
+    top: -12px;
+    width: 24px;
+    height: 24px;
+    background: var(--white);
+    border: 1px solid var(--card-border);
+    border-radius: 50%;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--text-light);
+    z-index: 10;
+    padding: 0;
+    transition: color 0.2s, box-shadow 0.2s;
+}
+
+.sb-collapse-btn:hover {
+    color: var(--green);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+/* Rotate chevron when collapsed */
+body.sb-collapsed .sb-collapse-btn i {
+    transform: rotate(180deg);
+}
+
+/* Header logo */
+.sb-header-logo {
+    height: 28px;
+    width: auto;
+    margin-right: 10px;
+    filter: brightness(0) invert(1);
+}
+
+@media (min-width: 1024px) {
+    .sb-collapse-btn {
+        display: flex;
+    }
+
+    body.sb-collapsed .sb-footer-text,
+    body.sb-collapsed .sb-tenant-av {
+        display: none;
+    }
+}
+
+/* ── SIDEBAR SEARCH ── */
+.sb-search-wrap {
+    position: relative;
+    margin: 10px 12px 4px;
+}
+
+.sb-search-icon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 12px;
+    color: var(--text-light);
+    pointer-events: none;
+}
+
+.sb-search {
+    width: 100%;
+    padding: 8px 10px 8px 30px;
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    font-size: 13px;
+    font-family: var(--font);
+    color: var(--text-dark);
+    background: #f8fafc;
+    outline: none;
+    transition: border-color 0.2s, background 0.2s;
+}
+
+.sb-search:focus {
+    border-color: var(--green);
+    background: #fff;
+}
+
+.sb-search::placeholder {
+    color: var(--text-light);
+}
+
+/* Hide search in collapsed mode (no room for it) */
+body.sb-collapsed .sb-search-wrap {
+    display: none;
+}
+
 /* ── SIDEBAR COMPONENTS ── */
 .sb-sec-lbl {
     font-size: 10px;

@@ -102,8 +102,9 @@ class AuthController
                 // Not saving into active sessions, mapped purely for loading screen compatibility
                 $_SESSION['tenant_name'] = $tenant['name'];
                 $tenantLogo = $tenant['logo_path'];
-                if ($tenantLogo && strpos($tenantLogo, '/uploads/') === 0 && strpos($tenantLogo, '/public/') !== 0) {
-                    $tenantLogo = '/public' . $tenantLogo;
+                // Strip any legacy /public prefix — production web root IS public/
+                if ($tenantLogo && strpos($tenantLogo, '/public/') === 0) {
+                    $tenantLogo = substr($tenantLogo, 7);
                 }
             }
         }

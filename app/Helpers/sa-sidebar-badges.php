@@ -22,8 +22,9 @@ function getSASidebarBadges($tenantId = null)
         $stmt = $db->query("SELECT COALESCE(SUM(amount), 0) FROM tenant_payments WHERE status = 'paid' AND MONTH(created_at) = MONTH(CURRENT_DATE())");
         $badges['monthly_revenue'] = (int)$stmt->fetchColumn();
 
-        // Support tickets (you might need to adjust this based on your support system)
-        $badges['support_tickets'] = 5; // Placeholder - adjust as needed
+        // Open support tickets
+        $stmt = $db->query("SELECT COUNT(*) FROM support_tickets WHERE status = 'open'");
+        $badges['support_tickets'] = (int)$stmt->fetchColumn();
 
     }
     catch (Exception $e) {

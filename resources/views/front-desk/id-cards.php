@@ -213,8 +213,9 @@ async function printIDCard(studentId) {
         <?php 
             $iLogo = $_SESSION['tenant_logo'] ?? $_SESSION['institute_logo'] ?? '';
             if ($iLogo && strpos($iLogo, 'http') !== 0) {
-                if (strpos($iLogo, '/uploads/') === 0 && strpos($iLogo, '/public/') !== 0) {
-                    $iLogo = '/public' . $iLogo;
+                // Strip any legacy /public prefix — production web root IS public/
+                if (strpos($iLogo, '/public/') === 0) {
+                    $iLogo = substr($iLogo, 7);
                 }
                 $iLogo = APP_URL . $iLogo;
             }
