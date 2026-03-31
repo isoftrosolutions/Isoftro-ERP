@@ -1,5 +1,5 @@
 /**
- * iSoftro ERP — PWA Handler
+ * iSoftro ERP - PWA Handler
  * Handles service worker registration and installation prompts.
  */
 
@@ -8,19 +8,34 @@ let isAppInstalled = false;
 
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        const swPath = (window.APP_URL || '/erp') + '/sw.js';
+        // Always use root-relative path — works on any domain
+        const swPath = '/sw.js';
+
         navigator.serviceWorker.register(swPath)
-            .then(reg => console.log('SW Registered', reg))
-            .catch(err => console.log('SW Registration Failed', err));
+            .then(reg => {
+                console.log('SW Registered', reg);
+
+                // Force update check so old v1.0 SW is replaced immediately
+                reg.update();
+            })
+            .catch(err => console.warn('SW Registration Failed', err));
+
+        // Unregister any stale service workers from old paths (/erp/sw.js, /saas/...)
+        navigator.serviceWorker.getRegistrations().then(registrations => {
+            registrations.forEach(reg => {
+                if (reg.scope && !reg.scope.endsWith(window.location.origin + '/')) {
+                    console.log('Removing stale SW:', reg.scope);
+                    reg.unregister();
+                }
+            });
+        });
     });
 }
 
 window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredPrompt = e;
-    
     showInstallUI();
-    
     console.log('PWA Install Prompt Captured');
 });
 
@@ -44,21 +59,16 @@ async function triggerPwaInstall() {
     if (!deferredPrompt) {
         const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
         if (isStandalone) {
-            console.log('App already installed');
             alert('App is already installed on your device!');
             return;
         }
-        console.log('No deferred prompt available - trying native prompt');
         return;
     }
-    
+
     deferredPrompt.prompt();
-    
     const { outcome } = await deferredPrompt.userChoice;
-    console.log(`User response to install prompt: ${outcome}`);
-    
     deferredPrompt = null;
-    
+
     if (outcome === 'accepted') {
         isAppInstalled = true;
         hideInstallUI();
@@ -67,8 +77,7 @@ async function triggerPwaInstall() {
 
 window.triggerPwaInstall = triggerPwaInstall;
 
-window.addEventListener('appinstalled', (evt) => {
-    console.log('App was installed successfully');
+window.addEventListener('appinstalled', () => {
     isAppInstalled = true;
     hideInstallUI();
 });
@@ -82,11 +91,7 @@ window.addEventListener('load', () => {
     setTimeout(() => {
         const mobileBtn = document.getElementById('mobileInstallBtn');
         if (mobileBtn && !deferredPrompt && !isAppInstalled) {
-            if (window.matchMedia('(display-mode: standalone)').matches) {
-                mobileBtn.style.display = 'none';
-            } else {
-                mobileBtn.style.display = 'flex';
-            }
+            mobileBtn.style.display = window.matchMedia('(display-mode: standalone)').matches ? 'none' : 'flex';
         }
     }, 3000);
 });
