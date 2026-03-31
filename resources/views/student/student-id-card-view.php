@@ -35,16 +35,18 @@ $student = $stmt->fetch(PDO::FETCH_ASSOC);
 // 3. Prepare Logo & Photo
 $instituteLogo = $_SESSION['institute_logo'] ?? $tenant['logo_path'] ?? '';
 if ($instituteLogo && strpos($instituteLogo, 'http') !== 0) {
-    if (strpos($instituteLogo, '/uploads/') === 0 && strpos($instituteLogo, '/public/') !== 0) {
-        $instituteLogo = '/public' . $instituteLogo;
+    // Strip any legacy /public prefix — production web root IS public/
+    if (strpos($instituteLogo, '/public/') === 0) {
+        $instituteLogo = substr($instituteLogo, 7);
     }
     $instituteLogo = APP_URL . $instituteLogo;
 }
 
 $studentPhoto = $student['profile_image'] ?? '';
 if ($studentPhoto && strpos($studentPhoto, 'http') !== 0) {
-    if (strpos($studentPhoto, '/uploads/') === 0 && strpos($studentPhoto, '/public/') !== 0) {
-        $studentPhoto = '/public' . $studentPhoto;
+    // Strip any legacy /public prefix — production web root IS public/
+    if (strpos($studentPhoto, '/public/') === 0) {
+        $studentPhoto = substr($studentPhoto, 7);
     }
     $studentPhoto = APP_URL . $studentPhoto;
 } else if (empty($studentPhoto)) {

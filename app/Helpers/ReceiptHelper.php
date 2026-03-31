@@ -59,8 +59,9 @@ class ReceiptHelper {
         $logoPath = $txn['institute_logo'] ?? '';
         $logoUrl = '';
         if ($logoPath) {
-            if (strpos($logoPath, '/uploads/') === 0 && strpos($logoPath, '/public/') !== 0) {
-                $logoPath = '/public' . $logoPath;
+            // Strip any legacy /public prefix — production web root IS public/
+            if (strpos($logoPath, '/public/') === 0) {
+                $logoPath = substr($logoPath, 7);
             }
             $logoUrl = (defined('APP_URL') ? APP_URL : '') . $logoPath;
         }

@@ -10,7 +10,7 @@
     if (window.__ia_sidebar_initialized) return;
     window.__ia_sidebar_initialized = true;
 
-    const DEBUG = true; // Toggle for console logs
+    const DEBUG = (typeof window.__DEV__ !== 'undefined') && window.__DEV__;
     const STORAGE_KEY = '_ia_sb_collapsed';
     const TOGGLE_CLASS = 'js-sidebar-toggle';
     const body = document.body;

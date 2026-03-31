@@ -44,10 +44,10 @@ if ($tenantId && (empty($tenantLogo) || in_array($tenantName, ['Dashboard', 'Ins
 }
 
 if (!empty($tenantLogo)) {
-    // Build final logo URL handling missing /public prefix
+    // Strip any legacy /public prefix — production web root IS public/
     $logoRelativePath = $tenantLogo;
-    if (strpos($logoRelativePath, '/uploads/') === 0 && strpos($logoRelativePath, '/public/') !== 0) {
-        $logoRelativePath = '/public' . $logoRelativePath;
+    if (strpos($logoRelativePath, '/public/') === 0) {
+        $logoRelativePath = substr($logoRelativePath, 7);
     }
     $logoUrl = (strpos($logoRelativePath, 'http') === 0) ? $logoRelativePath : APP_URL . $logoRelativePath;
 }

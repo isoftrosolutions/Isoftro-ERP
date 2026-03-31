@@ -83,6 +83,11 @@ window.toggleExp = function(id) {
 };
 
 /* ── SIDEBAR (Mirrors Super Admin structure) ────────────────── */
+/* Escape a string for safe use inside an HTML attribute value */
+function _iaEsc(str) {
+    return String(str ?? '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
 function _iaRenderSidebar(filter = '') {
     const sbBody = document.getElementById('sbBody'); if (!sbBody) return;
     const badges = window._IA_BADGES || {};
@@ -96,56 +101,61 @@ function _iaRenderSidebar(filter = '') {
         });
         if (!items.length) return;
 
-        // Section Label
-        html += `<div class="sb-lbl">${sec}</div>`;
+        html += `<div class="sb-sec-lbl">${_iaEsc(sec)}</div>`;
 
         items.forEach(nav => {
             const hasSub = !!(nav.sub && nav.sub.length);
             const isActive = _IA.activeNav === nav.id;
             const isExp = filter ? true : _IA.expanded[nav.id];
-            
-            // Badge logic
+            const navId = _iaEsc(nav.id);
+
+            // Badge
             const badgeVal = nav.badge_key && badges[nav.badge_key] ? badges[nav.badge_key] : null;
-            const badgeHtml = badgeVal ? `<span class="sb-badge" style="margin-left:auto; background:var(--red); color:#fff; font-size:10px; font-weight:800; padding:2px 6px; border-radius:10px;">${badgeVal}</span>` : '';
+            const badgeHtml = badgeVal ? `<span class="sb-badge" aria-label="${badgeVal} notifications" style="margin-left:auto; background:var(--red); color:#fff; font-size:10px; font-weight:800; padding:2px 6px; border-radius:10px;">${badgeVal}</span>` : '';
 
             if (hasSub) {
-                // Parent Button with Submenu
                 html += `
-                    <button class="nb-btn ${isActive ? 'active' : ''}" onclick="toggleExp('${nav.id}')">
-                        <i class="fa-solid ${nav.icon} nbi"></i>
-                        <span class="nbl">${nav.label}</span>
+                    <button class="nb-btn ${isActive ? 'active' : ''}"
+                            onclick="toggleExp('${navId}')"
+                            aria-expanded="${isExp ? 'true' : 'false'}"
+                            aria-controls="sub-${navId}"
+                            ${isActive ? 'aria-current="page"' : ''}>
+                        <i class="fa-solid ${_iaEsc(nav.icon)} nbi" aria-hidden="true"></i>
+                        <span class="nbl">${_iaEsc(nav.label)}</span>
                         ${badgeHtml}
-                        <i class="fa fa-chevron-right nbc ${isExp ? 'open' : ''}" style="font-size:10px; margin-left:8px;"></i>
+                        <i class="fa fa-chevron-right nbc ${isExp ? 'open' : ''}" aria-hidden="true" style="font-size:10px; margin-left:8px;"></i>
                     </button>
-                    <div class="sub-menu ${isExp ? 'open' : ''}" id="sub-${nav.id}" style="${isExp ? '' : 'display:none;'}">
+                    <div class="sub-menu ${isExp ? 'open' : ''}" id="sub-${navId}" role="group" aria-label="${_iaEsc(nav.label)} submenu" style="${isExp ? '' : 'display:none;'}">
                 `;
 
                 nav.sub.forEach(s => {
                     if (filter && !s.l.toLowerCase().includes(filter) && !nav.label.toLowerCase().includes(filter)) return;
-                    
                     const isSubActive = _IA.activeNav === nav.id && _IA.activeSub === s.id;
-                    const subBadge = s.badge_key && badges[s.badge_key] ? `<span class="sb-badge sm" style="margin-left:auto; opacity:0.7;">${badges[s.badge_key]}</span>` : '';
-                    
-                    // Note: Super Admin uses <a> for sub-menu, but Institute Admin core uses <button> for JS routing.
-                    // We'll stick to <button> for technical consistency but apply .sub-btn class.
-                    const action = s.onclick ? s.onclick : `goNav('${nav.id}', '${s.id}')`;
+                    const subBadge = s.badge_key && badges[s.badge_key] ? `<span class="sb-badge sm" aria-label="${badges[s.badge_key]} notifications" style="margin-left:auto; opacity:0.7;">${badges[s.badge_key]}</span>` : '';
+                    const sId = _iaEsc(s.id);
+                    const action = s.onclick ? s.onclick : `goNav('${navId}', '${sId}')`;
                     html += `
-                        <button class="sub-btn ${isSubActive ? 'active' : ''}" onclick="${action}">
-                            <i class="fa-solid ${s.icon} smi" style="font-size:11px; margin-right:8px; opacity:0.6;"></i>
-                            ${s.l}
+                        <button class="sub-btn ${isSubActive ? 'active' : ''}"
+                                onclick="${action}"
+                                ${isSubActive ? 'aria-current="page"' : ''}>
+                            <i class="fa-solid ${_iaEsc(s.icon)} smi" aria-hidden="true" style="font-size:11px; margin-right:8px; opacity:0.6;"></i>
+                            ${_iaEsc(s.l)}
                             ${subBadge}
                         </button>
                     `;
-                    
-                    // Special case for child nested items
+
                     if (s.child && isExp) {
                         s.child.forEach(c => {
                             const isChildActive = _IA.activeNav === nav.id && _IA.activeSub === c.id;
-                            const childAction = c.onclick ? c.onclick : `goNav('${nav.id}', '${c.id}')`;
+                            const cId = _iaEsc(c.id);
+                            const childAction = c.onclick ? c.onclick : `goNav('${navId}', '${cId}')`;
                             html += `
-                                <button class="sub-btn child ${isChildActive ? 'active' : ''}" onclick="${childAction}" style="padding-left:60px; font-size:12px; opacity:0.8;">
-                                    <i class="fa-solid ${c.icon} smi" style="font-size:10px; margin-right:6px; opacity:0.5;"></i>
-                                    ${c.l}
+                                <button class="sub-btn child ${isChildActive ? 'active' : ''}"
+                                        onclick="${childAction}"
+                                        ${isChildActive ? 'aria-current="page"' : ''}
+                                        style="padding-left:60px; font-size:12px; opacity:0.8;">
+                                    <i class="fa-solid ${_iaEsc(c.icon)} smi" aria-hidden="true" style="font-size:10px; margin-right:6px; opacity:0.5;"></i>
+                                    ${_iaEsc(c.l)}
                                 </button>
                             `;
                         });
@@ -154,11 +164,13 @@ function _iaRenderSidebar(filter = '') {
 
                 html += `</div>`;
             } else {
-                // Direct Link Button
                 html += `
-                    <button class="nb-btn ${isActive ? 'active' : ''}" onclick="goNav('${nav.id}')">
-                        <i class="fa-solid ${nav.icon} nbi"></i>
-                        <span class="nbl">${nav.label}</span>
+                    <button class="nb-btn ${isActive ? 'active' : ''}"
+                            onclick="goNav('${navId}')"
+                            ${isActive ? 'aria-current="page"' : ''}
+                            title="${_iaEsc(nav.label)}">
+                        <i class="fa-solid ${_iaEsc(nav.icon)} nbi" aria-hidden="true"></i>
+                        <span class="nbl">${_iaEsc(nav.label)}</span>
                         ${badgeHtml}
                     </button>
                 `;
@@ -166,25 +178,39 @@ function _iaRenderSidebar(filter = '') {
         });
     });
 
-    // PWA Install Box (Match Super Admin footer style if needed, or keep at bottom)
-    html += `<div style="padding:15px 18px;"><button class="install-btn-trigger" onclick="openPwaModal()" style="width:100%; padding:10px; background:var(--teal-lt); color:var(--teal); border:none; border-radius:10px; font-weight:700; font-size:13px; cursor:pointer;"><i class="fa-solid fa-bolt"></i> App Install</button></div>`;
-    
+    // PWA Install Box
+    html += `<div style="padding:15px 18px;"><button class="install-btn-trigger" onclick="openPwaModal()" style="width:100%; padding:10px; background:var(--teal-lt); color:var(--teal); border:none; border-radius:10px; font-weight:700; font-size:13px; cursor:pointer;"><i class="fa-solid fa-bolt" aria-hidden="true"></i> App Install</button></div>`;
+
     sbBody.innerHTML = html;
     _iaRenderBottomNav();
 }
 
 function _iaRenderBottomNav() {
     let bNav = document.getElementById('bottomNav');
-    if (!bNav) { bNav = document.createElement('nav'); bNav.id='bottomNav'; bNav.className='mobile-bottom-nav'; document.body.appendChild(bNav); }
-    const items = [
-        {id:'overview',icon:'fa-house',label:'Home',action:"goNav('overview')"},
-        {id:'students',icon:'fa-user-graduate',label:'Students',action:"goNav('students','all')"},
-        {id:'fee',icon:'fa-hand-holding-dollar',label:'Fee',action:"goNav('fee','record')"},
-        {id:'accounting',icon:'fa-calculator',label:'Accounts',action:"goNav('accounting','dashboard')"},
-        {id:'exams',icon:'fa-file-signature',label:'Exams',action:"goNav('exams','schedule')"},
-        {id:'comms',icon:'fa-paper-plane',label:'Comms',action:"goNav('comms','sms')"}
-    ];
-    bNav.innerHTML = items.map(i => `<button class="mb-nav-btn ${_IA.activeNav===i.id?'active':''}" onclick="${i.action}"><i class="fa-solid ${i.icon}"></i><span>${i.label}</span></button>`).join('');
+    if (!bNav) { bNav = document.createElement('nav'); bNav.id='bottomNav'; bNav.className='mobile-bottom-nav'; bNav.setAttribute('aria-label','Quick navigation'); document.body.appendChild(bNav); }
+
+    // Pull up to 5 top-level items from the permission-filtered config (same source as sidebar)
+    const pinned = ['overview','students','fee','accounting','exams','comms'];
+    const items = _IA_NAV
+        .filter(n => pinned.includes(n.id))
+        .sort((a, b) => pinned.indexOf(a.id) - pinned.indexOf(b.id))
+        .slice(0, 5);
+
+    // Fall back: if fewer than 3 pinned items exist, fill with first available items
+    if (items.length < 3) {
+        const extras = _IA_NAV.filter(n => !pinned.includes(n.id)).slice(0, 5 - items.length);
+        items.push(...extras);
+    }
+
+    bNav.innerHTML = items.map(i => {
+        const id = _iaEsc(i.id);
+        const icon = _iaEsc(i.icon);
+        const label = _iaEsc(i.label);
+        const hasSub = i.sub && i.sub.length;
+        const action = hasSub ? `goNav('${id}', '${_iaEsc(i.sub[0].id)}')` : `goNav('${id}')`;
+        const isActive = _IA.activeNav === i.id;
+        return `<button class="mb-nav-btn ${isActive ? 'active' : ''}" onclick="${action}" aria-label="${label}" ${isActive ? 'aria-current="page"' : ''}><i class="fa-solid ${icon}" aria-hidden="true"></i><span>${label}</span></button>`;
+    }).join('');
 }
 
 /* ── PAGE ROUTER ────────────────────────────────────────────────── */

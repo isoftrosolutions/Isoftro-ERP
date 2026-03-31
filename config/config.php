@@ -799,8 +799,9 @@ if (!function_exists('checkRememberMe')) {
                             $tenantData = $stmtTenant->fetch();
                             if ($tenantData && !empty($tenantData['logo_path'])) {
                                 $tenantLogo = $tenantData['logo_path'];
-                                if (strpos($tenantLogo, '/uploads/') === 0 && strpos($tenantLogo, '/public/') !== 0) {
-                                    $tenantLogo = '/public' . $tenantLogo;
+                                // Strip any legacy /public prefix — production web root IS public/
+                                if (strpos($tenantLogo, '/public/') === 0) {
+                                    $tenantLogo = substr($tenantLogo, 7);
                                 }
                             }
                         }
