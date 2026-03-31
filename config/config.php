@@ -30,15 +30,22 @@ if (file_exists(APP_ROOT . '/.env')) {
 if (!defined('DB_HOST'))
     define('DB_HOST', getenv('DB_HOST') ?: '127.0.0.1');
 if (!defined('DB_NAME'))
-    define('DB_NAME', getenv('DB_DATABASE') ?: 'hamrolabs_db');
+    define('DB_NAME', getenv('DB_DATABASE') ?: 'isof_isoftro_db');
 if (!defined('DB_USER'))
-    define('DB_USER', getenv('DB_USERNAME') ?: 'root');
+    define('DB_USER', getenv('DB_USERNAME') ?: 'isof_isoftro_user');
 if (!defined('DB_PASS'))
     define('DB_PASS', getenv('DB_PASSWORD') ?: '');
 
-// Application URL - needed for session params
-if (!defined('APP_URL'))
-    define('APP_URL', getenv('APP_URL') ?: 'http://localhost/erp');
+// Application URL - detected from environment, never hardcoded
+if (!defined('APP_URL')) {
+    $appUrl = getenv('APP_URL');
+    if (!$appUrl) {
+        $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+        $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+        $appUrl = $protocol . '://' . $host;
+    }
+    define('APP_URL', rtrim($appUrl, '/'));
+}
 
 // Initialize session with secure params - DEPRECATED for JWT
 // But kept as minimal fallback for temporary view-state if absolutely needed.
@@ -153,7 +160,7 @@ if (!defined('SMTP_USERNAME'))
     define('SMTP_USERNAME', getenv('MAIL_USERNAME') ?: ($_ENV['MAIL_USERNAME'] ?? ($_SERVER['MAIL_USERNAME'] ?? 'isoftrosolutions@gmail.com')));
 
 if (!defined('SMTP_PASSWORD'))
-    define('SMTP_PASSWORD', getenv('MAIL_PASSWORD') ?: ($_ENV['MAIL_PASSWORD'] ?? ($_SERVER['MAIL_PASSWORD'] ?? 'tpkm awve kkzl ifdm')));
+    define('SMTP_PASSWORD', getenv('MAIL_PASSWORD') ?: ($_ENV['MAIL_PASSWORD'] ?? ($_SERVER['MAIL_PASSWORD'] ?? '')));
 
 if (!defined('FROM_EMAIL'))
     define('FROM_EMAIL', getenv('MAIL_FROM_ADDRESS') ?: 'isoftrosolutions@gmail.com');

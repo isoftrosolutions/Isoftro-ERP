@@ -8,7 +8,10 @@ cleanup.ps1
 
 # Environment and Config
 .env
+.env.*
+!.env.example
 /.vscode
+/.idea
 /node_modules
 /vendor
 /storage/*.key
@@ -17,6 +20,11 @@ cleanup.ps1
 /storage/framework/sessions/*
 /storage/logs/*.log
 /public/storage
+/public/hot
+/public/build
+
+# Composer
+composer.lock
 
 # OS files
 Thumbs.db
@@ -25,4 +33,10 @@ Desktop.ini
 
 # Uploads
 /public/uploads
-/app/public/uploads
+/storage/app/uploads
+
+# Bootstrap cache
+/bootstrap/cache/*.php
+
+# Local-only htaccess (swap manually for local Apache dev)
+.htaccess.local

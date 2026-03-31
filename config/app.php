@@ -4,11 +4,11 @@
  */
 
 return [
-    'name' => env('APP_NAME', 'HamroLabs ERP'),
+    'name' => env('APP_NAME', 'iSoftro Academic ERP'),
     'version' => '3.0.0',
     'env' => env('APP_ENV', 'production'),
     'debug' => (bool) env('APP_DEBUG', false),
-    'url' => env('APP_URL', 'http://localhost/erp'),
+    'url' => env('APP_URL', 'https://isoftroerp.com'),
     'timezone' => 'Asia/Kathmandu',
     'locale' => 'en',
     'fallback_locale' => 'en',
@@ -18,7 +18,7 @@ return [
     
     // JWT Configuration
     'jwt' => [
-        'secret' => 'hamrolabs-erp-jwt-secret-2025-v3',
+        'secret' => env('JWT_SECRET', ''),
         'algorithm' => 'HS256',
         'access_token_ttl' => 28800, // 8 hours in seconds
         'refresh_token_ttl' => 2592000, // 30 days in seconds

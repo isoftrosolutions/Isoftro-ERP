@@ -834,7 +834,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                         </td>
                                         <td>
                                             <div style="display:flex; gap:6px;">
-                                                <button class="hbtn" style="width:28px; height:28px; background:var(--bg); border:1px solid var(--card-border); color:var(--green);" title="View Dashboard" onclick="window.open('http://${t.subdomain}.localhost/erp/UI', '_blank')"><i class="fa-solid fa-up-right-from-square" style="font-size:10px;"></i></button>
+                                                <button class="hbtn" style="width:28px; height:28px; background:var(--bg); border:1px solid var(--card-border); color:var(--green);" title="View Dashboard" onclick="window.open((window.APP_URL ? window.APP_URL.replace('://', '://' + t.subdomain + '.') : 'http://' + t.subdomain + '.localhost') + '/dash/admin', '_blank')"><i class="fa-solid fa-up-right-from-square" style="font-size:10px;"></i></button>
                                                 <button class="hbtn" style="width:28px; height:28px; background:var(--bg); border:1px solid var(--card-border); color:var(--text-body);" title="Settings"><i class="fa-solid fa-gear" style="font-size:10px;"></i></button>
                                             </div>
                                         </td>

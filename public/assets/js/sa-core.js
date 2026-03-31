@@ -145,7 +145,7 @@ window.SuperAdmin = (function (existing) {
   function goNav(id, params = {}) {
     activeNav = id;
     
-    const baseUrl = window.APP_URL ? window.APP_URL + '/dash/super-admin/' : '/erp/dash/super-admin/';
+    const baseUrl = (window.APP_URL || '') + '/dash/super-admin/';
     const url = new URL(baseUrl, window.location.origin);
     
     // Support legacy subId-style page val or just simple id

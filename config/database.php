@@ -8,16 +8,17 @@ return [
     
     'connections' => [
         'mysql' => [
-            'driver' => 'mysql',
-            'host' => 'localhost',
-            'database' => 'hamrolabs_db',
-            'username' => 'root',
-            'password' => '',
-            'charset' => 'utf8mb4',
+            'driver'    => 'mysql',
+            'host'      => env('DB_HOST', 'localhost'),
+            'port'      => env('DB_PORT', '3306'),
+            'database'  => env('DB_DATABASE', 'isof_isoftro_db'),
+            'username'  => env('DB_USERNAME', 'isof_isoftro_user'),
+            'password'  => env('DB_PASSWORD', ''),
+            'charset'   => 'utf8mb4',
             'collation' => 'utf8mb4_unicode_ci',
-            'prefix' => '',
-            'strict' => true,
-            'engine' => 'InnoDB',
+            'prefix'    => '',
+            'strict'    => true,
+            'engine'    => 'InnoDB',
         ]
     ],
     

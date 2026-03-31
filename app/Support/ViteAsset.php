@@ -26,6 +26,12 @@ class ViteAsset
         return self::productionTags($entries);
     }
 
+    private static function buildPath(): string
+    {
+        $appUrl = rtrim(env('APP_URL', ''), '/');
+        return $appUrl . '/build';
+    }
+
     private static function productionTags(array $entries): string
     {
         $manifestPath = __DIR__ . '/../../public/build/manifest.json';
@@ -36,13 +42,7 @@ class ViteAsset
         $manifest = json_decode(file_get_contents($manifestPath), true);
         $tags = '';
         
-        // Determine the base path for assets
-        // If APP_URL is defined, use it, otherwise use a relative path
-        $baseUrl = defined('APP_URL') ? rtrim(APP_URL, '/') : '';
-        // If APP_URL contains 'frontend' but assets are in 'public/build', we might need to adjust
-        // For now, let's assume assets are accessible via /build/ relative to the server root
-        // or relative to the APP_URL if we fix it.
-        $assetPath = '/build/';
+        $assetPath = self::buildPath() . '/';
 
         foreach ($entries as $entry) {
             if (isset($manifest[$entry])) {

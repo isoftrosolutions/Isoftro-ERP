@@ -34,7 +34,7 @@ $roleCSS = $roleCSS ?? null;
 
 
     <!-- Custom Styles (Using APP_URL for absolute paths) -->
-    <?php $cssVer = defined('APP_DEBUG') && APP_DEBUG ? time() : filemtime(__DIR__ . '/../../../assets/css/core.css'); ?>
+    <?php $cssFile = realpath(__DIR__ . '/../../../public/assets/css/core.css'); $cssVer = (defined('APP_DEBUG') && APP_DEBUG) ? time() : ($cssFile ? filemtime($cssFile) : time()); ?>
     <link rel="stylesheet" href="<?php echo APP_URL; ?>/assets/css/core.css?v=<?php echo $cssVer; ?>">
     <?php if (empty($roleCSS) || $roleCSS !== 'ia-dashboard-new.css'): ?>
     <link rel="stylesheet" href="<?php echo APP_URL; ?>/assets/css/layout.css?v=<?php echo $cssVer; ?>">

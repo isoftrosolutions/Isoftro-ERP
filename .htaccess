@@ -1,6 +1,6 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
-    RewriteBase /erp/
+    RewriteBase /
 
     # Ensure index.php is the directory index
     DirectoryIndex index.php

@@ -931,7 +931,7 @@ function goNav(id, subId = null) {
     activeSub = subId;
     
     // Ensure we are on the dashboard shell when navigating via SPA
-    const baseUrl = window.APP_URL ? window.APP_URL + '/dash/super-admin/' : '/erp/dash/super-admin/';
+    const baseUrl = (window.APP_URL || '') + '/dash/super-admin/';
     const url = new URL(baseUrl, window.location.origin);
     const pageVal = subId ? `${id}-${subId}` : id;
     url.searchParams.set('page', pageVal);

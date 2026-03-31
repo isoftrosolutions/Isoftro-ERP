@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <?php require_once base_path('config/config.php'); ?>
   <?= \App\Helpers\CsrfHelper::csrfMetaTag() ?>
-  <?php $BASE = defined('APP_URL') ? APP_URL : '/erp'; ?>
+  <?php $BASE = defined('APP_URL') ? APP_URL : ''; ?>
   <link rel="stylesheet" href="<?= $BASE ?>/assets/css/login.css">
   
   <!-- PWA Settings -->
