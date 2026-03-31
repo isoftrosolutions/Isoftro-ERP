@@ -371,7 +371,7 @@ async function _iaRenderDashboard() {
 
     _iaRenderDashboardSkeleton();
 
-    const endpoint = window.APP_URL ? window.APP_URL + '/app/Http/Controllers/Admin/dashboard_stats.php' : '/app/Http/Controllers/Admin/dashboard_stats.php';
+    const endpoint = window.APP_URL ? window.APP_URL + '/api/admin/stats' : '/api/admin/stats';
 
     try {
         const res = await fetch(endpoint);
