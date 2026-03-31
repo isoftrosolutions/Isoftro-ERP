@@ -40,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $allowedfileExtensions = array('jpg', 'gif', 'png', 'jpeg', 'webp');
 
         if (in_array($fileExtension, $allowedfileExtensions)) {
-            $uploadFileDir = __DIR__ . '/../../../../public/uploads/feedback/';
+            $uploadFileDir = __DIR__ . '/../../../../uploads/feedback/';
             if (!is_dir($uploadFileDir)) {
                 mkdir($uploadFileDir, 0777, true);
             }
@@ -48,7 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $dest_path = $uploadFileDir . $newFileName;
 
             if(move_uploaded_file($fileTmpPath, $dest_path)) {
-                $screenshotPath = '/public/uploads/feedback/' . $newFileName;
+                $screenshotPath = '/uploads/feedback/' . $newFileName;
             }
         }
     }

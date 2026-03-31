@@ -181,7 +181,7 @@ function generateReceiptPdf($db, $tenantId, $transactionId, $receiptNo) {
     $html = getReceiptHtmlInternal($db, $tenantId, $transactionId, $receiptNo);
     if (!$html) return null;
 
-    $pdfDir = __DIR__ . '/../public/uploads/receipts/';
+    $pdfDir = __DIR__ . '/../uploads/receipts/';
     if (!is_dir($pdfDir)) mkdir($pdfDir, 0777, true);
     
     $filename = 'receipt_' . ($receiptNo ?: $transactionId) . '.pdf';

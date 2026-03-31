@@ -303,9 +303,9 @@ include VIEWS_PATH . '/layouts/header.php';
     </div>
 
     <!-- Custom Scripts -->
-    <script src="<?php echo APP_URL; ?>/public/assets/js/pwa-handler.js"></script>
-    <script src="<?php echo APP_URL; ?>/public/assets/js/student.js"></script>
-    <script src="<?php echo APP_URL; ?>/public/assets/js/breadcrumb.js"></script>
+    <script src="<?php echo APP_URL; ?>/assets/js/pwa-handler.js"></script>
+    <script src="<?php echo APP_URL; ?>/assets/js/student.js"></script>
+    <script src="<?php echo APP_URL; ?>/assets/js/breadcrumb.js"></script>
     <script>
         // Dropdown Logic
         const chip = document.getElementById('userChip');

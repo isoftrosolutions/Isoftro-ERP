@@ -360,7 +360,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 <?php if (!$isSPA): ?>
 <?php $v = time(); ?>
-<script src="<?php echo APP_URL; ?>/public/assets/js/pwa-handler.js?v=<?php echo $v; ?>"></script>
+<script src="<?php echo APP_URL; ?>/assets/js/pwa-handler.js?v=<?php echo $v; ?>"></script>
 </body>
 </html>
 <?php endif; ?>

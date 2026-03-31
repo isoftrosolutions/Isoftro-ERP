@@ -9,8 +9,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="<?= defined('APP_URL') ? APP_URL : '/erp' ?>/public/assets/css/landing.css">
-  <link rel="icon" type="image/svg+xml" href="<?= defined('APP_URL') ? APP_URL : '/erp' ?>/public/assets/images/favicon.svg">
+  <link rel="stylesheet" href="<?= defined('APP_URL') ? APP_URL : '/erp' ?>/assets/css/landing.css">
+  <link rel="icon" type="image/svg+xml" href="<?= defined('APP_URL') ? APP_URL : '/erp' ?>/assets/images/favicon.svg">
 </head>
 <body class="landing-page">
 
@@ -20,7 +20,7 @@
 <nav class="l-navbar" id="lNavbar">
   <div class="landing-container l-navbar__inner">
     <a href="#hero" class="l-navbar__brand">
-      <img src="<?= $BASE ?>/public/assets/images/logo.png" alt="isoftro">
+      <img src="<?= $BASE ?>/assets/images/logo.png" alt="isoftro">
       <span>isoftro</span>
     </a>
     <div class="l-navbar__links" id="navLinks">
@@ -628,7 +628,7 @@
     <div class="l-footer__grid">
       <div class="l-footer__brand">
         <div class="l-footer__brand-name">
-          <img src="<?= $BASE ?>/public/assets/images/logo.png" alt="isoftro">
+          <img src="<?= $BASE ?>/assets/images/logo.png" alt="isoftro">
           <span>isoftro</span>
         </div>
         <p>The most effective academic ERP solution for schools and colleges. A single system to manage admissions, academics, and administration.</p>
@@ -671,6 +671,6 @@
   </div>
 </footer>
 
-<script src="<?= $BASE ?>/public/assets/js/landing.js"></script>
+<script src="<?= $BASE ?>/assets/js/landing.js"></script>
 </body>
 </html>

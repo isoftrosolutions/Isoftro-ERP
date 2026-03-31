@@ -318,7 +318,7 @@ try {
             }
             
             // Create upload directory
-            $uploadDir = __DIR__ . '/../../../../public/uploads/students/documents/';
+            $uploadDir = __DIR__ . '/../../../../uploads/students/documents/';
             if (!is_dir($uploadDir)) {
                 mkdir($uploadDir, 0777, true);
             }
@@ -330,7 +330,7 @@ try {
             if (move_uploaded_file($file['tmp_name'], $filepath)) {
                 // Update database based on document type
                 $dbField = $documentType === 'photo' ? 'photo_url' : $documentType . '_document_url';
-                $relativePath = '/public/uploads/students/documents/' . $filename;
+                $relativePath = '/uploads/students/documents/' . $filename;
                 
                 $stmt = $db->prepare("UPDATE students SET $dbField = :path, updated_at = NOW() WHERE id = :sid");
                 $stmt->execute(['path' => $relativePath, 'sid' => $studentId]);

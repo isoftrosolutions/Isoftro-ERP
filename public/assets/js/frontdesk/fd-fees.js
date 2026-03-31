@@ -2068,7 +2068,7 @@ window.renderFeeOutstanding = async function() {
         const link = document.createElement('link');
         link.id = 'ia-fees-premium-css';
         link.rel = 'stylesheet';
-        link.href = window.APP_URL + '/public/assets/css/ia-fees-premium.css';
+        link.href = window.APP_URL + '/assets/css/ia-fees-premium.css';
         document.head.appendChild(link);
     }
 

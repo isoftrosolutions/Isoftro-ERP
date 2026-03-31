@@ -89,7 +89,7 @@ try {
 
     // Process logo if uploaded
     if (isset($_FILES['logo']) && $_FILES['logo']['error'] === UPLOAD_ERR_OK) {
-        $uploadDir = __DIR__ . '/../../../public/uploads/logos/';
+        $uploadDir = __DIR__ . '/../../../uploads/logos/';
         if (!is_dir($uploadDir)) {
             mkdir($uploadDir, 0755, true);
         }
@@ -97,7 +97,7 @@ try {
         if (in_array($fileExt, ['jpg', 'jpeg', 'png', 'svg', 'webp', 'gif'])) {
             $newFileName = 'logo_' . $tenantId . '_' . time() . '.' . $fileExt;
             if (move_uploaded_file($_FILES['logo']['tmp_name'], $uploadDir . $newFileName)) {
-                $logoPath = '/public/uploads/logos/' . $newFileName;
+                $logoPath = '/uploads/logos/' . $newFileName;
                 $stmtLogo = $pdo->prepare("UPDATE tenants SET logo_path = ? WHERE id = ?");
                 $stmtLogo->execute([$logoPath, $tenantId]);
             }

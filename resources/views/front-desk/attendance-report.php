@@ -385,7 +385,7 @@ if (!isset($_GET['partial'])) {
 
 <script>
 const RPT_API = '<?= APP_URL ?>';
-const RPT_DEFAULT_AVATAR = '<?= APP_URL ?>/public/assets/images/default-avatar.png';
+const RPT_DEFAULT_AVATAR = '<?= APP_URL ?>/assets/images/default-avatar.png';
 
 async function loadReport() {
     const batchId = document.getElementById('batchFilter').value;
@@ -579,7 +579,7 @@ document.addEventListener('DOMContentLoaded', loadReport);
 <?php
 if (!isset($_GET['partial'])) {
     renderSuperAdminCSS();
-    echo '<script src="' . APP_URL . '/public/assets/js/frontdesk.js"></script>';
+    echo '<script src="' . APP_URL . '/assets/js/frontdesk.js"></script>';
     echo '</body></html>';
 }
 ?>

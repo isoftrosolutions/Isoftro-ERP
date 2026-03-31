@@ -218,7 +218,7 @@ window.renderStudentList = async () => {
         const link = document.createElement('link');
         link.id = 'ia-students-premium-css';
         link.rel = 'stylesheet';
-        link.href = window.APP_URL + '/public/assets/css/ia-students-premium.css';
+        link.href = window.APP_URL + '/assets/css/ia-students-premium.css';
         document.head.appendChild(link);
     }
 
@@ -2568,7 +2568,7 @@ window.downloadStudentID = async (id) => {
         }
 
         const s = result.data;
-        let photoSrc = window.APP_URL + '/public/assets/images/user-placeholder.png'; // default
+        let photoSrc = window.APP_URL + '/assets/images/user-placeholder.png'; // default
         if (s.photo_url) {
             photoSrc = s.photo_url.startsWith('http') ? s.photo_url : window.APP_URL + (s.photo_url.startsWith('/') ? '' : '/') + s.photo_url;
         }
@@ -2687,7 +2687,7 @@ window.downloadStudentID = async (id) => {
         } else {
             imgEl.onload = beginCapture;
             imgEl.onerror = () => {
-                imgEl.src = window.APP_URL + '/public/assets/images/user-placeholder.png'; // Fallback
+                imgEl.src = window.APP_URL + '/assets/images/user-placeholder.png'; // Fallback
                 setTimeout(beginCapture, 1000);
             };
         }
@@ -3207,7 +3207,7 @@ window.renderDocumentVault = async (page = 1, search = '') => {
             html += `<div style="grid-column:1/-1; text-align:center; padding:50px; color:#64748b; background:#fff; border-radius:12px;"><i class="fas fa-folder-open" style="font-size:3rem; margin-bottom:15px; opacity:0.5;"></i><h3>No records found</h3></div>`;
         } else {
             students.forEach(s => {
-                const photo = s.photo_url || `${window.APP_URL}/public/assets/images/default-avatar.png`;
+                const photo = s.photo_url || `${window.APP_URL}/assets/images/default-avatar.png`;
                 const idDoc = s.identity_doc_url ? `<a href="${s.identity_doc_url}" target="_blank" style="flex:1; background:#f0f9ff; color:#0369a1; border:1px solid #e0f2fe; padding:8px 10px; border-radius:8px; text-decoration:none; text-align:center; font-size:13px; font-weight:600;"><i class="fas fa-id-card"></i> Identity Doc</a>` : `<span style="flex:1; background:#f8fafc; color:#94a3b8; border:1px solid #e2e8f0; padding:8px 10px; border-radius:8px; text-align:center; font-size:13px; font-weight:600;"><i class="fas fa-ban"></i> No ID</span>`;
                 
                 const certHtml = s.academic_qualifications ? `<button type="button" onclick="window._showCerts(${s.id})" style="flex:1; background:#f0fdf4; color:#15803d; border:1px solid #dcfce7; padding:8px 10px; border-radius:8px; cursor:pointer; font-size:13px; font-weight:600;"><i class="fas fa-graduation-cap"></i> Academics</button>` : '';

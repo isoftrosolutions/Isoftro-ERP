@@ -710,7 +710,7 @@
             const link = document.createElement('link');
             link.id = 'support-css';
             link.rel = 'stylesheet';
-            link.href = (window.APP_URL || '') + '/public/assets/css/ia-support.css?v=' + Date.now();
+            link.href = (window.APP_URL || '') + '/assets/css/ia-support.css?v=' + Date.now();
             document.head.appendChild(link);
         }
 

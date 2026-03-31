@@ -674,23 +674,23 @@ try {
         // 1. Handle File Uploads (Optional)
         $photoUrl = $input['photo_url'] ?? null;
         if (isset($_FILES['profile_image']) && $_FILES['profile_image']['error'] === UPLOAD_ERR_OK) {
-            $uploadDir = APP_ROOT . '/public/uploads/students/';
+            $uploadDir = APP_ROOT . '/uploads/students/';
             if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
             $ext = pathinfo($_FILES['profile_image']['name'], PATHINFO_EXTENSION);
             $fileName = 'std_' . time() . '_' . uniqid() . '.' . $ext;
             if (move_uploaded_file($_FILES['profile_image']['tmp_name'], $uploadDir . $fileName)) {
-                $photoUrl = APP_URL . '/public/uploads/students/' . $fileName;
+                $photoUrl = APP_URL . '/uploads/students/' . $fileName;
             }
         }
 
         $identityDocUrl = null;
         if (isset($_FILES['identity_doc']) && $_FILES['identity_doc']['error'] === UPLOAD_ERR_OK) {
-            $uploadDir = APP_ROOT . '/public/uploads/students/';
+            $uploadDir = APP_ROOT . '/uploads/students/';
             if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
             $ext = pathinfo($_FILES['identity_doc']['name'], PATHINFO_EXTENSION);
             $fileName = 'id_' . time() . '_' . uniqid() . '.' . $ext;
             if (move_uploaded_file($_FILES['identity_doc']['tmp_name'], $uploadDir . $fileName)) {
-                $identityDocUrl = APP_URL . '/public/uploads/students/' . $fileName;
+                $identityDocUrl = APP_URL . '/uploads/students/' . $fileName;
             }
         }
 
@@ -730,21 +730,21 @@ try {
 
         // Handle File Uploads on Update
         if (isset($_FILES['profile_image']) && $_FILES['profile_image']['error'] === UPLOAD_ERR_OK) {
-            $uploadDir = APP_ROOT . '/public/uploads/students/';
+            $uploadDir = APP_ROOT . '/uploads/students/';
             if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
             $ext = pathinfo($_FILES['profile_image']['name'], PATHINFO_EXTENSION);
             $fileName = 'std_' . time() . '_' . uniqid() . '.' . $ext;
             if (move_uploaded_file($_FILES['profile_image']['tmp_name'], $uploadDir . $fileName)) {
-                $input['photo_url'] = APP_URL . '/public/uploads/students/' . $fileName;
+                $input['photo_url'] = APP_URL . '/uploads/students/' . $fileName;
             }
         }
         if (isset($_FILES['identity_doc']) && $_FILES['identity_doc']['error'] === UPLOAD_ERR_OK) {
-            $uploadDir = APP_ROOT . '/public/uploads/students/';
+            $uploadDir = APP_ROOT . '/uploads/students/';
             if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
             $ext = pathinfo($_FILES['identity_doc']['name'], PATHINFO_EXTENSION);
             $fileName = 'id_' . time() . '_' . uniqid() . '.' . $ext;
             if (move_uploaded_file($_FILES['identity_doc']['tmp_name'], $uploadDir . $fileName)) {
-                $input['identity_doc_url'] = APP_URL . '/public/uploads/students/' . $fileName;
+                $input['identity_doc_url'] = APP_URL . '/uploads/students/' . $fileName;
             }
         }
 

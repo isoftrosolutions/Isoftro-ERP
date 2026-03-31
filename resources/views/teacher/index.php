@@ -16,7 +16,7 @@ include VIEWS_PATH . '/layouts/header.php';
                 </button>
                 <div class="hdr-logo-box">
                     <div style="width:38px; height:38px; border-radius:10px; overflow:hidden; display:flex; align-items:center; justify-content:center; background:#fff; margin-right:10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
-                        <img src="<?php echo APP_URL; ?>/public/assets/images/logo.png" alt="Logo" style="width:100%; height:auto;">
+                        <img src="<?php echo APP_URL; ?>/assets/images/logo.png" alt="Logo" style="width:100%; height:auto;">
                     </div>
                     <span class="logo-txt"><?php echo APP_NAME; ?></span>
                 </div>
@@ -63,7 +63,7 @@ include VIEWS_PATH . '/layouts/header.php';
             <!-- Sidebar header shown only on mobile -->
             <div class="sb-header">
                 <div class="hdr-logo-box" style="display:flex; align-items:center;">
-                    <img src="<?php echo APP_URL; ?>/public/assets/images/logo.png" alt="Logo" style="height:28px; width:auto; margin-right:10px; filter: brightness(0) invert(1);">
+                    <img src="<?php echo APP_URL; ?>/assets/images/logo.png" alt="Logo" style="height:28px; width:auto; margin-right:10px; filter: brightness(0) invert(1);">
                     <span class="logo-txt" style="color:#fff; font-size:14px; font-weight:800; letter-spacing:0.5px;">TEACHER</span>
                 </div>
                 <button class="sb-close-btn" id="sbClose" title="Close Sidebar">
@@ -83,11 +83,11 @@ include VIEWS_PATH . '/layouts/header.php';
     </div>
     <!-- Custom Scripts -->
 
-    <script src="<?php echo APP_URL; ?>/public/assets/js/ia-study-materials.js"></script>
-    <script src="<?php echo APP_URL; ?>/public/assets/js/ia-qbank.js"></script>
-    <script src="<?php echo APP_URL; ?>/public/assets/js/ia-lms.js"></script>
-    <script src="<?php echo APP_URL; ?>/public/assets/js/ia-homework.js"></script>
-    <script src="<?php echo APP_URL; ?>/public/assets/js/teacher-portal.js"></script>
+    <script src="<?php echo APP_URL; ?>/assets/js/ia-study-materials.js"></script>
+    <script src="<?php echo APP_URL; ?>/assets/js/ia-qbank.js"></script>
+    <script src="<?php echo APP_URL; ?>/assets/js/ia-lms.js"></script>
+    <script src="<?php echo APP_URL; ?>/assets/js/ia-homework.js"></script>
+    <script src="<?php echo APP_URL; ?>/assets/js/teacher-portal.js"></script>
     <script>
         (function() {
             const chip = document.getElementById('userChip');

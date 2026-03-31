@@ -21,7 +21,7 @@ include VIEWS_PATH . '/layouts/header.php';
                 </button>
                 <div class="hdr-logo-box">
                     <div style="width:36px; height:36px; border-radius:50%; overflow:hidden; display:flex; align-items:center; justify-content:center; background:#fff; margin-right:10px;">
-                        <img src="<?php echo APP_URL; ?>/public/assets/images/logo.png" alt="Logo" style="width:100%; height:auto;">
+                        <img src="<?php echo APP_URL; ?>/assets/images/logo.png" alt="Logo" style="width:100%; height:auto;">
                     </div>
                     <span class="logo-txt"><?php echo APP_NAME; ?></span>
                 </div>
@@ -60,7 +60,7 @@ include VIEWS_PATH . '/layouts/header.php';
             <!-- Sidebar header shown only on mobile -->
             <div class="sb-header">
                 <div class="hdr-logo-box" style="display:flex; align-items:center;">
-                    <img src="<?php echo APP_URL; ?>/public/assets/images/logo.png" alt="Logo" style="height:28px; width:auto; margin-right:10px; filter: brightness(0) invert(1);">
+                    <img src="<?php echo APP_URL; ?>/assets/images/logo.png" alt="Logo" style="height:28px; width:auto; margin-right:10px; filter: brightness(0) invert(1);">
                     <span class="logo-txt" style="color:#fff; font-size:14px; font-weight:800; letter-spacing:0.5px;">STUDENT</span>
                 </div>
                 <button class="sb-close-btn" id="sbClose" title="Close Sidebar">
@@ -82,27 +82,27 @@ include VIEWS_PATH . '/layouts/header.php';
     <!-- Custom Scripts -->
     <?php $v = time(); ?>
 
-    <script src="<?php echo APP_URL; ?>/public/assets/js/nepal-data.js?v=<?php echo $v; ?>"></script>
+    <script src="<?php echo APP_URL; ?>/assets/js/nepal-data.js?v=<?php echo $v; ?>"></script>
     
     <!-- Student Portal Modules -->
-    <script src="<?php echo APP_URL; ?>/public/assets/js/st-dashboard.js?v=<?php echo $v; ?>"></script>
-    <script src="<?php echo APP_URL; ?>/public/assets/js/st-classes.js?v=<?php echo $v; ?>"></script>
-    <script src="<?php echo APP_URL; ?>/public/assets/js/st-attendance.js?v=<?php echo $v; ?>"></script>
-    <script src="<?php echo APP_URL; ?>/public/assets/js/st-leave.js?v=<?php echo $v; ?>"></script>
-    <script src="<?php echo APP_URL; ?>/public/assets/js/st-assignments.js?v=<?php echo $v; ?>"></script>
-    <script src="<?php echo APP_URL; ?>/public/assets/js/st-fees.js?v=<?php echo $v; ?>"></script>
-    <script src="<?php echo APP_URL; ?>/public/assets/js/st-library.js?v=<?php echo $v; ?>"></script>
-    <script src="<?php echo APP_URL; ?>/public/assets/js/st-exams.js?v=<?php echo $v; ?>"></script>
-    <script src="<?php echo APP_URL; ?>/public/assets/js/st-qbank.js?v=<?php echo $v; ?>"></script>
-    <script src="<?php echo APP_URL; ?>/public/assets/js/st-materials.js?v=<?php echo $v; ?>"></script>
-    <script src="<?php echo APP_URL; ?>/public/assets/js/st-contact.js?v=<?php echo $v; ?>"></script>
-    <script src="<?php echo APP_URL; ?>/public/assets/js/st-notices.js?v=<?php echo $v; ?>"></script>
-    <script src="<?php echo APP_URL; ?>/public/assets/js/st-leaderboard.js?v=<?php echo $v; ?>"></script>
-    <script src="<?php echo APP_URL; ?>/public/assets/js/st-profile.js?v=<?php echo $v; ?>"></script>
+    <script src="<?php echo APP_URL; ?>/assets/js/st-dashboard.js?v=<?php echo $v; ?>"></script>
+    <script src="<?php echo APP_URL; ?>/assets/js/st-classes.js?v=<?php echo $v; ?>"></script>
+    <script src="<?php echo APP_URL; ?>/assets/js/st-attendance.js?v=<?php echo $v; ?>"></script>
+    <script src="<?php echo APP_URL; ?>/assets/js/st-leave.js?v=<?php echo $v; ?>"></script>
+    <script src="<?php echo APP_URL; ?>/assets/js/st-assignments.js?v=<?php echo $v; ?>"></script>
+    <script src="<?php echo APP_URL; ?>/assets/js/st-fees.js?v=<?php echo $v; ?>"></script>
+    <script src="<?php echo APP_URL; ?>/assets/js/st-library.js?v=<?php echo $v; ?>"></script>
+    <script src="<?php echo APP_URL; ?>/assets/js/st-exams.js?v=<?php echo $v; ?>"></script>
+    <script src="<?php echo APP_URL; ?>/assets/js/st-qbank.js?v=<?php echo $v; ?>"></script>
+    <script src="<?php echo APP_URL; ?>/assets/js/st-materials.js?v=<?php echo $v; ?>"></script>
+    <script src="<?php echo APP_URL; ?>/assets/js/st-contact.js?v=<?php echo $v; ?>"></script>
+    <script src="<?php echo APP_URL; ?>/assets/js/st-notices.js?v=<?php echo $v; ?>"></script>
+    <script src="<?php echo APP_URL; ?>/assets/js/st-leaderboard.js?v=<?php echo $v; ?>"></script>
+    <script src="<?php echo APP_URL; ?>/assets/js/st-profile.js?v=<?php echo $v; ?>"></script>
 
     <!-- Core: routing, sidebar, dashboard — must be LAST -->
-    <script src="<?php echo APP_URL; ?>/public/assets/js/breadcrumb.js?v=<?php echo $v; ?>"></script>
-    <script src="<?php echo APP_URL; ?>/public/assets/js/st-core.js?v=<?php echo $v; ?>"></script>
+    <script src="<?php echo APP_URL; ?>/assets/js/breadcrumb.js?v=<?php echo $v; ?>"></script>
+    <script src="<?php echo APP_URL; ?>/assets/js/st-core.js?v=<?php echo $v; ?>"></script>
 
     <script>
         // Dropdown Logic

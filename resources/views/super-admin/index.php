@@ -37,10 +37,10 @@ $monthlyRevenue = $stmt->fetchColumn();
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <link rel="icon" type="image/svg+xml" href="<?= APP_URL ?>/public/assets/images/favicon.svg">
+    <link rel="icon" type="image/svg+xml" href="<?= APP_URL ?>/assets/images/favicon.svg">
     
     <!-- Styles -->
-    <link rel="stylesheet" href="<?= APP_URL ?>/public/assets/css/super-admin.css">
+    <link rel="stylesheet" href="<?= APP_URL ?>/assets/css/super-admin.css">
     
     <!-- Global Config -->
     <script>
@@ -61,7 +61,7 @@ $monthlyRevenue = $stmt->fetchColumn();
                     <i class="fas fa-bars-staggered"></i>
                 </button>
                 <div class="hdr-logo-box">
-                    <img src="<?= APP_URL ?>/public/assets/images/logo.png" alt="ISOFTRO" style="height: 24px; filter: brightness(0) invert(1);">
+                    <img src="<?= APP_URL ?>/assets/images/logo.png" alt="ISOFTRO" style="height: 24px; filter: brightness(0) invert(1);">
                     <span style="font-weight: 800; letter-spacing: -0.5px;">PLATFORM OWNER</span>
                 </div>
                 
@@ -138,8 +138,8 @@ $monthlyRevenue = $stmt->fetchColumn();
      <!-- Scripts -->
      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
      <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-     <script src="<?= APP_URL ?>/public/assets/js/sa-core.js"></script>
-     <script src="<?= APP_URL ?>/public/assets/js/sa-sidebar.js"></script>
-     <script src="<?= APP_URL ?>/public/assets/js/sa-pages.js"></script>
+     <script src="<?= APP_URL ?>/assets/js/sa-core.js"></script>
+     <script src="<?= APP_URL ?>/assets/js/sa-sidebar.js"></script>
+     <script src="<?= APP_URL ?>/assets/js/sa-pages.js"></script>
 </body>
 </html>

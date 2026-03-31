@@ -88,7 +88,7 @@ function validateAndUploadFile(array $fileEntry, string $prefix, array $allowedM
         $ext = $mimeExtMap[$mimeType] ?? 'bin';
     }
 
-    $uploadDir = APP_ROOT . '/public/uploads/students/';
+    $uploadDir = APP_ROOT . '/uploads/students/';
     if (!is_dir($uploadDir)) mkdir($uploadDir, 0775, true);
 
     // Use a random UUID-style name to prevent any path traversal
@@ -99,7 +99,7 @@ function validateAndUploadFile(array $fileEntry, string $prefix, array $allowedM
         throw new Exception('Failed to move uploaded file.');
     }
 
-    return APP_URL . '/public/uploads/students/' . $safeFilename;
+    return APP_URL . '/uploads/students/' . $safeFilename;
 }
 
 try {

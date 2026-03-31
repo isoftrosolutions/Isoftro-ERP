@@ -65,8 +65,8 @@ $currentPage = basename($_SERVER['PHP_SELF'], '.php');
     <?php echo \App\Helpers\CsrfHelper::csrfJsHeader(); ?>
     
     <!-- Dedicated Styles -->
-    <link rel="stylesheet" href="<?php echo APP_URL; ?>/public/assets/css/profile-dropdown.css">
-    <link rel="stylesheet" href="<?php echo APP_URL; ?>/public/assets/css/ia-support.css">
+    <link rel="stylesheet" href="<?php echo APP_URL; ?>/assets/css/profile-dropdown.css">
+    <link rel="stylesheet" href="<?php echo APP_URL; ?>/assets/css/ia-support.css">
 
     <!-- Header Styles -->
     <style>
@@ -721,7 +721,7 @@ $currentPage = basename($_SERVER['PHP_SELF'], '.php');
     </style>
     
     <!-- Profile Dropdown JS -->
-    <script src="<?php echo APP_URL; ?>/public/assets/js/profile-dropdown.js" defer></script>
+    <script src="<?php echo APP_URL; ?>/assets/js/profile-dropdown.js" defer></script>
 </head>
 <body>
     <!-- Header -->

@@ -151,7 +151,7 @@ if (!$isSPA) {
 <?php if (!$isSPA) { ?>
         </div>
     </div>
-    <script src="<?php echo APP_URL; ?>/public/assets/js/ia-core.js"></script>
+    <script src="<?php echo APP_URL; ?>/assets/js/ia-core.js"></script>
     </body>
     </html>
 <?php } ?>

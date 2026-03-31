@@ -1184,11 +1184,11 @@ if (!$isSPA) {
 </div>
 
 <?php $v = time(); ?>
-<script src="<?php echo APP_URL; ?>/public/assets/js/pwa-handler.js?v=<?php echo $v; ?>"></script>
+<script src="<?php echo APP_URL; ?>/assets/js/pwa-handler.js?v=<?php echo $v; ?>"></script>
 </body>
 </html>
 <?php endif; ?>
-        <script src="<?php echo APP_URL; ?>/public/assets/js/ia-support.js?v=<?php echo $assetVersion; ?>"></script>
+        <script src="<?php echo APP_URL; ?>/assets/js/ia-support.js?v=<?php echo $assetVersion; ?>"></script>
 
         <script>
             // Initialize support page when DOM is ready
@@ -1248,7 +1248,7 @@ if (!$isSPA) {
 </div>
 
 <?php $v = time(); ?>
-<script src="<?php echo APP_URL; ?>/public/assets/js/pwa-handler.js?v=<?php echo $v; ?>"></script>
+<script src="<?php echo APP_URL; ?>/assets/js/pwa-handler.js?v=<?php echo $v; ?>"></script>
 </body>
 </html>
 <?php endif; ?>

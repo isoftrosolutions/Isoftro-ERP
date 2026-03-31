@@ -80,7 +80,7 @@
 </head>
 <body>
     <div class="fp-card">
-        <img src="<?= $BASE ?>/public/assets/images/logo.png" alt="isoftro" class="fp-logo">
+        <img src="<?= $BASE ?>/assets/images/logo.png" alt="isoftro" class="fp-logo">
         <h1 class="fp-title">Forgot Password?</h1>
         <p class="fp-subtitle" id="fpSubtitle">Enter your email address and we'll send you an OTP code to reset your password.</p>
         

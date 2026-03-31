@@ -69,7 +69,7 @@ try {
         // Handle logo upload
         $logoPath = null;
         if (isset($_FILES['logo']) && $_FILES['logo']['error'] === UPLOAD_ERR_OK) {
-            $uploadDir = __DIR__ . '/../../../public/uploads/logos/';
+            $uploadDir = __DIR__ . '/../../../uploads/logos/';
             
             // Create directory if not exists
             if (!is_dir($uploadDir)) {
@@ -84,7 +84,7 @@ try {
                 $targetPath = $uploadDir . $newFileName;
                 
                 if (move_uploaded_file($_FILES['logo']['tmp_name'], $targetPath)) {
-                    $logoPath = '/public/uploads/logos/' . $newFileName;
+                    $logoPath = '/uploads/logos/' . $newFileName;
                 }
             }
         }

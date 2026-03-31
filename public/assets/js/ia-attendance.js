@@ -205,7 +205,7 @@ window.loadAttendanceRecords = async function() {
             const status = r.attendance?.status || (r.on_leave ? 'leave' : 'present');
             const locked = r.attendance?.locked || 0;
             const aid = r.attendance?.id || '';
-            const defaultAvatar = (window.APP_URL || '') + '/public/assets/images/default-avatar.png';
+            const defaultAvatar = (window.APP_URL || '') + '/assets/images/default-avatar.png';
 
             html += `
                 <div class="att-stu-card" data-sid="${r.student_id}" data-id="${aid}">
@@ -701,7 +701,7 @@ function renderAbsenteeList(absentees) {
         return;
     }
 
-    const defaultAvatar = (window.APP_URL || '') + '/public/assets/images/default-avatar.png';
+    const defaultAvatar = (window.APP_URL || '') + '/assets/images/default-avatar.png';
 
     container.innerHTML = absentees.map((a, i) => {
         const totalDays = parseInt(a.total_days) || 1;
@@ -839,7 +839,7 @@ window.renderLeaveRequests = async function() {
         const list = document.getElementById('leaveReqList');
         
         if (data.success && data.data.length > 0) {
-            const defaultAvatar = (window.APP_URL || '') + '/public/assets/images/default-avatar.png';
+            const defaultAvatar = (window.APP_URL || '') + '/assets/images/default-avatar.png';
             let html = '<div class="lv-grid">';
             data.data.forEach(r => {
                 html += `

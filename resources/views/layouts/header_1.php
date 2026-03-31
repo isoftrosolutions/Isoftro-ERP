@@ -11,8 +11,8 @@
 // Module Configuration
 define('SUPERADMIN_ASSETS_VERSION', '1.0.0');
 define('SUPERADMIN_THEME_COLOR', '#009E7E');
-define('SUPERADMIN_CSS_PATH', APP_URL . '/public/assets/css');
-define('SUPERADMIN_JS_PATH', APP_URL . '/public/assets/js');
+define('SUPERADMIN_CSS_PATH', APP_URL . '/assets/css');
+define('SUPERADMIN_JS_PATH', APP_URL . '/assets/js');
 
 
 // Fallback values
@@ -119,8 +119,8 @@ function renderPWAMeta() {
     global $themeColor;
     echo '    <link rel="manifest" href="' . APP_URL . '/manifest.json">' . "\n";
     echo '    <meta name="theme-color" content="' . $themeColor . '">' . "\n";
-    echo '    <link rel="icon" type="image/svg+xml" href="' . APP_URL . '/public/assets/images/favicon.svg">' . "\n";
-    echo '    <link rel="apple-touch-icon" href="' . APP_URL . '/public/assets/images/logo.png">' . "\n";
+    echo '    <link rel="icon" type="image/svg+xml" href="' . APP_URL . '/assets/images/favicon.svg">' . "\n";
+    echo '    <link rel="apple-touch-icon" href="' . APP_URL . '/assets/images/logo.png">' . "\n";
     echo '    <meta name="mobile-web-app-capable" content="yes">' . "\n";
     echo '    <meta name="apple-mobile-web-app-capable" content="yes">' . "\n";
     echo '    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">' . "\n";
@@ -175,7 +175,7 @@ function renderSuperAdminHeader() {
 
             <div class="hdr-logo-box">
                 <div class="logo-mark">
-                    <img src="<?php echo APP_URL; ?>/public/assets/images/logo.png" alt="Logo" style="height:24px; width:auto;">
+                    <img src="<?php echo APP_URL; ?>/assets/images/logo.png" alt="Logo" style="height:24px; width:auto;">
                 </div>
                 <div class="logo-stack">
                     <div class="logo-txt"><?php echo APP_NAME; ?></div>

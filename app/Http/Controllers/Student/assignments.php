@@ -225,7 +225,7 @@ try {
                     exit;
                 }
                 
-                $uploadDir = __DIR__ . '/../../../../public/uploads/assignments/submissions/';
+                $uploadDir = __DIR__ . '/../../../../uploads/assignments/submissions/';
                 if (!is_dir($uploadDir)) {
                     mkdir($uploadDir, 0777, true);
                 }

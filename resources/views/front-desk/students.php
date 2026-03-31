@@ -28,7 +28,7 @@ if (!isset($_GET['partial'])) {
     include VIEWS_PATH . '/components/student/student-registry.php';
 
     if (!isset($_GET['partial'])) {
-        echo '<script src="' . APP_URL . '/public/assets/js/frontdesk.js"></script>';
+        echo '<script src="' . APP_URL . '/assets/js/frontdesk.js"></script>';
         echo '</body></html>';
     }
 ?>

@@ -231,7 +231,7 @@ class SuperAdminController extends Controller
                 $file = $request->file('logo');
                 $filename = 'logo_' . $tenant->id . '_' . time() . '.' . $file->getClientOriginalExtension();
                 $file->move(public_path('uploads/logos'), $filename);
-                $tenant->update(['logo_path' => '/public/uploads/logos/' . $filename]);
+                $tenant->update(['logo_path' => '/uploads/logos/' . $filename]);
             }
 
             // 2. Create Admin User
@@ -345,7 +345,7 @@ class SuperAdminController extends Controller
                 $file = $request->file('logo');
                 $filename = 'logo_' . $tenant->id . '_' . time() . '.' . $file->getClientOriginalExtension();
                 $file->move(public_path('uploads/logos'), $filename);
-                $tenant->update(['logo_path' => '/public/uploads/logos/' . $filename]);
+                $tenant->update(['logo_path' => '/uploads/logos/' . $filename]);
             }
 
             // Sync Features

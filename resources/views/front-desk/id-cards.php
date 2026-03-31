@@ -185,7 +185,7 @@ async function printIDCard(studentId) {
         }
 
         const s = result.data;
-        let photoSrc = '<?= APP_URL ?>/public/assets/images/user-placeholder.png'; // default
+        let photoSrc = '<?= APP_URL ?>/assets/images/user-placeholder.png'; // default
         if (s.photo_url) {
             photoSrc = s.photo_url.startsWith('http') ? s.photo_url : '<?= APP_URL ?>' + (s.photo_url.startsWith('/') ? '' : '/') + s.photo_url;
         }
@@ -322,7 +322,7 @@ async function printIDCard(studentId) {
             imgEl.onload = beginCapture;
             imgEl.onerror = () => {
                 console.warn('Image failed to load via CORS, rendering placeholder instead.');
-                imgEl.src = '<?= APP_URL ?>/public/assets/images/user-placeholder.png'; // Fallback
+                imgEl.src = '<?= APP_URL ?>/assets/images/user-placeholder.png'; // Fallback
                 setTimeout(beginCapture, 1000);
             };
         }
@@ -339,7 +339,7 @@ document.addEventListener('DOMContentLoaded', loadIDCards);
 <?php
 if (!isset($_GET['partial'])) {
     renderSuperAdminCSS();
-    echo '<script src="' . APP_URL . '/public/assets/js/frontdesk.js"></script>';
+    echo '<script src="' . APP_URL . '/assets/js/frontdesk.js"></script>';
     echo '</body></html>';
 }
 ?>

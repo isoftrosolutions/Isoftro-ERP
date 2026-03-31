@@ -34,7 +34,7 @@ class IDCardHelper
         imagefilledrectangle($img, 0, 0, $width, 100, $primary);
         
         // Add Institute Name
-        $fontPath = __DIR__ . '/../../public/assets/fonts/PlusJakartaSans-ExtraBold.ttf';
+        $fontPath = __DIR__ . '/../../assets/fonts/PlusJakartaSans-ExtraBold.ttf';
         if (!file_exists($fontPath)) {
             // Fallback to internal font if TTF not found
             imagestring($img, 5, 20, 35, strtoupper($institute['name'] ?? 'INSTITUTE NAME'), $white);
@@ -71,7 +71,7 @@ class IDCardHelper
         } else {
             imagettftext($img, 18, 0, $left, 150, $dark, $fontPath, strtoupper($student['full_name'] ?? 'STUDENT NAME'));
             
-            $regFont = __DIR__ . '/../../public/assets/fonts/PlusJakartaSans-Medium.ttf';
+            $regFont = __DIR__ . '/../../assets/fonts/PlusJakartaSans-Medium.ttf';
             if (!file_exists($regFont)) $regFont = $fontPath;
             
             imagettftext($img, 12, 0, $left, 180, $textBody, $regFont, "Roll No: " . ($student['roll_no'] ?? 'N/A'));

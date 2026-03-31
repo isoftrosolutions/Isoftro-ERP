@@ -445,4 +445,4 @@
     window.currentTenantId = '<?php echo $_SESSION['userData']['tenant_id'] ?? $_SESSION['tenant_id'] ?? ''; ?>';
     window.baseUrl = '<?php echo APP_URL; ?>';
 </script>
-<script src="<?php echo APP_URL; ?>/public/assets/js/ia-timetable.js"></script>
+<script src="<?php echo APP_URL; ?>/assets/js/ia-timetable.js"></script>

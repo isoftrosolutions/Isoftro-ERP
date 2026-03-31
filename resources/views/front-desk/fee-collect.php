@@ -53,8 +53,8 @@ require_once VIEWS_PATH . '/components/payment-processing-modal.php';
 if (!isset($_GET['partial'])) {
     renderSuperAdminCSS(); // Load base styles
     // Load SPA endpoints if visited directly
-    echo '<script src="' . APP_URL . '/public/assets/js/frontdesk/fd-fees.js"></script>';
-    echo '<script src="' . APP_URL . '/public/assets/js/frontdesk.js"></script>';
+    echo '<script src="' . APP_URL . '/assets/js/frontdesk/fd-fees.js"></script>';
+    echo '<script src="' . APP_URL . '/assets/js/frontdesk.js"></script>';
     echo '</body></html>';
 }
 ?>

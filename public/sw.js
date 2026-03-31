@@ -4,8 +4,8 @@ const OFFLINE_URL = '/erp/offline.html';
 const ASSETS_TO_CACHE = [
   '/erp/offline.html',
   '/erp/manifest.json',
-  '/erp/public/assets/images/logo.png',
-  '/erp/public/assets/css/login.css',
+  '/erp/assets/images/logo.png',
+  '/erp/assets/css/login.css',
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css',
   'https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap'
 ];

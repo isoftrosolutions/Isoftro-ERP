@@ -122,7 +122,7 @@ class ReceiptHelper {
         $html = self::getHtml($db, $tenantId, $transactionId, $receiptNo, true);
         if (!$html) return null;
 
-        $pdfDir = __DIR__ . '/../../../public/uploads/receipts/';
+        $pdfDir = __DIR__ . '/../../../uploads/receipts/';
         if (!is_dir($pdfDir)) mkdir($pdfDir, 0777, true);
         
         $filename = 'receipt_' . ($receiptNo ?: $transactionId) . '.pdf';

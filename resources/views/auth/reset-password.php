@@ -132,7 +132,7 @@ $BASE = defined('APP_URL') ? APP_URL : '/erp';
 </head>
 <body>
     <div class="rp-card">
-        <img src="<?= $BASE ?>/public/assets/images/logo.png" alt="isoftro" class="rp-logo">
+        <img src="<?= $BASE ?>/assets/images/logo.png" alt="isoftro" class="rp-logo">
         <h1 class="rp-title">Create New Password</h1>
         <p class="rp-subtitle">Verify your identity and choose a secure password to protect your account.</p>
 

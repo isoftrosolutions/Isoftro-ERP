@@ -67,7 +67,7 @@ require VIEWS_PATH . '/components/student/add-student-form.php';
 <?php
 if (!isset($_GET['partial'])) {
     renderSuperAdminCSS(); // Load base styles
-    echo '<script src="' . APP_URL . '/public/assets/js/frontdesk.js"></script>';
+    echo '<script src="' . APP_URL . '/assets/js/frontdesk.js"></script>';
     echo '</body></html>';
 }
 ?>

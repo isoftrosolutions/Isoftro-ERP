@@ -50,7 +50,7 @@ if (!empty($tenantLogo)) {
         ? $logoRelativePath
         : APP_URL . $logoRelativePath;
 } else {
-    $logoPath = APP_URL . '/public/assets/images/logo.png';
+    $logoPath = APP_URL . '/assets/images/logo.png';
 }
 ?>
 

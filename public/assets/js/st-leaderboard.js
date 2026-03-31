@@ -108,7 +108,7 @@ window.renderSTLeaderboard = async function(batchId = null) {
                                         ${data[1] ? `
                                             <div class="text-center" style="width: 30%;">
                                                 <div class="position-relative d-inline-block mb-2">
-                                                    <img src="${data[1].photo_url || `${window.APP_URL}/public/assets/img/avatar.png`}" 
+                                                    <img src="${data[1].photo_url || `${window.APP_URL}/assets/img/avatar.png`}" 
                                                         class="rounded-circle border border-2 border-primary border-opacity-25 p-1 bg-white" 
                                                         style="width: 60px; height: 60px; object-fit: cover;">
                                                     <div class="position-absolute bottom-0 start-50 translate-middle-x bg-secondary text-white rounded-circle shadow-sm" style="width: 22px; height: 22px; font-size: 10px; line-height: 22px;">2</div>
@@ -125,7 +125,7 @@ window.renderSTLeaderboard = async function(batchId = null) {
                                             <div class="text-center" style="width: 40%;">
                                                 <div class="position-relative d-inline-block mb-3">
                                                     <i class="fa-solid fa-crown text-warning position-absolute translate-middle" style="top: -10px; left: 50%; font-size: 1.25rem; transform: rotate(15deg);"></i>
-                                                    <img src="${data[0].photo_url || `${window.APP_URL}/public/assets/img/avatar.png`}" 
+                                                    <img src="${data[0].photo_url || `${window.APP_URL}/assets/img/avatar.png`}" 
                                                         class="rounded-circle border border-4 border-warning p-1 bg-white shadow" 
                                                         style="width: 85px; height: 85px; object-fit: cover;">
                                                     <div class="position-absolute bottom-0 start-50 translate-middle-x bg-warning text-dark rounded-circle shadow-sm border border-2 border-white" style="width: 28px; height: 28px; font-size: 13px; line-height: 24px; font-weight: 900;">1</div>
@@ -142,7 +142,7 @@ window.renderSTLeaderboard = async function(batchId = null) {
                                         ${data[2] ? `
                                             <div class="text-center" style="width: 30%;">
                                                 <div class="position-relative d-inline-block mb-2">
-                                                    <img src="${data[2].photo_url || `${window.APP_URL}/public/assets/img/avatar.png`}" 
+                                                    <img src="${data[2].photo_url || `${window.APP_URL}/assets/img/avatar.png`}" 
                                                         class="rounded-circle border border-2 border-warning border-opacity-25 p-1 bg-white" 
                                                         style="width: 60px; height: 60px; object-fit: cover;">
                                                     <div class="position-absolute bottom-0 start-50 translate-middle-x bg-danger bg-opacity-75 text-white rounded-circle shadow-sm" style="width: 22px; height: 22px; font-size: 10px; line-height: 22px;">3</div>
@@ -192,7 +192,7 @@ window.renderSTLeaderboard = async function(batchId = null) {
                                                     <td class="px-4 py-3">
                                                         <div class="d-flex align-items-center gap-3">
                                                             <div class="position-relative">
-                                                                <img src="${r.photo_url || `${window.APP_URL}/public/assets/img/avatar.png`}" 
+                                                                <img src="${r.photo_url || `${window.APP_URL}/assets/img/avatar.png`}" 
                                                                     class="rounded-circle bg-light border p-1" 
                                                                     style="width: 42px; height: 42px; object-fit: cover;">
                                                                 ${r.is_me ? '<span class="position-absolute bottom-0 end-0 bg-success border border-white border-2 rounded-circle" style="width: 12px; height: 12px;"></span>' : ''}

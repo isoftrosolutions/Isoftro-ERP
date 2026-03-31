@@ -34,28 +34,28 @@ $roleCSS = $roleCSS ?? null;
 
 
     <!-- Custom Styles (Using APP_URL for absolute paths) -->
-    <?php $cssVer = defined('APP_DEBUG') && APP_DEBUG ? time() : filemtime(__DIR__ . '/../../../public/assets/css/core.css'); ?>
-    <link rel="stylesheet" href="<?php echo APP_URL; ?>/public/assets/css/core.css?v=<?php echo $cssVer; ?>">
+    <?php $cssVer = defined('APP_DEBUG') && APP_DEBUG ? time() : filemtime(__DIR__ . '/../../../assets/css/core.css'); ?>
+    <link rel="stylesheet" href="<?php echo APP_URL; ?>/assets/css/core.css?v=<?php echo $cssVer; ?>">
     <?php if (empty($roleCSS) || $roleCSS !== 'ia-dashboard-new.css'): ?>
-    <link rel="stylesheet" href="<?php echo APP_URL; ?>/public/assets/css/layout.css?v=<?php echo $cssVer; ?>">
+    <link rel="stylesheet" href="<?php echo APP_URL; ?>/assets/css/layout.css?v=<?php echo $cssVer; ?>">
     <?php endif; ?>
-    <link rel="stylesheet" href="<?php echo APP_URL; ?>/public/assets/css/components.css?v=<?php echo $cssVer; ?>">
-    <link rel="stylesheet" href="<?php echo APP_URL; ?>/public/assets/css/utilities.css?v=<?php echo $cssVer; ?>">
+    <link rel="stylesheet" href="<?php echo APP_URL; ?>/assets/css/components.css?v=<?php echo $cssVer; ?>">
+    <link rel="stylesheet" href="<?php echo APP_URL; ?>/assets/css/utilities.css?v=<?php echo $cssVer; ?>">
 
     <!-- Nexus Design System -->
-    <link rel="stylesheet" href="<?php echo APP_URL; ?>/public/assets/css/ia-form-components.css?v=<?php echo $cssVer; ?>">
-    <link rel="stylesheet" href="<?php echo APP_URL; ?>/public/assets/css/ia-add-student-v2.css?v=<?php echo $cssVer; ?>">
+    <link rel="stylesheet" href="<?php echo APP_URL; ?>/assets/css/ia-form-components.css?v=<?php echo $cssVer; ?>">
+    <link rel="stylesheet" href="<?php echo APP_URL; ?>/assets/css/ia-add-student-v2.css?v=<?php echo $cssVer; ?>">
 
     <?php if ($roleCSS): ?>
-    <link rel="stylesheet" href="<?php echo APP_URL; ?>/public/assets/css/<?php echo $roleCSS; ?>?v=<?php echo $cssVer; ?>">
+    <link rel="stylesheet" href="<?php echo APP_URL; ?>/assets/css/<?php echo $roleCSS; ?>?v=<?php echo $cssVer; ?>">
     <?php endif; ?>
 
     <!-- PWA Settings -->
     <link rel="manifest" href="<?php echo APP_URL; ?>/manifest.json">
     <meta name="theme-color" content="<?php echo $themeColor; ?>">
-    <link rel="icon" type="image/svg+xml" href="<?php echo APP_URL; ?>/public/assets/images/favicon.svg">
-    <link rel="apple-touch-icon" href="<?php echo APP_URL; ?>/public/assets/images/logo.png">
-    <script src="<?php echo APP_URL; ?>/public/assets/js/auth-helper.js"></script>
+    <link rel="icon" type="image/svg+xml" href="<?php echo APP_URL; ?>/assets/images/favicon.svg">
+    <link rel="apple-touch-icon" href="<?php echo APP_URL; ?>/assets/images/logo.png">
+    <script src="<?php echo APP_URL; ?>/assets/js/auth-helper.js"></script>
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">

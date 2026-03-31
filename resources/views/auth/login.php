@@ -12,13 +12,13 @@
   <?php require_once base_path('config/config.php'); ?>
   <?= \App\Helpers\CsrfHelper::csrfMetaTag() ?>
   <?php $BASE = defined('APP_URL') ? APP_URL : '/erp'; ?>
-  <link rel="stylesheet" href="<?= $BASE ?>/public/assets/css/login.css">
+  <link rel="stylesheet" href="<?= $BASE ?>/assets/css/login.css">
   
   <!-- PWA Settings -->
   <link rel="manifest" href="<?= $BASE ?>/manifest.json">
   <meta name="theme-color" content="#006D44">
-  <link rel="icon" type="image/svg+xml" href="<?= $BASE ?>/public/assets/images/favicon.svg">
-  <link rel="apple-touch-icon" href="<?= $BASE ?>/public/assets/images/logo.png">
+  <link rel="icon" type="image/svg+xml" href="<?= $BASE ?>/assets/images/favicon.svg">
+  <link rel="apple-touch-icon" href="<?= $BASE ?>/assets/images/logo.png">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -68,7 +68,7 @@
         <div style="text-align:center;">
           <div style="width:min(320px, 80vw); height:min(320px, 80vw); margin:0 auto; background:linear-gradient(135deg,#006D44,#8CC63F); border-radius:50%; display:flex; align-items:center; justify-content:center; box-shadow:0 30px 60px rgba(0,109,68,0.25);">
             <div style="text-align:center; color:#fff; padding: 20px;">
-              <img src="<?= $BASE ?>/public/assets/images/logo.png" alt="isoftro" style="width:100%; max-width:120px; height:auto; margin-bottom:16px; filter: brightness(0) invert(1);">
+              <img src="<?= $BASE ?>/assets/images/logo.png" alt="isoftro" style="width:100%; max-width:120px; height:auto; margin-bottom:16px; filter: brightness(0) invert(1);">
               <div style="font-size:clamp(18px, 4vw, 28px); font-weight:800; letter-spacing:-0.5px;">isoftro</div>
               <div style="font-size:11px; font-weight:500; opacity:0.8; letter-spacing:2px;">ACADEMIC ERP</div>
             </div>
@@ -83,7 +83,7 @@
     <div class="lp-right">
       <div class="lp-form-box">
         <div class="mobile-header">
-            <img src="<?= $BASE ?>/public/assets/images/logo.png" alt="Logo">
+            <img src="<?= $BASE ?>/assets/images/logo.png" alt="Logo">
             <div class="mobile-header-text">
               <span class="mh-top">ISOFTRO</span>
               <span class="mh-bot">ACADEMIC ERP</span>
@@ -92,7 +92,7 @@
 
           <div class="lp-header">
           <div class="lp-logo">
-            <img src="<?= $BASE ?>/public/assets/images/logo.png" alt="Logo" style="height:32px; width:auto; margin-right:12px;">
+            <img src="<?= $BASE ?>/assets/images/logo.png" alt="Logo" style="height:32px; width:auto; margin-right:12px;">
             <div class="logo-text">
               <span class="lt-top">ISOFTRO</span>
               <span class="lt-bot">ACADEMIC ERP</span>
@@ -145,7 +145,7 @@
       <div id="pwaInstallBanner" class="pwa-install-banner" style="display: none;">
         <div class="pwa-content">
           <div class="pwa-icon-box">
-            <img src="<?= $BASE ?>/public/assets/images/logo.png" alt="App Icon">
+            <img src="<?= $BASE ?>/assets/images/logo.png" alt="App Icon">
           </div>
           <div class="pwa-text">
             <h3>Install isoftro ERP</h3>
@@ -293,8 +293,8 @@
   const APP_URL = window.APP_URL;
   </script>
   <?= \App\Helpers\CsrfHelper::csrfJsHeader() ?>
-  <script src="<?= $BASE ?>/public/assets/js/pwa-handler.js"></script>
-  <script src="<?= $BASE ?>/public/assets/js/login.js"></script>
+  <script src="<?= $BASE ?>/assets/js/pwa-handler.js"></script>
+  <script src="<?= $BASE ?>/assets/js/login.js"></script>
   <button class="mobile-install-btn" id="mobileInstallBtn" onclick="triggerPwaInstall()">
     <i class="fa-solid fa-download"></i> Install App
   </button>

@@ -186,7 +186,7 @@ document.addEventListener('DOMContentLoaded', loadReport);
 <?php
 if (!isset($_GET['partial'])) {
     renderSuperAdminCSS();
-    echo '<script src="' . APP_URL . '/public/assets/js/frontdesk.js"></script>';
+    echo '<script src="' . APP_URL . '/assets/js/frontdesk.js"></script>';
     echo '</body></html>';
 }
 ?>

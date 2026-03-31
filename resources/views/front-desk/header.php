@@ -54,7 +54,7 @@ try {
 } catch (Exception $e) {}
 ?>
 
-<link rel="stylesheet" href="<?php echo APP_URL; ?>/public/assets/css/frontdesk.css?v=1.1">
+<link rel="stylesheet" href="<?php echo APP_URL; ?>/assets/css/frontdesk.css?v=1.1">
 
 <style>
 /* ── HEADER (Aligning with Mockup) ── */
