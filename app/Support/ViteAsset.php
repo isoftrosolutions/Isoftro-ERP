@@ -28,7 +28,7 @@ class ViteAsset
 
     private static function productionTags(array $entries): string
     {
-        $manifestPath = __DIR__ . '/../../build/manifest.json';
+        $manifestPath = __DIR__ . '/../../public/build/manifest.json';
         if (!file_exists($manifestPath)) {
             return '';
         }
@@ -42,7 +42,7 @@ class ViteAsset
         // If APP_URL contains 'frontend' but assets are in 'public/build', we might need to adjust
         // For now, let's assume assets are accessible via /build/ relative to the server root
         // or relative to the APP_URL if we fix it.
-        $assetPath = '/erp/build/';
+        $assetPath = '/build/';
 
         foreach ($entries as $entry) {
             if (isset($manifest[$entry])) {
