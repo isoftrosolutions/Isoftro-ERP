@@ -25,9 +25,9 @@
     </a>
     <div class="l-navbar__links" id="navLinks">
       <a href="#about">About</a>
-      <a href="#modules">Modules</a>
       <a href="#how-it-works">How It Works</a>
-      <a href="#pricing">Pricing</a>
+      <a href="#dashboards">Dashboards</a>
+      <a href="#features">Features</a>
       <a href="#faq">FAQ</a>
       <div class="l-navbar__mobile-cta">
         <a href="#contact" class="btn btn--primary btn--small">Request a Demo</a>
@@ -201,89 +201,18 @@
       <h2 class="section-title">Automate school management through academic ERP software</h2>
       <p class="l-about__desc">isoftro Academic ERP helps your institution digitize academics, administration, and communication — all from one single platform. Built specifically for Nepal's educational landscape.</p>
       <div class="l-about__list">
-        <div class="l-about__list-item"><i class="fa-solid fa-check"></i> Multi-tenant cloud-based architecture</div>
-        <div class="l-about__list-item"><i class="fa-solid fa-check"></i> 25+ integrated modules</div>
+      <div class="l-about__list-item"><i class="fa-solid fa-check"></i> Multi-tenant cloud-based architecture</div>
+        <div class="l-about__list-item"><i class="fa-solid fa-check"></i> Comprehensive integrated features</div>
         <div class="l-about__list-item"><i class="fa-solid fa-check"></i> Role-based dashboards for every user</div>
         <div class="l-about__list-item"><i class="fa-solid fa-check"></i> Mobile-friendly & accessible anywhere</div>
         <div class="l-about__list-item"><i class="fa-solid fa-check"></i> Nepal-focused with Nepali calendar support</div>
       </div>
-      <a href="#modules" class="btn btn--primary">Explore Modules</a>
+      <a href="#features" class="btn btn--primary">Explore Features</a>
     </div>
   </div>
 </section>
 
-<!-- ======== MODULES ======== -->
-<section class="l-modules" id="modules">
-  <div class="landing-container">
-    <div class="l-modules__header reveal">
-      <span class="section-badge section-badge--green"><i class="fa-solid fa-cubes"></i> Modules</span>
-      <h2 class="section-title">Everything Your Institute Needs</h2>
-      <p class="section-subtitle mx-auto">Comprehensive modules covering every aspect of academic management — from admissions to analytics.</p>
-    </div>
-    <div class="l-modules__grid">
-      <div class="module-card reveal reveal-delay-1">
-        <div class="module-card__icon"><i class="fa-solid fa-user-graduate"></i></div>
-        <h3 class="module-card__title">Student Management</h3>
-        <p class="module-card__desc">Complete student lifecycle from enrollment to alumni tracking.</p>
-      </div>
-      <div class="module-card reveal reveal-delay-2">
-        <div class="module-card__icon"><i class="fa-solid fa-file-invoice-dollar"></i></div>
-        <h3 class="module-card__title">Fee & Billing</h3>
-        <p class="module-card__desc">Automated invoicing, payment tracking, and receipt generation.</p>
-      </div>
-      <div class="module-card reveal reveal-delay-3">
-        <div class="module-card__icon"><i class="fa-solid fa-clipboard-check"></i></div>
-        <h3 class="module-card__title">Attendance System</h3>
-        <p class="module-card__desc">Digital attendance with real-time alerts to parents.</p>
-      </div>
-      <div class="module-card reveal reveal-delay-4">
-        <div class="module-card__icon"><i class="fa-solid fa-ranking-star"></i></div>
-        <h3 class="module-card__title">Exams & Results</h3>
-        <p class="module-card__desc">Create exams, enter marks, auto-generate marksheets instantly.</p>
-      </div>
-      <div class="module-card reveal reveal-delay-1">
-        <div class="module-card__icon"><i class="fa-solid fa-people-roof"></i></div>
-        <h3 class="module-card__title">Parent Portal</h3>
-        <p class="module-card__desc">Parents track grades, attendance, fees from their phone.</p>
-      </div>
-      <div class="module-card reveal reveal-delay-2">
-        <div class="module-card__icon"><i class="fa-solid fa-id-card-clip"></i></div>
-        <h3 class="module-card__title">Staff & HR</h3>
-        <p class="module-card__desc">HR profiles, payroll, leave tracking, and role management.</p>
-      </div>
-      <div class="module-card reveal reveal-delay-3">
-        <div class="module-card__icon"><i class="fa-solid fa-chart-pie"></i></div>
-        <h3 class="module-card__title">Analytics Dashboard</h3>
-        <p class="module-card__desc">Real-time KPIs, enrollment trends, and financial health.</p>
-      </div>
-      <div class="module-card reveal reveal-delay-4">
-        <div class="module-card__icon"><i class="fa-solid fa-building-columns"></i></div>
-        <h3 class="module-card__title">Multi-Institute Control</h3>
-        <p class="module-card__desc">Super Admin layer to manage multiple branches centrally.</p>
-      </div>
-      <div class="module-card reveal reveal-delay-1">
-        <div class="module-card__icon"><i class="fa-solid fa-calendar-days"></i></div>
-        <h3 class="module-card__title">Timetable & Scheduling</h3>
-        <p class="module-card__desc">Auto-generate class schedules and manage room allocation.</p>
-      </div>
-      <div class="module-card reveal reveal-delay-2">
-        <div class="module-card__icon"><i class="fa-solid fa-book-open"></i></div>
-        <h3 class="module-card__title">Library Management</h3>
-        <p class="module-card__desc">Book catalog, issue/return tracking, fine management.</p>
-      </div>
-      <div class="module-card reveal reveal-delay-3">
-        <div class="module-card__icon"><i class="fa-solid fa-bus"></i></div>
-        <h3 class="module-card__title">Transport Management</h3>
-        <p class="module-card__desc">Route planning, vehicle tracking, and driver assignment.</p>
-      </div>
-      <div class="module-card reveal reveal-delay-4">
-        <div class="module-card__icon"><i class="fa-solid fa-comment-sms"></i></div>
-        <h3 class="module-card__title">SMS & Notifications</h3>
-        <p class="module-card__desc">Bulk SMS, push notifications, and email alerts to parents.</p>
-      </div>
-    </div>
-  </div>
-</section>
+
 
 <!-- ======== WHY CHOOSE US ======== -->
 <section class="l-why" id="why-us">
@@ -495,77 +424,75 @@
   </div>
 </section>
 
-<!-- ======== PRICING ======== -->
-<section class="l-pricing" id="pricing">
+<!-- ======== FEATURES ======== -->
+<section class="l-modules" id="features">
   <div class="landing-container">
-    <div class="l-pricing__header reveal">
-      <span class="section-badge section-badge--green"><i class="fa-solid fa-tags"></i> Pricing Strategy</span>
-      <h2 class="section-title">isoftro Academic ERP — Pricing Strategy</h2>
-      <p class="section-subtitle mx-auto">Choose the perfect plan for your institution's growth.</p>
+    <div class="l-modules__header reveal">
+      <span class="section-badge section-badge--green"><i class="fa-solid fa-star"></i> Core Features</span>
+      <h2 class="section-title">Everything Your Institute Needs</h2>
+      <p class="section-subtitle mx-auto">Comprehensive features covering every aspect of academic management — from admissions to analytics.</p>
     </div>
-    
-
-
-    <div class="l-pricing__grid">
-        <!-- Starter Plan -->
-        <div class="pricing-card pricing-card--starter reveal reveal-delay-1">
-          <h3 class="pricing-card__name">Starter Plan</h3>
-          <p class="pricing-card__desc">Good for institutes that want digital fee & student management.</p>
-          <div class="pricing-card__price"><span class="pricing-card__currency">Rs</span><span class="pricing-card__amount">5000</span><span class="pricing-card__period">/month</span></div>
-          <div class="pricing-card__divider"></div>
-          <div class="pricing-card__features-title">Includes:</div>
-          <div class="pricing-card__features">
-            <div class="pricing-feature"><i class="fa-solid fa-check"></i> Up to 300 students</div>
-            <div class="pricing-feature"><i class="fa-solid fa-check"></i> Student admission management</div>
-            <div class="pricing-feature"><i class="fa-solid fa-check"></i> Batch management</div>
-            <div class="pricing-feature"><i class="fa-solid fa-check"></i> Fees collection system</div>
-            <div class="pricing-feature"><i class="fa-solid fa-check"></i> Payment receipts</div>
-            <div class="pricing-feature"><i class="fa-solid fa-check"></i> Basic attendance tracking</div>
-            <div class="pricing-feature"><i class="fa-solid fa-check"></i> Notice & announcements</div>
-            <div class="pricing-feature"><i class="fa-solid fa-check"></i> Basic reporting dashboard</div>
-            <div class="pricing-feature"><i class="fa-solid fa-check"></i> Email support</div>
-          </div>
-          <a href="#contact" class="btn btn--outline">Get Started</a>
-        </div>
-
-        <!-- Growth Plan -->
-        <div class="pricing-card pricing-card--growth pricing-card--featured reveal reveal-delay-2">
-          <div class="pricing-card__badge">Most Popular</div>
-          <h3 class="pricing-card__name">Growth Plan</h3>
-          <p class="pricing-card__desc">Complete institute management system</p>
-          <div class="pricing-card__price"><span class="pricing-card__currency">Rs</span><span class="pricing-card__amount">8000</span><span class="pricing-card__period">/month</span></div>
-          <div class="pricing-card__divider"></div>
-          <div class="pricing-card__features-title">Everything in Starter +</div>
-          <div class="pricing-card__features">
-            <div class="pricing-feature"><i class="fa-solid fa-check"></i> Up to 800 students</div>
-            <div class="pricing-feature"><i class="fa-solid fa-check"></i> Study materials module</div>
-            <div class="pricing-feature"><i class="fa-solid fa-check"></i> Homework / assignment system</div>
-            <div class="pricing-feature"><i class="fa-solid fa-check"></i> Advanced attendance reports</div>
-            <div class="pricing-feature"><i class="fa-solid fa-check"></i> Payment history analytics</div>
-            <div class="pricing-feature"><i class="fa-solid fa-check"></i> Role based access (Admin / Front Desk / Teacher)</div>
-            <div class="pricing-feature"><i class="fa-solid fa-check"></i> Priority support</div>
-          </div>
-          <a href="#contact" class="btn btn--primary">Get Started</a>
-        </div>
-
-        <!-- Professional Plan -->
-        <div class="pricing-card pricing-card--pro reveal reveal-delay-3">
-          <h3 class="pricing-card__name">Professional Plan</h3>
-          <p class="pricing-card__desc">Enterprise level institute ERP</p>
-          <div class="pricing-card__price"><span class="pricing-card__currency">Rs</span><span class="pricing-card__amount">12000</span><span class="pricing-card__period">/month</span></div>
-          <div class="pricing-card__divider"></div>
-          <div class="pricing-card__features-title">Everything in Growth +</div>
-          <div class="pricing-card__features">
-            <div class="pricing-feature"><i class="fa-solid fa-check"></i> Unlimited students</div>
-            <div class="pricing-feature"><i class="fa-solid fa-check"></i> Multi-branch support</div>
-            <div class="pricing-feature"><i class="fa-solid fa-check"></i> SMS integration</div>
-            <div class="pricing-feature"><i class="fa-solid fa-check"></i> Advanced analytics dashboard</div>
-            <div class="pricing-feature"><i class="fa-solid fa-check"></i> API integrations</div>
-            <div class="pricing-feature"><i class="fa-solid fa-check"></i> Custom branding (Logo, Theme)</div>
-            <div class="pricing-feature"><i class="fa-solid fa-check"></i> Dedicated priority support</div>
-          </div>
-          <a href="#contact" class="btn btn--outline">Contact Sales</a>
-        </div>
+    <div class="l-modules__grid">
+      <div class="module-card reveal reveal-delay-1">
+        <div class="module-card__icon"><i class="fa-solid fa-user-graduate"></i></div>
+        <h3 class="module-card__title">Student Management</h3>
+        <p class="module-card__desc">Complete student lifecycle from enrollment to alumni tracking.</p>
+      </div>
+      <div class="module-card reveal reveal-delay-2">
+        <div class="module-card__icon"><i class="fa-solid fa-file-invoice-dollar"></i></div>
+        <h3 class="module-card__title">Fee & Billing</h3>
+        <p class="module-card__desc">Automated invoicing, payment tracking, and receipt generation.</p>
+      </div>
+      <div class="module-card reveal reveal-delay-3">
+        <div class="module-card__icon"><i class="fa-solid fa-clipboard-check"></i></div>
+        <h3 class="module-card__title">Attendance System</h3>
+        <p class="module-card__desc">Digital attendance with real-time alerts to parents.</p>
+      </div>
+      <div class="module-card reveal reveal-delay-4">
+        <div class="module-card__icon"><i class="fa-solid fa-ranking-star"></i></div>
+        <h3 class="module-card__title">Exams & Results</h3>
+        <p class="module-card__desc">Create exams, enter marks, auto-generate marksheets instantly.</p>
+      </div>
+      <div class="module-card reveal reveal-delay-1">
+        <div class="module-card__icon"><i class="fa-solid fa-people-roof"></i></div>
+        <h3 class="module-card__title">Parent Portal</h3>
+        <p class="module-card__desc">Parents track grades, attendance, fees from their phone.</p>
+      </div>
+      <div class="module-card reveal reveal-delay-2">
+        <div class="module-card__icon"><i class="fa-solid fa-id-card-clip"></i></div>
+        <h3 class="module-card__title">Staff & HR</h3>
+        <p class="module-card__desc">HR profiles, payroll, leave tracking, and role management.</p>
+      </div>
+      <div class="module-card reveal reveal-delay-3">
+        <div class="module-card__icon"><i class="fa-solid fa-chart-pie"></i></div>
+        <h3 class="module-card__title">Analytics Dashboard</h3>
+        <p class="module-card__desc">Real-time KPIs, enrollment trends, and financial health.</p>
+      </div>
+      <div class="module-card reveal reveal-delay-4">
+        <div class="module-card__icon"><i class="fa-solid fa-building-columns"></i></div>
+        <h3 class="module-card__title">Multi-Institute Control</h3>
+        <p class="module-card__desc">Super Admin layer to manage multiple branches centrally.</p>
+      </div>
+      <div class="module-card reveal reveal-delay-1">
+        <div class="module-card__icon"><i class="fa-solid fa-calendar-days"></i></div>
+        <h3 class="module-card__title">Timetable & Scheduling</h3>
+        <p class="module-card__desc">Auto-generate class schedules and manage room allocation.</p>
+      </div>
+      <div class="module-card reveal reveal-delay-2">
+        <div class="module-card__icon"><i class="fa-solid fa-book-open"></i></div>
+        <h3 class="module-card__title">Library Management</h3>
+        <p class="module-card__desc">Book catalog, issue/return tracking, fine management.</p>
+      </div>
+      <div class="module-card reveal reveal-delay-3">
+        <div class="module-card__icon"><i class="fa-solid fa-bus"></i></div>
+        <h3 class="module-card__title">Transport Management</h3>
+        <p class="module-card__desc">Route planning, vehicle tracking, and driver assignment.</p>
+      </div>
+      <div class="module-card reveal reveal-delay-4">
+        <div class="module-card__icon"><i class="fa-solid fa-comment-sms"></i></div>
+        <h3 class="module-card__title">SMS & Notifications</h3>
+        <p class="module-card__desc">Bulk SMS, push notifications, and email alerts to parents.</p>
+      </div>
     </div>
   </div>
 </section>
@@ -684,7 +611,7 @@
       <p class="l-cta__desc">Join 150+ institutes across Nepal that have already digitized their operations with isoftro Academic ERP.</p>
       <div class="l-cta__actions">
         <a href="mailto:demo@isoftro.com?subject=Demo Request" class="btn btn--primary btn--large"><i class="fa-solid fa-calendar-check"></i> Request a Demo</a>
-        <a href="#pricing" class="btn btn--outline btn--large"><i class="fa-solid fa-tags"></i> View Pricing</a>
+        <a href="#features" class="btn btn--outline btn--large"><i class="fa-solid fa-star"></i> View Features</a>
       </div>
       <div class="l-cta__contact">
         <a href="mailto:info@isoftro.com"><i class="fa-solid fa-envelope"></i> info@isoftro.com</a>
@@ -710,8 +637,8 @@
         <div class="l-footer__col-title">Quick Links</div>
         <div class="l-footer__links">
           <a href="#about">About</a>
-          <a href="#modules">Modules</a>
-          <a href="#pricing">Pricing</a>
+          <a href="#how-it-works">How It Works</a>
+          <a href="#features">Features</a>
           <a href="#testimonials">Testimonials</a>
         </div>
       </div>
