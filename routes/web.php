@@ -104,11 +104,7 @@ Route::post('/auth/verify-otp', function () {
 
 // Logout — Use the API AuthController (JWT-aware: blacklists token + clears cookie)
 // The old custom AuthController::logout() was replaced to eliminate the dual-auth conflict.
-Route::match(['get', 'post'], '/auth/logout', function () {
-    $request = request();
-    $controller = new App\Http\Controllers\API\AuthController();
-    return $controller->logout($request);
-});
+Route::match(['get', 'post'], '/auth/logout', [App\Http\Controllers\API\AuthController::class, 'logout']);
 
 
 // Legacy logout redirect
