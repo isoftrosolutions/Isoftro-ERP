@@ -102,9 +102,34 @@ Route::post('/auth/verify-otp', function () {
     require_once resource_path('views/auth/verify_otp.php');
 });
 
-// Logout — Use the API AuthController (JWT-aware: blacklists token + clears cookie)
-// The old custom AuthController::logout() was replaced to eliminate the dual-auth conflict.
-Route::match(['get', 'post'], '/auth/logout', [App\Http\Controllers\API\AuthController::class, 'logout']);
+// Logout — Clear token cookie and redirect to login
+Route::match(['get', 'post'], '/auth/logout', function (Request $request) {
+    // Clear JWT token cookie
+    $host = $_SERVER['HTTP_HOST'] ?? '';
+    $cookieDomain = null;
+    if ($host && !in_array($host, ['localhost', '127.0.0.1'])) {
+        $parts = explode('.', $host);
+        if (count($parts) >= 2) {
+            $cookieDomain = '.' . implode('.', array_slice($parts, -2));
+        }
+    }
+
+    // Set cookie to expire (logout)
+    setcookie('token', '', time() - 42000, '/', $cookieDomain, isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on', true);
+
+    // Clear Laravel session if active
+    if (session_status() === PHP_SESSION_ACTIVE) {
+        $_SESSION = [];
+        session_destroy();
+    }
+
+    // Return based on request type
+    if ($request->wantsJson() || $request->ajax()) {
+        return response()->json(['success' => true, 'message' => 'Successfully logged out']);
+    }
+
+    return redirect('/auth/login');
+});
 
 
 // Legacy logout redirect
