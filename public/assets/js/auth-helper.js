@@ -93,5 +93,5 @@ window.authLogout = function() {
 
     // Redirect to standalone logout handler
     // /logout.php clears token cookie, session, and redirects to /auth/login
-    window.location.href = '/logout.php';
+    window.location.href = (window.APP_URL || '') + '/logout.php';
 };

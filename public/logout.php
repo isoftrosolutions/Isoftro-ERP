@@ -9,6 +9,12 @@
  * - Client-side token storage redirect
  */
 
+// Load application config so APP_URL is available for redirects
+$configPath = __DIR__ . '/../config/config.php';
+if (file_exists($configPath)) {
+    require_once $configPath;
+}
+
 // Get host for cookie domain
 $host = $_SERVER['HTTP_HOST'] ?? '';
 $cookieDomain = null;
@@ -26,7 +32,9 @@ setcookie('token', '', time() - 42000, '/', $cookieDomain, $secure, true);
 
 // Clear session cookie if exists
 if (function_exists('session_name')) {
-    session_start();
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
     $_SESSION = [];
     setcookie(session_name(), '', time() - 42000, '/', $cookieDomain, $secure, true);
     session_destroy();
@@ -45,9 +53,8 @@ if ($isJsonRequest) {
         'message' => 'Successfully logged out'
     ]);
 } else {
-    // Redirect to login page
-    $appUrl = defined('APP_URL') ? APP_URL : '/erp';
-    header("Location: {$appUrl}/auth/login");
+    // Redirect to login page — APP_URL is loaded from config above
+    header("Location: " . (defined('APP_URL') ? APP_URL : '') . "/auth/login");
 }
 
 exit;

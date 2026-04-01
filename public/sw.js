@@ -1,4 +1,4 @@
-const CACHE_NAME = 'isoftro-erp-v3.1';
+const CACHE_NAME = 'isoftro-erp-v3.2';
 const OFFLINE_URL = '/offline.html';
 
 const ASSETS_TO_CACHE = [
@@ -35,9 +35,10 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  // Only handle GET requests, skip API calls
+  // Only handle GET requests, skip API calls and auth endpoints
   if (event.request.method !== 'GET') return;
   if (event.request.url.includes('/api/')) return;
+  if (event.request.url.includes('/logout.php')) return;
 
   event.respondWith(
     fetch(event.request)

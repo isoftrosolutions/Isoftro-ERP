@@ -207,7 +207,7 @@ try {
                     <li><a href="#" onclick="goNav('settings', 'profile'); return false;"><i class="fa-regular fa-user"></i> My Profile</a></li>
                     <li><a href="#" onclick="goNav('settings', 'password'); return false;"><i class="fa-solid fa-key"></i> Security</a></li>
                     <div class="fd-dd-divider"></div>
-                    <li><a href="/logout.php" style="color:var(--red);"><i class="fa-solid fa-power-off"></i> Sign Out</a></li>
+                    <li><a href="<?= APP_URL ?>/logout.php" style="color:var(--red);"><i class="fa-solid fa-power-off"></i> Sign Out</a></li>
                 </ul>
             </div>
         </div>

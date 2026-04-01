@@ -104,7 +104,7 @@ $monthlyRevenue = $stmt->fetchColumn();
                             <i class="fas fa-fingerprint"></i> Activity Log
                         </a>
                         <div style="height: 1px; background: #f1f5f9; margin: 8px 0;"></div>
-                        <a href="/logout.php" class="dd-item" style="display: flex; align-items: center; gap: 10px; padding: 10px; font-size: 13px; color: #ef4444; text-decoration: none; border-radius: 8px; transition: 0.2s;">
+                        <a href="<?= APP_URL ?>/logout.php" class="dd-item" style="display: flex; align-items: center; gap: 10px; padding: 10px; font-size: 13px; color: #ef4444; text-decoration: none; border-radius: 8px; transition: 0.2s;">
                             <i class="fas fa-sign-out-alt"></i> Logout Platform
                         </a>
                     </div>
