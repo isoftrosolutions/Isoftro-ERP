@@ -82,6 +82,7 @@ window.authFetch = async function(url, options = {}) {
 /**
  * Handle Logout across all tabs
  * Clears client-side state and navigates to /logout.php
+ * Note: /logout.php is a standalone PHP file (not a Laravel route)
  */
 window.authLogout = function() {
     // Clear all client-side authentication state
@@ -90,8 +91,7 @@ window.authLogout = function() {
     localStorage.removeItem('access_token');
     localStorage.removeItem('token_expires_at');
 
-    // Redirect to server-side logout handler
-    // /logout.php is a standalone file that clears token cookie and session
-    const logoutUrl = (window.APP_URL || location.origin) + '/logout.php';
-    window.location.href = logoutUrl;
+    // Redirect to standalone logout handler
+    // /logout.php clears token cookie, session, and redirects to /auth/login
+    window.location.href = '/logout.php';
 };
