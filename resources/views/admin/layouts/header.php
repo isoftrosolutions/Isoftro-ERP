@@ -849,7 +849,7 @@ $currentPage = basename($_SERVER['PHP_SELF'], '.php');
 
                     <ul class="pd-list-new">
                         <li class="pd-item-new danger">
-                            <a href="<?php echo APP_URL; ?>/logout">
+                            <a href="/logout.php">
                                 <i class="fa-solid fa-power-off"></i> Logout
                             </a>
                         </li>

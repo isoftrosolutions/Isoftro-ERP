@@ -269,7 +269,7 @@ function renderSuperAdminHeader() {
                     <a href="<?php echo APP_URL; ?>/dash/super-admin/profile?tab=password" class="dd-item"><i class="fa-solid fa-key"></i> Change Password</a>
                     <a href="<?php echo APP_URL; ?>/dash/super-admin/activity-log" class="dd-item"><i class="fa-solid fa-clock-rotate-left"></i> Activity Log</a>
                     <div class="dd-divider"></div>
-                    <a href="<?php echo APP_URL; ?>/logout" class="dd-item danger"><i class="fa-solid fa-arrow-right-from-bracket"></i> Logout</a>
+                    <a href="/logout.php" class="dd-item danger"><i class="fa-solid fa-arrow-right-from-bracket"></i> Logout</a>
                 </div>
             </div>
         </div>

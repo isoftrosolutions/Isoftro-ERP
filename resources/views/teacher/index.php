@@ -52,7 +52,7 @@ include VIEWS_PATH . '/layouts/header.php';
                         <a href="javascript:void(0)" onclick="goNav('profile', 'leave-history')" style="display:flex; align-items:center; gap:10px; padding:10px; font-size:13px; color:var(--text-dark); text-decoration:none; border-radius:8px;"><i class="fa-solid fa-calendar-plus" style="color:var(--amber)"></i> Leave Application</a>
                         <a href="javascript:void(0)" onclick="goNav('profile', 'salary-slips')" style="display:flex; align-items:center; gap:10px; padding:10px; font-size:13px; color:var(--text-dark); text-decoration:none; border-radius:8px;"><i class="fa-solid fa-wallet" style="color:var(--green)"></i> Salary Slips</a>
                         <div style="height:1px; background:var(--card-border); margin:6px 0;"></div>
-                        <a href="<?php echo APP_URL; ?>/auth/logout" style="display:flex; align-items:center; gap:10px; padding:10px; font-size:13px; color:var(--red); text-decoration:none; border-radius:8px;"><i class="fa-solid fa-power-off"></i> Logout</a>
+                        <a href="/logout.php" style="display:flex; align-items:center; gap:10px; padding:10px; font-size:13px; color:var(--red); text-decoration:none; border-radius:8px;"><i class="fa-solid fa-power-off"></i> Logout</a>
                     </div>
                 </div>
             </div>

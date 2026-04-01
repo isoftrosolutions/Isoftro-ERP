@@ -52,7 +52,7 @@ include VIEWS_PATH . '/layouts/header.php';
                         <a href="#" style="display:flex; align-items:center; gap:10px; padding:10px; font-size:13px; color:var(--text-dark); text-decoration:none; border-radius:8px;"><i class="fa-regular fa-circle-user" style="color:var(--green)"></i> My Profile</a>
                         <a href="#" style="display:flex; align-items:center; gap:10px; padding:10px; font-size:13px; color:var(--text-dark); text-decoration:none; border-radius:8px;"><i class="fa-solid fa-child" style="color:var(--teal)"></i> Student Profile</a>
                         <div style="height:1px; background:var(--card-border); margin:6px 0;"></div>
-                        <a href="<?php echo APP_URL; ?>/auth/logout" style="display:flex; align-items:center; gap:10px; padding:10px; font-size:13px; color:var(--red); text-decoration:none; border-radius:8px;"><i class="fa-solid fa-power-off"></i> Logout</a>
+                        <a href="/logout.php" style="display:flex; align-items:center; gap:10px; padding:10px; font-size:13px; color:var(--red); text-decoration:none; border-radius:8px;"><i class="fa-solid fa-power-off"></i> Logout</a>
                     </div>
                 </div>
             </div>
