@@ -315,7 +315,7 @@ try {
             
             // Receipt URL now points to the HTML receipt page
             $receiptUrl = APP_URL . '/api/admin/fees?action=generate_receipt_html&transaction_id=' . ($txn['id'] ?? '') . '&receipt_no=' . ($txn['receipt_number'] ?? '');
-            $imageUrl = $txn['receipt_path'] ? APP_URL . '/public/' . $txn['receipt_path'] : null;
+            $imageUrl = $txn['receipt_path'] ? APP_URL . '/' . $txn['receipt_path'] : null;
 
             echo json_encode([
                 'success' => true,

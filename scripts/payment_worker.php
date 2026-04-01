@@ -17,8 +17,6 @@ require_once base_path('vendor/autoload.php');
 
 use App\Services\QueueService;
 use App\Helpers\MailHelper;
-use Dompdf\Dompdf;
-use Dompdf\Options;
 
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
@@ -80,18 +78,14 @@ function processPaymentReceipt($db, $tenantId, $payload) {
 
     if (!$transactionId) return;
 
-    // 1. Generate PDF
-    $pdfPath = generateReceiptPdf($db, $tenantId, $transactionId, $receiptNo);
-    
-    if ($pdfPath) {
-        $relativePath = 'uploads/receipts/' . basename($pdfPath);
-        
-        // 2. Update DB directly - update receipt_path in payment_transactions
-        $stmt = $db->prepare("UPDATE payment_transactions SET receipt_path = :path WHERE id = :id");
-        $stmt->execute(['path' => $relativePath, 'id' => $transactionId]);
+    // Use ReceiptHelper as the single source of truth for PDF generation + DB update
+    $pdfPath = \App\Helpers\ReceiptHelper::generatePdf($db, $tenantId, $transactionId, $receiptNo);
 
-        // 3. Trigger Email
+    if ($pdfPath) {
+        // Trigger Email with the absolute PDF path
         processEmailReceipt($db, $tenantId, array_merge($payload, ['pdf_path' => $pdfPath]));
+    } else {
+        echo "[Warning] PDF generation returned null for transaction $transactionId";
     }
 }
 
@@ -146,11 +140,14 @@ function processEmailReceipt($db, $tenantId, $payload) {
     // Re-assign transactionId for subsequent logic
     $transactionId = $txn['id'];
 
-    // If PDF path not provided, check DB or generate
-    if (!$pdfPath) {
-        $pdfPath = !empty($txn['receipt_path']) ? base_path('public/' . $txn['receipt_path']) : null;
+    // If PDF path not provided, check DB or generate via ReceiptHelper
+    if (!$pdfPath || !file_exists($pdfPath)) {
+        if (!empty($txn['receipt_path'])) {
+            // receipt_path is stored relative to public/ (e.g. "uploads/receipts/receipt_123.pdf")
+            $pdfPath = base_path('public' . DIRECTORY_SEPARATOR . $txn['receipt_path']);
+        }
         if (!$pdfPath || !file_exists($pdfPath)) {
-            $pdfPath = generateReceiptPdf($db, $tenantId, $transactionId, $txn['receipt_number']);
+            $pdfPath = \App\Helpers\ReceiptHelper::generatePdf($db, $tenantId, $transactionId, $txn['receipt_number']);
         }
     }
 
@@ -173,37 +170,3 @@ function processEmailReceipt($db, $tenantId, $payload) {
     }
 }
 
-/**
- * PDF Generation Helper (copied logic from controller but headless)
- */
-function generateReceiptPdf($db, $tenantId, $transactionId, $receiptNo) {
-    // We need to simulate the environment for the template
-    $html = getReceiptHtmlInternal($db, $tenantId, $transactionId, $receiptNo);
-    if (!$html) return null;
-
-    $pdfDir = __DIR__ . '/../uploads/receipts/';
-    if (!is_dir($pdfDir)) mkdir($pdfDir, 0777, true);
-    
-    $filename = 'receipt_' . ($receiptNo ?: $transactionId) . '.pdf';
-    $pdfPath = $pdfDir . $filename;
-
-    $options = new Options();
-    $options->set('isHtml5ParserEnabled', true);
-    $options->set('isRemoteEnabled', true);
-    $options->set('defaultFont', 'Arial');
-
-    $dompdf = new Dompdf($options);
-    $dompdf->loadHtml($html);
-    $dompdf->setPaper('A4', 'portrait');
-    $dompdf->render();
-    
-    file_put_contents($pdfPath, $dompdf->output());
-    return $pdfPath;
-}
-
-/**
- * Internal HTML Generator Wrapper
- */
-function getReceiptHtmlInternal($db, $tenantId, $transactionId, $receiptNo) {
-    return \App\Helpers\ReceiptHelper::getHtml($db, $tenantId, $transactionId, $receiptNo);
-}

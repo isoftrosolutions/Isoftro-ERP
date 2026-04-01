@@ -13,8 +13,9 @@ use Dompdf\Options;
 class ReceiptHelper {
     /**
      * Generate HTML string for a receipt
+     * @param bool $isPdf When true, hides print/interactive elements in the template
      */
-    public static function getHtml($db, $tenantId, $transactionId, $receiptNo = null) {
+    public static function getHtml($db, $tenantId, $transactionId, $receiptNo = null, $isPdf = false) {
         if (!$transactionId && !$receiptNo) return "";
 
         $query = "
@@ -77,8 +78,11 @@ class ReceiptHelper {
         }
 
         // Resolved authenticated user for "Received By" footer
-        $receivedByName = $_SESSION['userData']['name'] ?? 'Staff';
-        $receivedByRole = $_SESSION['userData']['role'] ?? '';
+        // In CLI context (queue worker), $_SESSION is unavailable — use safe defaults
+        $receivedByName = (PHP_SAPI !== 'cli' && isset($_SESSION['userData']['name']))
+            ? $_SESSION['userData']['name'] : 'Staff';
+        $receivedByRole = (PHP_SAPI !== 'cli' && isset($_SESSION['userData']['role']))
+            ? $_SESSION['userData']['role'] : '';
 
         $receiptData = [
             'institute_name'     => $txn['institute_name'] ?? 'Institute',
@@ -123,9 +127,11 @@ class ReceiptHelper {
         $html = self::getHtml($db, $tenantId, $transactionId, $receiptNo, true);
         if (!$html) return null;
 
-        $pdfDir = __DIR__ . '/../../../uploads/receipts/';
+        // Canonical path: always write into public/uploads/receipts/ so files are web-accessible
+        $projectRoot = defined('APP_ROOT') ? APP_ROOT : realpath(__DIR__ . '/../../');
+        $pdfDir = $projectRoot . '/public/uploads/receipts/';
         if (!is_dir($pdfDir)) mkdir($pdfDir, 0777, true);
-        
+
         $filename = 'receipt_' . ($receiptNo ?: $transactionId) . '.pdf';
         $pdfPath = $pdfDir . $filename;
 
@@ -139,15 +145,15 @@ class ReceiptHelper {
             $dompdf->loadHtml($html);
             $dompdf->setPaper('A4', 'portrait');
             $dompdf->render();
-            
+
             file_put_contents($pdfPath, $dompdf->output());
-            
-            // NEW: Write receipt_path back to database
+
+            // Store path relative to public/ (canonical format for all code paths)
             if ($db && ($transactionId || $receiptNo)) {
-                $relativePath = 'public/uploads/receipts/' . $filename;
+                $relativePath = 'uploads/receipts/' . $filename;
                 $updateQuery = "UPDATE payment_transactions SET receipt_path = :path WHERE tenant_id = :tenant";
                 $updateParams = ['path' => $relativePath, 'tenant' => $tenantId];
-                
+
                 if ($transactionId) {
                     $updateQuery .= " AND id = :tid";
                     $updateParams['tid'] = $transactionId;
@@ -155,11 +161,13 @@ class ReceiptHelper {
                     $updateQuery .= " AND receipt_number = :rno";
                     $updateParams['rno'] = $receiptNo;
                 }
-                
+
                 $stmt = $db->prepare($updateQuery);
-                try { $stmt->execute($updateParams); } catch (\Exception $e) { /* Log error if needed */ }
+                try { $stmt->execute($updateParams); } catch (\Exception $e) {
+                    error_log("[ReceiptHelper] DB update error: " . $e->getMessage());
+                }
             }
-            
+
             return $pdfPath;
         } catch (\Exception $e) {
             error_log("PDF Generation Error: " . $e->getMessage());
