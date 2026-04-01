@@ -1,5 +1,5 @@
 /**
- * Hamro ERP — student-lms.js
+ * iSoftro ERP — student-lms.js
  * Student Study Materials Library — Enhanced V3.1
  */
 

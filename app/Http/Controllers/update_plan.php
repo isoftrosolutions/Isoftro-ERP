@@ -1,6 +1,6 @@
 <?php
 /**
- * Hamro ERP — Update Tenant Plan API
+ * iSoftro ERP — Update Tenant Plan API
  */
 
 if (!defined('APP_NAME')) {

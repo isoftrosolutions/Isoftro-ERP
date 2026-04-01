@@ -1,5 +1,5 @@
 /**
- * Hamro ERP — PWA Handler
+ * iSoftro ERP — PWA Handler
  * Handles service worker registration and installation prompts.
  */
 

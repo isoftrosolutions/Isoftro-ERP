@@ -1,5 +1,5 @@
 /**
- * Hamro ERP — Add Tenant Page JS
+ * iSoftro ERP — Add Tenant Page JS
  * Loaded via <script src> inside <main> so the SPA's processPartialHtml
  * re-creates and re-executes this on every navigation to the add-tenant page.
  */

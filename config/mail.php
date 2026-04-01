@@ -1,7 +1,7 @@
 <?php
 /**
  * ─────────────────────────────────────────────────────────────
- *  Hamro ERP — System Mail Configuration
+ *  iSoftro ERP — System Mail Configuration
  *
  *  This file contains the platform's own SMTP credentials.
  *  Institutes NEVER see or touch these settings.

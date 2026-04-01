@@ -1,5 +1,5 @@
 /**
- * Hamro ERP — Institute Admin · ia-reports.js
+ * iSoftro ERP — Institute Admin · ia-reports.js
  * Consolidated Analytics and Reporting Modules
  */
 

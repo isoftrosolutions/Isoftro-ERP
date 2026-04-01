@@ -1,5 +1,5 @@
 /**
- * Hamro ERP — Front Desk Operator
+ * iSoftro ERP — Front Desk Operator
  * Production Blueprint V3.0 — Implementation (LIGHT THEME)
  */
 

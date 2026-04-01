@@ -1,5 +1,5 @@
 /**
- * Hamro ERP — Accounting Module (IA)
+ * iSoftro ERP — Accounting Module (IA)
  * Handles Chart of Accounts, Vouchers, and Financial Reports
  */
 

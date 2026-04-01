@@ -1,5 +1,5 @@
 /**
- * Hamro ERP — ia-study-materials.js
+ * iSoftro ERP — ia-study-materials.js
  * Study Materials Management: CRUD, Categories, Permissions
  */
 

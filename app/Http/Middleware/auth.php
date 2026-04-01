@@ -1,6 +1,6 @@
 <?php
 /**
- * Hamro ERP — Authentication Functions
+ * iSoftro ERP — Authentication Functions
  * Platform Blueprint V3.0
  */
 

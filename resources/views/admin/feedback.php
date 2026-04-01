@@ -22,7 +22,7 @@ if (!$isSPA) {
         <div class="support-wrapper">
             <div class="support-hero" style="background: linear-gradient(135deg, #00B894 0%, #009E7E 100%);">
                 <h1><i class="fa-regular fa-paper-plane"></i> Help Us Improve</h1>
-                <p>Found a bug? Have a suggestion? We value your input to make Hamro ERP perfect.</p>
+                <p>Found a bug? Have a suggestion? We value your input to make iSoftro ERP perfect.</p>
             </div>
 
             <div class="feedback-container" style="max-width: 800px; margin: 0 auto;">

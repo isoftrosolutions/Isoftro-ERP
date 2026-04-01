@@ -1,5 +1,5 @@
 /**
- * Hamro ERP — Super Admin JavaScript Module
+ * iSoftro ERP — Super Admin JavaScript Module
  * Refactored to use unified class names matching institute-admin.
  *
  * Sidebar classes : .sb, body.sb-active, body.sb-collapsed

@@ -1,5 +1,5 @@
 /**
- * Hamro ERP — Super Admin Core Module
+ * iSoftro ERP — Super Admin Core Module
  * Handles initialization, navigation, and common utilities.
  */
 
@@ -462,25 +462,64 @@ window.SuperAdmin = (function (existing) {
     const notifChip = document.getElementById("notifChip");
     const notifDropdown = document.getElementById("notifDropdown");
 
+    const closeAll = () => {
+      if (dropdown) {
+        dropdown.classList.remove("active");
+      }
+      if (notifDropdown) {
+        notifDropdown.classList.remove("active");
+      }
+      if (chip) {
+        chip.setAttribute("aria-expanded", "false");
+      }
+      if (notifChip) {
+        notifChip.setAttribute("aria-expanded", "false");
+      }
+    };
+
+    const toggleDropdown = (toggleEl, menuEl) => {
+      if (!toggleEl || !menuEl) return;
+      const willOpen = !menuEl.classList.contains("active");
+      closeAll();
+      menuEl.classList.toggle("active", willOpen);
+      toggleEl.setAttribute("aria-expanded", willOpen ? "true" : "false");
+    };
+
     if (chip && dropdown) {
+      chip.setAttribute("aria-expanded", "false");
       chip.addEventListener("click", (e) => {
         e.stopPropagation();
-        if (notifDropdown) notifDropdown.classList.remove("active");
-        dropdown.classList.toggle("active");
+        toggleDropdown(chip, dropdown);
       });
+      chip.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          toggleDropdown(chip, dropdown);
+        }
+      });
+    }
+
+    if (dropdown) {
+      dropdown.addEventListener("click", (e) => e.stopPropagation());
     }
 
     if (notifChip && notifDropdown) {
+      notifChip.setAttribute("aria-expanded", "false");
       notifChip.addEventListener("click", (e) => {
         e.stopPropagation();
-        if (dropdown) dropdown.classList.remove("active");
-        notifDropdown.classList.toggle("active");
+        toggleDropdown(notifChip, notifDropdown);
+      });
+      notifChip.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          toggleDropdown(notifChip, notifDropdown);
+        }
       });
     }
 
-    document.addEventListener("click", () => {
-      if (dropdown) dropdown.classList.remove("active");
-      if (notifDropdown) notifDropdown.classList.remove("active");
+    document.addEventListener("click", closeAll);
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") closeAll();
     });
   }
 

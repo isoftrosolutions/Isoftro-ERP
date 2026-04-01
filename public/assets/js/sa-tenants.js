@@ -1,5 +1,5 @@
 /**
- * Hamro ERP — Super Admin Tenant Management Module
+ * iSoftro ERP — Super Admin Tenant Management Module
  */
 (function(SuperAdmin) {
     "use strict";

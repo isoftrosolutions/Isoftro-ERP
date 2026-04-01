@@ -1,5 +1,5 @@
 /**
- * Hamro ERP — Student Portal · st-materials.js
+ * iSoftro ERP — Student Portal · st-materials.js
  * Student Study Materials Module
  */
 

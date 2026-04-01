@@ -1,5 +1,5 @@
 /**
- * Hamro ERP — Student Portal · st-library.js
+ * iSoftro ERP — Student Portal · st-library.js
  * Student Library Module
  */
 

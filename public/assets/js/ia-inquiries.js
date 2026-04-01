@@ -1,5 +1,5 @@
 ﻿/**
- * Hamro ERP — ia-inquiries.js
+ * iSoftro ERP — ia-inquiries.js
  * Inquiries & Admissions: List, Add, Analytics, Admission Form
  */
 

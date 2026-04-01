@@ -1,5 +1,5 @@
 /**
- * Hamro ERP — ia-rooms.js
+ * iSoftro ERP — ia-rooms.js
  * Room Management: List, Add, Edit, Delete
  */
 

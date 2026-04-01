@@ -14,6 +14,7 @@ class SuperAdminRouter {
         'analytics' => AnalyticsController::class,
         'support' => SupportController::class,
         'logs' => LogController::class,
+        'profile' => ProfileController::class,
         'system' => SystemController::class,
         'settings' => SystemController::class,
         'plans' => PlanController::class

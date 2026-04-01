@@ -1,5 +1,5 @@
 /**
- * Hamro ERP — Student Portal · st-profile.js
+ * iSoftro ERP — Student Portal · st-profile.js
  * Student Profile Module: view profile with tabs (Personal, Course, Payment, Exam, Attendance)
  */
 

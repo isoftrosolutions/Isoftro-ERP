@@ -1,5 +1,5 @@
 /**
- * Hamro ERP — Institute Admin · Academic Calendar
+ * iSoftro ERP — Institute Admin · Academic Calendar
  */
 
 window.renderAcademicCalendar = function() {

@@ -1,5 +1,5 @@
 /**
- * Hamro ERP — Global Authentication Helper
+ *  ERP — Global Authentication Helper
  * Handles JWT injection, automatic token refresh, and redirection.
  */
 

@@ -1,5 +1,5 @@
 /**
- * Hamro ERP — Login Page Script
+ * iSoftro ERP — Login Page Script
  * Handles form validation and authentication
  */
 

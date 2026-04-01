@@ -1,5 +1,5 @@
 /**
- * Hamro ERP — ia-exams.js  (v2 — matches real DB schema)
+ * iSoftro ERP — ia-exams.js  (v2 — matches real DB schema)
  * Schema: exams(id, tenant_id, batch_id, course_id, created_by_user_id,
  *   title, duration_minutes, total_marks, negative_mark, question_mode,
  *   start_at, end_at, status[draft|scheduled|active|completed|cancelled])

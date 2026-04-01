@@ -1,5 +1,5 @@
 /**
- * Hamro ERP — Student Portal · st-leave.js
+ * iSoftro ERP — Student Portal · st-leave.js
  * Student Leave Request Module
  */
 

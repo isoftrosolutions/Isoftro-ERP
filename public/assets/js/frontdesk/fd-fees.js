@@ -1,5 +1,5 @@
 /**
- * Hamro ERP — ia-fees.js
+ * iSoftro ERP — ia-fees.js
  * Fee Setup: List, Add, Edit, Delete fee items
  * Production-Ready Mobile-First Responsive UI
  */

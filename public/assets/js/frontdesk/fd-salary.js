@@ -1,5 +1,5 @@
 /**
- * Hamro ERP — ia-salary.js
+ * iSoftro ERP — ia-salary.js
  * Staff Salary Management: List, Add, Edit, Delete
  */
 

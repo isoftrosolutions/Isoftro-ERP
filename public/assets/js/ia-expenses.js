@@ -1,5 +1,5 @@
 /**
- * Hamro ERP — Institute Admin · ia-expenses.js
+ * iSoftro ERP — Institute Admin · ia-expenses.js
  * Renders the Expenses module interface.
  */
 

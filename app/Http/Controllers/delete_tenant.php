@@ -1,6 +1,6 @@
 <?php
 /**
- * Hamro ERP — Delete Tenant API
+ * iSoftro ERP — Delete Tenant API
  */
 
 if (!defined('APP_NAME')) {

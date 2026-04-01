@@ -1,5 +1,5 @@
 /**
- * Hamro ERP — ia-email-templates.js
+ * iSoftro ERP — ia-email-templates.js
  * Email Templates Module for Institute Admins
  */
 window.renderEmailTemplates = async function() {

@@ -1,5 +1,5 @@
 /**
- * Hamro ERP — Institute Admin · ia-students.js
+ * iSoftro ERP — Institute Admin · ia-students.js
  * Student domain module: list, profile, quick-add, CRUD
  * Loaded BEFORE ia-core.js so window.* render functions are available.
  */

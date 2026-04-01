@@ -1,5 +1,5 @@
 /**
- * Hamro ERP — Institute Admin · ia-sidebar.v3.js
+ * iSoftro ERP — Institute Admin · ia-sidebar.v3.js
  * SaaS Grade Sidebar System
  * - Zero-flicker state persistence (Immediate execution)
  * - Robust Event Delegation (AJAX-safe)

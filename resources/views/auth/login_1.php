@@ -1,6 +1,6 @@
 <?php
 /**
- * Hamro ERP — Authentication Endpoint
+ * iSoftro ERP — Authentication Endpoint
  * Handles secure login requests via AJAX
  */
 

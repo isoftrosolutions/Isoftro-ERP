@@ -1,6 +1,6 @@
 <?php
 /**
- * Hamro ERP — Front Desk Dashboard
+ * iSoftro ERP — Front Desk Dashboard
  * Seamless Single Page Application (SPA) entry point
  */
 

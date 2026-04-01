@@ -1,5 +1,5 @@
 /**
- * Hamro ERP — ia-qbank.js
+ * iSoftro ERP — ia-qbank.js
  * Question Bank Management based on Study Materials infrastructure
  */
 

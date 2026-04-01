@@ -1,5 +1,5 @@
 /**
- * Hamro ERP — Institute Admin · ia-homework.js
+ * iSoftro ERP — Institute Admin · ia-homework.js
  * Homework Module Javascript
  */
 

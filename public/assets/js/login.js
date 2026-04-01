@@ -1,5 +1,5 @@
 /**
- * Hamro ERP — Login Page Script
+ * iSoftro ERP — Login Page Script
  * JWT authentication:
  *   - Server sets HttpOnly cookie 'token' (primary auth mechanism, immune to XSS)
  *   - Client stores access_token in sessionStorage for manual Authorization headers

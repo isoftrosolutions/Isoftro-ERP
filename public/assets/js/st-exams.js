@@ -1,5 +1,5 @@
 /**
- * Hamro ERP — Student Portal · st-exams.js
+ * iSoftro ERP — Student Portal · st-exams.js
  * Student Exams, Notices, Classes, etc. Module
  */
 

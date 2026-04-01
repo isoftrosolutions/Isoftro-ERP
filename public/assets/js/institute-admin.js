@@ -1,5 +1,5 @@
 /**
- * Hamro ERP — Institute Admin Panel
+ * iSoftro ERP — Institute Admin Panel
  * Production Blueprint V3.0 — Implementation
  */
 

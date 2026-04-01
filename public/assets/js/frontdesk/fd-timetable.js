@@ -1,5 +1,5 @@
 ﻿/**
- * Hamro ERP — ia-timetable.js
+ * iSoftro ERP — ia-timetable.js
  * Timetable Builder: Weekly grid, add/edit slots
  */
 let _ttCurrentData = [];

@@ -1,5 +1,5 @@
 /**
- * Hamro ERP — Message Log Module
+ * iSoftro ERP — Message Log Module
  * Unified tracking for SMS and Email
  */
 window.renderMessageLog = async function() {

@@ -1,5 +1,5 @@
 /**
- * Hamro ERP — ia-settings.js
+ * iSoftro ERP — ia-settings.js
  * Institute Profile / Settings page
  */
 window.renderInstituteProfile = async function() {

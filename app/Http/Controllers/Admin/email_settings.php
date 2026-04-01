@@ -58,7 +58,7 @@ try {
         if ($method !== 'POST') throw new Exception('Method not allowed');
 
         $testEmail  = trim($_POST['test_email']  ?? '');
-        $senderName = trim($_POST['sender_name'] ?? 'Hamro ERP');
+        $senderName = trim($_POST['sender_name'] ?? 'iSoftro ERP');
 
         if (!$testEmail || !filter_var($testEmail, FILTER_VALIDATE_EMAIL)) {
             throw new Exception('Please enter a valid email address.');
@@ -272,6 +272,6 @@ function buildTestHtml(string $inst, string $email, string $pass, string $loginU
             <p style='font-size:12px;color:#64748b;'>In a real email, the password will be the student's actual login password.</p>
             <p>Best Regards,<br><strong>{$i}</strong></p>
         </div>
-        <div class='foot'>Sent by Hamro ERP &mdash; Student Notification System</div>
+        <div class='foot'>Sent by iSoftro ERP &mdash; Student Notification System</div>
     </div></body></html>";
 }

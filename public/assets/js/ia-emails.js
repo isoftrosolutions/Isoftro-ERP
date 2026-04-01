@@ -1,5 +1,5 @@
 /**
- * Hamro ERP — ia-emails.js (The EMAIL Module)
+ * iSoftro ERP — ia-emails.js (The EMAIL Module)
  * Premium Mass-Emailing & Campaigns
  */
 window.renderEmailModule = async function() {

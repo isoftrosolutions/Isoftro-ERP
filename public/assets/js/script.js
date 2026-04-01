@@ -1,5 +1,5 @@
 /**
- * Hamro ERP — Super Admin Panel
+ * iSoftro ERP — Super Admin Panel
  * Platform Blueprint V3.0 — Implementation
  */
 

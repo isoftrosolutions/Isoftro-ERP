@@ -1,5 +1,5 @@
 /**
- * Hamro ERP — Student Portal · st-notices.js
+ * iSoftro ERP — Student Portal · st-notices.js
  * Notices & Announcements Page
  */
 

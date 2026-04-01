@@ -163,6 +163,20 @@ body {
     color: #fff;
 }
 
+/* ── Header dropdowns ── */
+.u-dd {
+    display: none;
+}
+
+.u-dd.active {
+    display: block;
+}
+
+.u-dd .dd-item:hover {
+    background: #f1f5f9;
+    color: var(--green) !important;
+}
+
 /* ── SIDEBAR ── */
 .sb-overlay {
     position: fixed;

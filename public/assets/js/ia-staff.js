@@ -1,5 +1,5 @@
 /**
- * Hamro ERP � ia-staff.js
+ * iSoftro ERP � ia-staff.js
  * Teachers & Front Desk: List, Add, Edit, Delete
  */
 

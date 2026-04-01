@@ -1,5 +1,5 @@
 /**
- * Hamro ERP — Teacher Portal
+ * iSoftro ERP — Teacher Portal
  * Production Blueprint V3.0
  * 
  * This script handles all front-end logic for the Teacher Portal.

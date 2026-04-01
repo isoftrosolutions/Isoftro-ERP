@@ -1,5 +1,5 @@
 /**
- * Hamro ERP — Super Admin System Module
+ * iSoftro ERP — Super Admin System Module
  * Handles Configuration, Logs, and Internal Settings
  */
 (function(SuperAdmin) {
@@ -76,7 +76,7 @@
                         <h3>General Settings</h3>
                         <div class="form-row">
                             <label class="form-lbl">Platform Name</label>
-                            <input class="form-inp" value="Hamro ERP Platform">
+                            <input class="form-inp" value="iSoftro ERP Platform">
                         </div>
                         <div class="form-row">
                             <label class="form-lbl">Support Contact</label>

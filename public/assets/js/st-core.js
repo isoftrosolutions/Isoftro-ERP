@@ -1,5 +1,5 @@
 /**
- * Hamro ERP — Student Portal · st-core.js
+ * iSoftro ERP — Student Portal · st-core.js
  * Core: shared state, sidebar, page routing
  * Load this file LAST, after all st-*.js domain modules.
  */

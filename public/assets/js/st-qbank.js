@@ -1,5 +1,5 @@
 /**
- * Hamro ERP — st-qbank.js
+ * iSoftro ERP — st-qbank.js
  * Student View for Question Bank
  */
 

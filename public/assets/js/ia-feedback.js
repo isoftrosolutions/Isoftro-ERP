@@ -29,7 +29,7 @@
 
             // Update URL and Title
             window.history.pushState({ nav: 'feedback' }, 'Feedback', '?page=feedback');
-            document.title = 'Feedback | Hamro ERP';
+            document.title = 'Feedback | iSoftro ERP';
 
         } catch (error) {
             console.error('Feedback SPA Error:', error);

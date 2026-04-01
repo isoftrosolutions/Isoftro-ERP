@@ -1,5 +1,5 @@
 /**
- * Hamro ERP — Student Portal · st-leaderboard.js
+ * iSoftro ERP — Student Portal · st-leaderboard.js
  * Student Performance Leaderboard
  */
 

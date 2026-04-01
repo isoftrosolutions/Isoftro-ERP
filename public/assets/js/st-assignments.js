@@ -1,5 +1,5 @@
 /**
- * Hamro ERP — Student Portal · st-assignments.js
+ * iSoftro ERP — Student Portal · st-assignments.js
  * Student Assignments Module
  */
 

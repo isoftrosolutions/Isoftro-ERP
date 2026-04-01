@@ -1,5 +1,5 @@
 /**
- * Hamro ERP — Student Portal · st-attendance.js
+ * iSoftro ERP — Student Portal · st-attendance.js
  * Student Attendance Module
  */
 

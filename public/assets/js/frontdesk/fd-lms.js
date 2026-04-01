@@ -1,5 +1,5 @@
 /**
- * Hamro ERP — ia-lms.js
+ * iSoftro ERP — ia-lms.js
  * Learning Management System Dashboard
  */
 

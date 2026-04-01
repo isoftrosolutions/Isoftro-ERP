@@ -1,5 +1,5 @@
 /**
- * Hamro ERP — fd-qbank.js
+ * iSoftro ERP — fd-qbank.js
  * Question Bank Management for Front Desk / Teachers
  * Based on Study Materials infrastructure
  */

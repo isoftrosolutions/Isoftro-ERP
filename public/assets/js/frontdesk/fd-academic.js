@@ -1,5 +1,5 @@
 ﻿/**
- * Hamro ERP — ia-academic.js
+ * iSoftro ERP — ia-academic.js
  * Courses & Batches: List, Add, Edit, Delete
  */
 

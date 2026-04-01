@@ -1,5 +1,5 @@
 /**
- * Hamro ERP — ia-settings.js
+ * iSoftro ERP — ia-settings.js
  * Institute Profile / Settings page
  */
 window.renderInstituteProfile = async function() {
@@ -217,7 +217,7 @@ window.renderEmailSettings = async function() {
                     <i class="fa-solid fa-shield-halved" style="color:#fff;font-size:18px;"></i>
                 </div>
                 <div>
-                    <div style="font-size:14px;font-weight:700;color:#3730A3;margin-bottom:4px;">Powered by Hamro ERP Mail System</div>
+                    <div style="font-size:14px;font-weight:700;color:#3730A3;margin-bottom:4px;">Powered by iSoftro ERP Mail System</div>
                     <div style="font-size:12px;color:#4F46E5;line-height:1.5;">Emails are sent securely through our platform. You don't need to configure any SMTP settings — just enter your sender name and the email address where students can reply to you.</div>
                 </div>
             </div>
@@ -390,7 +390,7 @@ window.testEmailSend = async function() {
         try {
             const fd = new FormData();
             fd.append('test_email', testEmail);
-            fd.append('sender_name', document.getElementById('emSenderName')?.value || 'Hamro ERP');
+            fd.append('sender_name', document.getElementById('emSenderName')?.value || 'iSoftro ERP');
             const res = await fetch(APP_URL + '/api/frontdesk/email-settings/test', { method: 'POST', body: fd });
             const result = await res.json();
             if (result.success) {

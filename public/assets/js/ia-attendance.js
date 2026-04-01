@@ -1,5 +1,5 @@
 /**
- * Hamro ERP — Institute Admin · ia-attendance.js
+ * iSoftro ERP — Institute Admin · ia-attendance.js
  * Handles Attendance module logic and rendering
  */
 

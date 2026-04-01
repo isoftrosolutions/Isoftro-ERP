@@ -1,5 +1,5 @@
 /**
- * Hamro ERP — Institute Admin · ia-core.js
+ * iSoftro ERP — Institute Admin · ia-core.js
  * Core: shared state, sidebar, page routing
  * Load this file LAST, after all ia-*.js domain modules.
  *

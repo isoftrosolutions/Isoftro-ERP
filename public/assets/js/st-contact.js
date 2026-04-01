@@ -1,5 +1,5 @@
 /**
- * Hamro ERP — Student Portal · st-contact.js
+ * iSoftro ERP — Student Portal · st-contact.js
  * Contact Admin / Support Tickets Page
  */
 

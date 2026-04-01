@@ -2,11 +2,11 @@
 
 <?php
 /**
- * Hamro ERP — Role Selection View
+ * iSoftro ERP — Role Selection View
  * Moved from public/index.php
  */
 
-$pageTitle    = "Hamro ERP — Select Role";
+$pageTitle    = "iSoftro ERP — Select Role";
 $wrapperClass = "role-portal";
 
 // Absolute paths for organized assets
@@ -94,9 +94,9 @@ include VIEWS_PATH . '/layouts/header.php';
     <header class="portal-header">
         <div class="hdr-logo-box">
             <div class="logo-fallback">
-                <img src="<?= $ASSETS ?>/images/logo.png" alt="Hamro ERP" style="height:32px;width:auto;">
+                <img src="<?= $ASSETS ?>/images/logo.png" alt="iSoftro ERP" style="height:32px;width:auto;">
             </div>
-            <span class="logo-txt">Hamro ERP</span>
+            <span class="logo-txt">iSoftro ERP</span>
         </div>
     </header>
 
@@ -104,7 +104,7 @@ include VIEWS_PATH . '/layouts/header.php';
     <main class="portal-main">
         <div class="portal-title">
             <h1>Select Your Role</h1>
-            <p>Choose the appropriate dashboard to access the Hamro ERP system based on your assigned role.</p>
+            <p>Choose the appropriate dashboard to access the iSoftro ERP system based on your assigned role.</p>
         </div>
 
         <div class="roles-grid">
@@ -186,7 +186,7 @@ include VIEWS_PATH . '/layouts/header.php';
 
     <!-- Footer -->
     <footer class="portal-footer">
-        <p>Hamro ERP &copy; <?= date('Y') ?> | Platform Version 3.0</p>
+        <p>iSoftro ERP &copy; <?= date('Y') ?> | Platform Version 3.0</p>
         <p style="margin-top:8px;">
             <a href="#"><i class="fa-solid fa-circle-question"></i> Need Help?</a>
         </p>

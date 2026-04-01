@@ -39,7 +39,7 @@ if (!$isSPA) {
             <!-- Hero Header -->
             <div class="support-hero">
                 <h1><i class="fa-solid fa-headset"></i> Support & Help Center</h1>
-                <p>Find answers, watch tutorials, or get in touch with our support team. We're here to help you make the most of Hamro ERP.</p>
+                <p>Find answers, watch tutorials, or get in touch with our support team. We're here to help you make the most of iSoftro ERP.</p>
             </div>
 
             <!-- Quick Help Cards -->
@@ -910,12 +910,12 @@ if (!$isSPA) {
                             <i class="fa-solid fa-chevron-down"></i>
                         </div>
                         <div class="faq-answer">
-                            <p>Yes! Hamro ERP offers mobile apps for:</p>
+                            <p>Yes! iSoftro ERP offers mobile apps for:</p>
                             <ul>
                                 <li><strong>Parents/Guardians:</strong> Available on Google Play Store and Apple App Store</li>
                                 <li><strong>Students:</strong> Available on Google Play Store and Apple App Store</li>
                             </ul>
-                            <p>Download "Hamro ERP" app and log in with your credentials to access student information, fees, attendance, and more.</p>
+                            <p>Download "iSoftro ERP" app and log in with your credentials to access student information, fees, attendance, and more.</p>
                         </div>
                     </div>
 
@@ -928,7 +928,7 @@ if (!$isSPA) {
                         <div class="faq-answer">
                             <strong>Step-by-step guide:</strong>
                             <ol>
-                                <li>Open Hamro ERP app</li>
+                                <li>Open iSoftro ERP app</li>
                                 <li>Log in with parent credentials</li>
                                 <li>Select child (if multiple)</li>
                                 <li>Go to "Attendance" tab</li>

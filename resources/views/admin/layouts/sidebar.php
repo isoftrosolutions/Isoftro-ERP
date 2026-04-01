@@ -25,7 +25,7 @@ $sidebarConfig = filterIASidebarByPermission($sidebarConfig);
 $tenantId = $_SESSION['tenant_id'] ?? null;
 $badges = getIASidebarBadges($tenantId);
 
-$tenantName = $_SESSION['tenant_name'] ?? 'Hamro ERP';
+$tenantName = $_SESSION['tenant_name'] ?? 'iSoftro ERP';
 $planName   = $_SESSION['userData']['plan_name'] ?? 'Growth Plan';
 
 // Dynamic brand color from session/tenant

@@ -1,5 +1,5 @@
 /**
- * Hamro ERP — Student Portal · st-classes.js
+ * iSoftro ERP — Student Portal · st-classes.js
  * Timetable & Online Classes Module
  */
 

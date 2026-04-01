@@ -1,5 +1,5 @@
 /**
- * Hamro ERP — Super Admin Revenue Module
+ * iSoftro ERP — Super Admin Revenue Module
  */
 (function(SuperAdmin) {
     "use strict";

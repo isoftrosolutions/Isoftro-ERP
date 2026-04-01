@@ -1,5 +1,5 @@
 /**
- * Hamro ERP — ia-date-helper.js
+ * iSoftro ERP — ia-date-helper.js
  * Accurate Nepali calendar algorithm (standard reference implementation)
  * Extracted from academic-calendar-hamropatro.html
  */

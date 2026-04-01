@@ -1,5 +1,5 @@
 /**
- * Hamro ERP — Student Portal · st-fees.js
+ * iSoftro ERP — Student Portal · st-fees.js
  * Student Fees Module
  */
 

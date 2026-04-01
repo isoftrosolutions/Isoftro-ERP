@@ -1,6 +1,6 @@
 <?php
 /**
- * Hamro ERP — Logout Handler (Direct PHP)
+ * iSoftro ERP — Logout Handler (Direct PHP)
  * Bypasses Laravel routing to avoid framework issues.
  *
  * Clears:

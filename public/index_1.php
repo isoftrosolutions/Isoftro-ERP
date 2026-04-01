@@ -1,6 +1,6 @@
 <?php
 /**
- * Hamro ERP — Super Admin Dashboard
+ * iSoftro ERP — Super Admin Dashboard
  * Enhanced with real-time stats and charts
  */
 

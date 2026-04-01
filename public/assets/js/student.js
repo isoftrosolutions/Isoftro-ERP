@@ -1,5 +1,5 @@
 /**
- * Hamro ERP — Student Dashboard
+ * iSoftro ERP — Student Dashboard
  * Production Blueprint V3.0 — Implementation (LIGHT THEME)
  */
 

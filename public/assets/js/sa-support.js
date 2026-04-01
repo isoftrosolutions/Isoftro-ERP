@@ -1,5 +1,5 @@
 /**
- * Hamro ERP — Super Admin Support Module
+ * iSoftro ERP — Super Admin Support Module
  */
 (function(SuperAdmin) {
     "use strict";

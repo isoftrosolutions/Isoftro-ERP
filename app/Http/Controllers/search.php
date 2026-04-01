@@ -1,6 +1,6 @@
 <?php
 /**
- * Hamro ERP — Super Admin Live Search API
+ * iSoftro ERP — Super Admin Live Search API
  * Platform Blueprint V3.0
  * 
  * AJAX endpoint for live search functionality

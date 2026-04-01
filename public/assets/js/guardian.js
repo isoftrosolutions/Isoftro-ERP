@@ -1,5 +1,5 @@
 /**
- * Hamro ERP — Guardian Dashboard
+ * iSoftro ERP — Guardian Dashboard
  * Production Blueprint V3.0 — Implementation (LIGHT THEME)
  */
 

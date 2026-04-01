@@ -1,5 +1,5 @@
 /**
- * Hamro ERP — ia-academics.js
+ * iSoftro ERP — ia-academics.js
  * Subjects & Allocations: List, Add, Edit, Allocation
  */
 

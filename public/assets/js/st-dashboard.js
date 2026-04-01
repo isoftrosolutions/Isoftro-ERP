@@ -1,5 +1,5 @@
 /**
- * Hamro ERP — Student Portal · st-dashboard.js
+ * iSoftro ERP — Student Portal · st-dashboard.js
  * Student Dashboard Module
  */
 
@@ -39,7 +39,7 @@ window.renderSTDashboard = async function() {
                         </div>
                         <div style="text-align:right;">
                             <div style="font-size:1.5rem;font-weight:800;">${new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</div>
-                            <div style="opacity:0.8;font-size:13px;margin-top:5px;"><i class="fa-solid fa-location-dot"></i> ${si.institute_name || 'Hamro ERP'}</div>
+                            <div style="opacity:0.8;font-size:13px;margin-top:5px;"><i class="fa-solid fa-location-dot"></i> ${si.institute_name || 'iSoftro ERP'}</div>
                         </div>
                     </div>
                 </div>
