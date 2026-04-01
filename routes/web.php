@@ -103,16 +103,9 @@ Route::post('/auth/verify-otp', function () {
     require_once resource_path('views/auth/verify_otp.php');
 });
 
-// Logout — Handled by /logout.php (standalone file outside Laravel)
-// Route redirect for REST semantics
-Route::match(['get', 'post'], '/auth/logout', function () {
-    return redirect('/logout.php');
-});
-
-// Legacy logout redirect
-Route::match(['get', 'post'], '/logout', function () {
-    return redirect('/logout.php');
-});
+// Logout — Handled by /logout.php (standalone PHP file outside Laravel routing)
+// No routes needed - direct file access is the most reliable approach
+// All views updated to use /logout.php directly
 
 // Loading screen route - shown after successful login
 Route::get('/loading', function () {
