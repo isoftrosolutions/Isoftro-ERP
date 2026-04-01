@@ -84,6 +84,24 @@
     color: #1e293b;
 }
 
+/* Empty / zero-value stat card — subdued look with a setup hint */
+.student-stat-card[data-zero] {
+    opacity: 0.65;
+}
+
+.student-stat-card[data-zero] .stat-info .stat-value {
+    color: #94a3b8;
+}
+
+.student-stat-card[data-zero] .stat-info::after {
+    content: 'Not set up yet';
+    display: block;
+    font-size: 0.7rem;
+    color: #94a3b8;
+    font-weight: 500;
+    margin-top: 2px;
+}
+
 /* Modern Filter Bar */
 .premium-filter-bar {
     background: var(--student-card-bg);
