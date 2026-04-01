@@ -287,6 +287,8 @@ body.sb-collapsed .sb-collapse-btn i {
 .sb-header-logo {
     height: 28px;
     width: auto;
+    max-width: 100%;
+    object-fit: contain;
     margin-right: 10px;
     filter: brightness(0) invert(1);
 }
