@@ -81,7 +81,7 @@ window.authFetch = async function(url, options = {}) {
 
 /**
  * Handle Logout across all tabs
- * Clears client-side state and navigates to /auth/logout
+ * Clears client-side state and navigates to /logout.php
  */
 window.authLogout = function() {
     // Clear all client-side authentication state
@@ -91,7 +91,7 @@ window.authLogout = function() {
     localStorage.removeItem('token_expires_at');
 
     // Redirect to server-side logout handler
-    // Server will clear token cookie and session
-    const logoutUrl = (window.APP_URL || location.origin) + '/auth/logout';
+    // /logout.php is a standalone file that clears token cookie and session
+    const logoutUrl = (window.APP_URL || location.origin) + '/logout.php';
     window.location.href = logoutUrl;
 };
