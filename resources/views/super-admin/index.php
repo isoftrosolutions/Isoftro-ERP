@@ -94,13 +94,13 @@ $monthlyRevenue = $stmt->fetchColumn();
                     
                     <!-- Dropdown Menu -->
                     <div class="u-dd" id="userDropdown" style="position: absolute; top: calc(100% + 10px); right: 0; background: #fff; border-radius: 12px; padding: 10px; min-width: 200px; box-shadow: 0 10px 40px rgba(0,0,0,0.15); border: 1px solid #e2e8f0; display: none; z-index: 1000;">
-                        <a href="#" class="dd-item" style="display: flex; align-items: center; gap: 10px; padding: 10px; font-size: 13px; color: #475569; text-decoration: none; border-radius: 8px; transition: 0.2s;">
+                        <a href="#" onclick="goNav('profile'); return false;" class="dd-item" style="display: flex; align-items: center; gap: 10px; padding: 10px; font-size: 13px; color: #475569; text-decoration: none; border-radius: 8px; transition: 0.2s;">
                             <i class="fas fa-user-circle"></i> My Profile
                         </a>
-                        <a href="#" class="dd-item" style="display: flex; align-items: center; gap: 10px; padding: 10px; font-size: 13px; color: #475569; text-decoration: none; border-radius: 8px; transition: 0.2s;">
+                        <a href="#" onclick="goNav('profile'); return false;" class="dd-item" style="display: flex; align-items: center; gap: 10px; padding: 10px; font-size: 13px; color: #475569; text-decoration: none; border-radius: 8px; transition: 0.2s;">
                             <i class="fas fa-key"></i> Change Password
                         </a>
-                        <a href="#" class="dd-item" style="display: flex; align-items: center; gap: 10px; padding: 10px; font-size: 13px; color: #475569; text-decoration: none; border-radius: 8px; transition: 0.2s;">
+                        <a href="#" onclick="goNav('logs'); return false;" class="dd-item" style="display: flex; align-items: center; gap: 10px; padding: 10px; font-size: 13px; color: #475569; text-decoration: none; border-radius: 8px; transition: 0.2s;">
                             <i class="fas fa-fingerprint"></i> Activity Log
                         </a>
                         <div style="height: 1px; background: #f1f5f9; margin: 8px 0;"></div>
