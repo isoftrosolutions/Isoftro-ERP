@@ -96,7 +96,28 @@
                 body.classList.remove('sb-active');
             }
         });
-        
+
+        // 3. Swipe-left-to-close on mobile sidebar
+        let _swipeStartX = 0, _swipeStartY = 0;
+        const sidebar = document.getElementById('sidebar');
+        if (sidebar) {
+            sidebar.addEventListener('touchstart', (e) => {
+                _swipeStartX = e.touches[0].clientX;
+                _swipeStartY = e.touches[0].clientY;
+            }, { passive: true });
+
+            sidebar.addEventListener('touchend', (e) => {
+                if (window.innerWidth >= 1024) return;
+                const dx = e.changedTouches[0].clientX - _swipeStartX;
+                const dy = Math.abs(e.changedTouches[0].clientY - _swipeStartY);
+                // Swipe left ≥ 60px and mostly horizontal
+                if (dx < -60 && dy < 60) {
+                    body.classList.remove('sb-active');
+                    log('Closed via swipe-left.');
+                }
+            }, { passive: true });
+        }
+
         log('Listeners initialized via Delegation.');
     };
 

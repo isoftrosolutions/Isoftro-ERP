@@ -24,20 +24,19 @@ window.loadStudentStats = async () => {
         
         if (result.success && result.stats) {
             const st = result.stats;
-            const elTotal = document.getElementById('stat-total');
-            if (elTotal) elTotal.textContent = st.total || 0;
-            
-            const elMonth = document.getElementById('stat-month');
-            if (elMonth) elMonth.textContent = st.this_month || 0;
-            
-            const elCourses = document.getElementById('stat-courses');
-            if(elCourses) elCourses.textContent = st.courses || 0;
-            
-            const elBatches = document.getElementById('stat-batches');
-            if(elBatches) elBatches.textContent = st.batches || 0;
 
-            const elAlumni = document.getElementById('stat-alumni');
-            if(elAlumni) elAlumni.textContent = st.alumni || 0;
+            const _setStat = (id, val) => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.textContent = val || 0;
+                el.closest('.student-stat-card')?.toggleAttribute('data-zero', !val);
+            };
+
+            _setStat('stat-total',   st.total);
+            _setStat('stat-month',   st.this_month);
+            _setStat('stat-courses', st.courses);
+            _setStat('stat-batches', st.batches);
+            _setStat('stat-alumni',  st.alumni);
         }
     } catch (error) {
         console.error('loadStudentStats error:', error);

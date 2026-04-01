@@ -3951,10 +3951,26 @@ body.sb-collapsed .nbi {
 }
 
 @media (max-width: 768px) {
+    /* Two-column KPI grid on phones — one card per row is too wasteful */
     .kpi-row-v2 {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
     }
 
+    .kpi-card-v2 {
+        min-height: 120px;
+        padding: 14px;
+    }
+
+    .secondary-strip-v2 {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+}
+
+@media (max-width: 400px) {
+    /* Very small phones: single column */
+    .kpi-row-v2,
     .secondary-strip-v2 {
         grid-template-columns: 1fr;
     }
