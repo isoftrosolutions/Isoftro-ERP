@@ -103,46 +103,15 @@ Route::post('/auth/verify-otp', function () {
     require_once resource_path('views/auth/verify_otp.php');
 });
 
-// Logout — Clear token cookie and redirect to login
-Route::match(['get', 'post'], '/auth/logout', function (Request $request) {
-    // Clear JWT token cookie
-    $host = $_SERVER['HTTP_HOST'] ?? '';
-    $cookieDomain = null;
-    if ($host && !in_array($host, ['localhost', '127.0.0.1'])) {
-        $parts = explode('.', $host);
-        if (count($parts) >= 2) {
-            $cookieDomain = '.' . implode('.', array_slice($parts, -2));
-        }
-    }
-
-    // Set cookie to expire (logout) with proper parameters
-    $secure = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on';
-    setcookie('token', '', time() - 42000, '/', $cookieDomain, $secure, true);
-
-    // Also clear session cookie
-    if (function_exists('session_name') && session_status() === PHP_SESSION_ACTIVE) {
-        $params = session_get_cookie_params();
-        setcookie(session_name(), '', time() - 42000, $params['path'], $params['domain'], $params['secure'], $params['httponly']);
-        $_SESSION = [];
-        session_destroy();
-    }
-
-    // Return based on request type
-    if ($request->wantsJson()) {
-        header('Content-Type: application/json');
-        echo json_encode(['success' => true, 'message' => 'Successfully logged out']);
-        exit;
-    }
-
-    // Redirect to login
-    header('Location: ' . (defined('APP_URL') ? APP_URL : '/') . '/auth/login');
-    exit;
+// Logout — Direct to PHP handler to avoid framework complexity
+Route::match(['get', 'post'], '/auth/logout', function () {
+    require_once public_path('logout.php');
 });
 
 
 // Legacy logout redirect
-Route::get('/logout', function() {
-    return redirect('/auth/logout');
+Route::match(['get', 'post'], '/logout', function () {
+    require_once public_path('logout.php');
 });
 
 // Loading screen route - shown after successful login
