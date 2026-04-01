@@ -846,7 +846,7 @@ Route::middleware(['auth.superadmin'])->group(function () {
     Route::post('/api/super-admin/tenants/activate/{id}', [App\Http\Controllers\API\SuperAdminController::class, 'activateTenant']);
 
     Route::post('/api/super-admin/tenants/update', [App\Http\Controllers\API\SuperAdminController::class, 'updateTenant']);
-    Route::post('/api/super-admin/tenants/delete', [App\Http\Controllers\API\SuperAdminController::class, 'deleteTenant']);
+    Route::match(['post', 'delete'], '/api/super-admin/tenants/delete/{id?}', [App\Http\Controllers\API\SuperAdminController::class, 'deleteTenant']);
     Route::post('/api/super-admin/tenants/update-plan', [App\Http\Controllers\API\SuperAdminController::class, 'updatePlan']);
 
     // Plan and Pricing Management
