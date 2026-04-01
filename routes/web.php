@@ -103,35 +103,11 @@ Route::post('/auth/verify-otp', function () {
     require_once resource_path('views/auth/verify_otp.php');
 });
 
-// Logout — Handled by direct PHP file (see /public/logout.php)
-// Routes just redirect to it to leverage REST semantics
+// Logout — Delegate to public/logout.php (standalone handler outside Laravel)
+// This avoids framework complications with route closures
 Route::match(['get', 'post'], '/auth/logout', function () {
-    // Directly execute logout logic inline to avoid path resolution issues
-    $host = $_SERVER['HTTP_HOST'] ?? '';
-    $cookieDomain = null;
-    if ($host && !in_array($host, ['localhost', '127.0.0.1'])) {
-        $parts = explode('.', $host);
-        if (count($parts) >= 2) {
-            $cookieDomain = '.' . implode('.', array_slice($parts, -2));
-        }
-    }
-
-    $secure = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on';
-    setcookie('token', '', time() - 42000, '/', $cookieDomain, $secure, true);
-
-    if (function_exists('session_name') && session_status() === PHP_SESSION_ACTIVE) {
-        setcookie(session_name(), '', time() - 42000, '/', $cookieDomain, $secure, true);
-        $_SESSION = [];
-        session_destroy();
-    }
-
-    $isJson = strpos($_SERVER['HTTP_ACCEPT'] ?? '', 'application/json') !== false;
-    if ($isJson) {
-        header('Content-Type: application/json');
-        return response()->json(['success' => true, 'message' => 'Successfully logged out']);
-    }
-
-    return redirect('/auth/login');
+    include public_path() . '/../logout.php';
+    exit;
 });
 
 // Legacy logout redirect
