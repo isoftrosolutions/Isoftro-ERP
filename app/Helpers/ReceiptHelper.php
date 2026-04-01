@@ -116,7 +116,8 @@ class ReceiptHelper {
 
         ob_start();
         // $isPdf is locally available from parameter
-        require base_path('scripts/receipt_template.php');
+        $projectRoot = defined('APP_ROOT') ? APP_ROOT : realpath(__DIR__ . '/../../');
+        require $projectRoot . '/scripts/receipt_template.php';
         return ob_get_clean();
     }
 
