@@ -115,21 +115,28 @@ Route::match(['get', 'post'], '/auth/logout', function (Request $request) {
         }
     }
 
-    // Set cookie to expire (logout)
-    setcookie('token', '', time() - 42000, '/', $cookieDomain, isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on', true);
+    // Set cookie to expire (logout) with proper parameters
+    $secure = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on';
+    setcookie('token', '', time() - 42000, '/', $cookieDomain, $secure, true);
 
-    // Clear Laravel session if active
-    if (session_status() === PHP_SESSION_ACTIVE) {
+    // Also clear session cookie
+    if (function_exists('session_name') && session_status() === PHP_SESSION_ACTIVE) {
+        $params = session_get_cookie_params();
+        setcookie(session_name(), '', time() - 42000, $params['path'], $params['domain'], $params['secure'], $params['httponly']);
         $_SESSION = [];
         session_destroy();
     }
 
     // Return based on request type
-    if ($request->wantsJson() || $request->ajax()) {
-        return response()->json(['success' => true, 'message' => 'Successfully logged out']);
+    if ($request->wantsJson()) {
+        header('Content-Type: application/json');
+        echo json_encode(['success' => true, 'message' => 'Successfully logged out']);
+        exit;
     }
 
-    return redirect('/auth/login');
+    // Redirect to login
+    header('Location: ' . (defined('APP_URL') ? APP_URL : '/') . '/auth/login');
+    exit;
 });
 
 
