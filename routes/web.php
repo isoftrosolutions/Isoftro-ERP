@@ -104,16 +104,14 @@ Route::post('/auth/verify-otp', function () {
 });
 
 // Logout — Handled by /logout.php (standalone file outside Laravel)
-// Route redirect for REST semantics (/auth/logout -> /logout.php)
+// Route redirect for REST semantics
 Route::match(['get', 'post'], '/auth/logout', function () {
-    header('Location: /logout.php');
-    exit;
+    return redirect('/logout.php');
 });
 
 // Legacy logout redirect
 Route::match(['get', 'post'], '/logout', function () {
-    header('Location: /logout.php');
-    exit;
+    return redirect('/logout.php');
 });
 
 // Loading screen route - shown after successful login
