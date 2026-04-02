@@ -112,13 +112,24 @@ class FeeCalculationService {
         if (!$settings) {
             $settings = $this->feeSettingsModel->createDefault($tenantId);
         }
-        
+
         $prefix = ($type === 'invoice') ? $settings['invoice_prefix'] : $settings['receipt_prefix'];
-        $nextNum = ($type === 'invoice') ? $settings['next_invoice_number'] : $settings['next_receipt_number'];
-        
-        $docNo = $prefix . '-' . str_pad($nextNum, 6, '0', STR_PAD_LEFT);
-        
-        // Note: Number should be incremented only on actual save
-        return $docNo;
+
+        // Generate random 6-digit number, ensure uniqueness
+        $db = \DB::connection()->getPdo();
+        $maxAttempts = 10;
+        for ($i = 0; $i < $maxAttempts; $i++) {
+            $random = random_int(100000, 999999);
+            $docNo = $prefix . '-' . $random;
+
+            $stmt = $db->prepare("SELECT COUNT(*) FROM payment_transactions WHERE receipt_number = ? AND tenant_id = ?");
+            $stmt->execute([$docNo, $tenantId]);
+            if ($stmt->fetchColumn() == 0) {
+                return $docNo;
+            }
+        }
+
+        // Fallback: timestamp-based if all random attempts collide
+        return $prefix . '-' . substr(time(), -6);
     }
 }
