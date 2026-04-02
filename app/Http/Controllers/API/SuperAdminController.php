@@ -245,15 +245,40 @@ class SuperAdminController extends Controller
                 'status' => 'active',
             ]);
 
-            // 3. Assign Features
+            // 3. Assign Features - Either from request OR from plan
+            $featureIds = [];
+
+            // Option A: Use explicitly provided features
             if ($request->has('features') && is_array($request->features)) {
-                foreach ($request->features as $featureId) {
-                    DB::table('institute_feature_access')->insert([
-                        'tenant_id' => $tenant->id,
-                        'feature_id' => $featureId,
-                        'is_enabled' => true
-                    ]);
+                $featureIds = $request->features;
+            } else {
+                // Option B: Auto-assign features based on plan (FIXES: modules not appearing issue)
+                $planKey = $request->plan ?? 'starter';
+                $planId = DB::table('subscription_plans')
+                    ->where('plan_key', $planKey)
+                    ->where('status', 'active')
+                    ->value('id');
+
+                if ($planId) {
+                    $planFeatureIds = DB::table('plan_features')
+                        ->where('plan_id', $planId)
+                        ->where('is_included', true)
+                        ->pluck('feature_id')
+                        ->toArray();
+                    $featureIds = $planFeatureIds;
                 }
+            }
+
+            // Insert all features
+            foreach ($featureIds as $featureId) {
+                DB::table('institute_feature_access')->insert([
+                    'tenant_id' => $tenant->id,
+                    'feature_id' => $featureId,
+                    'is_enabled' => true,
+                    'enabled_at' => now(),
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
             }
 
             // 4. Audit Log
