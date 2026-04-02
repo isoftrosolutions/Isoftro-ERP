@@ -6,33 +6,30 @@
 
 $PDO = getDBConnection();
 
-// Fetch plan-based features (from new add-on system)
+// Fetch plan-based features
 $features = [];
-$planFeatures = [];
+$growthFeatureKeys = [];
 
 try {
     // Get all active system features
     $stmt = $PDO->query("
-        SELECT id, feature_key, feature_name, category, status
+        SELECT id, feature_key, feature_name, is_core, status
         FROM system_features
         WHERE status = 'active'
-        ORDER BY category, feature_name ASC
+        ORDER BY is_core DESC, feature_name ASC
     ");
     $features = $stmt->fetchAll();
 
-    // Pre-populate plan features for default plan (Growth)
-    $stmt = $PDO->prepare("
-        SELECT GROUP_CONCAT(feature_id) as feature_ids
-        FROM plan_features
-        WHERE plan_id = (SELECT id FROM subscription_plans WHERE plan_key = 'growth')
+    // Get feature keys included in Growth plan (default)
+    $stmt = $PDO->query("
+        SELECT feature_key FROM plan_features
+        WHERE is_enabled = 1 AND JSON_CONTAINS(plans, '\"growth\"')
     ");
-    $stmt->execute();
-    $result = $stmt->fetch();
-    $planFeatures = $result ? explode(',', $result['feature_ids']) : [];
+    $growthFeatureKeys = $stmt->fetchAll(PDO::FETCH_COLUMN);
 } catch (Exception $e) {
     error_log("Feature fetch error: " . $e->getMessage());
     $features = [];
-    $planFeatures = [];
+    $growthFeatureKeys = [];
 }
 
 
@@ -169,12 +166,12 @@ try {
                     <?php
                     if (!empty($features)):
                         foreach ($features as $f):
-                            $isChecked = in_array($f['id'], $planFeatures) ? 'checked' : '';
+                            $isChecked = in_array($f['feature_key'], $growthFeatureKeys) ? 'checked' : '';
                     ?>
                     <label class="mod-check-item">
-                        <input type="checkbox" name="features[]" value="<?= htmlspecialchars($f['id']) ?>"
+                        <input type="checkbox" name="features[]" value="<?= (int)$f['id'] ?>"
                                data-slug="<?= htmlspecialchars($f['feature_key']) ?>"
-                               data-category="<?= htmlspecialchars($f['category']) ?>"
+                               data-core="<?= $f['is_core'] ? '1' : '0' ?>"
                                <?= $isChecked ?>
                                class="feature-checkbox">
                         <span><?= htmlspecialchars($f['feature_name']) ?></span>
@@ -359,7 +356,7 @@ async function submitNewTenant() {
         console.log('[TENANT FORM] Submitting new tenant with features:',
             Array.from(formData.getAll('features[]')));
 
-        const response = await fetch(`${window.APP_URL || ''}/api/super/tenants`, {
+        const response = await fetch(`${window.APP_URL || ''}/api/super-admin/tenants/save`, {
             method: 'POST',
             body: formData,
             headers: headers

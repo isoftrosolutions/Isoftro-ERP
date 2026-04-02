@@ -7,15 +7,15 @@ $PDO = getDBConnection();
 
 // Fetch available features with proper schema
 $allFeatures = [];
-$assignedModuleIds = $assignedModules ?? [];
+$assignedModuleKeys = $assignedModules ?? [];
 
 try {
     // Get all active system features
     $stmt = $PDO->query("
-        SELECT id, feature_key, feature_name, category, status
+        SELECT id, feature_key, feature_name, is_core, status
         FROM system_features
         WHERE status = 'active'
-        ORDER BY category, feature_name ASC
+        ORDER BY is_core DESC, feature_name ASC
     ");
     $allFeatures = $stmt->fetchAll();
 } catch (Exception $e) {
@@ -169,12 +169,12 @@ if (!$tenant) {
                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; max-height:400px; overflow-y:auto; padding-right:5px;" id="moduleGrid">
                     <?php if (!empty($allFeatures)):
                         foreach ($allFeatures as $f):
-                            $isChecked = in_array($f['id'], $assignedModuleIds) ? 'checked' : '';
+                            $isChecked = in_array($f['feature_key'], $assignedModuleKeys) ? 'checked' : '';
                     ?>
                     <label class="mod-check-item">
-                        <input type="checkbox" name="features[]" value="<?= htmlspecialchars($f['id']) ?>"
+                        <input type="checkbox" name="features[]" value="<?= (int)$f['id'] ?>"
                                data-slug="<?= htmlspecialchars($f['feature_key']) ?>"
-                               data-category="<?= htmlspecialchars($f['category']) ?>"
+                               data-core="<?= $f['is_core'] ? '1' : '0' ?>"
                                <?= $isChecked ?>
                                class="feature-checkbox">
                         <span><?= htmlspecialchars($f['feature_name']) ?></span>
@@ -256,8 +256,8 @@ async function updateTenant() {
 
         console.log('[EDIT TENANT] Updating tenant with ID:', tenantId);
 
-        const response = await fetch(`${window.APP_URL || ''}/api/super/tenants/${tenantId}`, {
-            method: 'PUT',
+        const response = await fetch(`${window.APP_URL || ''}/api/super-admin/tenants/update`, {
+            method: 'POST',
             body: formData,
             headers: headers
         });

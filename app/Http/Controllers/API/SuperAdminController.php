@@ -249,23 +249,26 @@ class SuperAdminController extends Controller
             $featureIds = [];
 
             // Option A: Use explicitly provided features
-            if ($request->has('features') && is_array($request->features)) {
-                $featureIds = $request->features;
+            if ($request->has('features') && is_array($request->features) && count($request->features) > 0) {
+                $featureIds = array_map('intval', $request->features);
             } else {
-                // Option B: Auto-assign features based on plan (FIXES: modules not appearing issue)
+                // Option B: Auto-assign features based on plan
                 $planKey = $request->plan ?? 'starter';
-                $planId = DB::table('subscription_plans')
-                    ->where('plan_key', $planKey)
-                    ->where('status', 'active')
-                    ->value('id');
 
-                if ($planId) {
-                    $planFeatureIds = DB::table('plan_features')
-                        ->where('plan_id', $planId)
-                        ->where('is_included', true)
-                        ->pluck('feature_id')
+                // Get feature_keys for this plan from plan_features (JSON plans column)
+                $featureKeys = DB::table('plan_features')
+                    ->where('is_enabled', 1)
+                    ->whereRaw("JSON_CONTAINS(plans, ?)", ['"' . $planKey . '"'])
+                    ->pluck('feature_key')
+                    ->toArray();
+
+                // Convert feature_keys to feature IDs from system_features
+                if (!empty($featureKeys)) {
+                    $featureIds = DB::table('system_features')
+                        ->whereIn('feature_key', $featureKeys)
+                        ->where('status', 'active')
+                        ->pluck('id')
                         ->toArray();
-                    $featureIds = $planFeatureIds;
                 }
             }
 
@@ -273,11 +276,8 @@ class SuperAdminController extends Controller
             foreach ($featureIds as $featureId) {
                 DB::table('institute_feature_access')->insert([
                     'tenant_id' => $tenant->id,
-                    'feature_id' => $featureId,
+                    'feature_id' => (int)$featureId,
                     'is_enabled' => true,
-                    'enabled_at' => now(),
-                    'created_at' => now(),
-                    'updated_at' => now(),
                 ]);
             }
 
