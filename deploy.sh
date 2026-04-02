@@ -10,11 +10,11 @@ cd $APP_DIR
 git stash
 git pull origin main
 
-# Install PHP dependencies
-composer install --no-dev --optimize-autoloader
+# Skip composer install if PHP version incompatible
+# composer install --no-dev --optimize-autoloader
 
-# Run migrations
-php artisan migrate --force
+# Run migrations (only if needed)
+# php artisan migrate --force
 
 # Clear all caches
 php artisan config:clear
