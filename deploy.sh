@@ -10,7 +10,10 @@ cd $APP_DIR
 git stash
 git pull origin main
 
-# Clear all caches FIRST (before dependencies)
+# Install composer dependencies with PHP version ignore flag
+COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --optimize-autoloader --ignore-platform-reqs
+
+# Clear all caches
 php artisan config:clear || true
 php artisan view:clear || true
 php artisan cache:clear || true
