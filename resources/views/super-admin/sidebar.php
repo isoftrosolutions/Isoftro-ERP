@@ -47,7 +47,6 @@ function renderSuperAdminSidebar() {
     <nav class="sb" id="sidebar" aria-label="Main navigation">
         <!-- Mobile-only header -->
         <div class="sb-header">
-            <img src="<?php echo htmlspecialchars($logoPath); ?>" alt="iSoftro Platform logo" class="sb-header-logo">
             <div class="logo-txt">ISOFTRO Platform</div>
             <button class="sb-toggle" id="sbClose" aria-label="Close sidebar">
                 <i class="fa-solid fa-xmark" aria-hidden="true"></i>

@@ -45,7 +45,6 @@ $logoPath  = resolveLogoPath($_SESSION['institute_logo'] ?? $_SESSION['tenant_lo
 <nav class="sb" id="sidebar" aria-label="Main navigation">
     <!-- Mobile-only header -->
     <div class="sb-header">
-        <img src="<?php echo htmlspecialchars($logoPath); ?>" alt="<?php echo htmlspecialchars($tenantName); ?> logo" class="sb-header-logo">
         <div class="logo-txt"><?php echo htmlspecialchars($tenantName); ?></div>
         <button class="sb-toggle" id="sbClose" aria-label="Close sidebar">
             <i class="fa-solid fa-xmark" aria-hidden="true"></i>
