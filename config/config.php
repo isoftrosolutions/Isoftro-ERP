@@ -551,7 +551,7 @@ if (!function_exists('hasFeature')) {
         }
 
         // Core features always enabled for all authenticated users
-        if (in_array($featureKey, ['dashboard', 'system', 'student', 'academic'])) {
+        if (in_array($featureKey, ['dashboard', 'system', 'profile', 'student', 'academic'])) {
             return true;
         }
 
@@ -566,10 +566,11 @@ if (!function_exists('hasFeature')) {
             'exams'      => 'exam',
             'accounting' => 'accounting',
             'exam'       => 'exam',
+            'hr'         => 'frontdesk',
         ];
         $searchKey = $aliases[$featureKey] ?? $featureKey;
 
-        // Static per-request in-memory cache — no $_SESSION dependency.
+        // Static per-request in-memory cache — caches both plan and add-on features
         // Single DB query per tenant per PHP process. Survives stateless API calls.
         static $featureCache = [];
         if (array_key_exists($tenantId, $featureCache)) {
@@ -578,18 +579,38 @@ if (!function_exists('hasFeature')) {
 
         try {
             $db = getDBConnection();
+
+            // 1. Get Plan Features (from subscription_plans/institute_feature_access)
             $stmt = $db->prepare("
                 SELECT f.feature_key
                 FROM system_features f
-                JOIN institute_feature_access ifa ON f.id = ifa.feature_id
+                INNER JOIN institute_feature_access ifa ON f.id = ifa.feature_id
                 WHERE ifa.tenant_id = :tenant_id
                 AND ifa.is_enabled = 1
                 AND f.status = 'active'
             ");
             $stmt->execute(['tenant_id' => $tenantId]);
-            $featureCache[$tenantId] = $stmt->fetchAll(\PDO::FETCH_COLUMN) ?: [];
+            $planFeatures = $stmt->fetchAll(\PDO::FETCH_COLUMN) ?: [];
+
+            // 2. Get Add-on Features (from addon_features/tenant_addons)
+            $stmt = $db->prepare("
+                SELECT af.addon_key
+                FROM addon_features af
+                INNER JOIN tenant_addons ta ON af.id = ta.addon_id
+                WHERE ta.tenant_id = :tenant_id
+                AND ta.status = 'active'
+                AND af.status != 'inactive'
+                AND (ta.expires_at IS NULL OR ta.expires_at > NOW())
+            ");
+            $stmt->execute(['tenant_id' => $tenantId]);
+            $addonFeatures = $stmt->fetchAll(\PDO::FETCH_COLUMN) ?: [];
+
+            // Merge both plan and add-on features
+            $featureCache[$tenantId] = array_merge($planFeatures, $addonFeatures);
+
         } catch (\PDOException $e) {
             error_log('[FEATURE-GATE] DB error: ' . $e->getMessage());
+            // Fail closed for security — don't enable features if DB fails
             $featureCache[$tenantId] = [];
         }
 

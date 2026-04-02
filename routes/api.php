@@ -30,6 +30,28 @@ Route::middleware('auth:api')->group(function () {
         Route::post('/tenants/{id}/modules', [SuperAdminController::class, 'assignModules']);
         Route::post('/impersonate/{userId}', [SuperAdminController::class, 'impersonate']);
         Route::post('/stop-impersonation', [SuperAdminController::class, 'stopImpersonation']);
+
+        // ─── ADD-ON FEATURES MANAGEMENT ───
+        // List all available add-ons
+        Route::get('/addons', [SuperAdminController::class, 'getAvailableAddons']);
+        // Get add-on details
+        Route::get('/addons/{addonId}', [SuperAdminController::class, 'getAddonDetails']);
+        // Create new add-on feature
+        Route::post('/addons', [SuperAdminController::class, 'createAddon']);
+        // Get pricing summary
+        Route::get('/addons/pricing', [SuperAdminController::class, 'getAddonPricing']);
+
+        // ─── TENANT ADD-ON MANAGEMENT ───
+        // Get add-ons for a tenant
+        Route::get('/tenants/{tenantId}/addons', [SuperAdminController::class, 'getTenantAddons']);
+        // Assign single add-on to tenant
+        Route::post('/tenants/{tenantId}/addons/{addonId}', [SuperAdminController::class, 'assignAddonToTenant']);
+        // Assign multiple add-ons at once
+        Route::post('/tenants/{tenantId}/addons/batch', [SuperAdminController::class, 'assignMultipleAddons']);
+        // Remove add-on from tenant
+        Route::delete('/tenants/{tenantId}/addons/{addonId}', [SuperAdminController::class, 'removeAddonFromTenant']);
+        // Get add-on usage
+        Route::get('/tenants/{tenantId}/addons/{addonId}/usage', [SuperAdminController::class, 'getAddonUsage']);
     });
 
     // Module-specific Routes
