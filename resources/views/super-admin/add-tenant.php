@@ -6,12 +6,33 @@
 
 $PDO = getDBConnection();
 
-// Fetch available features for selection
+// Fetch plan-based features (from new add-on system)
+$features = [];
+$planFeatures = [];
+
 try {
-    $stmt = $PDO->query("SELECT * FROM system_features ORDER BY feature_name ASC");
+    // Get all active system features
+    $stmt = $PDO->query("
+        SELECT id, feature_key, feature_name, category, status
+        FROM system_features
+        WHERE status = 'active'
+        ORDER BY category, feature_name ASC
+    ");
     $features = $stmt->fetchAll();
+
+    // Pre-populate plan features for default plan (Growth)
+    $stmt = $PDO->prepare("
+        SELECT GROUP_CONCAT(feature_id) as feature_ids
+        FROM plan_features
+        WHERE plan_id = (SELECT id FROM subscription_plans WHERE plan_key = 'growth')
+    ");
+    $stmt->execute();
+    $result = $stmt->fetch();
+    $planFeatures = $result ? explode(',', $result['feature_ids']) : [];
 } catch (Exception $e) {
+    error_log("Feature fetch error: " . $e->getMessage());
     $features = [];
+    $planFeatures = [];
 }
 
 
@@ -145,13 +166,27 @@ try {
                 <p style="font-size:11px; color:var(--text-light); margin-bottom:15px;">Enable specific features for this institute.</p>
                 
                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; max-height:300px; overflow-y:auto; padding-right:5px;" id="moduleGrid">
-                    <?php foreach ($features as $f): ?>
+                    <?php
+                    if (!empty($features)):
+                        foreach ($features as $f):
+                            $isChecked = in_array($f['id'], $planFeatures) ? 'checked' : '';
+                    ?>
                     <label class="mod-check-item">
-                        <input type="checkbox" name="features[]" value="<?= $f['id'] ?>" data-slug="<?= $f['feature_key'] ?>" <?= $f['is_core'] ? 'checked' : '' ?>>
+                        <input type="checkbox" name="features[]" value="<?= htmlspecialchars($f['id']) ?>"
+                               data-slug="<?= htmlspecialchars($f['feature_key']) ?>"
+                               data-category="<?= htmlspecialchars($f['category']) ?>"
+                               <?= $isChecked ?>
+                               class="feature-checkbox">
                         <span><?= htmlspecialchars($f['feature_name']) ?></span>
                     </label>
-                    <?php endforeach; ?>
-
+                    <?php
+                        endforeach;
+                    else:
+                    ?>
+                    <div style="grid-column: 1/-1; padding:20px; text-align:center; color:var(--text-light);">
+                        <p>📦 Features loading... If this persists, check the console (F12) for errors.</p>
+                    </div>
+                    <?php endif; ?>
                 </div>
             </div>
 
@@ -239,64 +274,132 @@ try {
 </style>
 
 <script>
+// Toggle all module checkboxes
 function toggleAllModules(checked) {
-    document.querySelectorAll('#moduleGrid input[type="checkbox"]').forEach(i => i.checked = checked);
+    document.querySelectorAll('#moduleGrid input.feature-checkbox').forEach(checkbox => {
+        checkbox.checked = checked;
+    });
 }
 
-function updateModulePresets(plan) {
-    const starterModules = ['attendance', 'inquiry', 'students', 'accounting', 'system', 'dashboard', 'academic'];
-    const growthModules = [...starterModules, 'exams', 'homework', 'lms', 'reports', 'frontdesk', 'payroll'];
-    
-    if (plan === 'starter') {
-        document.querySelectorAll('#featureGrid input').forEach(i => {
-            const slug = i.dataset.slug ? i.dataset.slug.toLowerCase() : '';
-            i.checked = starterModules.includes(slug);
-        });
-        document.querySelector('[name="student_limit"]').value = 200;
-    } else if (plan === 'growth') {
-        document.querySelectorAll('#featureGrid input').forEach(i => {
-            const slug = i.dataset.slug ? i.dataset.slug.toLowerCase() : '';
-            i.checked = growthModules.includes(slug);
-        });
-        document.querySelector('[name="student_limit"]').value = 500;
-    } else if (plan === 'professional') {
-        toggleAllModules(true);
-        document.querySelector('[name="student_limit"]').value = 2000;
-    } else {
-        document.querySelector('[name="student_limit"]').value = 10000;
-    }
-}
+// Update module presets based on selected plan
+async function updateModulePresets(plan) {
+    console.log('[TENANT FORM] Updating modules for plan:', plan);
 
-
-
-async function submitNewTenant() {
-    const form = document.getElementById('addTenantForm');
-    if (!form.reportValidity()) return;
-
-    const formData = new FormData(form);
-    
-    SuperAdmin.showNotification("Initiating deployment...", "info");
-
+    // Fetch features for selected plan from API
     try {
-        const csrfToken = window.CSRF_TOKEN || document.querySelector('meta[name="csrf-token"]')?.content || '';
-        const res = await fetch(window.APP_URL + '/api/super-admin/tenants/save', {
-            method: 'POST',
-            body: formData,
+        const token = sessionStorage.getItem('access_token');
+        const response = await fetch(`${window.APP_URL || ''}/api/super/tenants/0/addons`, {
             headers: {
-                'X-CSRF-TOKEN': csrfToken
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
             }
         });
-        
-        const result = await res.json();
-        if (result.success) {
-            SuperAdmin.showNotification("Institute launched successfully!", "success");
-            goNav('tenants');
-        } else {
-            SuperAdmin.showNotification(result.error || result.message || "Launch failed", "error");
-        }
+
+        // For now, use plan-based presets
+        const planPresets = {
+            'starter': ['student', 'academic', 'attendance', 'dashboard'],
+            'growth': ['student', 'academic', 'attendance', 'dashboard', 'exam', 'homework', 'accounting', 'inquiry', 'frontdesk'],
+            'professional': ['student', 'academic', 'attendance', 'dashboard', 'exam', 'homework', 'accounting', 'inquiry', 'frontdesk', 'payroll', 'teacher'],
+            'enterprise': [] // All modules enabled
+        };
+
+        const enabledSlugs = planPresets[plan] || [];
+
+        // Update checkboxes based on feature slugs
+        document.querySelectorAll('#moduleGrid input.feature-checkbox').forEach(checkbox => {
+            const slug = checkbox.dataset.slug || '';
+            if (plan === 'enterprise') {
+                checkbox.checked = true;
+            } else {
+                checkbox.checked = enabledSlugs.includes(slug.toLowerCase());
+            }
+        });
+
+        // Update student limit based on plan
+        const limits = {'starter': 200, 'growth': 500, 'professional': 2000, 'enterprise': 10000};
+        document.querySelector('[name="student_limit"]').value = limits[plan] || 500;
+
+        console.log('[TENANT FORM] Modules updated for plan:', plan);
     } catch (e) {
-        console.error(e);
-        SuperAdmin.showNotification("Network error", "error");
+        console.warn('[TENANT FORM] Could not fetch plan features, using defaults:', e);
+        toggleAllModules(plan === 'enterprise');
     }
 }
+
+// Submit new tenant form
+async function submitNewTenant() {
+    const form = document.getElementById('addTenantForm');
+    if (!form.reportValidity()) {
+        console.error('[TENANT FORM] Form validation failed');
+        return;
+    }
+
+    const formData = new FormData(form);
+
+    // Show loading indicator
+    if (window.SuperAdmin && window.SuperAdmin.showNotification) {
+        SuperAdmin.showNotification("🚀 Initiating institute deployment...", "info");
+    }
+
+    try {
+        // Get JWT token from sessionStorage
+        const token = sessionStorage.getItem('access_token');
+
+        if (!token) {
+            console.error('[TENANT FORM] No authentication token found');
+            throw new Error('Authentication required. Please log in again.');
+        }
+
+        // Build request headers
+        const headers = new Headers({
+            'Authorization': `Bearer ${token}`,
+            'X-Requested-With': 'XMLHttpRequest'
+        });
+
+        console.log('[TENANT FORM] Submitting new tenant with features:',
+            Array.from(formData.getAll('features[]')));
+
+        const response = await fetch(`${window.APP_URL || ''}/api/super/tenants`, {
+            method: 'POST',
+            body: formData,
+            headers: headers
+        });
+
+        const result = await response.json();
+
+        console.log('[TENANT FORM] Server response:', result);
+
+        if (result.success) {
+            if (window.SuperAdmin && window.SuperAdmin.showNotification) {
+                SuperAdmin.showNotification("✅ Institute launched successfully!", "success");
+            }
+            // Redirect to tenants list after 1 second
+            setTimeout(() => {
+                if (window.goNav) goNav('tenants');
+            }, 1000);
+        } else {
+            const errorMsg = result.error || result.message || "Institute launch failed. Check console for details.";
+            console.error('[TENANT FORM] Server error:', errorMsg);
+            if (window.SuperAdmin && window.SuperAdmin.showNotification) {
+                SuperAdmin.showNotification(errorMsg, "error");
+            }
+        }
+    } catch (e) {
+        console.error('[TENANT FORM] Exception occurred:', e);
+        const errorMsg = e.message || "Network error. Please check your connection and try again.";
+        if (window.SuperAdmin && window.SuperAdmin.showNotification) {
+            SuperAdmin.showNotification(errorMsg, "error");
+        }
+    }
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('[TENANT FORM] Initializing form...');
+    // Pre-select modules for default plan (Growth)
+    const planSelect = document.querySelector('[name="plan"]');
+    if (planSelect) {
+        updateModulePresets(planSelect.value);
+    }
+});
 </script>

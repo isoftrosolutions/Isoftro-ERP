@@ -5,11 +5,21 @@
 
 $PDO = getDBConnection();
 
-// Fetch available features
+// Fetch available features with proper schema
+$allFeatures = [];
+$assignedModuleIds = $assignedModules ?? [];
+
 try {
-    $stmt = $PDO->query("SELECT * FROM system_features ORDER BY feature_name ASC");
+    // Get all active system features
+    $stmt = $PDO->query("
+        SELECT id, feature_key, feature_name, category, status
+        FROM system_features
+        WHERE status = 'active'
+        ORDER BY category, feature_name ASC
+    ");
     $allFeatures = $stmt->fetchAll();
 } catch (Exception $e) {
+    error_log("Feature fetch error in edit-tenant: " . $e->getMessage());
     $allFeatures = [];
 }
 
@@ -156,13 +166,27 @@ if (!$tenant) {
                 </div>
                 <p style="font-size:11px; color:var(--text-light); margin-bottom:15px;">Modify feature access for this institute.</p>
                 
-                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; max-height:400px; overflow-y:auto; padding-right:5px;" id="featureGrid">
-                    <?php foreach ($allFeatures as $f): ?>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; max-height:400px; overflow-y:auto; padding-right:5px;" id="moduleGrid">
+                    <?php if (!empty($allFeatures)):
+                        foreach ($allFeatures as $f):
+                            $isChecked = in_array($f['id'], $assignedModuleIds) ? 'checked' : '';
+                    ?>
                     <label class="mod-check-item">
-                        <input type="checkbox" name="features[]" value="<?= $f['id'] ?>" <?= in_array($f['id'], $assignedModules) ? 'checked' : '' ?>>
+                        <input type="checkbox" name="features[]" value="<?= htmlspecialchars($f['id']) ?>"
+                               data-slug="<?= htmlspecialchars($f['feature_key']) ?>"
+                               data-category="<?= htmlspecialchars($f['category']) ?>"
+                               <?= $isChecked ?>
+                               class="feature-checkbox">
                         <span><?= htmlspecialchars($f['feature_name']) ?></span>
                     </label>
-                    <?php endforeach; ?>
+                    <?php
+                        endforeach;
+                    else:
+                    ?>
+                    <div style="grid-column: 1/-1; padding:20px; text-align:center; color:var(--text-light);">
+                        <p>📦 Features loading... If this persists, check the console (F12) for errors.</p>
+                    </div>
+                    <?php endif; ?>
                 </div>
 
             </div>
@@ -191,35 +215,83 @@ if (!$tenant) {
 </style>
 
 <script>
+// Toggle all module checkboxes
 function toggleAllModules(checked) {
-    document.querySelectorAll('#moduleGrid input[type="checkbox"]').forEach(i => i.checked = checked);
+    document.querySelectorAll('#moduleGrid input.feature-checkbox').forEach(checkbox => {
+        checkbox.checked = checked;
+    });
 }
 
+// Update tenant configuration
 async function updateTenant() {
     const form = document.getElementById('editTenantForm');
-    if (!form.reportValidity()) return;
+    if (!form.reportValidity()) {
+        console.error('[EDIT TENANT] Form validation failed');
+        return;
+    }
 
     const formData = new FormData(form);
-    SuperAdmin.showNotification("Updating configuration...", "info");
+
+    // Show loading indicator
+    if (window.SuperAdmin && window.SuperAdmin.showNotification) {
+        SuperAdmin.showNotification("🔄 Updating institute configuration...", "info");
+    }
 
     try {
-        const res = await fetch(window.APP_URL + '/api/super-admin/tenants/update', {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
-            }
+        // Get JWT token from sessionStorage
+        const token = sessionStorage.getItem('access_token');
+
+        if (!token) {
+            console.error('[EDIT TENANT] No authentication token found');
+            throw new Error('Authentication required. Please log in again.');
+        }
+
+        // Build request headers
+        const headers = new Headers({
+            'Authorization': `Bearer ${token}`,
+            'X-Requested-With': 'XMLHttpRequest'
         });
-        
-        const result = await res.json();
+
+        const tenantId = document.querySelector('[name="id"]').value;
+
+        console.log('[EDIT TENANT] Updating tenant with ID:', tenantId);
+
+        const response = await fetch(`${window.APP_URL || ''}/api/super/tenants/${tenantId}`, {
+            method: 'PUT',
+            body: formData,
+            headers: headers
+        });
+
+        const result = await response.json();
+
+        console.log('[EDIT TENANT] Server response:', result);
+
         if (result.success) {
-            SuperAdmin.showNotification("Institute updated successfully!", "success");
-            goNav('tenants');
+            if (window.SuperAdmin && window.SuperAdmin.showNotification) {
+                SuperAdmin.showNotification("✅ Institute updated successfully!", "success");
+            }
+            // Redirect to tenants list after 1 second
+            setTimeout(() => {
+                if (window.goNav) goNav('tenants');
+            }, 1000);
         } else {
-            SuperAdmin.showNotification(result.message || "Update failed", "error");
+            const errorMsg = result.error || result.message || "Institute update failed. Check console for details.";
+            console.error('[EDIT TENANT] Server error:', errorMsg);
+            if (window.SuperAdmin && window.SuperAdmin.showNotification) {
+                SuperAdmin.showNotification(errorMsg, "error");
+            }
         }
     } catch (e) {
-        SuperAdmin.showNotification("Network error", "error");
+        console.error('[EDIT TENANT] Exception occurred:', e);
+        const errorMsg = e.message || "Network error. Please check your connection and try again.";
+        if (window.SuperAdmin && window.SuperAdmin.showNotification) {
+            SuperAdmin.showNotification(errorMsg, "error");
+        }
     }
 }
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('[EDIT TENANT] Form initialized');
+});
 </script>
