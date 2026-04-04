@@ -82,41 +82,42 @@ class FinanceService {
                 'status' => $status
             ]);
 
-            // 5. Sync with student_fee_summary 
+            // 5. Sync with student_fee_summary
             // V3.1 Update: Ensure we update the specific enrollment associated with this fee record
-            $query = "UPDATE student_fee_summary SET 
+            // Note: MySQL evaluates SET left-to-right using already-updated values. By the time the
+            // CASE expression runs, due_amount and paid_amount already reflect the new values, so
+            // we reference them directly (no extra ? parameters needed).
+            $query = "UPDATE student_fee_summary SET
                       paid_amount = paid_amount + ?,
                       due_amount = due_amount - ?,
-                      fee_status = CASE 
-                          WHEN (due_amount - ?) <= 0 THEN 'paid'
-                          WHEN (paid_amount + ?) > 0 THEN 'partial'
+                      fee_status = CASE
+                          WHEN due_amount <= 0 THEN 'paid'
+                          WHEN paid_amount > 0 THEN 'partial'
                           ELSE 'unpaid'
                       END
-                      WHERE student_id = ? AND tenant_id = ? 
+                      WHERE student_id = ? AND tenant_id = ?
                       AND (enrollment_id = ? OR enrollment_id IS NULL)";
             $stmt = $this->db->prepare($query);
             $stmt->execute([
-                $amountPaid, $amountPaid, 
-                $amountPaid, $amountPaid, 
+                $amountPaid, $amountPaid,
                 $feeRecord['student_id'], $tenantId,
-                ($feeRecord['enrollment_id'] ?? $feeRecord['batch_id'] ?? null) // Fallback for safety
+                ($feeRecord['enrollment_id'] ?? $feeRecord['batch_id'] ?? null)
             ]);
 
             // If fee_records don't have enrollment_id directly, we might need to find it from batch_id
             if ($stmt->rowCount() == 0) {
-                 // Try finding by mapping batch to enrollment
-                 $stmtMap = $this->db->prepare("SELECT id FROM enrollments WHERE student_id = ? AND batch_id = ? LIMIT 1");
-                 $stmtMap->execute([$feeRecord['student_id'], $feeRecord['batch_id']]);
-                 $actualEnrollmentId = $stmtMap->fetchColumn();
-                 
-                 if ($actualEnrollmentId) {
-                     $stmt->execute([
-                        $amountPaid, $amountPaid, 
-                        $amountPaid, $amountPaid, 
+                // Try finding by mapping batch to enrollment
+                $stmtMap = $this->db->prepare("SELECT id FROM enrollments WHERE student_id = ? AND batch_id = ? LIMIT 1");
+                $stmtMap->execute([$feeRecord['student_id'], $feeRecord['batch_id']]);
+                $actualEnrollmentId = $stmtMap->fetchColumn();
+
+                if ($actualEnrollmentId) {
+                    $stmt->execute([
+                        $amountPaid, $amountPaid,
                         $feeRecord['student_id'], $tenantId,
                         $actualEnrollmentId
                     ]);
-                 }
+                }
             }
 
             // 6. Log Transaction (Audit logged inside Model)
@@ -209,16 +210,11 @@ class FinanceService {
             $remainingAmount = $totalAmountPaid;
             $processedRecords = [];
             $transactionIds = [];
+            $enrollmentPayments = [];
 
             // OPTIMIZATION: Prepare statements once outside loop
-            $updateFeeStmt = null;
-            $insertTxnStmt = null;
-            $insertLedgerStmt = null;
-            $insertFeeLedgerStmt = null;
-
-            // Prepare reusable statements
             $updateFeeStmt = $this->db->prepare("
-                UPDATE fee_records 
+                UPDATE fee_records
                 SET amount_paid = amount_paid + ?,
                     paid_date = ?,
                     receipt_no = ?,
@@ -229,14 +225,9 @@ class FinanceService {
             ");
 
             $insertTxnStmt = $this->db->prepare("
-                INSERT INTO payment_transactions 
+                INSERT INTO payment_transactions
                 (tenant_id, student_id, fee_record_id, amount, payment_method, receipt_number, payment_date, recorded_by, notes, status, created_at, updated_at)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
-            ");
-
-            $insertLedgerStmt = $this->db->prepare("
-                INSERT INTO ledger_entries (tenant_id, student_id, reference_type, reference_id, amount, type, description, entry_date, created_at, updated_at) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
             ");
 
             $insertFeeLedgerStmt = $this->db->prepare("
@@ -278,27 +269,15 @@ class FinanceService {
                     $notes . " (Bulk Payment Part)",
                     'completed'
                 ]);
-                $transactionIds[] = $this->db->lastInsertId();
-
-                // Log to General Ledger using prepared statement
-                $insertLedgerStmt->execute([
-                    $tenantId,
-                    $studentId,
-                    'payment',
-                    $this->db->lastInsertId(),
-                    $paymentForThisRecord,
-                    'credit',
-                    "Bulk Fee Payment - Receipt #$receiptNo",
-                    $paidDate
-                ]);
+                $txnId = $this->db->lastInsertId();
+                $transactionIds[] = $txnId;
 
                 // Log to Fee Ledger using prepared statement
-                $lastId = $this->db->lastInsertId();
                 $insertFeeLedgerStmt->execute([
                     'tid' => $tenantId,
                     'sid' => $studentId,
-                    'ptid' => $lastId,
-                    'frid' => null,
+                    'ptid' => $txnId,
+                    'frid' => $record['id'],
                     'edate' => $paidDate,
                     'etype' => 'credit',
                     'amt' => $paymentForThisRecord,
@@ -322,19 +301,18 @@ class FinanceService {
                 $eid = $stmtE->fetchColumn();
 
                 if ($eid) {
-                    $query = "UPDATE student_fee_summary SET 
+                    $query = "UPDATE student_fee_summary SET
                               paid_amount = paid_amount + ?,
                               due_amount = due_amount - ?,
-                              fee_status = CASE 
-                                  WHEN (due_amount - ?) <= 0 THEN 'paid'
-                                  WHEN (paid_amount + ?) > 0 THEN 'partial'
+                              fee_status = CASE
+                                  WHEN due_amount <= 0 THEN 'paid'
+                                  WHEN paid_amount > 0 THEN 'partial'
                                   ELSE 'unpaid'
                               END
                               WHERE student_id = ? AND enrollment_id = ?";
                     $stmtSum = $this->db->prepare($query);
                     $stmtSum->execute([
-                        $paidAmt, $paidAmt, 
-                        $paidAmt, $paidAmt, 
+                        $paidAmt, $paidAmt,
                         $studentId, $eid
                     ]);
                 }
