@@ -258,7 +258,7 @@ class AccountingController
             $sqlHistorical = "SELECT p.account_id, SUM(p.debit) as hist_debit, SUM(p.credit) as hist_credit 
                               FROM acc_ledger_postings p 
                               JOIN acc_vouchers v ON p.voucher_id = v.id 
-                              WHERE v.deleted_at IS NULL AND v.status = 'approved' AND v.date < ? AND v.tenant_id = ?
+                              WHERE v.deleted_at IS NULL AND v.status IN ('posted', 'approved') AND v.date < ? AND v.tenant_id = ?
                               GROUP BY p.account_id";
             $stmtHist = $this->db->prepare($sqlHistorical);
             $stmtHist->execute([$dateFrom, $this->tenantId]);
@@ -276,7 +276,7 @@ class AccountingController
                     SELECT p.account_id, p.debit, p.credit 
                     FROM acc_ledger_postings p
                     JOIN acc_vouchers v ON p.voucher_id = v.id 
-                    WHERE v.deleted_at IS NULL AND v.status = 'approved' $dateFilter
+                    WHERE v.deleted_at IS NULL AND v.status IN ('posted', 'approved') $dateFilter
                 ) pv ON a.id = pv.account_id
                 WHERE a.tenant_id = ? AND a.deleted_at IS NULL
                 GROUP BY a.id, a.code, a.name, a.type, a.opening_balance
@@ -350,16 +350,16 @@ class AccountingController
 
         $offset = ($page - 1) * $limit;
         
-        $stmtCount = $this->db->prepare("SELECT COUNT(*) FROM acc_ledger_postings p JOIN acc_vouchers v ON p.voucher_id = v.id WHERE p.account_id = ? AND v.deleted_at IS NULL AND v.status = 'approved' $dateFilter");
+        $stmtCount = $this->db->prepare("SELECT COUNT(*) FROM acc_ledger_postings p JOIN acc_vouchers v ON p.voucher_id = v.id WHERE p.account_id = ? AND v.deleted_at IS NULL AND v.status IN ('posted', 'approved') $dateFilter");
         $stmtCount->execute($params);
         $totalItems = $stmtCount->fetchColumn();
         
         // B/F (Brought Forward) Before the Period
         $bfParams = [$accountId];
         $bfQuery = "SELECT COALESCE(SUM(p.debit), 0) as hist_debit, COALESCE(SUM(p.credit), 0) as hist_credit 
-                    FROM acc_ledger_postings p 
-                    JOIN acc_vouchers v ON p.voucher_id = v.id 
-                    WHERE p.account_id = ? AND v.deleted_at IS NULL AND v.status = 'approved' ";
+                    FROM acc_ledger_postings p
+                    JOIN acc_vouchers v ON p.voucher_id = v.id
+                    WHERE p.account_id = ? AND v.deleted_at IS NULL AND v.status IN ('posted', 'approved')";
         if ($dateFrom) {
             $bfQuery .= " AND v.date < ?";
             $bfParams[] = $dateFrom;
@@ -383,7 +383,7 @@ class AccountingController
             $offsetSql = "SELECT COALESCE(SUM(off_debit), 0) as off_debit, COALESCE(SUM(off_credit), 0) as off_credit FROM (
                 SELECT p.debit as off_debit, p.credit as off_credit FROM acc_ledger_postings p 
                 JOIN acc_vouchers v ON p.voucher_id = v.id 
-                WHERE p.account_id = ? AND v.deleted_at IS NULL AND v.status = 'approved' $dateFilter
+                WHERE p.account_id = ? AND v.deleted_at IS NULL AND v.status IN ('posted', 'approved') $dateFilter
                 ORDER BY v.date ASC, v.id ASC LIMIT $offset
             ) t";
             $stmtOff = $this->db->prepare($offsetSql);
@@ -395,7 +395,7 @@ class AccountingController
         
         $broughtForwardPage = $broughtForward + (in_array($account['type'], ['asset', 'expense']) ? ($offsetSumDebit - $offsetSumCredit) : ($offsetSumCredit - $offsetSumDebit));
 
-        $stmtPostings = $this->db->prepare("SELECT p.*, v.voucher_no, v.date, v.type as voucher_type, v.narration FROM acc_ledger_postings p JOIN acc_vouchers v ON p.voucher_id = v.id WHERE p.account_id = ? AND v.deleted_at IS NULL AND v.status = 'approved' $dateFilter ORDER BY v.date ASC, v.id ASC LIMIT $limit OFFSET $offset");
+        $stmtPostings = $this->db->prepare("SELECT p.*, v.voucher_no, v.date, v.type as voucher_type, v.narration FROM acc_ledger_postings p JOIN acc_vouchers v ON p.voucher_id = v.id WHERE p.account_id = ? AND v.deleted_at IS NULL AND v.status IN ('posted', 'approved') $dateFilter ORDER BY v.date ASC, v.id ASC LIMIT $limit OFFSET $offset");
         $stmtPostings->execute($params);
         $postings = $stmtPostings->fetchAll(PDO::FETCH_ASSOC);
 
@@ -438,7 +438,7 @@ class AccountingController
         $stmt = $this->db->prepare("SELECT v.*, u.name as creator_name 
             FROM acc_vouchers v 
             LEFT JOIN users u ON v.created_by = u.id
-            WHERE v.tenant_id = ? AND v.deleted_at IS NULL AND v.status = 'approved' AND v.date BETWEEN ? AND ? 
+            WHERE v.tenant_id = ? AND v.deleted_at IS NULL AND v.status IN ('posted', 'approved') AND v.date BETWEEN ? AND ?
             ORDER BY v.date DESC, v.id DESC");
         $stmt->execute([$this->tenantId, $dateFrom, $dateTo]);
         $vouchers = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -472,7 +472,7 @@ class AccountingController
                     SELECT p.account_id, p.debit, p.credit 
                     FROM acc_ledger_postings p
                     JOIN acc_vouchers v ON p.voucher_id = v.id 
-                    WHERE v.deleted_at IS NULL AND v.status = 'approved' {$fyFilter}
+                    WHERE v.deleted_at IS NULL AND v.status IN ('posted', 'approved') {$fyFilter}
                 ) pv ON a.id = pv.account_id
                 WHERE a.tenant_id = ? AND a.deleted_at IS NULL
                 GROUP BY a.id, a.type, a.name, a.opening_balance";
@@ -514,7 +514,7 @@ class AccountingController
 
         $stmt = $this->db->prepare("SELECT v.id, v.voucher_no, v.date, v.type, v.narration 
             FROM acc_vouchers v 
-            WHERE v.tenant_id = ? AND v.deleted_at IS NULL AND v.status = 'approved' 
+            WHERE v.tenant_id = ? AND v.deleted_at IS NULL AND v.status IN ('posted', 'approved')
             ORDER BY v.date DESC, v.id DESC LIMIT 5");
         $stmt->execute([$this->tenantId]);
         $recent = $stmt->fetchAll(PDO::FETCH_ASSOC);

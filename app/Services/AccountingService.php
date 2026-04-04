@@ -40,7 +40,7 @@ class AccountingService
                 'type' => 'receipt',
                 'narration' => $narration ?? "Fee received from student ID: $studentId",
                 'fiscal_year_id' => $this->getActiveFiscalYear($tenantId),
-                'status' => 'posted', // Auto-post for fee receipts
+                'status' => 'approved',
                 'total_amount' => $amount,
                 'created_by' => auth()->id() ?? 1,
             ]);
@@ -95,7 +95,7 @@ class AccountingService
                 'type' => 'payment',
                 'narration' => $narration,
                 'fiscal_year_id' => $this->getActiveFiscalYear($tenantId),
-                'status' => 'posted',
+                'status' => 'approved',
                 'total_amount' => $amount,
                 'created_by' => auth()->id() ?? 1,
             ]);
