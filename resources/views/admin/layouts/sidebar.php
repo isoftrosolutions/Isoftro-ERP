@@ -61,12 +61,11 @@ $logoPath  = resolveLogoPath($_SESSION['institute_logo'] ?? $_SESSION['tenant_lo
             placeholder="Search menu…"
             aria-label="Search navigation"
             autocomplete="off"
-            oninput="(function(v){clearTimeout(window._sbST);window._sbST=setTimeout(()=>_iaRenderSidebar(v.trim().toLowerCase()),120);})(this.value)"
         >
     </div>
 
     <div class="sb-body" id="sbBody">
-        <!-- Navigation rendered by ia-core.js from window._IA_NAV_CONFIG -->
+        <!-- Navigation rendered by ia-sidebar.js from window._IA_NAV_CONFIG -->
     </div>
 
     <!-- Footer: tenant context + desktop collapse toggle -->
@@ -84,7 +83,6 @@ $logoPath  = resolveLogoPath($_SESSION['institute_logo'] ?? $_SESSION['tenant_lo
         </button>
     </div>
 </nav>
-
 <!-- Inject sidebar config as JSON for JS consumption -->
 <script>
     window._IA_NAV_CONFIG = <?php echo json_encode($sidebarConfig, JSON_UNESCAPED_UNICODE); ?>;
