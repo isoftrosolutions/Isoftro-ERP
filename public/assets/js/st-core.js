@@ -227,8 +227,8 @@ function _stRenderPage() {
         window.renderBreadcrumb('student', nav, sub);
     }
     
-    // Route to appropriate renderer
-    switch (nav) {
+    // Route to appropriate renderer (use sub-page ID when available)
+    switch (sub || nav) {
         case 'dashboard':
             if (window.renderSTDashboard) window.renderSTDashboard();
             break;
@@ -298,8 +298,13 @@ document.addEventListener('DOMContentLoaded', function() {
         const parts = pageParam.split('-');
         _ST.activeNav = parts[0];
         _ST.activeSub = parts[1] || null;
+        // Auto-expand parent section so sidebar highlights correctly on refresh
+        if (_ST.activeSub) {
+            _ST.expanded[_ST.activeNav] = true;
+            _stSaveExpanded();
+        }
     }
-    
+
     // Render initial UI
     _stRenderSidebar();
     _stRenderPage();
@@ -313,6 +318,10 @@ document.addEventListener('DOMContentLoaded', function() {
             const parts = pageParam.split('-');
             _ST.activeNav = parts[0];
             _ST.activeSub = parts[1] || null;
+            if (_ST.activeSub) {
+                _ST.expanded[_ST.activeNav] = true;
+                _stSaveExpanded();
+            }
             _stRenderSidebar();
             _stRenderPage();
         }

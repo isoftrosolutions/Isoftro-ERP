@@ -62,6 +62,7 @@ require_once VIEWS_PATH . '/components/payment-processing-modal.php';
 <script src="<?php echo APP_URL; ?>/assets/js/breadcrumb.js?v=<?php echo $v; ?>"></script>
 <script src="<?php echo APP_URL; ?>/assets/js/ia-sidebar.js?v=<?php echo $v; ?>"></script>
 <script src="<?php echo APP_URL; ?>/assets/js/ia-core.js?v=<?php echo $v; ?>"></script>
+<script src="<?php echo APP_URL; ?>/assets/js/ia-command-palette.js?v=<?php echo $v; ?>"></script>
 
 <script>
     // Global config passed to JS modules

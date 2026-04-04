@@ -70,7 +70,7 @@ try {
             $stmt = $db->prepare("
                 SELECT pt.id, pt.fee_record_id, pt.amount,
                        pt.payment_method  AS payment_mode,
-                       pt.receipt_number,
+                       pt.receipt_number, pt.receipt_path,
                        pt.payment_date, pt.notes, pt.status,
                        fi.name AS fee_item_name
                 FROM payment_transactions pt

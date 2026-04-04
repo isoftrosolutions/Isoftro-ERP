@@ -40,3 +40,12 @@ Desktop.ini
 
 # Local-only htaccess (swap manually for local Apache dev)
 .htaccess.local
+
+# Local tooling / agent worktrees
+.claude/
+
+# Local runtime/uploads (do not commit)
+/app/public/
+
+# Duplicate local-only CSS copy (source-of-truth is public/assets/css/*)
+/resources/css/ia-dashboard-new.css

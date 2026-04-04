@@ -99,6 +99,8 @@ include VIEWS_PATH . '/layouts/header.php';
     <script src="<?php echo APP_URL; ?>/assets/js/st-notices.js?v=<?php echo $v; ?>"></script>
     <script src="<?php echo APP_URL; ?>/assets/js/st-leaderboard.js?v=<?php echo $v; ?>"></script>
     <script src="<?php echo APP_URL; ?>/assets/js/st-profile.js?v=<?php echo $v; ?>"></script>
+    <script src="<?php echo APP_URL; ?>/assets/js/st-idcard.js?v=<?php echo $v; ?>"></script>
+    <script src="<?php echo APP_URL; ?>/assets/js/st-receipts.js?v=<?php echo $v; ?>"></script>
 
     <!-- Core: routing, sidebar, dashboard — must be LAST -->
     <script src="<?php echo APP_URL; ?>/assets/js/breadcrumb.js?v=<?php echo $v; ?>"></script>
