@@ -129,101 +129,77 @@ class AccountingService
     }
 
     /**
-     * Get Cash or Bank account based on payment method
+     * Get Cash or Bank account based on payment method.
+     * Uses firstOrCreate keyed by (tenant_id, code) to prevent duplicate accounts
+     * under concurrent requests.
      */
     private function getCashAccount($tenantId, $paymentMethod)
     {
-        $type = ($paymentMethod === 'bank' || $paymentMethod === 'bank_transfer' || $paymentMethod === 'cheque') ? 'Bank Account' : 'Cash in Hand';
-        
-        $account = Account::where('tenant_id', $tenantId)
-            ->where('name', 'like', "%$type%")
-            ->where('type', 'asset')
-            ->first();
+        $isBank = in_array($paymentMethod, ['bank', 'bank_transfer', 'cheque']);
+        $code   = $isBank ? '102' : '101';
+        $name   = $isBank ? 'Bank Account' : 'Cash in Hand';
 
-        if (!$account) {
-            // Create default system account if not exists
-            $account = Account::create([
-                'tenant_id' => $tenantId,
-                'code' => $type === 'Bank Account' ? '102' : '101',
-                'name' => $type,
-                'type' => 'asset',
-                'is_group' => false,
+        return Account::firstOrCreate(
+            ['tenant_id' => $tenantId, 'code' => $code],
+            [
+                'name'            => $name,
+                'type'            => 'asset',
+                'is_group'        => false,
                 'opening_balance' => 0,
-                'balance_type' => 'dr',
-                'is_system' => true,
-                'status' => 'active',
-            ]);
-        }
-
-        return $account;
+                'balance_type'    => 'dr',
+                'is_system'       => true,
+                'status'          => 'active',
+            ]
+        );
     }
 
     /**
-     * Get Student Receivable Account
+     * Get Student Receivable account.
      */
     private function getStudentReceivableAccount($tenantId)
     {
-        $account = Account::where('tenant_id', $tenantId)
-            ->where('name', 'like', '%Student Receivable%')
-            ->where('type', 'asset')
-            ->first();
-
-        if (!$account) {
-            $account = Account::create([
-                'tenant_id' => $tenantId,
-                'code' => '103',
-                'name' => 'Student Receivable',
-                'type' => 'asset',
-                'is_group' => false,
+        return Account::firstOrCreate(
+            ['tenant_id' => $tenantId, 'code' => '103'],
+            [
+                'name'            => 'Student Receivable',
+                'type'            => 'asset',
+                'is_group'        => false,
                 'opening_balance' => 0,
-                'balance_type' => 'dr',
-                'is_system' => true,
-                'status' => 'active',
-            ]);
-        }
-
-        return $account;
+                'balance_type'    => 'dr',
+                'is_system'       => true,
+                'status'          => 'active',
+            ]
+        );
     }
 
     /**
-     * Get Fee Income Account
+     * Get Fee Income account.
      */
     private function getFeeIncomeAccount($tenantId)
     {
-        $account = Account::where('tenant_id', $tenantId)
-            ->where('name', 'like', '%Fee Income%')
-            ->where('type', 'income')
-            ->first();
-
-        if (!$account) {
-            $account = Account::create([
-                'tenant_id' => $tenantId,
-                'code' => '401',
-                'name' => 'General Fee Income',
-                'type' => 'income',
-                'is_group' => false,
+        return Account::firstOrCreate(
+            ['tenant_id' => $tenantId, 'code' => '401'],
+            [
+                'name'            => 'General Fee Income',
+                'type'            => 'income',
+                'is_group'        => false,
                 'opening_balance' => 0,
-                'balance_type' => 'cr',
-                'is_system' => true,
-                'status' => 'active',
-            ]);
-        }
-
-        return $account;
+                'balance_type'    => 'cr',
+                'is_system'       => true,
+                'status'          => 'active',
+            ]
+        );
     }
 
     /**
-     * Get Expense Account by category
+     * Get Expense account by category.
+     * Tries to match a tenant expense account by category name; falls back to
+     * the first expense account; creates a General Expenses account if none exist.
      */
     private function getExpenseAccount($tenantId, $categoryId)
     {
-        // Try to find if this category is mapped to an account
-        // For now, look for account with category name or a general expense account
-        $category = DB::table('expense_categories')->where('id', $categoryId)->first();
-        $accountName = 'General Expenses';
-        if ($category) {
-            $accountName = is_object($category) ? ($category->name ?? 'General Expenses') : ($category['name'] ?? 'General Expenses');
-        }
+        $category    = DB::table('expense_categories')->where('id', $categoryId)->first();
+        $accountName = $category->name ?? 'General Expenses';
 
         $account = Account::where('tenant_id', $tenantId)
             ->where('name', 'like', "%$accountName%")
@@ -236,16 +212,18 @@ class AccountingService
                 ->first();
         }
 
-        return $account ?? Account::create([
-            'tenant_id' => $tenantId,
-            'code' => '501',
-            'name' => 'General Expenses',
-            'type' => 'expense',
-            'is_group' => false,
-            'opening_balance' => 0,
-            'balance_type' => 'dr',
-            'status' => 'active',
-        ]);
+        return $account ?? Account::firstOrCreate(
+            ['tenant_id' => $tenantId, 'code' => '501'],
+            [
+                'name'            => 'General Expenses',
+                'type'            => 'expense',
+                'is_group'        => false,
+                'opening_balance' => 0,
+                'balance_type'    => 'dr',
+                'is_system'       => true,
+                'status'          => 'active',
+            ]
+        );
     }
 
     /**
@@ -270,7 +248,7 @@ class AccountingService
     }
 
     /**
-     * Get active fiscal year
+     * Get active fiscal year ID — throws if none is configured
      */
     private function getActiveFiscalYear($tenantId)
     {
@@ -278,6 +256,13 @@ class AccountingService
             ->where('is_active', 1)
             ->first();
 
-        return $fy->id ?? 1;
+        if (!$fy) {
+            throw new \RuntimeException(
+                "No active fiscal year found for tenant {$tenantId}. " .
+                "Configure one in Accounting → Fiscal Years before recording transactions."
+            );
+        }
+
+        return $fy->id;
     }
 }
