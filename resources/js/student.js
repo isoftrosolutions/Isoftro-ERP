@@ -19,19 +19,40 @@ document.addEventListener('DOMContentLoaded', () => {
     const sbClose = document.getElementById('sbClose');
     const sbOverlay = document.getElementById('sbOverlay');
 
-    // ── SIDEBAR TOGGLE (matches Super Admin pattern) ──
+    // ── SIDEBAR TOGGLE ──
     const toggleSidebar = () => {
         if (window.innerWidth >= 1024) {
             document.body.classList.toggle('sb-collapsed');
+            localStorage.setItem('_st_sb_collapsed', document.body.classList.contains('sb-collapsed') ? '1' : '0');
         } else {
             document.body.classList.toggle('sb-active');
         }
     };
     const closeSidebar = () => document.body.classList.remove('sb-active');
 
+    // Restore collapsed state on desktop
+    if (window.innerWidth >= 1024 && localStorage.getItem('_st_sb_collapsed') === '1') {
+        document.body.classList.add('sb-collapsed');
+    }
+
     if (sbToggle) sbToggle.addEventListener('click', toggleSidebar);
     if (sbClose) sbClose.addEventListener('click', closeSidebar);
     if (sbOverlay) sbOverlay.addEventListener('click', closeSidebar);
+
+    // Delegate collapse button (.js-sidebar-toggle) in sidebar footer
+    document.addEventListener('click', e => {
+        if (e.target.closest('.js-sidebar-toggle') && !e.target.closest('#sbToggle')) {
+            e.preventDefault();
+            toggleSidebar();
+        }
+    });
+
+    // Close mobile sidebar on resize to desktop
+    window.addEventListener('resize', () => {
+        if (window.innerWidth >= 1024 && document.body.classList.contains('sb-active')) {
+            document.body.classList.remove('sb-active');
+        }
+    });
 
     // ── NAVIGATION TREE — PRD v3.0 Blueprint (Section 4.5) ──
     const NAV = [
@@ -466,48 +487,44 @@ document.addEventListener('DOMContentLoaded', () => {
         let html = '';
 
         sections.forEach(sec => {
-            html += `<div class="sb-sec"><div class="sb-sec-lbl">${sec}</div>`;
+            html += `<div class="sidebar-section" data-sec="${sec}">
+                <div class="sidebar-section-label">${sec}</div>`;
 
             NAV.filter(n => n.sec === sec).forEach(nav => {
                 const isActive = activeNav === nav.id;
-                // Check if any sub-item matches current activeNav + activeSub
                 const subIsActive = nav.sub && nav.sub.some(s => s.nav === activeNav && s.sub === activeSub);
-                
                 const isExp = expanded[nav.id];
+                const parentActive = isActive || subIsActive;
 
-                html += `<div class="sb-item">
-                    <button class="nb-btn ${isActive || subIsActive ? 'active' : ''}" onclick="${nav.sub ? `toggleExp('${nav.id}')` : `goNav('${nav.id}')`}">
-                        <i class="fa-solid ${nav.icon}"></i>
-                        <span style="flex:1; text-align:left;">${nav.label}</span>
-                        ${nav.sub ? `<i class="fa-solid fa-chevron-right" style="font-size:10px; transition:0.2s; ${isExp ? 'transform:rotate(90deg)' : ''}"></i>` : ''}
-                    </button>`;
-
-                if (nav.sub && isExp) {
-                    html += `<div class="sub-menu">`;
+                if (nav.sub) {
+                    html += `<div class="sidebar-item-group">
+                        <button class="sidebar-item${parentActive ? ' active' : ''}"
+                                onclick="toggleExp('${nav.id}')"
+                                aria-expanded="${isExp ? 'true' : 'false'}">
+                            <i class="fa-solid ${nav.icon} sidebar-item-icon"></i>
+                            <span class="sidebar-item-label">${nav.label}</span>
+                            <i class="fa-solid fa-chevron-right sidebar-item-chevron${isExp ? ' open' : ''}"></i>
+                        </button>
+                        <div class="sidebar-submenu${isExp ? ' open' : ''}" id="submenu-${nav.id}">
+                            <div>`;
                     nav.sub.forEach(s => {
                         const isThisSubActive = s.nav === activeNav && s.sub === activeSub;
-                        html += `<button class="sub-btn ${isThisSubActive ? 'active' : ''}" onclick="goNav('${nav.id}', ${JSON.stringify(s).replace(/"/g, '&quot;')})">
-                            ${s.l}
+                        html += `<button class="sidebar-subitem${isThisSubActive ? ' active' : ''}"
+                                    onclick="goNav('${nav.id}', ${JSON.stringify(s).replace(/"/g, '&quot;')})">
+                            <span class="sidebar-subitem-label">${s.l}</span>
                         </button>`;
                     });
-                    html += `</div>`;
+                    html += `</div></div></div>`;
+                } else {
+                    html += `<button class="sidebar-item${isActive ? ' active' : ''}"
+                                onclick="goNav('${nav.id}')">
+                        <i class="fa-solid ${nav.icon} sidebar-item-icon"></i>
+                        <span class="sidebar-item-label">${nav.label}</span>
+                    </button>`;
                 }
-                html += `</div>`;
             });
             html += `</div>`;
         });
-
-        // PWA Install button removed
-        /*
-        html += `
-            <div class="sb-install-box">
-                <button class="install-btn-trigger" onclick="openPwaModal()">
-                    <i class="fa-solid fa-bolt"></i>
-                    <span> Install App</span>
-                </button>
-            </div>
-        `;
-        */
 
         sbBody.innerHTML = html;
         renderBottomNav();

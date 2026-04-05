@@ -59,34 +59,40 @@ include VIEWS_PATH . '/layouts/header.php';
         </header>
 
         <!-- ── SIDEBAR ── -->
-        <nav class="sb" id="sidebar">
+        <nav class="sb" id="sidebar" aria-label="Guardian navigation">
+            <!-- Mobile-only header -->
             <div class="sb-header">
                 <div class="hdr-logo-box" style="display:flex; align-items:center;">
                     <img src="<?php echo APP_URL; ?>/assets/images/logo.png" alt="Logo" style="height:28px; width:auto; margin-right:10px; filter: brightness(0) invert(1);">
                     <span class="logo-txt" style="color:#fff; font-size:14px; font-weight:800; letter-spacing:0.5px;">GUARDIAN</span>
                 </div>
-                <button class="sb-close-btn" id="sbClose" title="Close Sidebar">
-                    <i class="fa-solid fa-xmark"></i>
+                <button class="sb-toggle" id="sbClose" aria-label="Close sidebar">
+                    <i class="fa-solid fa-xmark" aria-hidden="true"></i>
                 </button>
-            </div>
-            <!-- Linked Child Info will be hydrated by JS/API or Session -->
-            <div class="sb-child-info" id="sbChildInfo">
-                <div class="child-av">...</div>
-                <div class="child-meta">
-                    <span class="child-name">Loading...</span>
-                    <span class="child-roll">Loading...</span>
-                </div>
             </div>
 
             <div class="sb-body" id="sbBody">
-                <!-- Rendered via js/guardian.js -->
+                <!-- Rendered via guardian.js -->
             </div>
 
-            <div class="sb-foot">
-                <div class="read-only-bdg">
-                    <i class="fa-solid fa-lock" style="font-size:10px;"></i>
-                    READ-ONLY DASHBOARD
+            <!-- Footer: user context + desktop collapse -->
+            <?php
+            $_gName   = $_SESSION['userData']['name'] ?? 'Guardian';
+            $_gParts  = explode(' ', $_gName);
+            $_gInit   = strtoupper(substr($_gParts[0], 0, 1) . (isset($_gParts[1]) ? substr($_gParts[1], 0, 1) : ''));
+            $_gTenant = $_SESSION['tenant_name'] ?? 'iSoftro ERP';
+            ?>
+            <div class="sb-footer">
+                <div class="sb-footer-inner">
+                    <div class="sb-tenant-av" aria-hidden="true"><?php echo htmlspecialchars($_gInit); ?></div>
+                    <div class="sb-footer-text">
+                        <div class="sb-tenant-name"><?php echo htmlspecialchars($_gName); ?></div>
+                        <div class="sb-tenant-plan">Guardian · <?php echo htmlspecialchars($_gTenant); ?></div>
+                    </div>
                 </div>
+                <button class="js-sidebar-toggle sb-collapse-btn" aria-label="Toggle sidebar">
+                    <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
+                </button>
             </div>
         </nav>
 

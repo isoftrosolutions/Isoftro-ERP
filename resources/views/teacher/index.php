@@ -59,19 +59,40 @@ include VIEWS_PATH . '/layouts/header.php';
         </header>
 
         <!-- ── SIDEBAR ── -->
-        <nav class="sb" id="sidebar">
-            <!-- Sidebar header shown only on mobile -->
+        <nav class="sb" id="sidebar" aria-label="Teacher navigation">
+            <!-- Mobile-only header -->
             <div class="sb-header">
                 <div class="hdr-logo-box" style="display:flex; align-items:center;">
                     <img src="<?php echo APP_URL; ?>/assets/images/logo.png" alt="Logo" style="height:28px; width:auto; margin-right:10px; filter: brightness(0) invert(1);">
                     <span class="logo-txt" style="color:#fff; font-size:14px; font-weight:800; letter-spacing:0.5px;">TEACHER</span>
                 </div>
-                <button class="sb-close-btn" id="sbClose" title="Close Sidebar">
-                    <i class="fa-solid fa-xmark"></i>
+                <button class="sb-toggle" id="sbClose" aria-label="Close sidebar">
+                    <i class="fa-solid fa-xmark" aria-hidden="true"></i>
                 </button>
             </div>
+
             <div class="sb-body" id="sbBody">
-                <!-- Rendered via js/teacher-updated.js -->
+                <!-- Rendered via teacher-updated.js -->
+            </div>
+
+            <!-- Footer: user context + desktop collapse -->
+            <?php
+            $_tName   = $_SESSION['userData']['name'] ?? 'Teacher';
+            $_tParts  = explode(' ', $_tName);
+            $_tInit   = strtoupper(substr($_tParts[0], 0, 1) . (isset($_tParts[1]) ? substr($_tParts[1], 0, 1) : ''));
+            $_tTenant = $_SESSION['tenant_name'] ?? 'iSoftro ERP';
+            ?>
+            <div class="sb-footer">
+                <div class="sb-footer-inner">
+                    <div class="sb-tenant-av" aria-hidden="true"><?php echo htmlspecialchars($_tInit); ?></div>
+                    <div class="sb-footer-text">
+                        <div class="sb-tenant-name"><?php echo htmlspecialchars($_tName); ?></div>
+                        <div class="sb-tenant-plan">Teacher · <?php echo htmlspecialchars($_tTenant); ?></div>
+                    </div>
+                </div>
+                <button class="js-sidebar-toggle sb-collapse-btn" aria-label="Toggle sidebar">
+                    <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
+                </button>
             </div>
         </nav>
 

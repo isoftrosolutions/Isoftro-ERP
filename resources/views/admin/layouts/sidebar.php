@@ -51,19 +51,6 @@ $logoPath  = resolveLogoPath($_SESSION['institute_logo'] ?? $_SESSION['tenant_lo
         </button>
     </div>
 
-    <!-- Nav search -->
-    <div class="sb-search-wrap">
-        <i class="fa-solid fa-magnifying-glass sb-search-icon" aria-hidden="true"></i>
-        <input
-            type="search"
-            id="sbSearch"
-            class="sb-search"
-            placeholder="Search menu…"
-            aria-label="Search navigation"
-            autocomplete="off"
-        >
-    </div>
-
     <div class="sb-body" id="sbBody">
         <!-- Navigation rendered by ia-sidebar.js from window._IA_NAV_CONFIG -->
     </div>

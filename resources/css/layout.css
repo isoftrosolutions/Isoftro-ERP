@@ -207,34 +207,38 @@ body.sb-active .sb-overlay {
 
 /* ── SIDEBAR FOOTER ── */
 .sb-footer {
-    padding: 14px 16px;
+    padding: 12px 14px;
     border-top: 1px solid var(--card-border);
-    position: relative;
+    background: #fafbfc;
+    display: flex;
+    align-items: center;
+    gap: 10px;
     flex-shrink: 0;
 }
 
 .sb-footer-inner {
+    flex: 1;
     display: flex;
     align-items: center;
     gap: 10px;
+    min-width: 0;
 }
 
 .sb-tenant-av {
     width: 32px;
     height: 32px;
-    background: #f3f4f6;
-    color: var(--green);
+    background: linear-gradient(135deg, var(--green), var(--teal));
+    color: #fff;
     border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 800;
-    font-size: 12px;
+    font-size: 11px;
     flex-shrink: 0;
 }
 
 .sb-footer-text {
-    flex: 1;
     min-width: 0;
     overflow: hidden;
 }
@@ -251,31 +255,30 @@ body.sb-active .sb-overlay {
 .sb-tenant-plan {
     font-size: 10px;
     color: var(--text-light);
+    font-weight: 600;
 }
 
-/* Desktop collapse toggle — sits at top-right edge of footer */
+/* Desktop collapse toggle — inline in footer row */
 .sb-collapse-btn {
-    display: none;
-    position: absolute;
-    right: -12px;
-    top: -12px;
-    width: 24px;
-    height: 24px;
-    background: var(--white);
+    width: 32px;
+    height: 32px;
     border: 1px solid var(--card-border);
-    border-radius: 50%;
+    background: var(--white);
+    border-radius: 8px;
+    display: none;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     color: var(--text-light);
-    z-index: 10;
+    font-size: 12px;
     padding: 0;
-    transition: color 0.2s, box-shadow 0.2s;
+    flex-shrink: 0;
+    transition: all 0.2s;
 }
 
 .sb-collapse-btn:hover {
-    color: var(--green);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+    background: var(--bg);
+    color: var(--text-dark);
 }
 
 /* Rotate chevron when collapsed */
@@ -294,15 +297,19 @@ body.sb-collapsed .sb-collapse-btn i {
 }
 
 @media (min-width: 1024px) {
-    .sb-collapse-btn {
-        display: flex;
+    .sb-collapse-btn { display: flex; }
+
+    body.sb-collapsed .sb-footer {
+        justify-content: center;
+        padding: 12px 0;
     }
 
-    body.sb-collapsed .sb-footer-text,
-    body.sb-collapsed .sb-tenant-av {
-        display: none;
-    }
+    body.sb-collapsed .sb-footer-text { display: none; }
+
+    body.sb-collapsed .sb-tenant-av { margin: 0 auto; }
 }
+
+/* ── SIDEBAR SEARCH (legacy, not used in new design) ── */
 
 /* ── SIDEBAR SEARCH ── */
 .sb-search-wrap {

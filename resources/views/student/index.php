@@ -56,19 +56,40 @@ include VIEWS_PATH . '/layouts/header.php';
         </header>
 
         <!-- ── SIDEBAR ── -->
-        <nav class="sb" id="sidebar">
-            <!-- Sidebar header shown only on mobile -->
+        <nav class="sb" id="sidebar" aria-label="Student navigation">
+            <!-- Mobile-only header -->
             <div class="sb-header">
                 <div class="hdr-logo-box" style="display:flex; align-items:center;">
                     <img src="<?php echo APP_URL; ?>/assets/images/logo.png" alt="Logo" style="height:28px; width:auto; margin-right:10px; filter: brightness(0) invert(1);">
                     <span class="logo-txt" style="color:#fff; font-size:14px; font-weight:800; letter-spacing:0.5px;">STUDENT</span>
                 </div>
-                <button class="sb-close-btn" id="sbClose" title="Close Sidebar">
-                    <i class="fa-solid fa-xmark"></i>
+                <button class="sb-toggle" id="sbClose" aria-label="Close sidebar">
+                    <i class="fa-solid fa-xmark" aria-hidden="true"></i>
                 </button>
             </div>
+
             <div class="sb-body" id="sbBody">
-                <!-- Rendered via st-core.js -->
+                <!-- Rendered via student.js -->
+            </div>
+
+            <!-- Footer: user context + desktop collapse -->
+            <?php
+            $_stName   = $_SESSION['userData']['name'] ?? 'Student';
+            $_stParts  = explode(' ', $_stName);
+            $_stInit   = strtoupper(substr($_stParts[0], 0, 1) . (isset($_stParts[1]) ? substr($_stParts[1], 0, 1) : ''));
+            $_stTenant = $_SESSION['tenant_name'] ?? 'Student Portal';
+            ?>
+            <div class="sb-footer">
+                <div class="sb-footer-inner">
+                    <div class="sb-tenant-av" aria-hidden="true"><?php echo htmlspecialchars($_stInit); ?></div>
+                    <div class="sb-footer-text">
+                        <div class="sb-tenant-name"><?php echo htmlspecialchars($_stName); ?></div>
+                        <div class="sb-tenant-plan">Student Portal</div>
+                    </div>
+                </div>
+                <button class="js-sidebar-toggle sb-collapse-btn" aria-label="Toggle sidebar">
+                    <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
+                </button>
             </div>
         </nav>
 

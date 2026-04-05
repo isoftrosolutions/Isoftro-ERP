@@ -172,36 +172,24 @@ window.SuperAdmin = (function (existing) {
   }
 
   function updateSidebarActiveStates(navId, subId) {
-    document.querySelectorAll('.sb-btn.active').forEach(el => el.classList.remove('active'));
-    document.querySelectorAll('.sub-btn.active').forEach(el => el.classList.remove('active'));
-    
-    const navButtons = document.querySelectorAll('.sb-btn');
-    navButtons.forEach(btn => {
-      const btnText = btn.querySelector('.sb-lbl')?.textContent?.toLowerCase() || '';
-      
-      const navToLabelMap = {
-        'overview': 'overview', 'tenants': 'tenant', 'institutes': 'tenant',
-        'plans': 'plan', 'revenue': 'revenue', 'analytics': 'analytics', 'support': 'support',
-        'system': 'system', 'logs': 'audit', 'settings': 'setting', 'profile': 'profile'
-      };
-      
-      const expectedLabel = navToLabelMap[navId] || navId;
-      if (btnText.includes(expectedLabel) || btnText === expectedLabel) {
-        btn.classList.add('active');
-        
-        // Auto-expand if has sub
-        const submenu = btn.nextElementSibling;
-        if (submenu && submenu.classList.contains('sub-menu')) {
-          submenu.classList.add('open');
-          const chevron = btn.querySelector('.nbc');
-          if (chevron) chevron.classList.add('open');
-        }
-      }
-    });
-    
+    // Clear all active states
+    document.querySelectorAll('.sidebar-item.active').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.sidebar-subitem.active').forEach(el => el.classList.remove('active'));
+
+    // Highlight parent nav item by onclick attribute
+    const parentBtn = document.querySelector(`.sidebar-item[onclick*="'${navId}'"]`);
+    if (parentBtn) {
+      parentBtn.classList.add('active');
+      // Auto-expand submenu if it exists
+      const submenu = document.getElementById(`submenu-${navId}`);
+      const chevron = parentBtn.querySelector('.sidebar-item-chevron');
+      if (submenu) submenu.classList.add('open');
+      if (chevron) chevron.classList.add('open');
+    }
+
     // Sub-item active state
     if (subId) {
-      document.querySelectorAll('.sub-btn').forEach(btn => {
+      document.querySelectorAll('.sidebar-subitem').forEach(btn => {
         const onclick = btn.getAttribute('onclick') || '';
         if (onclick.includes(`'${navId}'`) && onclick.includes(`'${subId}'`)) {
           btn.classList.add('active');
@@ -213,26 +201,22 @@ window.SuperAdmin = (function (existing) {
   function toggleExp(id) {
     expanded[id] = !expanded[id];
     localStorage.setItem('sa_expanded', JSON.stringify(expanded));
-    
-    const btn = document.querySelector(`.sb-btn[onclick*="toggleExp('${id}')"]`);
-    const menu = document.getElementById(`sub-${id}`);
-    const chev = btn?.querySelector('.nbc');
-    
+
+    const btn = document.querySelector(`#submenu-${id}`)?.previousElementSibling;
+    const menu = document.getElementById(`submenu-${id}`);
+    const chev = btn?.querySelector('.sidebar-item-chevron');
+
     if (menu) {
-      if (expanded[id]) {
-        menu.classList.add('open');
-        if (chev) chev.classList.add('open');
-      } else {
-        menu.classList.remove('open');
-        if (chev) chev.classList.remove('open');
-      }
+      menu.classList.toggle('open', expanded[id]);
+      if (chev) chev.classList.toggle('open', expanded[id]);
+      if (btn) btn.setAttribute('aria-expanded', expanded[id] ? 'true' : 'false');
     }
   }
 
   function renderSidebar(filter = '') {
     const sbBody = document.getElementById('sbBody');
     if (!sbBody) return;
-    
+
     const badges = window._SA_BADGES || {};
     const sections = [...new Set(SA_NAV.map(n => n.sec))];
     let html = '';
@@ -245,49 +229,52 @@ window.SuperAdmin = (function (existing) {
         });
         if (!items.length) return;
 
-        html += `<div class="sb-sec-lbl">${sec}</div>`;
+        html += `<div class="sidebar-section" data-sec="${sec}">
+            <div class="sidebar-section-label">${sec}</div>`;
 
         items.forEach(nav => {
             const hasSub = !!(nav.sub && nav.sub.length);
             const isActive = activeNav === nav.id;
             const isExp = filter ? true : !!expanded[nav.id];
-            
+
             const badgeVal = nav.badge_key && badges[nav.badge_key] ? badges[nav.badge_key] : null;
-            const badgeHtml = badgeVal ? `<span class="sb-badge" style="margin-left:auto;">${badgeVal}</span>` : '';
+            const badgeHtml = badgeVal ? `<span class="sidebar-item-badge">${badgeVal}</span>` : '';
 
             if (hasSub) {
-                html += `
-                    <button class="sb-btn ${isActive ? 'active' : ''}" onclick="toggleExp('${nav.id}')">
-                        <i class="fa-solid ${nav.icon}"></i>
-                        <span class="sb-lbl">${nav.label}</span>
+                html += `<div class="sidebar-item-group">
+                    <button class="sidebar-item${isActive ? ' active' : ''}"
+                            onclick="toggleExp('${nav.id}')"
+                            aria-expanded="${isExp ? 'true' : 'false'}">
+                        <i class="fa-solid ${nav.icon} sidebar-item-icon"></i>
+                        <span class="sidebar-item-label">${nav.label}</span>
                         ${badgeHtml}
-                        <i class="fa-solid fa-chevron-right nbc ${isExp ? 'open' : ''}"></i>
+                        <i class="fa-solid fa-chevron-right sidebar-item-chevron${isExp ? ' open' : ''}"></i>
                     </button>
-                    <div class="sub-menu ${isExp ? 'open' : ''}" id="sub-${nav.id}">
-                `;
+                    <div class="sidebar-submenu${isExp ? ' open' : ''}" id="submenu-${nav.id}">
+                        <div>`;
 
                 nav.sub.forEach(s => {
-                    const subBadge = s.badge_key && badges[s.badge_key] ? `<span class="sb-badge sm" style="margin-left:auto; opacity:0.7;">${badges[s.badge_key]}</span>` : '';
-                    html += `
-                        <button class="sub-btn" onclick="goNav('${nav.id}', '${s.id}')">
-                            <i class="fa-solid ${s.icon} smi" style="font-size:11px; margin-right:8px; opacity:0.6;"></i>
-                            ${s.l}
-                            ${subBadge}
-                        </button>
-                    `;
+                    const isSubActive = activeNav === nav.id && activeSub === s.id;
+                    const subBadge = s.badge_key && badges[s.badge_key] ? `<span class="sidebar-item-badge sm">${badges[s.badge_key]}</span>` : '';
+                    html += `<button class="sidebar-subitem${isSubActive ? ' active' : ''}"
+                                onclick="goNav('${nav.id}', '${s.id}')">
+                        <i class="fa-solid ${s.icon} sidebar-subitem-icon"></i>
+                        <span class="sidebar-subitem-label">${s.l}</span>
+                        ${subBadge}
+                    </button>`;
                 });
 
-                html += `</div>`;
+                html += `</div></div></div>`;
             } else {
-                html += `
-                    <button class="sb-btn ${isActive ? 'active' : ''}" onclick="goNav('${nav.id}')">
-                        <i class="fa-solid ${nav.icon}"></i>
-                        <span class="sb-lbl">${nav.label}</span>
-                        ${badgeHtml}
-                    </button>
-                `;
+                html += `<button class="sidebar-item${isActive ? ' active' : ''}"
+                            onclick="goNav('${nav.id}')">
+                    <i class="fa-solid ${nav.icon} sidebar-item-icon"></i>
+                    <span class="sidebar-item-label">${nav.label}</span>
+                    ${badgeHtml}
+                </button>`;
             }
         });
+        html += `</div>`;
     });
 
     sbBody.innerHTML = html;
