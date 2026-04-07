@@ -41,6 +41,7 @@ require_once VIEWS_PATH . '/components/payment-processing-modal.php';
 <script src="<?php echo APP_URL; ?>/assets/js/ia-settings.js?v=<?php echo $v; ?>"></script>
 <script src="<?php echo APP_URL; ?>/assets/js/ia-timetable.js?v=<?php echo $v; ?>"></script>
 <script src="<?php echo APP_URL; ?>/assets/js/ia-rooms.js?v=<?php echo $v; ?>"></script>
+<link rel="stylesheet" href="<?php echo APP_URL; ?>/assets/css/ia-fees-setup.css?v=<?php echo $v; ?>">
 <script src="<?php echo APP_URL; ?>/assets/js/ia-fees.js?v=<?php echo $v; ?>"></script>
 <script src="<?php echo APP_URL; ?>/assets/js/ia-attendance.js?v=<?php echo $v; ?>"></script>
 <script src="<?php echo APP_URL; ?>/assets/js/ia-homework.js?v=<?php echo $v; ?>"></script>

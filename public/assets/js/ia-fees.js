@@ -270,15 +270,15 @@ window.renderFeeSetup = async function() {
                     <p class="fs-page-subtitle">Configure and manage fee structure for your courses</p>
                 </div>
             </div>
-            
+
             <!-- Action Bar -->
             <div class="fs-action-bar">
                 <div class="fs-search-container">
                     <i class="fa-solid fa-search fs-search-icon"></i>
-                    <input 
-                        type="text" 
-                        id="feeSearchInput" 
-                        class="fs-form-input fs-search-input" 
+                    <input
+                        type="text"
+                        id="feeSearchInput"
+                        class="fs-form-input fs-search-input"
                         placeholder="Search fee items..."
                         aria-label="Search fee items"
                         oninput="_filterFeeItems()"
@@ -304,7 +304,7 @@ window.renderFeeSetup = async function() {
                     <span class="fs-hide-desktop">Add</span>
                 </button>
             </div>
-            
+
             <!-- Fee List Container -->
             <div class="fs-card" id="feeListContainer">
                 <div class="fs-loading">
@@ -313,6 +313,11 @@ window.renderFeeSetup = async function() {
                 </div>
             </div>
         </div>
+
+        <!-- Mobile FAB -->
+        <button class="fs-fab" onclick="openAddFeeModal()" aria-label="Add fee item" title="Add Fee Item">
+            <i class="fa-solid fa-plus"></i>
+        </button>
     `;
     await _loadFeeItems();
 };

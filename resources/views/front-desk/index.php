@@ -68,6 +68,7 @@ require_once VIEWS_PATH . '/components/payment-processing-modal.php';
 <!-- Front Desk Domain Modules -->
 <script src="<?php echo APP_URL; ?>/assets/js/frontdesk/fd-students.js?v=1.1"></script>
 <script src="<?php echo APP_URL; ?>/assets/js/frontdesk/fd-attendance.js?v=1.1"></script>
+<link rel="stylesheet" href="<?php echo APP_URL; ?>/assets/css/ia-fees-setup.css?v=<?php echo time(); ?>">
 <script src="<?php echo APP_URL; ?>/assets/js/frontdesk/fd-fees.js?v=1.1"></script>
 <script src="<?php echo APP_URL; ?>/assets/js/frontdesk/fd-inquiries.js?v=1.1"></script>
 <script src="<?php echo APP_URL; ?>/assets/js/frontdesk/fd-academic.js?v=1.1"></script>
