@@ -320,7 +320,7 @@ window.renderQuickPayment = async (studentId) => {
                     <!-- Institute Header -->
                     <div style="background:linear-gradient(135deg, #009E7E 0%, #007d63 100%); padding:30px; color:white; display:flex; justify-content:space-between; align-items:center;">
                         <div style="display:flex; align-items:center; gap:20px;">
-                            ${institute.logo_path ? `<img src="${window.APP_URL}/public/${institute.logo_path}" style="height:60px; filter:brightness(0) invert(1);">` : `<div style="width:60px; height:60px; background:rgba(255,255,255,0.2); border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:24px; font-weight:bold;">${institute.name[0]}</div>`}
+                            ${institute.logo_path ? `<img src="${window.APP_URL}${institute.logo_path}" style="height:60px; filter:brightness(0) invert(1);">` : `<div style="width:60px; height:60px; background:rgba(255,255,255,0.2); border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:24px; font-weight:bold;">${institute.name[0]}</div>`}
                             <div>
                                 <h1 style="margin:0; font-size:1.5rem; letter-spacing:-0.5px;">${institute.name}</h1>
                                 <p style="margin:5px 0 0; opacity:0.8; font-size:0.9rem;"><i class="fa-solid fa-location-dot"></i> ${institute.address || ''}</p>

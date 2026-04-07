@@ -950,7 +950,7 @@ document.addEventListener('DOMContentLoaded', () => {
         clearTimeout(_iaResizeTimer);
         _iaResizeTimer = setTimeout(() => {
             // Re-draw bottom nav active state
-            _iaRenderBottomNav();
+            if (typeof _iaRenderBottomNav === 'function') _iaRenderBottomNav();
             // Re-draw revenue chart if on dashboard and data is cached
             if (window._IA && window._IA.activeNav === 'overview') {
                 const canvas = document.getElementById('revenueChartV2');
