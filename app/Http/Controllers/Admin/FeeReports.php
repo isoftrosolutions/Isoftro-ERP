@@ -177,7 +177,7 @@ try {
         echo json_encode(['success' => true, 'data' => $data]);
     } elseif ($action === 'export_excel' || $action === 'export_pdf') {
         $reportType = $_GET['report_type'] ?? 'collection';
-        require_once __DIR__ . '/../../../app/Services/ReportExportService.php';
+        require_once __DIR__ . '/../../../Services/ReportExportService.php';
         $exportService = new \App\Services\ReportExportService();
         
         $data = [];
