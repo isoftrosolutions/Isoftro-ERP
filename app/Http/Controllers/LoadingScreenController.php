@@ -91,7 +91,8 @@ class LoadingScreenController {
      */
     private function renderView($data) {
         $roleLabel = $this->getRoleLabel($data['role']);
-        $logoUrl = $data['logo'] ? APP_URL . $data['logo'] : null;
+        $rawLogo = $data['logo'] ? (strpos($data['logo'], '/public/') === 0 ? substr($data['logo'], 7) : $data['logo']) : null;
+        $logoUrl = $rawLogo ? APP_URL . $rawLogo : null;
         $brandColor = htmlspecialchars($data['brandColor']);
         $instituteName = htmlspecialchars($data['name']);
         $instituteTagline = htmlspecialchars($data['tagline']);

@@ -33,7 +33,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         $stmt->execute(['tid' => $tenantId]);
         $row = $stmt->fetch();
         if ($row) {
-            $row['logo_url'] = $row['logo_path'] ? APP_URL . $row['logo_path'] : null;
+            $lp = $row['logo_path'] ? (strpos($row['logo_path'], '/public/') === 0 ? substr($row['logo_path'], 7) : $row['logo_path']) : null;
+            $row['logo_url'] = $lp ? APP_URL . $lp : null;
             echo json_encode(['success' => true, 'data' => $row]);
         } else {
             echo json_encode(['success' => false, 'message' => 'Institute not found']);
@@ -112,7 +113,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                 $filename = "tenant_" . $tenantId . "_" . time() . "." . $ext;
                 if (move_uploaded_file($_FILES['logo']['tmp_name'], APP_ROOT . '/' . $dir . $filename)) {
                     $sql .= ", logo_path = :logo";
-                    $params['logo'] = '/' . $dir . $filename;
+                    $params['logo'] = '/uploads/logos/' . $filename;
                 }
             }
 
@@ -140,7 +141,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                 'success' => true, 
                 'message' => 'Institute profile updated',
                 'brand_color' => $color,
-                'logo_url' => $logoPath ? APP_URL . $logoPath : null,
+                'logo_url' => $logoPath ? APP_URL . (strpos($logoPath, '/public/') === 0 ? substr($logoPath, 7) : $logoPath) : null,
                 'institute_name' => $name
             ]);
         }
