@@ -64,7 +64,23 @@ class ReceiptHelper {
             if (strpos($logoPath, '/public/') === 0) {
                 $logoPath = substr($logoPath, 7);
             }
-            $logoUrl = (defined('APP_URL') ? APP_URL : '') . $logoPath;
+            // Resolve to absolute filesystem path and embed as base64 data URI.
+            // Dompdf cannot reliably fetch HTTP URLs from the same server (loopback
+            // restrictions), so we read the file directly and inline it instead.
+            $projectRoot = defined('APP_ROOT') ? APP_ROOT : realpath(__DIR__ . '/../../');
+            // $logoPath is relative to public/ (e.g. /uploads/logos/foo.png)
+            $absLogoPath = $projectRoot . '/public' . $logoPath;
+            if (!file_exists($absLogoPath)) {
+                // Fallback: maybe it's already relative to project root
+                $absLogoPath = $projectRoot . $logoPath;
+            }
+            if (file_exists($absLogoPath)) {
+                $mime = mime_content_type($absLogoPath) ?: 'image/png';
+                $logoUrl = 'data:' . $mime . ';base64,' . base64_encode(file_get_contents($absLogoPath));
+            } else {
+                // Last resort: HTTP URL (may not work on all servers)
+                $logoUrl = (defined('APP_URL') ? APP_URL : '') . $logoPath;
+            }
         }
 
         $totalPaid = 0;
