@@ -18,38 +18,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const sbOverlay = document.getElementById('sbOverlay');
 
     // ── SIDEBAR TOGGLE ──
-    const toggleSidebar = () => {
-        if (window.innerWidth >= 1024) {
-            document.body.classList.toggle('sb-collapsed');
-            localStorage.setItem('_fd_sb_collapsed', document.body.classList.contains('sb-collapsed') ? '1' : '0');
-        } else {
-            document.body.classList.toggle('sb-active');
-        }
-    };
+    const toggleSidebar = () => document.body.classList.toggle('sb-active');
     const closeSidebar = () => document.body.classList.remove('sb-active');
-
-    // Restore collapsed state on desktop
-    if (window.innerWidth >= 1024 && localStorage.getItem('_fd_sb_collapsed') === '1') {
-        document.body.classList.add('sb-collapsed');
-    }
 
     if (sbToggle) sbToggle.addEventListener('click', toggleSidebar);
     if (sbClose) sbClose.addEventListener('click', closeSidebar);
     if (sbOverlay) sbOverlay.addEventListener('click', closeSidebar);
-
-    // Delegate collapse button in sidebar footer
-    document.addEventListener('click', e => {
-        if (e.target.closest('.js-sidebar-toggle') && !e.target.closest('#sbToggle')) {
-            e.preventDefault();
-            toggleSidebar();
-        }
-    });
-
-    window.addEventListener('resize', () => {
-        if (window.innerWidth >= 1024 && document.body.classList.contains('sb-active')) {
-            document.body.classList.remove('sb-active');
-        }
-    });
 
     // ── NAVIGATION TREE ──
     const NAV = [
@@ -120,43 +94,45 @@ document.addEventListener('DOMContentLoaded', () => {
         let html = '';
 
         sections.forEach(sec => {
-            html += `<div class="sidebar-section" data-sec="${sec}">
-                <div class="sidebar-section-label">${sec}</div>`;
+            html += `<div class="sb-sec"><div class="sb-sec-lbl">${sec}</div>`;
 
             NAV.filter(n => n.sec === sec).forEach(nav => {
                 const isActive = activeNav === nav.id || activeNav.startsWith(nav.id + '-');
                 const isExp = expanded[nav.id];
 
-                if (nav.sub) {
-                    html += `<div class="sidebar-item-group">
-                        <button class="sidebar-item${isActive ? ' active' : ''}"
-                                onclick="toggleExp('${nav.id}')"
-                                aria-expanded="${isExp ? 'true' : 'false'}">
-                            <i class="fa-solid ${nav.icon} sidebar-item-icon"></i>
-                            <span class="sidebar-item-label">${nav.label}</span>
-                            <i class="fa-solid fa-chevron-right sidebar-item-chevron${isExp ? ' open' : ''}"></i>
-                        </button>
-                        <div class="sidebar-submenu${isExp ? ' open' : ''}" id="submenu-${nav.id}">
-                            <div>`;
+                html += `<div class="sb-item">
+                    <button class="nb-btn ${isActive ? 'active' : ''}" onclick="${nav.sub ? `toggleExp('${nav.id}')` : `goNav('${nav.id}')`}">
+                        <i class="fa-solid ${nav.icon}"></i>
+                        <span class="nb-lbl">${nav.label}</span>
+                        ${nav.sub ? `<i class="fa-solid fa-chevron-right nbc ${isExp ? 'open' : ''}"></i>` : ''}
+                    </button>`;
+
+                if (nav.sub && isExp) {
+                    html += `<div class="sub-menu">`;
                     nav.sub.forEach(s => {
                         const isSubActive = activeNav === `${nav.id}-${s.id}`;
-                        html += `<button class="sidebar-subitem${isSubActive ? ' active' : ''}"
-                                    onclick="goNav('${nav.id}', '${s.id}')">
-                            ${s.icon ? `<i class="fa-solid ${s.icon} sidebar-subitem-icon"></i>` : ''}
-                            <span class="sidebar-subitem-label">${s.l}</span>
+                        html += `<button class="sub-btn ${isSubActive ? 'active' : ''}" onclick="goNav('${nav.id}', '${s.id}')">
+                            ${s.l}
                         </button>`;
                     });
-                    html += `</div></div></div>`;
-                } else {
-                    html += `<button class="sidebar-item${isActive ? ' active' : ''}"
-                                onclick="goNav('${nav.id}')">
-                        <i class="fa-solid ${nav.icon} sidebar-item-icon"></i>
-                        <span class="sidebar-item-label">${nav.label}</span>
-                    </button>`;
+                    html += `</div>`;
                 }
+                html += `</div>`;
             });
             html += `</div>`;
         });
+
+        // PWA Install button removed
+        /*
+        html += `
+            <div class="sb-install-box">
+                <button class="install-btn-trigger" onclick="openPwaModal()">
+                    <i class="fa-solid fa-bolt"></i>
+                    <span>Instant Install</span>
+                </button>
+            </div>
+        `;
+        */
 
         sbBody.innerHTML = html;
         renderBottomNav();

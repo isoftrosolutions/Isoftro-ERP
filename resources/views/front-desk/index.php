@@ -22,42 +22,22 @@ $badges = []; // We can add a function to fetch badges later
 require_once VIEWS_PATH . '/components/payment-processing-modal.php';
 ?>
 
-<!-- ── SIDEBAR ── -->
-<?php
-$_fdUser   = getCurrentUser();
-$_fdName   = $_fdUser['name'] ?? 'Operator';
-$_fdParts  = explode(' ', $_fdName);
-$_fdInit   = strtoupper(substr($_fdParts[0], 0, 1) . (isset($_fdParts[1]) ? substr($_fdParts[1], 0, 1) : ''));
-$_fdTenant = $_SESSION['tenant_name'] ?? 'iSoftro ERP';
-?>
-<nav class="sb" id="sidebar" aria-label="Front Desk navigation">
-    <!-- Mobile-only header -->
-    <div class="sb-header">
-        <div class="hdr-logo-box" style="display:flex; align-items:center;">
-            <img src="<?php echo APP_URL; ?>/assets/images/logo.png" alt="Logo" style="height:28px; width:auto; margin-right:10px; filter: brightness(0) invert(1);">
-            <span style="color:#fff; font-size:14px; font-weight:800; letter-spacing:0.5px;">FRONT DESK</span>
-        </div>
-        <button class="sb-toggle" id="sbClose" aria-label="Close sidebar">
-            <i class="fa-solid fa-xmark" aria-hidden="true"></i>
-        </button>
-    </div>
-
+<!-- ── PREMIUM SIDEBAR ── -->
+<nav class="sb" id="sidebar">
     <div class="sb-body" id="sbBody">
-        <!-- Navigation rendered by frontdesk.js -->
+        <!-- Navigation (rendered by JS from config) -->
     </div>
-
-    <!-- Footer: operator context + desktop collapse -->
+    
     <div class="sb-footer">
-        <div class="sb-footer-inner">
-            <div class="sb-tenant-av" aria-hidden="true"><?php echo htmlspecialchars($_fdInit); ?></div>
-            <div class="sb-footer-text">
-                <div class="sb-tenant-name"><?php echo htmlspecialchars($_fdName); ?></div>
-                <div class="sb-tenant-plan">Front Desk · <?php echo htmlspecialchars($_fdTenant); ?></div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="width: 32px; height: 32px; background: rgba(0, 184, 148, 0.08); color: var(--green); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 12px;">
+                FD
+            </div>
+            <div style="flex: 1; min-width: 0;">
+                <div style="font-size: 12px; font-weight: 700; color: var(--text-dark); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Front Desk</div>
+                <div style="font-size: 10px; color: var(--text-light);">Operations</div>
             </div>
         </div>
-        <button class="js-sidebar-toggle sb-collapse-btn" aria-label="Toggle sidebar">
-            <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
-        </button>
     </div>
 </nav>
 

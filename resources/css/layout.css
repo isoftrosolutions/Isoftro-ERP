@@ -207,38 +207,34 @@ body.sb-active .sb-overlay {
 
 /* ── SIDEBAR FOOTER ── */
 .sb-footer {
-    padding: 12px 14px;
+    padding: 14px 16px;
     border-top: 1px solid var(--card-border);
-    background: #fafbfc;
-    display: flex;
-    align-items: center;
-    gap: 10px;
+    position: relative;
     flex-shrink: 0;
 }
 
 .sb-footer-inner {
-    flex: 1;
     display: flex;
     align-items: center;
     gap: 10px;
-    min-width: 0;
 }
 
 .sb-tenant-av {
     width: 32px;
     height: 32px;
-    background: linear-gradient(135deg, var(--green), var(--teal));
-    color: #fff;
+    background: #f3f4f6;
+    color: var(--green);
     border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 800;
-    font-size: 11px;
+    font-size: 12px;
     flex-shrink: 0;
 }
 
 .sb-footer-text {
+    flex: 1;
     min-width: 0;
     overflow: hidden;
 }
@@ -255,30 +251,31 @@ body.sb-active .sb-overlay {
 .sb-tenant-plan {
     font-size: 10px;
     color: var(--text-light);
-    font-weight: 600;
 }
 
-/* Desktop collapse toggle — inline in footer row */
+/* Desktop collapse toggle — sits at top-right edge of footer */
 .sb-collapse-btn {
-    width: 32px;
-    height: 32px;
-    border: 1px solid var(--card-border);
-    background: var(--white);
-    border-radius: 8px;
     display: none;
+    position: absolute;
+    right: -12px;
+    top: -12px;
+    width: 24px;
+    height: 24px;
+    background: var(--white);
+    border: 1px solid var(--card-border);
+    border-radius: 50%;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     color: var(--text-light);
-    font-size: 12px;
+    z-index: 10;
     padding: 0;
-    flex-shrink: 0;
-    transition: all 0.2s;
+    transition: color 0.2s, box-shadow 0.2s;
 }
 
 .sb-collapse-btn:hover {
-    background: var(--bg);
-    color: var(--text-dark);
+    color: var(--green);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
 }
 
 /* Rotate chevron when collapsed */
@@ -297,19 +294,15 @@ body.sb-collapsed .sb-collapse-btn i {
 }
 
 @media (min-width: 1024px) {
-    .sb-collapse-btn { display: flex; }
-
-    body.sb-collapsed .sb-footer {
-        justify-content: center;
-        padding: 12px 0;
+    .sb-collapse-btn {
+        display: flex;
     }
 
-    body.sb-collapsed .sb-footer-text { display: none; }
-
-    body.sb-collapsed .sb-tenant-av { margin: 0 auto; }
+    body.sb-collapsed .sb-footer-text,
+    body.sb-collapsed .sb-tenant-av {
+        display: none;
+    }
 }
-
-/* ── SIDEBAR SEARCH (legacy, not used in new design) ── */
 
 /* ── SIDEBAR SEARCH ── */
 .sb-search-wrap {
