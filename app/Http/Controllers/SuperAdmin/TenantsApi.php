@@ -307,6 +307,42 @@ try {
             echo json_encode(['success' => true, 'data' => $stats]);
             break;
             
+        case 'suspend':
+            $input = json_decode(file_get_contents('php://input'), true) ?: [];
+            $id = (int)($input['id'] ?? $_GET['id'] ?? 0);
+            if (!$id) { echo json_encode(['success' => false, 'message' => 'Tenant ID required']); exit; }
+
+            $tenant = $db->query("SELECT name FROM tenants WHERE id = $id")->fetch();
+            if (!$tenant) { echo json_encode(['success' => false, 'message' => 'Tenant not found']); exit; }
+
+            $db->prepare("UPDATE tenants SET status = 'suspended', updated_at = NOW() WHERE id = ?")->execute([$id]);
+            $db->prepare("UPDATE users SET status = 'suspended' WHERE tenant_id = ? AND role != 'superadmin'")->execute([$id]);
+
+            require_once app_path('Models/SuperAdmin/AuditLogModel.php');
+            (new \App\Models\SuperAdmin\AuditLogModel($db))
+                ->logAction(getCurrentUser()['id'], $id, 'tenant_suspend', ['name' => $tenant['name']]);
+
+            echo json_encode(['success' => true, 'message' => htmlspecialchars($tenant['name']) . ' has been suspended.']);
+            break;
+
+        case 'activate':
+            $input = json_decode(file_get_contents('php://input'), true) ?: [];
+            $id = (int)($input['id'] ?? $_GET['id'] ?? 0);
+            if (!$id) { echo json_encode(['success' => false, 'message' => 'Tenant ID required']); exit; }
+
+            $tenant = $db->query("SELECT name FROM tenants WHERE id = $id")->fetch();
+            if (!$tenant) { echo json_encode(['success' => false, 'message' => 'Tenant not found']); exit; }
+
+            $db->prepare("UPDATE tenants SET status = 'active', updated_at = NOW() WHERE id = ?")->execute([$id]);
+            $db->prepare("UPDATE users SET status = 'active' WHERE tenant_id = ? AND role != 'superadmin'")->execute([$id]);
+
+            require_once app_path('Models/SuperAdmin/AuditLogModel.php');
+            (new \App\Models\SuperAdmin\AuditLogModel($db))
+                ->logAction(getCurrentUser()['id'], $id, 'tenant_activate', ['name' => $tenant['name']]);
+
+            echo json_encode(['success' => true, 'message' => htmlspecialchars($tenant['name']) . ' has been activated.']);
+            break;
+
         default:
             echo json_encode(['success' => false, 'message' => 'Invalid action']);
     }

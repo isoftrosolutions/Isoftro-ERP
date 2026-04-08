@@ -90,13 +90,22 @@ async function activateTenant(id, name) {
     const result = await SuperAdmin.confirmAction('Activate ' + name + '?', 'This will restore full access for this institute.', 'Yes, Activate');
     if (!result.isConfirmed) return;
     try {
-        const res = await SuperAdmin.fetchAPI('/api/super-admin/tenants/activate/' + id, 'POST');
-        if (res.success) {
-            SuperAdmin.showNotification(name + ' activated successfully.', 'success');
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || window._CSRF_TOKEN || '';
+        const res = await fetch((window.APP_URL || '') + '/api/superadmin/TenantsApi.php?action=activate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken },
+            credentials: 'include',
+            body: JSON.stringify({ id: id })
+        });
+        const data = await res.json();
+        if (data.success) {
+            SuperAdmin.showNotification(data.message, 'success');
             setTimeout(() => goNav('tenants-suspended'), 1200);
         } else {
-            SuperAdmin.showNotification(res.message || 'Error activating tenant', 'error');
+            SuperAdmin.showNotification(data.message || 'Failed to activate.', 'error');
         }
-    } catch (e) { /* handled by fetchAPI */ }
+    } catch (e) {
+        SuperAdmin.showNotification('Network error.', 'error');
+    }
 }
 </script>

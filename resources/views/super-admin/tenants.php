@@ -146,9 +146,15 @@ $suspendedInst = count(array_filter($tenants, fn($t) => $t['status'] === 'suspen
                         <button class="btn-icon-p" style="color:var(--purple);" onclick="impersonateTenant(<?= $tenant['id'] ?>)" title="Impersonate">
                             <i class="fas fa-user-secret"></i>
                         </button>
-                        <button class="btn-icon-p" style="color:var(--red);" onclick="suspendTenant(<?= $tenant['id'] ?>)" title="Suspend">
+                        <?php if ($tenant['status'] === 'suspended'): ?>
+                        <button class="btn-icon-p" style="color:#22c55e;" onclick="activateTenant(<?= $tenant['id'] ?>, '<?= htmlspecialchars(addslashes($tenant['name'])) ?>')" title="Activate">
+                            <i class="fas fa-circle-check"></i>
+                        </button>
+                        <?php else: ?>
+                        <button class="btn-icon-p" style="color:var(--red);" onclick="suspendTenant(<?= $tenant['id'] ?>, '<?= htmlspecialchars(addslashes($tenant['name'])) ?>')" title="Suspend">
                             <i class="fas fa-ban"></i>
                         </button>
+                        <?php endif; ?>
                     </div>
                 </td>
             </tr>
@@ -206,5 +212,61 @@ $suspendedInst = count(array_filter($tenants, fn($t) => $t['status'] === 'suspen
 
     function exportTenants() {
         SuperAdmin.showNotification("Preparing CSV export...", "info");
+    }
+
+    async function suspendTenant(id, name) {
+        const result = await SuperAdmin.confirmAction(
+            'Suspend ' + name + '?',
+            'All users of this institute will lose access immediately.',
+            'Yes, Suspend'
+        );
+        if (!result.isConfirmed) return;
+
+        try {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || window._CSRF_TOKEN || '';
+            const res = await fetch((window.APP_URL || '') + '/api/superadmin/TenantsApi.php?action=suspend', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken },
+                credentials: 'include',
+                body: JSON.stringify({ id: id })
+            });
+            const data = await res.json();
+            if (data.success) {
+                SuperAdmin.showNotification(data.message, 'success');
+                setTimeout(() => goNav('tenants'), 1200);
+            } else {
+                SuperAdmin.showNotification(data.message || 'Failed to suspend.', 'error');
+            }
+        } catch (e) {
+            SuperAdmin.showNotification('Network error suspending tenant.', 'error');
+        }
+    }
+
+    async function activateTenant(id, name) {
+        const result = await SuperAdmin.confirmAction(
+            'Activate ' + name + '?',
+            'This will restore full portal access for this institute.',
+            'Yes, Activate'
+        );
+        if (!result.isConfirmed) return;
+
+        try {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || window._CSRF_TOKEN || '';
+            const res = await fetch((window.APP_URL || '') + '/api/superadmin/TenantsApi.php?action=activate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken },
+                credentials: 'include',
+                body: JSON.stringify({ id: id })
+            });
+            const data = await res.json();
+            if (data.success) {
+                SuperAdmin.showNotification(data.message, 'success');
+                setTimeout(() => goNav('tenants'), 1200);
+            } else {
+                SuperAdmin.showNotification(data.message || 'Failed to activate.', 'error');
+            }
+        } catch (e) {
+            SuperAdmin.showNotification('Network error activating tenant.', 'error');
+        }
     }
 </script>
