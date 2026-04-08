@@ -246,16 +246,17 @@ $initialMode = $initialMode ?? null; // 'new' or 'existing'
                         <label class="f-lbl req">Assigned Batch</label>
                         <div class="ipt-box">
                             <i class="fas fa-clock"></i>
-                            <select id="<?= $selBatchId ?>" class="fi fi-sel" disabled required>
+                            <select id="<?= $selBatchId ?>" class="fi fi-sel" disabled required
+                                    onchange="addBatchChip_<?= $componentId ?>()">
                                 <option value="">— Select course first —</option>
                             </select>
                             <div class="err-msg">At least one batch enrollment is required.</div>
                         </div>
-                        <button type="button" class="btn bt" style="margin-top: 10px; width: auto; font-size: 12px; padding: 8px 15px;" onclick="addBatchChip_<?= $componentId ?>()">
-                            <i class="fas fa-plus"></i> Add Batch
-                        </button>
+                        <div id="noBatchHint_<?= $componentId ?>" style="display:none; margin-top:8px; font-size:12px; color:#d97706; font-weight:600;">
+                            <i class="fas fa-triangle-exclamation"></i> No batches found for this course. Please create a batch first.
+                        </div>
                         <div id="batchChips_<?= $componentId ?>" class="batch-chips"></div>
-                        <input type="hidden" name="batch_id" id="hiddenSingleBatch_<?= $componentId ?>"> 
+                        <input type="hidden" name="batch_id" id="hiddenSingleBatch_<?= $componentId ?>">
                     </div>
                 </div>
             </div>
@@ -307,19 +308,24 @@ $initialMode = $initialMode ?? null; // 'new' or 'existing'
         <!-- Section 3: Detailed Information -->
         <div class="sc-adm">
             <h3 class="sc-title"><i class="fas fa-folder-open"></i> Background Details</h3>
-            <div class="grid-box grid-3">
+            <div class="grid-box grid-2">
                 <div class="f-grp">
-                    <label class="f-lbl req">DOB (BS)</label>
-                    <input type="text" name="dob_bs" id="<?= $dobBsId ?>" class="fi" placeholder="YYYY-MM-DD" style="padding-left: 20px;" required onblur="window.handleDobSync_<?= $componentId ?>(this.value)">
+                    <label class="f-lbl req">Date of Birth (BS)</label>
+                    <div class="ipt-box">
+                        <i class="fas fa-calendar-days"></i>
+                        <input type="text" name="dob_bs" id="<?= $dobBsId ?>" class="fi" placeholder="YYYY-MM-DD (e.g. 2055-04-15)" required
+                               onblur="window.handleDobSync_<?= $componentId ?>(this.value)"
+                               oninput="this.value=this.value.replace(/[^0-9\-]/g,'')">
+                    </div>
                     <input type="hidden" name="dob_ad" id="inpDobAd_<?= $componentId ?>">
                     <div class="err-msg">Date of birth (BS) is required.</div>
                 </div>
-            </div>
-
-            <div class="grid-box" style="margin-top: 1.5rem;">
                 <div class="f-grp">
                     <label class="f-lbl req">Student Address</label>
-                    <textarea name="permanent_address" class="fi" style="padding-left: 16px; min-height: 80px;" placeholder="Full Address..." required></textarea>
+                    <div class="ipt-box">
+                        <i class="fas fa-location-dot"></i>
+                        <textarea name="permanent_address" class="fi" style="padding-left: 48px; min-height: 54px;" placeholder="Full permanent address..." required></textarea>
+                    </div>
                     <div class="err-msg">Address details are required.</div>
                 </div>
             </div>
@@ -500,20 +506,30 @@ $initialMode = $initialMode ?? null; // 'new' or 'existing'
         document.getElementById('stuSelect_' + CID).value = '';
     };
 
-    // ── Batch Multi-Enrollment Logic ──
+    // ── Batch Auto-Select on Change ──
     window['addBatchChip_' + CID] = function() {
         const sel = document.getElementById('<?= $selBatchId ?>');
         const courseSel = document.getElementById('<?= $selCourseId ?>');
         if (!sel.value) return;
-        
-        if (selectedBatches.some(b => b.id == sel.value)) return;
-        
-        const batchName = sel.options[sel.selectedIndex].text;
+
+        // Silently ignore duplicate — don't show an error, just reset
+        if (selectedBatches.some(b => b.id == sel.value)) {
+            sel.selectedIndex = 0;
+            return;
+        }
+
+        const batchName  = sel.options[sel.selectedIndex].text;
         const courseName = courseSel.options[courseSel.selectedIndex].text;
-        
+
         selectedBatches.push({ id: sel.value, name: batchName, course: courseName });
         renderBatchChips();
+
+        // Clear batch selection so user can pick another if needed
         sel.selectedIndex = 0;
+
+        // Clear any batch error state
+        const batchGrp = sel.closest('.f-grp');
+        if (batchGrp) batchGrp.classList.remove('error');
     };
     
     function renderBatchChips() {
@@ -565,23 +581,29 @@ $initialMode = $initialMode ?? null; // 'new' or 'existing'
             });
 
             courseEl.addEventListener('change', function() {
+                const noBatchHint = document.getElementById('noBatchHint_' + CID);
                 if (!this.value) {
                     batchEl.innerHTML = '<option value="">— Select course first —</option>';
                     batchEl.disabled  = true;
+                    if (noBatchHint) noBatchHint.style.display = 'none';
                     return;
                 }
                 batchEl.innerHTML = '<option value="">Loading batches...</option>';
                 batchEl.disabled  = true;
+                if (noBatchHint) noBatchHint.style.display = 'none';
                 NexusDataLoader.loadBatches(this.value, batchEl).then(function(batches) {
                     if (batches.length === 0) {
                         // Fallback to PHP batch data filtered by course_id
                         const matches = PHP_BATCHES.filter(b => b.course_id == courseEl.value);
                         if (matches.length > 0) {
-                            batchEl.innerHTML = '<option value="">Select Batch</option>';
+                            batchEl.innerHTML = '<option value="">— Select Batch —</option>';
                             matches.forEach(b => {
                                 batchEl.innerHTML += `<option value="${b.id}">${b.name}${b.shift ? ' (' + b.shift + ')' : ''}</option>`;
                             });
                             batchEl.disabled = false;
+                        } else {
+                            batchEl.innerHTML = '<option value="">No batches available</option>';
+                            if (noBatchHint) noBatchHint.style.display = 'block';
                         }
                     }
                 });
@@ -593,8 +615,10 @@ $initialMode = $initialMode ?? null; // 'new' or 'existing'
 
             courseEl.addEventListener('change', function() {
                 const courseId = this.value;
+                const noBatchHint = document.getElementById('noBatchHint_' + CID);
                 batchEl.disabled  = true;
                 batchEl.innerHTML = '<option value="">— Choose Batch —</option>';
+                if (noBatchHint) noBatchHint.style.display = 'none';
                 const matches = PHP_BATCHES.filter(b => b.course_id == courseId);
                 if (matches.length) {
                     matches.forEach(b => {
@@ -605,7 +629,8 @@ $initialMode = $initialMode ?? null; // 'new' or 'existing'
                     });
                     batchEl.disabled = false;
                 } else {
-                    batchEl.innerHTML = '<option value="">No batches for this course</option>';
+                    batchEl.innerHTML = '<option value="">No batches available</option>';
+                    if (noBatchHint) noBatchHint.style.display = 'block';
                 }
             });
         }
@@ -680,21 +705,23 @@ $initialMode = $initialMode ?? null; // 'new' or 'existing'
         setTimeout(() => window['setAdmissionMode_' + CID]('new'), 50);
     }
 
-    // ── DOB Sync (AD → BS) ──
+    // ── DOB Sync (BS → AD) ──
     window['handleDobSync_' + CID] = async function(val) {
         if (!val || val.length < 10) return;
         try {
-            const res  = await fetch(`${window.APP_URL}/api/admin/date-convert?date=${encodeURIComponent(val)}&type=bs-to-ad`);
+            // Use role-appropriate endpoint — admin and frontdesk both have a date-convert route
+            const apiRole = (window._userRole === 'admin' || window._userRole === 'instituteadmin') ? 'admin' : 'frontdesk';
+            const res  = await fetch(`${window.APP_URL}/api/${apiRole}/date-convert?date=${encodeURIComponent(val)}&type=bs-to-ad`);
             const data = await res.json();
             const adEl = document.getElementById('inpDobAd_' + CID);
             if (adEl && data.success && data.date) {
                 adEl.value = data.date;
-                console.log('[Admission] Sync OK:', data.date);
             }
         } catch(err) {
-            console.warn('[AdmissionForm] DOB conversion failed:', err);
+            // Non-fatal — AD date is optional if BS is provided
         }
     };
+
 
     // ── Password Toggle ──
     window['togglePassView_' + CID] = function(id) {
@@ -745,7 +772,13 @@ $initialMode = $initialMode ?? null; // 'new' or 'existing'
             }
         });
 
-        // Live reset on input
+        return isValid;
+    }
+
+    // Attach live error-reset listeners ONCE at init, not on every submit
+    (function attachLiveReset() {
+        const _f = document.getElementById('<?= $formId ?>');
+        if (!_f) return;
         _f.querySelectorAll('.fi').forEach(fi => {
             ['input', 'change'].forEach(evt => {
                 fi.addEventListener(evt, () => {
@@ -754,9 +787,7 @@ $initialMode = $initialMode ?? null; // 'new' or 'existing'
                 });
             });
         });
-
-        return isValid;
-    }
+    })();
 
     // ── Form Submit ──
     window['handleAdmissionSubmit_' + CID] = async function(e) {
@@ -817,7 +848,7 @@ $initialMode = $initialMode ?? null; // 'new' or 'existing'
                 method:  'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-Token': window.CSRF_TOKEN || ''
+                    'X-CSRF-Token': window._CSRF_TOKEN || window.CSRF_TOKEN || ''
                 },
                 body:    JSON.stringify(payload),
             });
@@ -860,7 +891,7 @@ $initialMode = $initialMode ?? null; // 'new' or 'existing'
                     successHtml,
                     [
                         { label: 'View Records', click: `window.location.href='${REDIRECT_URL}'`, style: 'background:linear-gradient(135deg,#00b894,#009e7e);color:#fff;' },
-                        { label: 'Add Another', click: `location.reload()`, style: 'background:#f1f5f9;color:#1e293b;box-shadow:none;' }
+                        { label: 'Add Another', click: `resetAdmForm_${CID}()`, style: 'background:#f1f5f9;color:#1e293b;box-shadow:none;' }
                     ]
                 );
 
@@ -914,10 +945,32 @@ $initialMode = $initialMode ?? null; // 'new' or 'existing'
         setTimeout(() => ov.classList.add('active'), 10);
     }
 
-    window['closeAdmModal_CID'] = function() {
+    window['closeAdmModal_' + CID] = function() {
         const ov = document.getElementById('<?= $dialogId ?>');
         if (ov) ov.classList.remove('active');
         setTimeout(() => { if (ov) ov.style.display = 'none'; }, 400);
+    };
+
+    // Reset form in-place for "Add Another" — no full page reload
+    window['resetAdmForm_' + CID] = function() {
+        window['closeAdmModal_' + CID]();
+        setTimeout(() => {
+            const _f = document.getElementById('<?= $formId ?>');
+            if (_f) _f.reset();
+            selectedBatches = [];
+            renderBatchChips();
+            if (batchEl) {
+                batchEl.innerHTML = '<option value="">— Select course first —</option>';
+                batchEl.disabled = true;
+            }
+            const noBatchHint = document.getElementById('noBatchHint_' + CID);
+            if (noBatchHint) noBatchHint.style.display = 'none';
+            // Clear all error states
+            document.querySelectorAll('#<?= $formId ?> .f-grp.error').forEach(g => g.classList.remove('error'));
+            window.convertedInquiryId = null;
+            // Scroll back to top
+            document.getElementById('scBox_<?= $componentId ?>')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 450);
     };
 
 
