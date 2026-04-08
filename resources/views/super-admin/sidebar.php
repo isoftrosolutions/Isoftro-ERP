@@ -44,12 +44,14 @@ function renderSuperAdminSidebar() {
     </style>
 
     <!-- ── SIDEBAR ── -->
-    <nav class="sb" id="sidebar" aria-label="Main navigation">
-        <!-- Mobile-only header -->
-        <div class="sb-header">
-            <div class="logo-txt">ISOFTRO Platform</div>
-            <button class="sb-toggle" id="sbClose" aria-label="Close sidebar">
-                <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+    <nav class="sb" id="sidebar" aria-label="Super admin navigation" aria-hidden="true">
+        <div class="sb-head">
+            <div class="sb-brand">
+                <div class="sb-brand-name"><?php echo htmlspecialchars($tenantName); ?></div>
+                <div class="sb-brand-sub"><?php echo htmlspecialchars($planName); ?></div>
+            </div>
+            <button class="sb-icon-btn sb-close" id="sbClose" type="button" aria-label="Close sidebar">
+                <span aria-hidden="true">×</span>
             </button>
         </div>
 
@@ -58,17 +60,16 @@ function renderSuperAdminSidebar() {
         </div>
 
         <!-- Footer: context + desktop collapse toggle -->
-        <div class="sb-footer">
-            <div class="sb-footer-inner">
-                <div class="sb-tenant-av" aria-hidden="true"><?php echo htmlspecialchars(substr($tenantName, 0, 2)); ?></div>
-                <div class="sb-footer-text">
-                    <div class="sb-tenant-name"><?php echo htmlspecialchars($tenantName); ?></div>
-                    <div class="sb-tenant-plan"><?php echo htmlspecialchars($planName); ?></div>
+        <div class="sb-foot">
+            <div class="sb-foot-meta">
+                <div class="sb-foot-av" aria-hidden="true"><?php echo htmlspecialchars(substr($tenantName, 0, 2)); ?></div>
+                <div class="sb-foot-txt">
+                    <div class="sb-foot-name"><?php echo htmlspecialchars($tenantName); ?></div>
+                    <div class="sb-foot-sub"><?php echo htmlspecialchars($planName); ?></div>
                 </div>
             </div>
-            <!-- Desktop collapse toggle -->
-            <button class="js-sidebar-toggle sb-collapse-btn" aria-label="Toggle sidebar">
-                <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
+            <button class="sb-icon-btn sb-collapse" id="sbCollapse" type="button" aria-label="Collapse sidebar">
+                <span class="sb-collapse-ic" aria-hidden="true">‹</span>
             </button>
         </div>
     </nav>

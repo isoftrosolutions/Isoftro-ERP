@@ -20,20 +20,20 @@ function getSASidebarConfig()
                 [
                     'id' => 'overview',
                     'label' => 'Overview',
-                    'icon' => 'fa-house',
+                    'icon' => 'layout-dashboard',
                     'permission' => 'dashboard.view',
                     'feature' => 'dashboard',
                 ],
                 [
                     'id' => 'tenants',
                     'label' => 'Tenant Management',
-                    'icon' => 'fa-building',
+                    'icon' => 'building-2',
                     'permission' => 'tenants.view',
                     'feature' => 'tenants',
                     'sub' => [
-                        ['id' => 'all', 'l' => 'All Institutes', 'icon' => 'fa-list'],
-                        ['id' => 'add', 'l' => 'Add New Institute', 'icon' => 'fa-plus-circle'],
-                        ['id' => 'suspended', 'l' => 'Suspended Institutes', 'icon' => 'fa-ban'],
+                        ['id' => 'all', 'l' => 'All Institutes', 'icon' => 'list'],
+                        ['id' => 'add', 'l' => 'Add New Institute', 'icon' => 'plus-circle'],
+                        ['id' => 'suspended', 'l' => 'Suspended Institutes', 'icon' => 'ban'],
                     ]
                 ],
             ],
@@ -46,25 +46,25 @@ function getSASidebarConfig()
                 [
                     'id' => 'plans',
                     'label' => 'Plan Management',
-                    'icon' => 'fa-clipboard-list',
+                    'icon' => 'clipboard-list',
                     'permission' => 'plans.view',
                     'feature' => 'plans',
                     'sub' => [
-                        ['id' => 'sub-plans', 'l' => 'Subscription Plans', 'icon' => 'fa-tags'],
-                        ['id' => 'flags', 'l' => 'Feature Flags', 'icon' => 'fa-toggle-on'],
-                        ['id' => 'assign', 'l' => 'Plan Assignment', 'icon' => 'fa-user-tag'],
+                        ['id' => 'sub-plans', 'l' => 'Subscription Plans', 'icon' => 'tags'],
+                        ['id' => 'flags', 'l' => 'Feature Flags', 'icon' => 'toggle-right'],
+                        ['id' => 'assign', 'l' => 'Plan Assignment', 'icon' => 'user-check'],
                     ]
                 ],
                 [
                     'id' => 'revenue',
                     'label' => 'Revenue Analytics',
-                    'icon' => 'fa-money-bill-wave',
+                    'icon' => 'wallet',
                     'permission' => 'revenue.view',
                     'feature' => 'revenue',
                     'sub' => [
-                        ['id' => 'mrr', 'l' => 'MRR / ARR Dashboard', 'icon' => 'fa-chart-line'],
-                        ['id' => 'payments', 'l' => 'Payment History', 'icon' => 'fa-history'],
-                        ['id' => 'invoices', 'l' => 'Invoice Generator', 'icon' => 'fa-file-invoice-dollar'],
+                        ['id' => 'mrr', 'l' => 'MRR / ARR Dashboard', 'icon' => 'line-chart'],
+                        ['id' => 'payments', 'l' => 'Payment History', 'icon' => 'history'],
+                        ['id' => 'invoices', 'l' => 'Invoice Generator', 'icon' => 'file-text'],
                     ]
                 ],
             ],
@@ -77,25 +77,25 @@ function getSASidebarConfig()
                 [
                     'id' => 'analytics',
                     'label' => 'Platform Analytics',
-                    'icon' => 'fa-chart-pie',
+                    'icon' => 'pie-chart',
                     'permission' => 'analytics.view',
                     'feature' => 'analytics',
                     'sub' => [
-                        ['id' => 'users', 'l' => 'Active Users', 'icon' => 'fa-users'],
-                        ['id' => 'heatmap', 'l' => 'Feature Usage Heatmap', 'icon' => 'fa-fire'],
-                        ['id' => 'sms', 'l' => 'SMS Credit Consumption', 'icon' => 'fa-comment-sms'],
+                        ['id' => 'users', 'l' => 'Active Users', 'icon' => 'users'],
+                        ['id' => 'heatmap', 'l' => 'Feature Usage Heatmap', 'icon' => 'flame'],
+                        ['id' => 'sms', 'l' => 'SMS Credit Consumption', 'icon' => 'message-square'],
                     ]
                 ],
                 [
                     'id' => 'support',
                     'label' => 'Support Tickets',
-                    'icon' => 'fa-ticket',
+                    'icon' => 'ticket',
                     'permission' => 'support.view',
                     'feature' => 'support',
                     'sub' => [
-                        ['id' => 'open', 'l' => 'Open Tickets', 'icon' => 'fa-envelope-open-text'],
-                        ['id' => 'impersonate', 'l' => 'Tenant Impersonation Log', 'icon' => 'fa-user-secret'],
-                        ['id' => 'resolved', 'l' => 'Resolved History', 'icon' => 'fa-check-double'],
+                        ['id' => 'open', 'l' => 'Open Tickets', 'icon' => 'mail-open'],
+                        ['id' => 'impersonate', 'l' => 'Tenant Impersonation Log', 'icon' => 'user-cog'],
+                        ['id' => 'resolved', 'l' => 'Resolved History', 'icon' => 'check-check'],
                     ]
                 ],
             ],
@@ -108,37 +108,37 @@ function getSASidebarConfig()
                 [
                     'id' => 'system',
                     'label' => 'System Configuration',
-                    'icon' => 'fa-wrench',
+                    'icon' => 'wrench',
                     'permission' => 'system.view',
                     'feature' => 'system',
                     'sub' => [
-                        ['id' => 'toggles', 'l' => 'Feature Toggles', 'icon' => 'fa-toggle-off'],
-                        ['id' => 'maintenance', 'l' => 'Maintenance Mode', 'icon' => 'fa-hammer'],
-                        ['id' => 'push', 'l' => 'Push Announcements', 'icon' => 'fa-bullhorn'],
+                        ['id' => 'toggles', 'l' => 'Feature Toggles', 'icon' => 'toggle-left'],
+                        ['id' => 'maintenance', 'l' => 'Maintenance Mode', 'icon' => 'hammer'],
+                        ['id' => 'push', 'l' => 'Push Announcements', 'icon' => 'megaphone'],
                     ]
                 ],
                 [
                     'id' => 'logs',
                     'label' => 'System Logs',
-                    'icon' => 'fa-scroll',
+                    'icon' => 'scroll-text',
                     'permission' => 'logs.view',
                     'feature' => 'logs',
                     'sub' => [
-                        ['id' => 'audit', 'l' => 'Audit Logs', 'icon' => 'fa-shield-halved'],
-                        ['id' => 'errors', 'l' => 'Error Logs', 'icon' => 'fa-bug'],
-                        ['id' => 'api', 'l' => 'API Request Logs', 'icon' => 'fa-network-wired'],
+                        ['id' => 'audit', 'l' => 'Audit Logs', 'icon' => 'shield-check'],
+                        ['id' => 'errors', 'l' => 'Error Logs', 'icon' => 'bug'],
+                        ['id' => 'api', 'l' => 'API Request Logs', 'icon' => 'network'],
                     ]
                 ],
                 [
                     'id' => 'settings',
                     'label' => 'Settings',
-                    'icon' => 'fa-gear',
+                    'icon' => 'settings',
                     'permission' => 'settings.view',
                     'feature' => 'settings',
                     'sub' => [
-                        ['id' => 'brand', 'l' => 'Platform Branding', 'icon' => 'fa-palette'],
-                        ['id' => 'sms-tpl', 'l' => 'Default SMS Templates', 'icon' => 'fa-message'],
-                        ['id' => 'email', 'l' => 'Email Config', 'icon' => 'fa-at'],
+                        ['id' => 'brand', 'l' => 'Platform Branding', 'icon' => 'palette'],
+                        ['id' => 'sms-tpl', 'l' => 'Default SMS Templates', 'icon' => 'message-circle'],
+                        ['id' => 'email', 'l' => 'Email Config', 'icon' => 'at-sign'],
                     ]
                 ],
             ],

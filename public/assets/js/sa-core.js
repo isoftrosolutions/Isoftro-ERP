@@ -9,6 +9,27 @@ window.SuperAdmin = (function (existing) {
   let charts     = existing.charts || {};
   let dataTables = existing.dataTables || {};
   let expanded   = JSON.parse(localStorage.getItem('sa_expanded') || '{}');
+  const SIDEBAR_DESKTOP_MIN = 768;
+  const SIDEBAR_COLLAPSED_KEY = "sa-sb-collapsed";
+  const SIDEBAR_COLLAPSED_KEY_LEGACY = "_sa_sb_collapsed";
+  let lastSidebarFocusEl = null;
+
+  function isDesktopSidebar() {
+    return window.matchMedia(`(min-width: ${SIDEBAR_DESKTOP_MIN}px)`).matches;
+  }
+
+  function getSavedSidebarCollapsed() {
+    return (
+      localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === "1" ||
+      localStorage.getItem(SIDEBAR_COLLAPSED_KEY_LEGACY) === "1"
+    );
+  }
+
+  function setSavedSidebarCollapsed(isCollapsed) {
+    const val = isCollapsed ? "1" : "0";
+    localStorage.setItem(SIDEBAR_COLLAPSED_KEY, val);
+    localStorage.setItem(SIDEBAR_COLLAPSED_KEY_LEGACY, val);
+  }
 
   /* Build flat nav from PHP-injected config */
   function buildFlatNav() {
@@ -59,13 +80,19 @@ window.SuperAdmin = (function (existing) {
   }
 
   function init() {
-    // Restore sidebar collapse state
-    if (localStorage.getItem("sa-sb-collapsed") === "1") {
+    // Restore desktop collapsed state early to reduce layout flash
+    if (isDesktopSidebar() && getSavedSidebarCollapsed()) {
       document.body.classList.add("sb-collapsed");
     }
 
     initSidebar();
     renderSidebar();
+
+    // Demo mode: only showcase the sidebar behavior (skip SPA navigation and heavy widgets)
+    if (document.body && document.body.dataset && document.body.dataset.saDemo === "1") {
+      return;
+    }
+
     initDropdowns();
     initCharts();
     initModals();
@@ -144,6 +171,11 @@ window.SuperAdmin = (function (existing) {
 
   function goNav(id, params = {}) {
     activeNav = id;
+
+    if (document.body && document.body.dataset && document.body.dataset.saDemo === "1") {
+      updateSidebarActiveStates(id, params);
+      return;
+    }
     
     const baseUrl = (window.APP_URL || '') + '/dash/super-admin/';
     const url = new URL(baseUrl, window.location.origin);
@@ -161,10 +193,12 @@ window.SuperAdmin = (function (existing) {
     
     window.history.pushState({ pageVal: url.searchParams.get('page') }, '', url.toString());
     
-    if (window.innerWidth < 1024) {
-      document.body.classList.remove('sb-active');
-      const overlay = document.getElementById('sbOverlay');
-      if (overlay) overlay.classList.remove('active');
+    if (!isDesktopSidebar()) {
+      if (typeof initSidebar._closeMobile === "function") {
+        initSidebar._closeMobile({ restoreFocus: false });
+      } else {
+        document.body.classList.remove("sb-mobile-open");
+      }
     }
     
     updateSidebarActiveStates(id, params);
@@ -211,6 +245,11 @@ window.SuperAdmin = (function (existing) {
   }
 
   function toggleExp(id) {
+    if (isDesktopSidebar() && document.body.classList.contains("sb-collapsed")) {
+      document.body.classList.remove("sb-collapsed");
+      setSavedSidebarCollapsed(false);
+    }
+
     expanded[id] = !expanded[id];
     localStorage.setItem('sa_expanded', JSON.stringify(expanded));
     
@@ -257,20 +296,20 @@ window.SuperAdmin = (function (existing) {
 
             if (hasSub) {
                 html += `
-                    <button class="sb-btn ${isActive ? 'active' : ''}" onclick="toggleExp('${nav.id}')">
-                        <i class="fa-solid ${nav.icon}"></i>
+                    <button type="button" class="sb-btn ${isActive ? 'active' : ''}" onclick="toggleExp('${nav.id}')" title="${nav.label}" aria-expanded="${isExp ? 'true' : 'false'}" aria-controls="sub-${nav.id}">
+                        <i class="sb-ic" data-lucide="${nav.icon || 'circle'}" aria-hidden="true"></i>
                         <span class="sb-lbl">${nav.label}</span>
                         ${badgeHtml}
-                        <i class="fa-solid fa-chevron-right nbc ${isExp ? 'open' : ''}"></i>
+                        <i class="sb-ic nbc ${isExp ? 'open' : ''}" data-lucide="chevron-right" aria-hidden="true"></i>
                     </button>
-                    <div class="sub-menu ${isExp ? 'open' : ''}" id="sub-${nav.id}">
+                    <div class="sub-menu ${isExp ? 'open' : ''}" id="sub-${nav.id}" role="region" aria-label="${nav.label} submenu">
                 `;
 
                 nav.sub.forEach(s => {
                     const subBadge = s.badge_key && badges[s.badge_key] ? `<span class="sb-badge sm" style="margin-left:auto; opacity:0.7;">${badges[s.badge_key]}</span>` : '';
                     html += `
-                        <button class="sub-btn" onclick="goNav('${nav.id}', '${s.id}')">
-                            <i class="fa-solid ${s.icon} smi" style="font-size:11px; margin-right:8px; opacity:0.6;"></i>
+                        <button type="button" class="sub-btn" onclick="goNav('${nav.id}', '${s.id}')" title="${s.l}">
+                            <i class="sb-ic" data-lucide="${s.icon || 'circle'}" aria-hidden="true" style="width:16px;height:16px;opacity:0.75;"></i>
                             ${s.l}
                             ${subBadge}
                         </button>
@@ -280,8 +319,8 @@ window.SuperAdmin = (function (existing) {
                 html += `</div>`;
             } else {
                 html += `
-                    <button class="sb-btn ${isActive ? 'active' : ''}" onclick="goNav('${nav.id}')">
-                        <i class="fa-solid ${nav.icon}"></i>
+                    <button type="button" class="sb-btn ${isActive ? 'active' : ''}" onclick="goNav('${nav.id}')" title="${nav.label}">
+                        <i class="sb-ic" data-lucide="${nav.icon || 'circle'}" aria-hidden="true"></i>
                         <span class="sb-lbl">${nav.label}</span>
                         ${badgeHtml}
                     </button>
@@ -291,6 +330,10 @@ window.SuperAdmin = (function (existing) {
     });
 
     sbBody.innerHTML = html;
+
+    if (window.lucide && typeof window.lucide.createIcons === "function") {
+      window.lucide.createIcons();
+    }
   }
 
   async function fetchAPI(url, methodOrOptions = {}, body = null) {
@@ -417,33 +460,140 @@ window.SuperAdmin = (function (existing) {
   }
 
   function initSidebar() {
-    const toggleBtns = document.querySelectorAll(".sb-toggle");
-    const overlay    = document.getElementById("sbOverlay");
+    const body = document.body;
+    const sidebar = document.getElementById("sidebar");
+    const overlay = document.getElementById("sbOverlay");
 
-    toggleBtns.forEach((btn) => {
+    const btnHeaderToggle = document.getElementById("sbToggle");
+    const btnFabToggle = document.getElementById("sbFab");
+    const btnClose = document.getElementById("sbClose");
+    const btnCollapse = document.getElementById("sbCollapse");
+
+    const setTogglesExpanded = (expanded) => {
+      const val = expanded ? "true" : "false";
+      if (btnHeaderToggle) btnHeaderToggle.setAttribute("aria-expanded", val);
+      if (btnFabToggle) btnFabToggle.setAttribute("aria-expanded", val);
+    };
+
+    const setSidebarHidden = (isHidden) => {
+      if (!sidebar) return;
+      sidebar.setAttribute("aria-hidden", isHidden ? "true" : "false");
+    };
+
+    const onEsc = (e) => {
+      if (e.key === "Escape") {
+        closeMobile({ restoreFocus: true });
+      }
+    };
+
+    const openMobile = () => {
+      if (!sidebar) return;
+      if (body.classList.contains("sb-mobile-open")) return;
+
+      lastSidebarFocusEl = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+      body.classList.add("sb-mobile-open");
+      setSidebarHidden(false);
+      setTogglesExpanded(true);
+
+      // Move focus inside for keyboard users
+      requestAnimationFrame(() => {
+        if (btnClose && typeof btnClose.focus === "function") btnClose.focus();
+      });
+
+      document.addEventListener("keydown", onEsc);
+    };
+
+    const closeMobile = ({ restoreFocus } = { restoreFocus: true }) => {
+      if (!sidebar) return;
+      if (!body.classList.contains("sb-mobile-open")) {
+        setSidebarHidden(!isDesktopSidebar());
+        setTogglesExpanded(isDesktopSidebar() ? !body.classList.contains("sb-collapsed") : false);
+        return;
+      }
+
+      body.classList.remove("sb-mobile-open");
+      setSidebarHidden(true);
+      setTogglesExpanded(false);
+      document.removeEventListener("keydown", onEsc);
+
+      if (restoreFocus && lastSidebarFocusEl && typeof lastSidebarFocusEl.focus === "function") {
+        lastSidebarFocusEl.focus();
+      }
+      lastSidebarFocusEl = null;
+    };
+
+    const toggleDesktopCollapsed = () => {
+      const next = !body.classList.contains("sb-collapsed");
+      body.classList.toggle("sb-collapsed", next);
+      setSavedSidebarCollapsed(next);
+      setSidebarHidden(false);
+      setTogglesExpanded(!next);
+    };
+
+    const syncForViewport = () => {
+      if (isDesktopSidebar()) {
+        body.classList.toggle("sb-collapsed", getSavedSidebarCollapsed());
+        body.classList.remove("sb-mobile-open");
+        setSidebarHidden(false);
+        setTogglesExpanded(!body.classList.contains("sb-collapsed"));
+        document.removeEventListener("keydown", onEsc);
+        lastSidebarFocusEl = null;
+      } else {
+        // On mobile: collapsed state means hidden (no icon-only mode)
+        body.classList.remove("sb-collapsed");
+        closeMobile({ restoreFocus: false });
+        setSidebarHidden(true);
+        setTogglesExpanded(false);
+      }
+    };
+
+    // External toggles (header + FAB)
+    [btnHeaderToggle, btnFabToggle].forEach((btn) => {
+      if (!btn) return;
       btn.addEventListener("click", () => toggleSidebar());
     });
 
-    if (overlay) {
-      overlay.addEventListener("click", () => {
-        document.body.classList.remove("sb-active");
-        overlay.classList.remove("active");
+    // Inside sidebar controls
+    if (btnClose) btnClose.addEventListener("click", () => closeMobile({ restoreFocus: true }));
+    if (btnCollapse) {
+      btnCollapse.addEventListener("click", () => {
+        if (isDesktopSidebar()) toggleDesktopCollapsed();
+        else closeMobile({ restoreFocus: true });
       });
     }
 
-    if (window.innerWidth >= 1024 && localStorage.getItem("sa-sb-collapsed") === "1") {
-      document.body.classList.add("sb-collapsed");
-    }
+    if (overlay) overlay.addEventListener("click", () => closeMobile({ restoreFocus: true }));
+
+    // Keep behavior consistent across breakpoint changes
+    window.addEventListener("resize", syncForViewport);
+    syncForViewport();
+
+    // Expose for other internal calls (e.g., toggleSidebar)
+    initSidebar._openMobile = openMobile;
+    initSidebar._closeMobile = closeMobile;
+    initSidebar._toggleDesktopCollapsed = toggleDesktopCollapsed;
   }
 
   function toggleSidebar() {
-    const overlay = document.getElementById("sbOverlay");
-    if (window.innerWidth < 1024) {
-      document.body.classList.toggle("sb-active");
-      if (overlay) overlay.classList.toggle("active");
+    const body = document.body;
+    if (isDesktopSidebar()) {
+      if (typeof initSidebar._toggleDesktopCollapsed === "function") {
+        initSidebar._toggleDesktopCollapsed();
+      } else {
+        const next = !body.classList.contains("sb-collapsed");
+        body.classList.toggle("sb-collapsed", next);
+        setSavedSidebarCollapsed(next);
+      }
+      return;
+    }
+
+    const isOpen = body.classList.contains("sb-mobile-open");
+    if (isOpen) {
+      if (typeof initSidebar._closeMobile === "function") initSidebar._closeMobile({ restoreFocus: true });
+      else body.classList.remove("sb-mobile-open");
     } else {
-      document.body.classList.toggle("sb-collapsed");
-      localStorage.setItem("sa-sb-collapsed", document.body.classList.contains("sb-collapsed") ? "1" : "0");
+      if (typeof initSidebar._openMobile === "function") initSidebar._openMobile();
+      else body.classList.add("sb-mobile-open");
     }
   }
 
@@ -578,6 +728,10 @@ window.SuperAdmin = (function (existing) {
 
   // Handle browser back/forward navigation
   window.addEventListener('popstate', (e) => {
+    if (document.body && document.body.dataset && document.body.dataset.saDemo === "1") {
+      return;
+    }
+
     let pageVal = e.state?.pageVal || (new URLSearchParams(window.location.search)).get('page') || 'overview';
     activeNav = pageVal;
     activeSub = null;

@@ -37,6 +37,7 @@ $monthlyRevenue = $stmt->fetchColumn();
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
     <link rel="icon" type="image/svg+xml" href="<?= APP_URL ?>/assets/images/favicon.svg">
     
     <!-- Styles -->
@@ -57,7 +58,7 @@ $monthlyRevenue = $stmt->fetchColumn();
         <!-- HEADER -->
         <header class="hdr">
             <div class="hdr-left">
-                <button class="sb-toggle" id="sbToggle">
+                <button class="sb-toggle" id="sbToggle" type="button" aria-label="Toggle sidebar" aria-controls="sidebar" aria-expanded="false">
                     <i class="fas fa-bars-staggered"></i>
                 </button>
                 <div class="hdr-logo-box">
@@ -120,7 +121,12 @@ $monthlyRevenue = $stmt->fetchColumn();
         </style>
 
         <!-- SIDEBAR OVERLAY -->
-        <div class="sb-overlay" id="sbOverlay"></div>
+        <div class="sb-overlay" id="sbOverlay" aria-hidden="true"></div>
+
+        <!-- Mobile toggle (always visible) -->
+        <button class="sb-fab" id="sbFab" type="button" aria-label="Toggle sidebar" aria-controls="sidebar" aria-expanded="false">
+            <span class="sb-fab-ic" aria-hidden="true">☰</span>
+        </button>
 
         <!-- SIDEBAR -->
         <?php renderSuperAdminSidebar(); ?>
@@ -139,7 +145,6 @@ $monthlyRevenue = $stmt->fetchColumn();
      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
      <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
      <script src="<?= APP_URL ?>/assets/js/sa-core.js"></script>
-     <script src="<?= APP_URL ?>/assets/js/sa-sidebar.js"></script>
      <script src="<?= APP_URL ?>/assets/js/sa-pages.js"></script>
 </body>
 </html>
