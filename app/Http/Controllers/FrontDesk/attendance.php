@@ -135,7 +135,7 @@ try {
             $startDate = $_GET['start_date'] ?? date('Y-m-01');
             $endDate = $_GET['end_date'] ?? date('Y-m-d');
 
-            $sql = "SELECT a.attendance_date, u.name, s.roll_no, b.name as batch_name, a.status
+            $sql = "SELECT a.attendance_date, u.name AS full_name, s.roll_no, b.name as batch_name, a.status
                 FROM attendance a
                 JOIN students s ON s.id = a.student_id
                 JOIN users u ON s.user_id = u.id
