@@ -5,6 +5,7 @@
 
 const AccountingModule = {
     accounts: null,
+    activeFiscalYearId: null,
 
     renderAction: function(subId) {
         const mainContent = document.getElementById('mainContent');
@@ -199,7 +200,8 @@ const AccountingModule = {
         container.innerHTML = html;
     },
 
-    renderVoucherEntry: function(container) {
+    renderVoucherEntry: async function(container) {
+        const fyId = await this.getActiveFiscalYearId();
         container.innerHTML = `
             <div class="pg fu">
                 <div class="bc">
@@ -217,7 +219,7 @@ const AccountingModule = {
                 </div>
                 <div class="card" style="max-width:1000px; margin: 0 auto; padding: 25px;">
                     <form id="voucherForm" onsubmit="AccountingModule.saveVoucher(event)">
-                        <input type="hidden" name="fiscal_year_id" value="1"> <!-- Default to active FY -->
+                        <input type="hidden" name="fiscal_year_id" value="${fyId || ''}">
                         <div class="sg mb">
                             <div class="form-group">
                                 <label class="form-label">Voucher No</label>
@@ -542,12 +544,26 @@ const AccountingModule = {
         }
     },
 
+    getActiveFiscalYearId: async function() {
+        if (this.activeFiscalYearId) return this.activeFiscalYearId;
+        try {
+            const res = await fetch(APP_URL + '/api/admin/accounting?action=fiscal-years');
+            const result = await res.json();
+            if (result.success && result.data.length > 0) {
+                const active = result.data.find(fy => fy.is_active == 1) || result.data[0];
+                this.activeFiscalYearId = active.id;
+            }
+        } catch (e) {}
+        return this.activeFiscalYearId;
+    },
+
     showAddExpenseModal: async function() {
         if (!this.accounts) {
             const res = await fetch(APP_URL + '/api/admin/accounting?action=accounts');
             const result = await res.json();
             if (result.success) this.accounts = result.data;
         }
+        const fyId = await this.getActiveFiscalYearId();
         
         // Filter account options
         let expenseOptions = '';
@@ -611,7 +627,7 @@ const AccountingModule = {
                 
                 return {
                     date: date,
-                    fiscal_year_id: 1, // Fallback, could dynamically query active FY instead
+                    fiscal_year_id: fyId,
                     voucher_no: 'EXP-' + new Date().getTime(),
                     type: 'payment',
                     narration: document.getElementById('exp_narration').value || 'Expense Recording',

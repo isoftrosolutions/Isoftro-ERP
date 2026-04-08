@@ -208,10 +208,11 @@ class AccountingController
             ]);
             $voucherId = $this->db->lastInsertId();
 
-            $stmt = $this->db->prepare("INSERT INTO acc_ledger_postings (voucher_id, account_id, debit, credit, description) VALUES (?, ?, ?, ?, ?)");
+            $stmt = $this->db->prepare("INSERT INTO acc_ledger_postings (tenant_id, voucher_id, account_id, debit, credit, description) VALUES (?, ?, ?, ?, ?, ?)");
             foreach ($postings as $p) {
                 if (($p['debit'] ?? 0) > 0 || ($p['credit'] ?? 0) > 0) {
                     $stmt->execute([
+                        $this->tenantId,
                         $voucherId,
                         $p['account_id'],
                         $p['debit'] ?? 0,
@@ -464,18 +465,18 @@ class AccountingController
 
         $fyFilter = $activeFyId ? " AND v.fiscal_year_id = " . (int)$activeFyId : "";
 
-        $sql = "SELECT a.id, a.type, a.name, a.opening_balance,
-                       COALESCE(SUM(pv.debit), 0) as period_debit, 
-                       COALESCE(SUM(pv.credit), 0) as period_credit 
-                FROM acc_accounts a 
+        $sql = "SELECT a.id, a.type, a.nature, a.name, a.opening_balance,
+                       COALESCE(SUM(pv.debit), 0) as period_debit,
+                       COALESCE(SUM(pv.credit), 0) as period_credit
+                FROM acc_accounts a
                 LEFT JOIN (
-                    SELECT p.account_id, p.debit, p.credit 
+                    SELECT p.account_id, p.debit, p.credit
                     FROM acc_ledger_postings p
-                    JOIN acc_vouchers v ON p.voucher_id = v.id 
+                    JOIN acc_vouchers v ON p.voucher_id = v.id
                     WHERE v.deleted_at IS NULL AND v.status IN ('posted', 'approved') {$fyFilter}
                 ) pv ON a.id = pv.account_id
-                WHERE a.tenant_id = ? AND a.deleted_at IS NULL
-                GROUP BY a.id, a.type, a.name, a.opening_balance";
+                WHERE a.tenant_id = ? AND a.deleted_at IS NULL AND a.is_group = 0
+                GROUP BY a.id, a.type, a.nature, a.name, a.opening_balance";
         
         $stmt = $this->db->prepare($sql);
         $stmt->execute([$this->tenantId]);
@@ -488,21 +489,21 @@ class AccountingController
         $expense = 0;
 
         foreach ($accounts as $row) {
-            $name = strtolower($row['name']);
+            $nature = $row['nature'] ?? 'GENERAL';
             $ob = (float)$row['opening_balance'];
             $pd = (float)$row['period_debit'];
             $pc = (float)$row['period_credit'];
-            
+
             if ($row['type'] === 'asset') {
                 $bal = $ob + $pd - $pc;
-                if (strpos($name, 'cash') !== false || strpos($name, 'bank') !== false) {
+                if ($nature === 'CASH' || $nature === 'BANK') {
                     $cashBank += $bal;
-                } elseif (strpos($name, 'receivable') !== false || strpos($name, 'debtor') !== false) {
+                } elseif ($nature === 'AR') {
                     $ar += $bal;
                 }
             } elseif ($row['type'] === 'liability') {
                 $bal = $ob + $pc - $pd;
-                if (strpos($name, 'payable') !== false || strpos($name, 'creditor') !== false) {
+                if ($nature === 'AP') {
                     $ap += $bal;
                 }
             } elseif ($row['type'] === 'income') {
@@ -546,29 +547,35 @@ class AccountingController
         $dateFrom = $_GET['date_from'] ?? date('Y-01-01');
         $dateTo = $_GET['date_to'] ?? date('Y-12-31');
 
-        $sql = "SELECT 
+        $sql = "SELECT
                     a.code,
                     a.name as account_name,
                     a.type,
-                    SUM(COALESCE(lp.credit, 0)) as total_credit,
-                    SUM(COALESCE(lp.debit, 0)) as total_debit,
-                    CASE 
-                        WHEN a.type = 'income' THEN SUM(COALESCE(lp.credit, 0)) - SUM(COALESCE(lp.debit, 0))
-                        ELSE SUM(COALESCE(lp.debit, 0)) - SUM(COALESCE(lp.credit, 0))
+                    SUM(COALESCE(pv.credit, 0)) as total_credit,
+                    SUM(COALESCE(pv.debit, 0)) as total_debit,
+                    CASE
+                        WHEN a.type = 'income' THEN SUM(COALESCE(pv.credit, 0)) - SUM(COALESCE(pv.debit, 0))
+                        ELSE SUM(COALESCE(pv.debit, 0)) - SUM(COALESCE(pv.credit, 0))
                     END as net_balance
                 FROM acc_accounts a
-                LEFT JOIN acc_ledger_postings lp ON a.id = lp.account_id
-                LEFT JOIN acc_vouchers v ON lp.voucher_id = v.id
-                WHERE a.tenant_id = ? 
+                LEFT JOIN (
+                    SELECT lp.account_id, lp.debit, lp.credit
+                    FROM acc_ledger_postings lp
+                    JOIN acc_vouchers v ON lp.voucher_id = v.id
+                    WHERE v.deleted_at IS NULL
+                      AND v.status IN ('posted', 'approved')
+                      AND v.tenant_id = ?
+                      AND v.date BETWEEN ? AND ?
+                ) pv ON a.id = pv.account_id
+                WHERE a.tenant_id = ?
                     AND a.deleted_at IS NULL
                     AND a.type IN ('income', 'expense')
-                    AND v.status IN ('posted', 'approved')
-                    AND v.date BETWEEN ? AND ?
+                    AND a.is_group = 0
                 GROUP BY a.id, a.code, a.name, a.type
                 ORDER BY a.type, a.code";
         
         $stmt = $this->db->prepare($sql);
-        $stmt->execute([$this->tenantId, $dateFrom, $dateTo]);
+        $stmt->execute([$this->tenantId, $dateFrom, $dateTo, $this->tenantId]);
         $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         $totalIncome = 0;

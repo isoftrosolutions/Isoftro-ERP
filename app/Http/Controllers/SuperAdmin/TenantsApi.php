@@ -177,14 +177,72 @@ try {
             ]);
             
             $tenantId = $db->lastInsertId();
-            
+
+            // Auto-seed accounting: fiscal year + chart of accounts
+            try {
+                $fyStmt = $db->prepare("INSERT INTO acc_fiscal_years (tenant_id, name, start_date, end_date, is_active, created_at, updated_at) VALUES (?, ?, ?, ?, 1, NOW(), NOW())");
+                $fyStmt->execute([$tenantId, 'FY 2082-83 (2025-26)', '2025-07-16', '2026-07-15']);
+
+                $accInsert = $db->prepare("INSERT INTO acc_accounts (tenant_id, code, name, type, nature, parent_id, is_group, opening_balance, balance_type, is_system, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, 0.00, ?, 1, 'active', NOW(), NOW())");
+                $accounts = [
+                    ['1000','Cash & Cash Equivalents','asset','CASH',null,1,'dr'],
+                    ['1010','Petty Cash','asset','CASH','1000',0,'dr'],
+                    ['1011','Cash in Hand','asset','CASH','1000',0,'dr'],
+                    ['1020','Bank Account','asset','BANK','1000',0,'dr'],
+                    ['1100','Accounts Receivable','asset','AR',null,1,'dr'],
+                    ['1101','Student Fees Receivable','asset','AR','1100',0,'dr'],
+                    ['1200','Prepaid Expenses','asset','GENERAL',null,0,'dr'],
+                    ['1300','Other Current Assets','asset','GENERAL',null,0,'dr'],
+                    ['1500','Fixed Assets','asset','GENERAL',null,1,'dr'],
+                    ['2000','Accounts Payable','liability','AP',null,1,'cr'],
+                    ['2001','Vendor Payables','liability','AP','2000',0,'cr'],
+                    ['2100','Accrued Expenses','liability','GENERAL',null,0,'cr'],
+                    ['2200','Tax Payable','liability','GENERAL',null,1,'cr'],
+                    ['2201','TDS Payable','liability','GENERAL','2200',0,'cr'],
+                    ['2300','Salary Payable','liability','GENERAL',null,0,'cr'],
+                    ['2400','Advance from Students','liability','GENERAL',null,0,'cr'],
+                    ['3000',"Owner's Equity",'equity','GENERAL',null,0,'cr'],
+                    ['3100','Retained Earnings','equity','GENERAL',null,0,'cr'],
+                    ['4000','Income','income','GENERAL',null,1,'cr'],
+                    ['4001','Tuition Fees','income','GENERAL','4000',0,'cr'],
+                    ['4002','Admission Fees','income','GENERAL','4000',0,'cr'],
+                    ['4003','Examination Fees','income','GENERAL','4000',0,'cr'],
+                    ['4004','Registration Fees','income','GENERAL','4000',0,'cr'],
+                    ['4005','Other Income','income','GENERAL','4000',0,'cr'],
+                    ['5000','Expenses','expense','GENERAL',null,1,'dr'],
+                    ['5001','Salary Expense','expense','GENERAL','5000',0,'dr'],
+                    ['5002','Rent Expense','expense','GENERAL','5000',0,'dr'],
+                    ['5003','Utilities Expense','expense','GENERAL','5000',0,'dr'],
+                    ['5004','Office Supplies','expense','GENERAL','5000',0,'dr'],
+                    ['5005','Marketing & Advertising','expense','GENERAL','5000',0,'dr'],
+                    ['5006','Maintenance & Repairs','expense','GENERAL','5000',0,'dr'],
+                    ['5007','Bank Charges','expense','GENERAL','5000',0,'dr'],
+                    ['5008','Miscellaneous Expense','expense','GENERAL','5000',0,'dr'],
+                ];
+                $codeToId = [];
+                foreach ($accounts as $a) {
+                    if ($a[4] === null) {
+                        $accInsert->execute([$tenantId, $a[0], $a[1], $a[2], $a[3], null, $a[5], $a[6]]);
+                        $codeToId[$a[0]] = (int)$db->lastInsertId();
+                    }
+                }
+                foreach ($accounts as $a) {
+                    if ($a[4] !== null) {
+                        $accInsert->execute([$tenantId, $a[0], $a[1], $a[2], $a[3], $codeToId[$a[4]] ?? null, $a[5], $a[6]]);
+                        $codeToId[$a[0]] = (int)$db->lastInsertId();
+                    }
+                }
+            } catch (\Throwable $ae) {
+                // Non-fatal: tenant is created, accounting seed failed silently
+            }
+
             echo json_encode([
                 'success' => true,
                 'message' => 'Tenant created successfully',
                 'data' => ['id' => $tenantId]
             ]);
             break;
-            
+
         case 'update':
             $input = json_decode(file_get_contents('php://input'), true);
             $id = (int)$input['id'];
