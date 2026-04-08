@@ -5,19 +5,39 @@ namespace App\Http\Controllers\SuperAdmin;
 class SuperAdminRouter {
     private $db;
     private $mapping = [
-        'overview' => DashboardController::class,
-        'tenants' => TenantController::class,
-        'add-tenant' => TenantController::class,
-        'edit-tenant' => TenantController::class,
-        'view-tenant' => TenantController::class,
-        'revenue' => RevenueController::class,
-        'analytics' => AnalyticsController::class,
-        'support' => SupportController::class,
-        'logs' => LogController::class,
-        'profile' => ProfileController::class,
-        'system' => SystemController::class,
-        'settings' => SystemController::class,
-        'plans' => PlanController::class
+        'overview'            => DashboardController::class,
+        // Tenants
+        'tenants'             => TenantController::class,
+        'add-tenant'          => TenantController::class,
+        'edit-tenant'         => TenantController::class,
+        'view-tenant'         => TenantController::class,
+        'tenants-suspended'   => TenantController::class,
+        // Plans
+        'plans'               => PlanController::class,
+        'plans-flags'         => PlanController::class,
+        'plans-assign'        => PlanController::class,
+        // Revenue
+        'revenue'             => RevenueController::class,
+        'revenue-invoices'    => RevenueController::class,
+        // Analytics
+        'analytics'           => AnalyticsController::class,
+        // Support
+        'support'             => SupportController::class,
+        'support-resolved'    => SupportController::class,
+        'support-impersonate' => SupportController::class,
+        // System / Settings
+        'system'              => SystemController::class,
+        'system-maintenance'  => SystemController::class,
+        'system-push'         => SystemController::class,
+        'settings'            => SystemController::class,
+        'settings-brand'      => SystemController::class,
+        'settings-sms-tpl'    => SystemController::class,
+        // Logs
+        'logs'                => LogController::class,
+        'logs-errors'         => LogController::class,
+        'logs-api'            => LogController::class,
+        // Profile
+        'profile'             => ProfileController::class,
     ];
 
     public function __construct() {

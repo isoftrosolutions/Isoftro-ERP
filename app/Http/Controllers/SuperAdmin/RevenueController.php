@@ -28,10 +28,27 @@ class RevenueController {
         return $stmt->fetchColumn() ?: 0;
     }
 
+    public function invoicesView() {
+        try {
+            $payments = $this->db->query("
+                SELECT tp.*, t.name as tenant_name, t.email as tenant_email, t.plan
+                FROM tenant_payments tp
+                JOIN tenants t ON tp.tenant_id = t.id
+                ORDER BY tp.created_at DESC LIMIT 200
+            ")->fetchAll();
+        } catch (\Exception $e) {
+            $payments = [];
+        }
+        include resource_path('views/super-admin/revenue-invoices.php');
+    }
+
     public function handle($action = 'index') {
         switch ($action) {
-            case 'revenue': return $this->index();
-            default: return $this->index();
+            case 'revenue':
+            case 'mrr':
+            case 'payments':        return $this->index();
+            case 'revenue-invoices':return $this->invoicesView();
+            default:                return $this->index();
         }
     }
 

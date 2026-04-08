@@ -49,13 +49,26 @@ class TenantController {
         ]);
     }
 
+    public function suspendedView() {
+        try {
+            $tenants = $this->db->query("
+                SELECT t.*, (SELECT COUNT(*) FROM students s WHERE s.tenant_id = t.id) as student_count
+                FROM tenants t WHERE t.status = 'suspended' ORDER BY t.updated_at DESC
+            ")->fetchAll();
+        } catch (\Exception $e) {
+            $tenants = [];
+        }
+        include resource_path('views/super-admin/tenants-suspended.php');
+    }
+
     public function handle($action = 'index') {
         switch ($action) {
-            case 'tenants': return $this->index();
-            case 'add-tenant': return $this->create();
-            case 'edit-tenant': return $this->edit();
-            case 'view-tenant': return $this->show();
-            default: 
+            case 'tenants':           return $this->index();
+            case 'add-tenant':        return $this->create();
+            case 'edit-tenant':       return $this->edit();
+            case 'view-tenant':       return $this->show();
+            case 'tenants-suspended': return $this->suspendedView();
+            default:
                 if (method_exists($this, $action)) return $this->$action();
                 return $this->index();
         }

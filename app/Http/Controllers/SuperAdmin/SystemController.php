@@ -22,11 +22,59 @@ class SystemController {
         return view('super-admin.settings', ['settings' => $settings]);
     }
 
+    public function maintenanceView() {
+        try {
+            $stmt = $this->db->query("SELECT setting_key, setting_value FROM platform_settings");
+            $settings = $stmt->fetchAll(\PDO::FETCH_KEY_PAIR);
+        } catch (\Exception $e) {
+            $settings = [];
+        }
+        include resource_path('views/super-admin/system-maintenance.php');
+    }
+
+    public function pushView() {
+        try {
+            $announcements = $this->db->query("
+                SELECT a.*, u.email as created_by_email
+                FROM announcements a
+                LEFT JOIN users u ON a.created_by = u.id
+                ORDER BY a.created_at DESC LIMIT 50
+            ")->fetchAll();
+        } catch (\Exception $e) {
+            $announcements = [];
+        }
+        include resource_path('views/super-admin/system-push.php');
+    }
+
+    public function brandView() {
+        try {
+            $stmt = $this->db->query("SELECT setting_key, setting_value FROM platform_settings");
+            $settings = $stmt->fetchAll(\PDO::FETCH_KEY_PAIR);
+        } catch (\Exception $e) {
+            $settings = [];
+        }
+        include resource_path('views/super-admin/settings-brand.php');
+    }
+
+    public function smsTemplatesView() {
+        try {
+            $templates = $this->db->query("SELECT * FROM sms_templates ORDER BY event_key ASC")->fetchAll();
+        } catch (\Exception $e) {
+            $templates = [];
+        }
+        include resource_path('views/super-admin/settings-sms-tpl.php');
+    }
+
     public function handle($action = 'index') {
         switch ($action) {
             case 'settings':
-            case 'system': return $this->index();
-            default: return $this->index();
+            case 'system':
+            case 'toggles':          return $this->index();
+            case 'system-maintenance':return $this->maintenanceView();
+            case 'system-push':       return $this->pushView();
+            case 'settings-brand':    return $this->brandView();
+            case 'settings-sms-tpl':  return $this->smsTemplatesView();
+            default:                  return $this->index();
         }
     }
 

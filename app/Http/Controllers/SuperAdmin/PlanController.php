@@ -64,10 +64,40 @@ class PlanController {
         ]);
     }
 
+    public function flagsView() {
+        try {
+            $features = $this->db->query("SELECT * FROM system_features ORDER BY feature_name ASC")->fetchAll();
+        } catch (\Exception $e) {
+            $features = [];
+        }
+        include resource_path('views/super-admin/plans-flags.php');
+    }
+
+    public function assignView() {
+        try {
+            $tenants = $this->db->query("
+                SELECT t.id, t.name, t.subdomain, t.plan, t.status,
+                       p.name as plan_name
+                FROM tenants t
+                LEFT JOIN subscription_plans p ON p.slug = t.plan
+                WHERE t.status != 'deleted'
+                ORDER BY t.name ASC
+            ")->fetchAll();
+            $plans = $this->db->query("SELECT id, name, slug, price_monthly FROM subscription_plans WHERE status = 'active' ORDER BY sort_order ASC")->fetchAll();
+        } catch (\Exception $e) {
+            $tenants = [];
+            $plans = [];
+        }
+        include resource_path('views/super-admin/plans-assign.php');
+    }
+
     public function handle($action = 'index') {
         switch ($action) {
-            case 'plans': return $this->index();
-            default:      return $this->index();
+            case 'plans':
+            case 'sub-plans':  return $this->index();
+            case 'plans-flags':return $this->flagsView();
+            case 'plans-assign':return $this->assignView();
+            default:           return $this->index();
         }
     }
 }

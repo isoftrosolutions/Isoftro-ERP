@@ -69,7 +69,16 @@ window.SuperAdmin = (function (existing) {
     return lastPart.replace('.php', '');
   };
 
-  const compoundPages = ['view-tenant', 'edit-tenant', 'add-tenant'];
+  const compoundPages = [
+    'view-tenant', 'edit-tenant', 'add-tenant',
+    'tenants-suspended',
+    'plans-flags', 'plans-assign',
+    'revenue-invoices',
+    'support-resolved', 'support-impersonate',
+    'system-maintenance', 'system-push',
+    'logs-errors', 'logs-api',
+    'settings-brand', 'settings-sms-tpl'
+  ];
   let initialPage = getInitialPage();
   let activeNav = initialPage;
   let activeSub = null;
@@ -127,38 +136,64 @@ window.SuperAdmin = (function (existing) {
         }
         break;
       case 'tenants':
-        if (typeof SuperAdmin.renderTenants === 'function') {
-          SuperAdmin.renderTenants();
-        } else {
-          fetchSPAPage('tenants');
+        if (activeSub === 'add') fetchSPAPage('add-tenant');
+        else if (activeSub === 'suspended') fetchSPAPage('tenants-suspended');
+        else {
+          if (typeof SuperAdmin.renderTenants === 'function') SuperAdmin.renderTenants();
+          else fetchSPAPage('tenants');
         }
         break;
       case 'users':
         fetchSPAPage('users');
         break;
       case 'plans':
-        fetchSPAPage('plans');
+        if (activeSub === 'flags') fetchSPAPage('plans-flags');
+        else if (activeSub === 'assign') fetchSPAPage('plans-assign');
+        else fetchSPAPage('plans'); // 'sub-plans' or no sub
         break;
       case 'view-tenant':
       case 'edit-tenant':
       case 'add-tenant':
+      case 'tenants-suspended':
+      case 'plans-flags':
+      case 'plans-assign':
+      case 'revenue-invoices':
+      case 'support-resolved':
+      case 'support-impersonate':
+      case 'system-maintenance':
+      case 'system-push':
+      case 'logs-errors':
+      case 'logs-api':
+      case 'settings-brand':
+      case 'settings-sms-tpl':
         fetchSPAPage(activeNav);
         break;
       case 'revenue':
-        fetchSPAPage('revenue');
+        if (activeSub === 'invoices') fetchSPAPage('revenue-invoices');
+        else fetchSPAPage('revenue'); // 'mrr' and 'payments' already shown in revenue.php
         break;
       case 'analytics':
-        fetchSPAPage('analytics');
+        fetchSPAPage('analytics'); // all sub-items shown in analytics.php
         break;
       case 'support':
-        fetchSPAPage('support');
+        if (activeSub === 'resolved') fetchSPAPage('support-resolved');
+        else if (activeSub === 'impersonate') fetchSPAPage('support-impersonate');
+        else fetchSPAPage('support'); // 'open' or no sub
         break;
       case 'system':
+        if (activeSub === 'maintenance') fetchSPAPage('system-maintenance');
+        else if (activeSub === 'push') fetchSPAPage('system-push');
+        else fetchSPAPage('system'); // 'toggles' or no sub
+        break;
       case 'settings':
-        fetchSPAPage(activeNav);
+        if (activeSub === 'brand') fetchSPAPage('settings-brand');
+        else if (activeSub === 'sms-tpl') fetchSPAPage('settings-sms-tpl');
+        else fetchSPAPage('settings'); // 'email' shown in main settings.php
         break;
       case 'logs':
-        fetchSPAPage('logs');
+        if (activeSub === 'errors') fetchSPAPage('logs-errors');
+        else if (activeSub === 'api') fetchSPAPage('logs-api');
+        else fetchSPAPage('logs'); // 'audit' or no sub
         break;
       case 'profile':
         fetchSPAPage('profile');
@@ -171,6 +206,8 @@ window.SuperAdmin = (function (existing) {
 
   function goNav(id, params = {}) {
     activeNav = id;
+    // Track sub-selection so renderPage can route to the correct sub-page
+    activeSub = (typeof params === 'string' && params) ? params : null;
 
     if (document.body && document.body.dataset && document.body.dataset.saDemo === "1") {
       updateSidebarActiveStates(id, params);
