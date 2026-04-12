@@ -3,14 +3,250 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>iSoftro Academic ERP — Cloud-Based Institute Management for Nepal</title>
+  <title>Academic ERP Software for Schools & Colleges in Nepal</title>
   <meta name="description" content="isoftro Academic ERP is a multi-tenant, cloud-based academic management platform built for schools, colleges, and coaching centers in Nepal.">
+
+  <!-- Canonical -->
+  <link rel="canonical" href="https://isoftroerp.com/">
+
+  <!-- Open Graph -->
+  <meta property="og:type"        content="website">
+  <meta property="og:url"         content="https://isoftroerp.com/">
+  <meta property="og:site_name"   content="iSoftro Academic ERP">
+  <meta property="og:title"       content="Academic ERP Software for Schools & Colleges in Nepal">
+  <meta property="og:description" content="Manage admissions, attendance, fees, academics, and payroll — all from one cloud platform. Trusted by 150+ institutions across Nepal.">
+  <meta property="og:image"       content="https://isoftroerp.com/assets/images/og-image.png">
+  <meta property="og:image:width"  content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:locale"      content="en_US">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card"        content="summary_large_image">
+  <meta name="twitter:site"        content="@isoftroerp">
+  <meta name="twitter:title"       content="Academic ERP Software for Schools & Colleges in Nepal">
+  <meta name="twitter:description" content="Manage admissions, attendance, fees, academics, and payroll — all from one cloud platform. Trusted by 150+ institutions across Nepal.">
+  <meta name="twitter:image"       content="https://isoftroerp.com/assets/images/og-image.png">
+
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="<?= defined('APP_URL') ? APP_URL : '' ?>/assets/css/landing.css">
   <link rel="icon" type="image/svg+xml" href="<?= defined('APP_URL') ? APP_URL : '' ?>/assets/images/favicon.svg">
+
+  <!-- ===== Structured Data (JSON-LD) ===== -->
+
+  <!-- Organization -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "iSoftro Pvt. Ltd.",
+    "alternateName": "isoftro",
+    "url": "https://isoftroerp.com",
+    "logo": "https://isoftroerp.com/assets/images/logo.png",
+    "description": "Cloud-based academic ERP software for schools, colleges, and coaching centers in Nepal.",
+    "foundingDate": "2019",
+    "areaServed": "NP",
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "telephone": "+977-01-5970467",
+      "contactType": "customer service",
+      "email": "info@isoftro.com",
+      "availableLanguage": ["English", "Nepali"]
+    },
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "Kathmandu",
+      "addressCountry": "NP"
+    },
+    "sameAs": [
+      "https://www.facebook.com/isoftro",
+      "https://www.linkedin.com/company/isoftro",
+      "https://www.instagram.com/isoftroerp",
+      "https://twitter.com/isoftroerp"
+    ]
+  }
+  </script>
+
+  <!-- WebSite (enables Google Sitelinks Search Box) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "iSoftro Academic ERP",
+    "url": "https://isoftroerp.com",
+    "description": "Academic ERP software for schools, colleges, and coaching centers in Nepal."
+  }
+  </script>
+
+  <!-- SoftwareApplication -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "iSoftro Academic ERP",
+    "applicationCategory": "EducationApplication",
+    "operatingSystem": "Web, Android, iOS",
+    "offers": {
+      "@type": "Offer",
+      "priceCurrency": "NPR",
+      "availability": "https://schema.org/InStock",
+      "url": "https://isoftroerp.com/#contact"
+    },
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "4.8",
+      "reviewCount": "150"
+    },
+    "description": "Multi-tenant, cloud-based academic management platform with 25+ modules for Nepali educational institutions.",
+    "url": "https://isoftroerp.com",
+    "screenshot": "https://isoftroerp.com/assets/images/og-image.png"
+  }
+  </script>
+
+  <!-- FAQPage -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "Where is the data hosted? Do I need my own server?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "No server needed. isoftro is 100% cloud-hosted with enterprise-grade encryption and daily automated backups."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How secure is my institute's data?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "We use AES-256 encryption at rest, TLS 1.3 in transit, plus role-based access controls. Automated backups with 30-day retention."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I customize the system for my institute?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes! Growth and Professional plans support custom fields, grading schemas, fee structures, and report templates."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "We use paper registers. How do we migrate?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Our onboarding team handles migration. We provide templates for bulk import — most institutes go live in 3–5 days."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What support do you offer?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "All plans include email support. Growth gets phone support. Professional includes a dedicated account manager and on-site visits."
+        }
+      }
+    ]
+  }
+  </script>
+
+  <!-- LocalBusiness (Nepal local search) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    "name": "iSoftro Pvt. Ltd.",
+    "description": "Nepal's best academic ERP software for schools, colleges, and coaching centers. Cloud-based, multi-tenant institute management system.",
+    "url": "https://isoftroerp.com",
+    "logo": "https://isoftroerp.com/assets/images/logo.png",
+    "image": "https://isoftroerp.com/assets/images/og-image.png",
+    "telephone": "+977-01-5970467",
+    "email": "info@isoftro.com",
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "Kathmandu",
+      "addressRegion": "Bagmati",
+      "addressCountry": "NP"
+    },
+    "geo": {
+      "@type": "GeoCoordinates",
+      "latitude": "27.7172",
+      "longitude": "85.3240"
+    },
+    "openingHoursSpecification": {
+      "@type": "OpeningHoursSpecification",
+      "dayOfWeek": ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday"],
+      "opens": "09:00",
+      "closes": "18:00"
+    },
+    "priceRange": "NPR",
+    "currenciesAccepted": "NPR",
+    "areaServed": {
+      "@type": "Country",
+      "name": "Nepal"
+    },
+    "sameAs": [
+      "https://www.facebook.com/isoftro",
+      "https://www.linkedin.com/company/isoftro",
+      "https://www.instagram.com/isoftroerp",
+      "https://twitter.com/isoftroerp"
+    ]
+  }
+  </script>
+
+  <!-- BreadcrumbList (homepage) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://isoftroerp.com/" }
+    ]
+  }
+  </script>
+
+  <!-- HowTo: Go Live in 4 Steps -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "HowTo",
+    "name": "How to Set Up iSoftro Academic ERP for Your Institute",
+    "description": "Get your school or college running on iSoftro Academic ERP in 4 simple steps.",
+    "totalTime": "P7D",
+    "step": [
+      {
+        "@type": "HowToStep",
+        "position": 1,
+        "name": "Register Your Institute",
+        "text": "Sign up online and get your dedicated cloud workspace instantly."
+      },
+      {
+        "@type": "HowToStep",
+        "position": 2,
+        "name": "Configure Roles",
+        "text": "Set up admin, teachers, front desk — each gets a tailored dashboard."
+      },
+      {
+        "@type": "HowToStep",
+        "position": 3,
+        "name": "Add Students & Staff",
+        "text": "Bulk import from spreadsheets or add manually. Live in minutes."
+      },
+      {
+        "@type": "HowToStep",
+        "position": 4,
+        "name": "Automate Operations",
+        "text": "Enable fee reminders, attendance alerts, and result publishing."
+      }
+    ]
+  }
+  </script>
+
 </head>
 <body class="landing-page">
 
@@ -58,8 +294,8 @@
 
   <div class="landing-container l-hero__content">
     <div class="l-hero__text">
-      <h1 class="l-hero__title">We provide comprehensive academic ERP software for academic institutions</h1>
-      <p class="l-hero__subtitle">isoftro Academic ERP — the most powerful & comprehensive ERP solution for managing your academic institutions smartly. We provide 25+ modules with role-based dashboards for Admin, Students, Teachers, and Parents.</p>
+      <h1 class="l-hero__title">Academic ERP Software for Schools, Colleges &amp; Coaching Centers in Nepal</h1>
+      <p class="l-hero__subtitle">isoftro Academic ERP — Nepal's best school ERP, college ERP, and coaching center management software. The most comprehensive ERP solution for academic institutions with 25+ modules and role-based dashboards for Admin, Teachers, Students, and Parents. Trusted Loksewa coaching software across Nepal.</p>
       <div class="l-hero__actions">
         <a href="#contact" class="btn btn--white btn--large"><i class="fa-solid fa-calendar-check"></i> Request a Demo</a>
         <a href="#modules" class="btn btn--white-outline btn--large"><i class="fa-solid fa-phone"></i> Contact Us</a>
@@ -595,8 +831,8 @@
       <h2>Download Our App for Android and iOS</h2>
       <p>The most effective academic ERP mobile application for schools, colleges, coaching centers, and universities across Nepal. Access everything on the go.</p>
       <div class="l-app-promo__buttons">
-        <a href="#" class="btn btn--white-outline btn--large"><i class="fa-brands fa-google-play"></i> Playstore</a>
-        <a href="#" class="btn btn--white-outline btn--large"><i class="fa-brands fa-apple"></i> App Store</a>
+        <a href="https://play.google.com/store/apps/details?id=com.isoftro.erp" target="_blank" rel="noopener noreferrer" class="btn btn--white-outline btn--large"><i class="fa-brands fa-google-play"></i> Playstore</a>
+        <a href="https://apps.apple.com/app/isoftro-erp/id0000000000" target="_blank" rel="noopener noreferrer" class="btn btn--white-outline btn--large"><i class="fa-brands fa-apple"></i> App Store</a>
       </div>
     </div>
   </div>
@@ -651,6 +887,20 @@
         </div>
       </div>
       <div>
+        <div class="l-footer__col-title">Solutions</div>
+        <div class="l-footer__links">
+          <a href="/coaching-erp-nepal">Coaching Center ERP</a>
+          <a href="/loksewa-management-software">Loksewa Management Software</a>
+        </div>
+      </div>
+      <div>
+        <div class="l-footer__col-title">Legal</div>
+        <div class="l-footer__links">
+          <a href="/privacy">Privacy Policy</a>
+          <a href="/terms">Terms of Service</a>
+        </div>
+      </div>
+      <div>
         <div class="l-footer__col-title">Information</div>
         <div class="l-footer__links">
           <a href="tel:+977-01-5970467"><i class="fa-solid fa-phone" style="margin-right:6px;"></i> +977-01-5970467</a>
@@ -660,12 +910,12 @@
       </div>
     </div>
     <div class="l-footer__bottom">
-      <span>&copy; <?= date('Y') ?> isoftro Pvt. Ltd. All rights reserved.</span>
+      <span>&copy; <?= date('Y') ?> isoftro Pvt. Ltd. All rights reserved. &nbsp;|&nbsp; <a href="/privacy" style="color:inherit;opacity:0.75;">Privacy</a> &nbsp;|&nbsp; <a href="/terms" style="color:inherit;opacity:0.75;">Terms</a></span>
       <div class="l-footer__social">
-        <a href="#" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
-        <a href="#" aria-label="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>
-        <a href="#" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
-        <a href="#" aria-label="Twitter"><i class="fa-brands fa-x-twitter"></i></a>
+        <a href="https://www.facebook.com/isoftro" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
+        <a href="https://www.linkedin.com/company/isoftro" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>
+        <a href="https://www.instagram.com/isoftroerp" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
+        <a href="https://twitter.com/isoftroerp" target="_blank" rel="noopener noreferrer" aria-label="Twitter"><i class="fa-brands fa-x-twitter"></i></a>
       </div>
     </div>
   </div>

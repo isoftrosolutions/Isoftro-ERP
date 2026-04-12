@@ -1,0 +1,23 @@
+User-agent: *
+
+# Block internal application routes
+Disallow: /dash/
+Disallow: /api/
+Disallow: /auth/
+Disallow: /login
+Disallow: /loading
+Disallow: /impersonate-login
+Disallow: /uploads/
+
+# Allow public-facing pages
+Allow: /
+Allow: /landing
+Allow: /privacy
+Allow: /terms
+Allow: /coaching-erp-nepal
+Allow: /loksewa-management-software
+Allow: /school-management-software-nepal
+Allow: /college-erp-nepal
+
+# Sitemap location
+Sitemap: https://isoftroerp.com/sitemap.xml

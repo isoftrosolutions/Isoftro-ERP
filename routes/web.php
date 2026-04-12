@@ -23,6 +23,32 @@ Route::get('/landing', function () {
     require_once resource_path('views/landing.php');
 });
 
+// Legal pages
+Route::get('/privacy', function () {
+    return view('legal.privacy');
+});
+
+Route::get('/terms', function () {
+    return view('legal.terms');
+});
+
+// SEO Landing Pages
+Route::get('/coaching-erp-nepal', function () {
+    return view('seo.coaching-erp-nepal');
+});
+
+Route::get('/loksewa-management-software', function () {
+    return view('seo.loksewa-management-software');
+});
+
+Route::get('/school-management-software-nepal', function () {
+    return view('seo.school-management-software-nepal');
+});
+
+Route::get('/college-erp-nepal', function () {
+    return view('seo.college-erp-nepal');
+});
+
 // Login page (GET)
 Route::get('/auth/login', function () {
     // If already logged in, redirect to dashboard
