@@ -49,6 +49,10 @@ Route::get('/college-erp-nepal', function () {
     return view('seo.college-erp-nepal');
 });
 
+// Demo Request Form
+Route::get('/request-demo', [App\Http\Controllers\DemoRequestController::class, 'show']);
+Route::post('/request-demo', [App\Http\Controllers\DemoRequestController::class, 'submit']);
+
 // Login page (GET)
 Route::get('/auth/login', function () {
     // If already logged in, redirect to dashboard

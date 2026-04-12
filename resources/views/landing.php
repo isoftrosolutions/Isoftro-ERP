@@ -50,7 +50,7 @@
     "areaServed": "NP",
     "contactPoint": {
       "@type": "ContactPoint",
-      "telephone": "+977-01-5970467",
+      "telephone": "+977 9811144402",
       "contactType": "customer service",
       "email": "info@isoftro.com",
       "availableLanguage": ["English", "Nepali"]
@@ -165,7 +165,7 @@
     "url": "https://isoftroerp.com",
     "logo": "https://isoftroerp.com/assets/images/logo.png",
     "image": "https://isoftroerp.com/assets/images/og-image.png",
-    "telephone": "+977-01-5970467",
+    "telephone": "+977 9811144402",
     "email": "info@isoftro.com",
     "address": {
       "@type": "PostalAddress",
@@ -851,7 +851,7 @@
       </div>
       <div class="l-cta__contact">
         <a href="mailto:info@isoftro.com"><i class="fa-solid fa-envelope"></i> info@isoftro.com</a>
-        <a href="tel:+977-01-5970467"><i class="fa-solid fa-phone"></i> +977-01-5970467</a>
+        <a href="tel:+977 9811144402"><i class="fa-solid fa-phone"></i> +977 9811144402</a>
         <a href="#"><i class="fa-solid fa-location-dot"></i> Kathmandu, Nepal</a>
       </div>
     </div>
@@ -903,7 +903,7 @@
       <div>
         <div class="l-footer__col-title">Information</div>
         <div class="l-footer__links">
-          <a href="tel:+977-01-5970467"><i class="fa-solid fa-phone" style="margin-right:6px;"></i> +977-01-5970467</a>
+          <a href="tel:+977 9811144402"><i class="fa-solid fa-phone" style="margin-right:6px;"></i> +977 9811144402</a>
           <a href="mailto:info@isoftro.com"><i class="fa-solid fa-envelope" style="margin-right:6px;"></i> info@isoftro.com</a>
           <a href="#"><i class="fa-solid fa-location-dot" style="margin-right:6px;"></i> Kathmandu, Nepal</a>
         </div>

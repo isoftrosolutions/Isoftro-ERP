@@ -41,7 +41,7 @@
     "areaServed": "NP",
     "contactPoint": {
       "@type": "ContactPoint",
-      "telephone": "+977-01-5970467",
+      "telephone": "+977 9811144402",
       "contactType": "customer service",
       "email": "info@isoftro.com",
       "availableLanguage": ["English", "Nepali"]
@@ -212,7 +212,7 @@
   </a>
   <div style="display:flex;gap:10px;">
     <a href="/login" style="padding:8px 18px;font-size:0.85rem;color:#006D44;text-decoration:none;font-family:'Poppins',sans-serif;font-weight:600;">Log In</a>
-    <a href="#contact" class="btn btn--primary btn--sm">Request Demo</a>
+    <a href="/request-demo" class="btn btn--primary btn--sm">Request Demo</a>
   </div>
 </nav>
 
@@ -232,7 +232,7 @@
   <h1>Best College ERP Software in Nepal</h1>
   <p>iSoftro is Nepal's most trusted college and university ERP. Automate student admissions, semester scheduling, fee collection, exams, results, HR, and NAS-compliant accounting — from one cloud platform.</p>
   <div class="actions">
-    <a href="#contact" class="btn btn--white"><i class="fa-solid fa-calendar-check"></i> Request a Free Demo</a>
+    <a href="/request-demo" class="btn btn--white"><i class="fa-solid fa-calendar-check"></i> Request a Free Demo</a>
     <a href="#features" class="btn btn--outline-white"><i class="fa-solid fa-list-check"></i> See All Features</a>
   </div>
 </section>
@@ -361,7 +361,7 @@
     <h2>Ready to Transform Your College Operations?</h2>
     <p>Join 150+ colleges and institutions across Nepal. iSoftro gives your college a complete digital ERP — go live in 3–5 days.</p>
     <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap;">
-      <a href="mailto:demo@isoftro.com?subject=College ERP Demo Request" class="btn btn--white">
+      <a href="/request-demo" class="btn btn--white">
         <i class="fa-solid fa-calendar-check"></i> Request Free Demo
       </a>
       <a href="/" class="btn btn--outline-white">
@@ -370,7 +370,7 @@
     </div>
     <div class="contact-row">
       <a href="mailto:info@isoftro.com"><i class="fa-solid fa-envelope"></i> info@isoftro.com</a>
-      <a href="tel:+977-01-5970467"><i class="fa-solid fa-phone"></i> +977-01-5970467</a>
+      <a href="tel:+977 9811144402"><i class="fa-solid fa-phone"></i> +977 9811144402</a>
       <span><i class="fa-solid fa-location-dot"></i> Kathmandu, Nepal</span>
     </div>
   </div>

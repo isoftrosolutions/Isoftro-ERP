@@ -69,7 +69,7 @@
     "areaServed": "NP",
     "contactPoint": {
       "@type": "ContactPoint",
-      "telephone": "+977-01-5970467",
+      "telephone": "+977 9811144402",
       "contactType": "customer service",
       "email": "info@isoftro.com",
       "availableLanguage": ["English", "Nepali"]
@@ -119,7 +119,7 @@
         "name": "How much does coaching center management software cost in Nepal?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "iSoftro offers flexible pricing plans for coaching centers of all sizes in Nepal. Contact us at info@isoftro.com or +977-01-5970467 to get a custom quote based on your student count and required modules."
+          "text": "iSoftro offers flexible pricing plans for coaching centers of all sizes in Nepal. Contact us at info@isoftro.com or +977 9811144402 to get a custom quote based on your student count and required modules."
         }
       },
       {
@@ -218,7 +218,7 @@
   </a>
   <div class="nav-cta">
     <a href="/login" class="btn btn--sm" style="color:#006D44;text-decoration:none;">Log In</a>
-    <a href="#contact" class="btn btn--primary btn--sm">Request Demo</a>
+    <a href="/request-demo" class="btn btn--primary btn--sm">Request Demo</a>
   </div>
 </nav>
 
@@ -238,7 +238,7 @@
   <h1>Best Coaching Center ERP Software in Nepal</h1>
   <p>iSoftro is Nepal's most trusted coaching management software. Automate student enrollment, batch scheduling, fee collection, attendance, and result publishing — from one cloud platform.</p>
   <div class="actions">
-    <a href="#contact" class="btn btn--white"><i class="fa-solid fa-calendar-check"></i> Request a Free Demo</a>
+    <a href="/request-demo" class="btn btn--white"><i class="fa-solid fa-calendar-check"></i> Request a Free Demo</a>
     <a href="#features" class="btn btn--outline-white"><i class="fa-solid fa-list-check"></i> See All Features</a>
   </div>
 </section>
@@ -364,7 +364,7 @@
       </div>
       <div class="faq-item">
         <div class="faq-q">How much does coaching management software cost in Nepal? <i class="fa-solid fa-chevron-down"></i></div>
-        <div class="faq-a">iSoftro offers flexible pricing based on your coaching center's student count and required modules. Contact us at <a href="mailto:info@isoftro.com">info@isoftro.com</a> or call <a href="tel:+977-01-5970467">+977-01-5970467</a> for a custom quote tailored to your coaching center.</div>
+        <div class="faq-a">iSoftro offers flexible pricing based on your coaching center's student count and required modules. Contact us at <a href="mailto:info@isoftro.com">info@isoftro.com</a> or call <a href="tel:+977 9811144402">+977 9811144402</a> for a custom quote tailored to your coaching center.</div>
       </div>
       <div class="faq-item">
         <div class="faq-q">Can iSoftro manage multiple batches and courses? <i class="fa-solid fa-chevron-down"></i></div>
@@ -388,7 +388,7 @@
     <h2>Ready to Digitize Your Coaching Center?</h2>
     <p>Join 150+ coaching centers across Nepal that manage their operations with iSoftro. Request a free demo today — go live in 3–5 days.</p>
     <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap;">
-      <a href="mailto:demo@isoftro.com?subject=Coaching ERP Demo Request" class="btn btn--white">
+      <a href="/request-demo" class="btn btn--white">
         <i class="fa-solid fa-calendar-check"></i> Request Free Demo
       </a>
       <a href="/" class="btn btn--outline-white">
@@ -397,7 +397,7 @@
     </div>
     <div class="contact-row">
       <a href="mailto:info@isoftro.com"><i class="fa-solid fa-envelope"></i> info@isoftro.com</a>
-      <a href="tel:+977-01-5970467"><i class="fa-solid fa-phone"></i> +977-01-5970467</a>
+      <a href="tel:+977 9811144402"><i class="fa-solid fa-phone"></i> +977 9811144402</a>
       <span><i class="fa-solid fa-location-dot"></i> Kathmandu, Nepal</span>
     </div>
   </div>

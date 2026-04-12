@@ -108,7 +108,7 @@
   <p>For questions about these Terms, contact us at:</p>
   <ul>
     <li>Email: <a href="mailto:info@isoftro.com">info@isoftro.com</a></li>
-    <li>Phone: <a href="tel:+977-01-5970467">+977-01-5970467</a></li>
+    <li>Phone: <a href="tel:+977 9811144402">+977 9811144402</a></li>
     <li>Address: Kathmandu, Nepal</li>
   </ul>
 </div>

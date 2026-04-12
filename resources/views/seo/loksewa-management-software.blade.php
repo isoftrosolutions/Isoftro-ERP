@@ -69,7 +69,7 @@
     "areaServed": "NP",
     "contactPoint": {
       "@type": "ContactPoint",
-      "telephone": "+977-01-5970467",
+      "telephone": "+977 9811144402",
       "contactType": "customer service",
       "email": "info@isoftro.com",
       "availableLanguage": ["English", "Nepali"]
@@ -135,7 +135,7 @@
         "name": "How do I get started with iSoftro Loksewa management software?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Getting started is easy. Contact iSoftro at info@isoftro.com or call +977-01-5970467 to request a free demo. Our onboarding team will set up your Loksewa coaching center on the platform within 3–5 days."
+          "text": "Getting started is easy. Contact iSoftro at info@isoftro.com or call +977 9811144402 to request a free demo. Our onboarding team will set up your Loksewa coaching center on the platform within 3–5 days."
         }
       }
     ]
@@ -218,7 +218,7 @@
   </a>
   <div style="display:flex;gap:10px;">
     <a href="/login" style="padding:8px 18px;font-size:0.85rem;color:#006D44;text-decoration:none;font-family:'Poppins',sans-serif;font-weight:600;">Log In</a>
-    <a href="#contact" class="btn btn--primary btn--sm">Request Demo</a>
+    <a href="/request-demo" class="btn btn--primary btn--sm">Request Demo</a>
   </div>
 </nav>
 
@@ -238,7 +238,7 @@
   <h1>Best Loksewa Coaching Management Software in Nepal</h1>
   <p>iSoftro is Nepal's most trusted Loksewa preparation center management software. Automate student enrollment, batch scheduling, mock exams, fee collection, and results — from one cloud platform. Specially designed for Loksewa coaching centers.</p>
   <div class="actions">
-    <a href="#contact" class="btn btn--white"><i class="fa-solid fa-calendar-check"></i> Request a Free Demo</a>
+    <a href="/request-demo" class="btn btn--white"><i class="fa-solid fa-calendar-check"></i> Request a Free Demo</a>
     <a href="#features" class="btn btn--outline-white"><i class="fa-solid fa-list-check"></i> See Features</a>
   </div>
 </section>
@@ -369,7 +369,7 @@
       </div>
       <div class="faq-item">
         <div class="faq-q">How much does Loksewa coaching software cost in Nepal? <i class="fa-solid fa-chevron-down"></i></div>
-        <div class="faq-a">iSoftro offers flexible pricing based on student count and required modules. Contact us at <a href="mailto:info@isoftro.com">info@isoftro.com</a> or call <a href="tel:+977-01-5970467">+977-01-5970467</a> for a custom quote for your Loksewa coaching center.</div>
+        <div class="faq-a">iSoftro offers flexible pricing based on student count and required modules. Contact us at <a href="mailto:info@isoftro.com">info@isoftro.com</a> or call <a href="tel:+977 9811144402">+977 9811144402</a> for a custom quote for your Loksewa coaching center.</div>
       </div>
     </div>
   </div>
@@ -381,7 +381,7 @@
     <h2>Ready to Digitize Your Loksewa Coaching Center?</h2>
     <p>Join 150+ coaching centers across Nepal. iSoftro gives your Loksewa preparation institute a complete digital system — go live in just 3–5 days.</p>
     <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap;">
-      <a href="mailto:demo@isoftro.com?subject=Loksewa Software Demo Request" class="btn btn--white">
+      <a href="/request-demo" class="btn btn--white">
         <i class="fa-solid fa-calendar-check"></i> Request Free Demo
       </a>
       <a href="/" class="btn btn--outline-white">
@@ -390,7 +390,7 @@
     </div>
     <div class="contact-row">
       <a href="mailto:info@isoftro.com"><i class="fa-solid fa-envelope"></i> info@isoftro.com</a>
-      <a href="tel:+977-01-5970467"><i class="fa-solid fa-phone"></i> +977-01-5970467</a>
+      <a href="tel:+977 9811144402"><i class="fa-solid fa-phone"></i> +977 9811144402</a>
       <span><i class="fa-solid fa-location-dot"></i> Kathmandu, Nepal</span>
     </div>
   </div>

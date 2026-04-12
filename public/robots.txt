@@ -18,6 +18,7 @@ Allow: /coaching-erp-nepal
 Allow: /loksewa-management-software
 Allow: /school-management-software-nepal
 Allow: /college-erp-nepal
+Allow: /request-demo
 
 # Sitemap location
 Sitemap: https://isoftroerp.com/sitemap.xml

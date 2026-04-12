@@ -68,7 +68,7 @@ Q: Does iSoftro support Nepali calendar (BS)?
 A: Yes. iSoftro has full Bikram Sambat (BS) support built-in for all dates — admissions, fee due dates, exam schedules, attendance, and payroll.
 
 Q: How much does iSoftro ERP cost?
-A: iSoftro offers flexible pricing based on institution size and required modules. Contact info@isoftro.com or +977-01-5970467 for a custom quote.
+A: iSoftro offers flexible pricing based on institution size and required modules. Contact info@isoftro.com or +977 9811144402 for a custom quote.
 
 Q: How long does it take to set up iSoftro?
 A: Most institutions go live in 3-5 days. The onboarding team handles setup, data migration, and staff training.
@@ -77,7 +77,7 @@ A: Most institutions go live in 3-5 days. The onboarding team handles setup, dat
 
 - Website: https://isoftroerp.com
 - Email: info@isoftro.com
-- Phone: +977-01-5970467
+- Phone: +977 9811144402
 - Address: Kathmandu, Nepal
 
 ## Key Pages
