@@ -55,7 +55,16 @@ class AuthController extends Controller
 
         // ── TEMP DEBUG (remove after fix confirmed) ──────────────────
         if (!$user) {
-            return response()->json(['success' => false, 'message' => 'Invalid email or password', '_debug' => 'user_not_found', '_email' => $email], 401);
+            $softDeleted = \App\Models\User::withoutGlobalScope('tenant')->withTrashed()->where('email', $email)->first();
+            return response()->json([
+                'success'      => false,
+                'message'      => 'Invalid email or password',
+                '_debug'       => 'user_not_found',
+                '_email'       => $email,
+                '_soft_deleted'=> $softDeleted ? true : false,
+                '_deleted_at'  => $softDeleted?->deleted_at,
+                '_status'      => $softDeleted?->status,
+            ], 401);
         }
         $hashVal = $user->password_hash;
         if (!$hashVal) {
