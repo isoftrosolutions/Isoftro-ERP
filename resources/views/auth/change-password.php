@@ -124,8 +124,10 @@ $pageTitle = 'Change Password';
                 formData.append('new_password', newPwd);
                 formData.append('confirm_password', confirmPwd);
 
+                const token = sessionStorage.getItem('access_token');
                 const response = await fetch('<?= APP_URL ?>/api/auth/change-password', {
                     method: 'POST',
+                    headers: token ? { 'Authorization': 'Bearer ' + token } : {},
                     body: formData
                 });
 
@@ -141,7 +143,7 @@ $pageTitle = 'Change Password';
                         window.location.reload();
                     });
                 } else {
-                    Swal.fire({ icon: 'error', title: 'Failed', text: data.error || 'Update failed.', confirmButtonColor: '#006D44' });
+                    Swal.fire({ icon: 'error', title: 'Failed', text: data.message || data.error || 'Update failed.', confirmButtonColor: '#006D44' });
                     btn.disabled = false;
                     btn.innerText = 'Save Changes';
                 }

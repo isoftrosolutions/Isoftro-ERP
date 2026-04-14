@@ -93,6 +93,42 @@ class AuthController extends Controller
 
 
     /**
+     * Change password for the authenticated user.
+     */
+    public function changePassword(Request $request): JsonResponse
+    {
+        $user = auth('api')->user();
+
+        $validator = Validator::make($request->all(), [
+            'old_password'     => 'required|string',
+            'new_password'     => 'required|string|min:8',
+            'confirm_password' => 'required|string|same:new_password',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => $validator->errors()->first(),
+            ], 422);
+        }
+
+        if (!Hash::check($request->old_password, $user->getAuthPassword())) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Current password is incorrect.',
+            ], 422);
+        }
+
+        $user->password_hash = Hash::make($request->new_password);
+        $user->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Password updated successfully!',
+        ]);
+    }
+
+    /**
      * Refresh a token.
      */
     public function refresh(): JsonResponse
