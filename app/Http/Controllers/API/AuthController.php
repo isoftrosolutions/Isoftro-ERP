@@ -54,17 +54,15 @@ class AuthController extends Controller
             ->first();
 
         // ── TEMP DEBUG (remove after fix confirmed) ──────────────────
-        if (config('app.debug')) {
-            if (!$user) {
-                return response()->json(['success' => false, 'message' => 'Invalid email or password', '_debug' => 'user_not_found', '_email' => $email], 401);
-            }
-            $hashVal = $user->password_hash;
-            if (!$hashVal) {
-                return response()->json(['success' => false, 'message' => 'Invalid email or password', '_debug' => 'password_hash_null', '_cols' => array_keys($user->getAttributes())], 401);
-            }
-            if (!Hash::check($password, $hashVal)) {
-                return response()->json(['success' => false, 'message' => 'Invalid email or password', '_debug' => 'hash_mismatch', '_algo' => password_get_info($hashVal)['algoName']], 401);
-            }
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'Invalid email or password', '_debug' => 'user_not_found', '_email' => $email], 401);
+        }
+        $hashVal = $user->password_hash;
+        if (!$hashVal) {
+            return response()->json(['success' => false, 'message' => 'Invalid email or password', '_debug' => 'password_hash_null', '_cols' => array_keys($user->getAttributes())], 401);
+        }
+        if (!Hash::check($password, $hashVal)) {
+            return response()->json(['success' => false, 'message' => 'Invalid email or password', '_debug' => 'hash_mismatch', '_algo' => password_get_info($hashVal)['algoName']], 401);
         }
         // ─────────────────────────────────────────────────────────────
 
