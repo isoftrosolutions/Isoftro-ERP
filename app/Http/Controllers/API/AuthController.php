@@ -41,19 +41,32 @@ class AuthController extends Controller
             ], 422);
         }
 
-        $credentials = [
-            'email' => $request->input($emailKey),
-            'password' => $request->password,
-        ];
+        $email    = $request->input($emailKey);
+        $password = $request->password;
 
-        if (!$token = auth('api')->attempt($credentials)) {
+        // Look up the user WITHOUT the TenantScoped global scope.
+        // IdentifyTenant middleware may have already written $_SESSION['userData']
+        // from a JWT cookie belonging to a different user/tenant, which would cause
+        // TenantScoped to add an incorrect WHERE tenant_id clause and silently drop
+        // the real user from the result set — producing a false 401.
+        $user = \App\Models\User::withoutGlobalScope('tenant')
+            ->where('email', $email)
+            ->first();
+
+        if (!$user || !Hash::check($password, $user->getAuthPassword())) {
             return response()->json([
                 'success' => false,
                 'message' => 'Invalid email or password'
             ], 401);
         }
 
-        $user = auth('api')->user();
+        $token = auth('api')->login($user);
+        if (!$token) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Authentication error. Please try again.'
+            ], 500);
+        }
 
         // Check if user's tenant is active (if not super admin)
         if (!$user->isSuperAdmin() && $user->tenant) {
