@@ -49,14 +49,30 @@ class AuthController extends Controller
         // from a JWT cookie belonging to a different user/tenant, which would cause
         // TenantScoped to add an incorrect WHERE tenant_id clause and silently drop
         // the real user from the result set — producing a false 401.
+        // Check including soft-deleted so we can give a meaningful message
         $user = \App\Models\User::withoutGlobalScope('tenant')
+            ->withTrashed()
             ->where('email', $email)
             ->first();
 
-        if (!$user || !Hash::check($password, $user->password_hash)) {
+        if (!$user) {
             return response()->json([
                 'success' => false,
-                'message' => 'Invalid email or password'
+                'message' => 'This email is not registered in our system. Please contact your administrator.'
+            ], 401);
+        }
+
+        if ($user->deleted_at) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Your account has been deactivated. Please contact your administrator to restore access.'
+            ], 401);
+        }
+
+        if (!Hash::check($password, $user->password_hash)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Incorrect password. Please try again or use Forgot Password.'
             ], 401);
         }
 
