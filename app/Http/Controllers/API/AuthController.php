@@ -53,7 +53,7 @@ class AuthController extends Controller
             ->where('email', $email)
             ->first();
 
-        if (!$user || !Hash::check($password, $user->getAuthPassword())) {
+        if (!$user || !Hash::check($password, $user->password_hash)) {
             return response()->json([
                 'success' => false,
                 'message' => 'Invalid email or password'
