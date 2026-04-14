@@ -246,7 +246,7 @@ $initialMode = $initialMode ?? null; // 'new' or 'existing'
                         <label class="f-lbl req">Assigned Batch</label>
                         <div class="ipt-box">
                             <i class="fas fa-clock"></i>
-                            <select id="<?= $selBatchId ?>" class="fi fi-sel" disabled required
+                            <select id="<?= $selBatchId ?>" class="fi fi-sel" disabled
                                     onchange="addBatchChip_<?= $componentId ?>()">
                                 <option value="">— Select course first —</option>
                             </select>
