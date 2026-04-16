@@ -206,6 +206,6 @@
   <?= \App\Helpers\CsrfHelper::csrfJsHeader() ?>
 <script src="<?= $BASE ?>/assets/js/pwa-handler.js"></script>
 <script src="<?= $BASE ?>/assets/js/login.js"></script>
-<script src="http://chatbotnepal.isoftroerp.com/widget.js" data-token="gzntBxUXFzF5VOCU9FU6BQMII35FkygIcuXr83ObIRiQCwE0qLKV1wD3IBhc3aLr" defer></script>
+<script src="https://chatbotnepal.isoftroerp.com/widget.js" data-token="gzntBxUXFzF5VOCU9FU6BQMII35FkygIcuXr83ObIRiQCwE0qLKV1wD3IBhc3aLr" defer></script>
 </body>
 </html>
