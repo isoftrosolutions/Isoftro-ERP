@@ -384,34 +384,6 @@
   </div>
 </section>
 
-<!-- ======== STATS BAR ======== -->
-<section class="l-stats">
-  <div class="landing-container">
-    <div class="l-stats__inner">
-      <div class="l-stat reveal">
-        <div class="l-stat__icon"><i class="fa-solid fa-user-group"></i></div>
-        <div class="l-stat__value" data-count="5" data-suffix="+">0</div>
-        <div class="l-stat__label">Years of Experience</div>
-      </div>
-      <div class="l-stat reveal reveal-delay-1">
-        <div class="l-stat__icon"><i class="fa-solid fa-building-columns"></i></div>
-        <div class="l-stat__value" data-count="150" data-suffix="+">0</div>
-        <div class="l-stat__label">Institutions</div>
-      </div>
-      <div class="l-stat reveal reveal-delay-2">
-        <div class="l-stat__icon"><i class="fa-solid fa-user-graduate"></i></div>
-        <div class="l-stat__value" data-count="25000" data-suffix="+">0</div>
-        <div class="l-stat__label">Students</div>
-      </div>
-      <div class="l-stat reveal reveal-delay-3">
-        <div class="l-stat__icon"><i class="fa-solid fa-chalkboard-user"></i></div>
-        <div class="l-stat__value" data-count="5000" data-suffix="+">0</div>
-        <div class="l-stat__label">Teachers</div>
-      </div>
-    </div>
-  </div>
-</section>
-
 <!-- ======== ABOUT ======== -->
 <section class="l-about" id="about">
   <div class="landing-container l-about__content">
