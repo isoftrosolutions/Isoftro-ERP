@@ -49,7 +49,8 @@ if (in_array($action, $csrfProtectedActions)) {
     try {
         CsrfHelper::requireCsrfToken();
     } catch (Exception $e) {
-        echo json_encode(['success' => false, 'message' => $e->getMessage(), 'code' => 'CSRF_ERROR']);
+        error_log('Controller exception: ' . $e->getMessage());
+        echo json_encode(['success' => false, 'message' => 'Internal server error', 'code' => 'CSRF_ERROR']);
         exit;
     } catch (Throwable $e) {
         // If CSRF helper fails, log and allow (fail-open for availability)
@@ -368,7 +369,7 @@ try {
                 $cacheService->invalidate($tenantId);
             } catch (Exception $e) {
                 // Cache failure shouldn't break functionality
-            }
+    }
             
             echo json_encode([
                 'success' => true,
@@ -456,7 +457,7 @@ try {
                 $cacheService->invalidate($tenantId);
             } catch (Exception $e) {
                 // Cache failure shouldn't break functionality
-            }
+    }
             
             echo json_encode(['success' => true, 'message' => 'Study material updated successfully']);
             break;
@@ -590,7 +591,7 @@ try {
                 if (isset($input[$f])) {
                     $fields[] = "$f = :$f";
                     $params[$f] = $input[$f];
-                }
+    }
             }
             
             if (empty($fields)) throw new Exception("No fields to update");
@@ -690,8 +691,9 @@ try {
             ]);
     }
 } catch (Exception $e) {
-    echo json_encode(['success' => false, 'message' => $e->getMessage()]);
-}
+    error_log('Controller exception: ' . $e->getMessage());
+    echo json_encode(['success' => false, 'message' => 'Internal server error']);
+    }
 
 // Helper Functions
 
@@ -715,7 +717,7 @@ function handleFileUpload($file, $tenantId) {
         'zip' => 'application/zip',
         'rar' => 'application/x-rar-compressed'
     ];
-    $maxSize = 50 * 1024 * 1024; // 50MB
+    $maxSize = 5 * 1024 * 1024; // 5MB
     
     if ($file['error'] !== UPLOAD_ERR_OK) {
         return ['success' => false, 'message' => 'File upload failed: ' . $file['error']];

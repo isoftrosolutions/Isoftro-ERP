@@ -46,6 +46,7 @@ try {
     $db->commit();
     echo json_encode(['success' => true]);
 } catch (Exception $e) {
+    error_log('Controller exception: ' . $e->getMessage());
     if ($db->inTransaction()) $db->rollBack();
-    echo json_encode(['success' => false, 'message' => $e->getMessage()]);
-}
+    echo json_encode(['success' => false, 'message' => 'Internal server error']);
+    }

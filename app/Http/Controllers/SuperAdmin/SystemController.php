@@ -18,7 +18,7 @@ class SystemController {
             $settings = $this->db->query("SELECT setting_key, setting_value FROM platform_settings")->fetchAll(\PDO::FETCH_KEY_PAIR);
         } catch (\Exception $e) {
             $settings = [];
-        }
+    }
         return view('super-admin.settings', ['settings' => $settings]);
     }
 
@@ -28,7 +28,7 @@ class SystemController {
             $settings = $stmt->fetchAll(\PDO::FETCH_KEY_PAIR);
         } catch (\Exception $e) {
             $settings = [];
-        }
+    }
         include resource_path('views/super-admin/system-maintenance.php');
     }
 
@@ -42,7 +42,7 @@ class SystemController {
             ")->fetchAll();
         } catch (\Exception $e) {
             $announcements = [];
-        }
+    }
         include resource_path('views/super-admin/system-push.php');
     }
 
@@ -52,7 +52,7 @@ class SystemController {
             $settings = $stmt->fetchAll(\PDO::FETCH_KEY_PAIR);
         } catch (\Exception $e) {
             $settings = [];
-        }
+    }
         include resource_path('views/super-admin/settings-brand.php');
     }
 
@@ -61,7 +61,7 @@ class SystemController {
             $templates = $this->db->query("SELECT * FROM sms_templates ORDER BY event_key ASC")->fetchAll();
         } catch (\Exception $e) {
             $templates = [];
-        }
+    }
         include resource_path('views/super-admin/settings-sms-tpl.php');
     }
 

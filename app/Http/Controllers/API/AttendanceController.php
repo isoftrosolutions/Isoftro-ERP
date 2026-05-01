@@ -87,6 +87,6 @@ class AttendanceController extends Controller
                 'success' => false,
                 'message' => 'Failed to mark attendance'
             ], 500);
-        }
+    }
     }
 }

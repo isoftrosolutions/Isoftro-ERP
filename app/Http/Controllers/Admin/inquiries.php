@@ -283,7 +283,7 @@ try {
 } catch (PDOException $e) {
     error_log('Inquiries Controller DB Error: ' . $e->getMessage());
     echo json_encode(['success' => false, 'message' => 'A database error occurred. Please try again.']);
-} catch (Exception $e) {
+    } catch (Exception $e) {
     error_log('Inquiries Controller Error: ' . $e->getMessage());
     echo json_encode(['success' => false, 'message' => 'An unexpected error occurred.']);
-}
+    }

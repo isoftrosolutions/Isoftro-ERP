@@ -32,7 +32,8 @@ class Logger
             
             // If extra data provided, append to description or handle accordingly
             if (!empty($extra)) {
-                $description .= " | Extra: " . json_encode($extra);
+                $redacted = self::redactSensitive($extra);
+                $description .= " | Extra: " . json_encode($redacted);
             }
 
             $stmt = $pdo->prepare("INSERT INTO audit_logs (user_id, action, ip_address, user_agent, description, created_at) VALUES (?, ?, ?, ?, ?, NOW())");
@@ -57,20 +58,28 @@ class Logger
      */
     public static function error(\Throwable $exception, $context = 'System')
     {
-        $message = sprintf(
-            "[%s] %s: %s in %s on line %d",
-            $context,
-            get_class($exception),
-            $exception->getMessage(),
-            $exception->getFile(),
-            $exception->getLine()
-        );
+        $message = sprintf("[%s] %s", $context, get_class($exception));
 
         error_log($message);
 
         // Also log to database if it's a critical super admin error
         if (strpos($_SERVER['REQUEST_URI'], '/super-admin/') !== false) {
-            self::log('System Error', $message, null, ['trace' => $exception->getTraceAsString()]);
+            self::log('System Error', $message, null, []);
         }
+    }
+
+    private static function redactSensitive(array $data): array
+    {
+        $sensitiveKeys = ['password', 'token', 'secret', 'authorization', 'api_key', 'jwt', 'cookie'];
+        $out = [];
+        foreach ($data as $k => $v) {
+            $key = strtolower((string)$k);
+            if (in_array($key, $sensitiveKeys, true)) {
+                $out[$k] = '[REDACTED]';
+                continue;
+            }
+            $out[$k] = is_array($v) ? self::redactSensitive($v) : $v;
+        }
+        return $out;
     }
 }

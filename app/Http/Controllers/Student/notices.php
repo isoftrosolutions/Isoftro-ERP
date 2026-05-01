@@ -231,11 +231,11 @@ try {
         'message' => 'Database error occurred',
         'code' => 'DB_ERROR'
     ]);
-} catch (Exception $e) {
+    } catch (Exception $e) {
     error_log("Student Notices Error: " . $e->getMessage());
     echo json_encode([
         'success' => false, 
         'message' => 'An error occurred',
         'code' => 'GENERAL_ERROR'
     ]);
-}
+    }

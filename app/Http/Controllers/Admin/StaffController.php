@@ -47,10 +47,10 @@ class StaffController
         } catch (Exception $e) {
             if ($this->db->inTransaction()) {
                 $this->db->rollBack();
-            }
+    }
             return [
                 'success' => false,
-                'message' => $e->getMessage()
+                'message' => 'Internal server error'
             ];
         }
     }

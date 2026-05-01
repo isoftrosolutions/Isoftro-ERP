@@ -18,11 +18,20 @@ class Student extends Model {
     protected $with = ['user'];
 
     protected $fillable = [
-        'tenant_id', 'user_id', 'roll_no', 'dob_bs', 'dob_ad', 'gender', 'blood_group', 
-        'citizenship_no', 'national_id', 'father_name', 'mother_name', 'husband_name', 
-        'guardian_name', 'guardian_relation', 'permanent_address', 'temporary_address', 
-        'academic_qualifications', 'admission_date', 'photo_url', 'identity_doc_url', 'status', 
+        'tenant_id', 'user_id', 'roll_no', 'dob_bs', 'dob_ad', 'gender', 'blood_group',
+        'citizenship_no', 'national_id', 'father_name', 'mother_name', 'husband_name',
+        'guardian_name', 'guardian_relation', 'permanent_address', 'temporary_address',
+        'academic_qualifications', 'admission_date', 'photo_url', 'identity_doc_url', 'status',
         'id_card_status'
+    ];
+
+    /**
+     * Encrypted fields for PII protection (Nepal Data Protection Act compliance)
+     */
+    protected $casts = [
+        'permanent_address' => 'encrypted',
+        'temporary_address' => 'encrypted',
+        'national_id' => 'encrypted',
     ];
 
     /**

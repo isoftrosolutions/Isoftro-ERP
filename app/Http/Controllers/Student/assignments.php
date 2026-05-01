@@ -211,19 +211,24 @@ try {
             // Handle file upload
             $attachmentUrl = null;
             if (isset($_FILES['attachment']) && $_FILES['attachment']['error'] === UPLOAD_ERR_OK) {
-                $file = $_FILES['attachment'];
-                $allowedExtensions = ['pdf', 'doc', 'docx', 'txt', 'jpg', 'jpeg', 'png', 'zip'];
+                $_FILES['file'] = $_FILES['attachment'];
+                $allowedTypes = ['image/jpeg','image/png','image/gif',
+                                 'application/pdf','image/webp'];
+                $maxSize = 5 * 1024 * 1024; // 5MB
+
+                if (!in_array($_FILES['file']['type'], $allowedTypes)) {
+                    echo json_encode(['status'=>'error',
+                                      'message'=>'Invalid file type']);
+                    exit;
+                }
+                if ($_FILES['file']['size'] > $maxSize) {
+                    echo json_encode(['status'=>'error',
+                                      'message'=>'File too large. Max 5MB']);
+                    exit;
+                }
+
+                $file = $_FILES['file'];
                 $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-                
-                if (!in_array($extension, $allowedExtensions)) {
-                    echo json_encode(['success' => false, 'message' => 'Invalid file type']);
-                    exit;
-                }
-                
-                if ($file['size'] > 10 * 1024 * 1024) {
-                    echo json_encode(['success' => false, 'message' => 'File too large (max 10MB)']);
-                    exit;
-                }
                 
                 $uploadDir = __DIR__ . '/../../../../uploads/assignments/submissions/';
                 if (!is_dir($uploadDir)) {
@@ -290,11 +295,11 @@ try {
         'message' => 'Database error occurred',
         'code' => 'DB_ERROR'
     ]);
-} catch (Exception $e) {
+    } catch (Exception $e) {
     error_log("Student Assignments Error: " . $e->getMessage());
     echo json_encode([
         'success' => false, 
         'message' => 'An error occurred',
         'code' => 'GENERAL_ERROR'
     ]);
-}
+    }

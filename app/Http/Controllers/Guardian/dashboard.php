@@ -149,9 +149,9 @@ try {
             ");
             $stmt->execute(['sid' => $studentId, 'tid' => $tenantId]);
             $dashboard['fee_status'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        } catch (Exception $e) {
+    } catch (Exception $e) {
             error_log('Guardian fee query error: ' . $e->getMessage());
-        }
+    }
         
         // 6. Recent Notices — parentheses required around OR clauses to maintain tenant isolation
         try {
@@ -169,7 +169,7 @@ try {
             $dashboard['stats']['notices_count'] = count($notices);
         } catch (Exception $e) {
             error_log('Guardian notices query error: ' . $e->getMessage());
-        }
+    }
 
     }
 
@@ -181,7 +181,7 @@ try {
 } catch (PDOException $e) {
     error_log("Guardian Dashboard Error: " . $e->getMessage());
     echo json_encode(['success' => false, 'message' => 'Database error occurred']);
-} catch (Exception $e) {
+    } catch (Exception $e) {
     error_log("Guardian Dashboard Error: " . $e->getMessage());
     echo json_encode(['success' => false, 'message' => 'An error occurred']);
-}
+    }

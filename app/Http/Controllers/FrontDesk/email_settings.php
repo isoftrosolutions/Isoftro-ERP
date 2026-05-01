@@ -25,7 +25,7 @@ header('Content-Type: application/json');
 // Ensure any uncaught error returns JSON — never HTML
 set_exception_handler(function(Throwable $e) {
     http_response_code(500);
-    echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    echo json_encode(['success' => false, 'message' => 'Internal server error']);
     exit;
 });
 set_error_handler(function($errno, $errstr) {
@@ -137,8 +137,9 @@ try {
     }
 
 } catch (Exception $e) {
-    echo json_encode(['success' => false, 'message' => $e->getMessage()]);
-}
+    error_log('Controller exception: ' . $e->getMessage());
+    echo json_encode(['success' => false, 'message' => 'Internal server error']);
+    }
 
 // ── DB auto-migration: create table and add columns ───────────
 function self_migrate(PDO $db): void {
@@ -167,7 +168,7 @@ function self_migrate(PDO $db): void {
             $db->query("SELECT $col FROM tenant_email_settings LIMIT 1");
         } catch (\Throwable $e) {
             try { $db->exec($sql); } catch (\Throwable $ex) {}
-        }
+    }
     }
 }
 

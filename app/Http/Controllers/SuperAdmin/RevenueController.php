@@ -38,7 +38,7 @@ class RevenueController {
             ")->fetchAll();
         } catch (\Exception $e) {
             $payments = [];
-        }
+    }
         include resource_path('views/super-admin/revenue-invoices.php');
     }
 
@@ -62,7 +62,7 @@ class RevenueController {
             return $stmt->fetchColumn() ?: 0;
         } catch (\Exception $e) {
             return 0;
-        }
+    }
     }
 
     private function getRecentPayments() {
@@ -77,7 +77,7 @@ class RevenueController {
             return $stmt->fetchAll();
         } catch (\Exception $e) {
             return [];
-        }
+    }
     }
 
     public function generateInvoice($paymentId) {

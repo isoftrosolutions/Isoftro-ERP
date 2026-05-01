@@ -84,10 +84,10 @@ Route::get('/login', function() {
 
 // Login API (POST) — JWT authentication via tymon/jwt-auth
 // login.js posts to /api/login; this is the single authoritative login endpoint
-Route::post('/api/login', [App\Http\Controllers\API\AuthController::class, 'login']);
+Route::post('/api/login', [App\Http\Controllers\API\AuthController::class, 'login'])->middleware('throttle:5,1');
 
 // Alias: web form may also post to /auth/login — redirect to the same handler
-Route::post('/auth/login', [App\Http\Controllers\API\AuthController::class, 'login']);
+Route::post('/auth/login', [App\Http\Controllers\API\AuthController::class, 'login'])->middleware('throttle:5,1');
 
 // Token refresh (used by frontend when access token expires)
 Route::post('/api/auth/refresh', [App\Http\Controllers\API\AuthController::class, 'refresh'])->middleware('auth:api');
@@ -332,23 +332,28 @@ Route::any('/api/admin/inquiries', function() {
 });
 
 Route::any('/api/admin/email-settings', function() {
+    requireAuth();
     require_once app_path('Http/Controllers/Admin/email_settings.php');
 });
 
 Route::any('/api/admin/email-settings/test', function() {
+    requireAuth();
     require_once app_path('Http/Controllers/Admin/email_settings.php');
 });
 
 Route::any('/api/admin/email_templates', function() {
+    requireAuth();
     require_once app_path('Http/Controllers/Admin/email_templates.php');
 });
 
 // Front Desk API Routes
 Route::get('/api/frontdesk/stats', function() {
+    requireAuth();
     require_once app_path('Http/Controllers/FrontDesk/frontdesk_stats.php');
 });
 
 Route::any('/api/frontdesk/students', function() {
+    requireAuth();
     require_once app_path('Http/Controllers/FrontDesk/students.php');
 });
 
@@ -537,23 +542,28 @@ Route::any('/api/frontdesk/support', function() {
 
 
 Route::any('/api/student/fees', function() {
+    requireAuth();
     require_once app_path('Http/Controllers/Student/fees.php');
 });
 
 // Student Portal API Routes
 Route::any('/api/student/dashboard', function() {
+    requireAuth();
     require_once app_path('Http/Controllers/Student/dashboard.php');
 });
 
 Route::any('/api/student/classes', function() {
+    requireAuth();
     require_once app_path('Http/Controllers/Student/classes.php');
 });
 
 Route::any('/api/student/attendance', function() {
+    requireAuth();
     require_once app_path('Http/Controllers/Student/attendance.php');
 });
 
 Route::any('/api/student/leave', function() {
+    requireAuth();
     require_once app_path('Http/Controllers/Student/leave.php');
 });
 
@@ -678,97 +688,120 @@ Route::any('/api/frontdesk/lms', function() {
 });
 
 Route::any('/api/frontdesk/2fa_setup', function() {
+    requireAuth();
     require_once app_path('Http/Controllers/FrontDesk/profile.php');
 });
 
 Route::any('/api/frontdesk/id-card-requests', function() {
+    requireAuth();
     require_once app_path('Http/Controllers/FrontDesk/id_cards.php');
 });
 
 Route::any('/api/student/assignments', function() {
+    requireAuth();
     require_once app_path('Http/Controllers/Student/assignments.php');
 });
 
 Route::any('/api/student/exams', function() {
+    requireAuth();
     require_once app_path('Http/Controllers/Student/exams.php');
 });
 
 Route::any('/api/student/notices', function() {
+    requireAuth();
     require_once app_path('Http/Controllers/Student/notices.php');
 });
 
 Route::any('/api/student/library', function() {
+    requireAuth();
     require_once app_path('Http/Controllers/Student/library.php');
 });
 
 // Teacher Portal API Routes
 Route::any('/api/teacher/dashboard', function() {
+    requireAuth();
     require_once app_path('Http/Controllers/Teacher/dashboard.php');
 });
 
 Route::any('/api/teacher/classes', function() {
+    requireAuth();
     require_once app_path('Http/Controllers/Teacher/classes.php');
 });
 
 Route::any('/api/teacher/attendance', function() {
+    requireAuth();
     require_once app_path('Http/Controllers/Teacher/attendance.php');
 });
 
 Route::any('/api/teacher/profile', function() {
+    requireAuth();
     require_once app_path('Http/Controllers/Teacher/profile.php');
 });
 
 Route::any('/api/teacher/payments', function() {
+    requireAuth();
     require_once app_path('Http/Controllers/Teacher/payments.php');
 });
 
 // Guardian Portal API Routes
 Route::any('/api/guardian/dashboard', function() {
+    requireAuth();
     require_once app_path('Http/Controllers/Guardian/dashboard.php');
 });
 
 Route::any('/api/guardian/attendance', function() {
+    requireAuth();
     require_once app_path('Http/Controllers/Guardian/attendance.php');
 });
 
 Route::any('/api/guardian/exams', function() {
+    requireAuth();
     require_once app_path('Http/Controllers/Guardian/exams.php');
 });
 
 Route::any('/api/guardian/fees', function() {
+    requireAuth();
     require_once app_path('Http/Controllers/Guardian/fees.php');
 });
 
 Route::any('/api/guardian/contact', function() {
+    requireAuth();
     require_once app_path('Http/Controllers/Guardian/contact.php');
 });
 
 Route::any('/api/guardian/homework', function() {
+    requireAuth();
     require_once app_path('Http/Controllers/Guardian/homework.php');
 });
 
 Route::any('/api/guardian/notices', function() {
+    requireAuth();
     require_once app_path('Http/Controllers/Guardian/notices.php');
 });
 
 
 Route::any('/api/student/profile', function() {
+    requireAuth();
     require_once app_path('Http/Controllers/Student/profile.php');
 });
 
 Route::any('/api/student/study-materials', function() {
+    requireAuth();
     require_once app_path('Http/Controllers/Student/study_materials.php');
 });
 
 Route::any('/api/student/contact', function() {
+    requireAuth();
     require_once app_path('Http/Controllers/Student/contact.php');
 });
 
 Route::any('/api/student/leaderboard', function() {
+    requireAuth();
     require_once app_path('Http/Controllers/Student/leaderboard.php');
 });
 
 Route::any('/api/frontdesk/fees', function() {
+    requireAuth();
     require_once app_path('Http/Controllers/FrontDesk/fees.php');
 });
 
@@ -802,10 +835,12 @@ Route::any('/api/admin/communications', function() {
 });
 
 Route::any('/api/admin/profile', function() {
+    requireAuth();
     require_once app_path('Http/Controllers/Admin/profile.php');
 });
 
 Route::any('/api/admin/billing', function() {
+    requireAuth();
     require_once app_path('Http/Controllers/Admin/billing.php');
 });
 
@@ -815,10 +850,12 @@ Route::any('/api/admin/accounting', function() {
 });
 
 Route::get('/api/notifications/count', function() {
+    requireAuth();
     require_once app_path('Http/Controllers/Admin/notifications.php');
 });
 
 Route::any('/api/admin/feedback/submit', function() {
+    requireAuth();
     require_once app_path('Http/Controllers/Admin/feedback.php');
 });
 
@@ -889,39 +926,4 @@ Route::middleware(['auth.superadmin'])->group(function () {
 });
 
 
-// Debug route (dev only)
-if (defined('APP_ENV') && APP_ENV === 'development') {
-    Route::get('/debug-uri', function() {
-        return [
-            'uri' => request()->getRequestUri(),
-            'path' => request()->getPathInfo(),
-            'base' => request()->getBaseUrl(),
-            'url' => request()->url(),
-            'logged_in' => isLoggedIn(),
-            'user' => getCurrentUser(),
-        ];
-    });
-
-    // CSRF Debug endpoint - for troubleshooting only
-    Route::get('/api/debug/csrf', function() {
-        header('Content-Type: application/json');
-        
-        $debug = \App\Helpers\CsrfHelper::debugCsrf();
-        echo json_encode($debug, JSON_PRETTY_PRINT);
-    });
-
-    // CSRF token refresh endpoint - returns new token without validation
-    Route::post('/api/csrf/refresh', function() {
-        header('Content-Type: application/json');
-        
-        $newToken = \App\Helpers\CsrfHelper::generateCsrfToken();
-        
-        // Return new token in both body and header
-        header('X-CSRF-Token: ' . $newToken);
-        
-        echo json_encode([
-            'success' => true,
-            'csrf_token' => $newToken
-        ]);
-    });
-}
+// Debug routes removed for security - use logs instead

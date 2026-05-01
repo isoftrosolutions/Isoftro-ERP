@@ -10,8 +10,9 @@ try {
     header('Content-Type: application/json');
     echo json_encode($result);
 } catch (Exception $e) {
+    error_log('Controller exception: ' . $e->getMessage());
     http_response_code(500);
     header('Content-Type: application/json');
-    echo json_encode(['success' => false, 'message' => $e->getMessage()]);
-}
+    echo json_encode(['success' => false, 'message' => 'Internal server error']);
+    }
 exit;

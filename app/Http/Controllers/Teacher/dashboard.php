@@ -211,7 +211,7 @@ try {
                 'percentage' => $pct,
                 'color'      => $coverageColors[$i % count($coverageColors)]
             ];
-        }, $subjects, array_keys($subjects));
+    }, $subjects, array_keys($subjects));
     } catch (Exception $e) {
         $dashboard['syllabus_coverage'] = [];
     }
@@ -261,7 +261,7 @@ try {
 } catch (PDOException $e) {
     error_log("Teacher Dashboard Error: " . $e->getMessage());
     echo json_encode(['success' => false, 'message' => 'Database error occurred', 'code' => 'DB_ERROR']);
-} catch (Exception $e) {
+    } catch (Exception $e) {
     error_log("Teacher Dashboard Error: " . $e->getMessage());
     echo json_encode(['success' => false, 'message' => 'An error occurred', 'code' => 'GENERAL_ERROR']);
-}
+    }

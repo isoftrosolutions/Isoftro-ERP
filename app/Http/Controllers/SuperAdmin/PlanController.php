@@ -56,7 +56,7 @@ class PlanController {
             error_log("[PlanController] Error: " . $e->getMessage());
             $plans = [];
             $systemFeatures = [];
-        }
+    }
 
         return view('super-admin.plans', [
             'plans' => $plans,
@@ -69,7 +69,7 @@ class PlanController {
             $features = $this->db->query("SELECT * FROM system_features ORDER BY feature_name ASC")->fetchAll();
         } catch (\Exception $e) {
             $features = [];
-        }
+    }
         include resource_path('views/super-admin/plans-flags.php');
     }
 
@@ -87,7 +87,7 @@ class PlanController {
         } catch (\Exception $e) {
             $tenants = [];
             $plans = [];
-        }
+    }
         include resource_path('views/super-admin/plans-assign.php');
     }
 

@@ -13,10 +13,11 @@ try {
     $result = $controller->handle();
     echo json_encode($result);
 } catch (Exception $e) {
+    error_log('Controller exception: ' . $e->getMessage());
     http_response_code(500);
     echo json_encode([
         'success' => false,
-        'message' => $e->getMessage()
+        'message' => 'Internal server error'
     ]);
-}
+    }
 exit;

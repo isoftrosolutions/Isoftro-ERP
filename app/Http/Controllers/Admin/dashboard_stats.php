@@ -51,5 +51,5 @@ try {
 
 } catch (Exception $e) {
     error_log('Dashboard Stats Error V2: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
-    echo json_encode(['success' => false, 'message' => 'Backend Error: ' . $e->getMessage()]);
-}
+    echo json_encode(['success' => false, 'message' => 'Internal server error']);
+    }

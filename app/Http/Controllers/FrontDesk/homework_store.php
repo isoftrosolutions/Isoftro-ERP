@@ -47,12 +47,22 @@ try {
     $attachment_path = null;
 
     if (isset($_FILES['attachment']) && $_FILES['attachment']['error'] === UPLOAD_ERR_OK) {
+        if ($_FILES['attachment']['size'] > 5 * 1024 * 1024) {
+            echo json_encode(['success' => false, 'message' => 'Attachment exceeds 5MB limit']);
+            exit;
+        }
+        $allowedExts = ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png', 'webp'];
+        $ext = strtolower(pathinfo($_FILES['attachment']['name'], PATHINFO_EXTENSION));
+        if (!in_array($ext, $allowedExts, true)) {
+            echo json_encode(['success' => false, 'message' => 'Invalid attachment type']);
+            exit;
+        }
         $uploadDir = ABSPATH . '/storage/uploads/homework/' . $tenant_id . '/';
         if (!file_exists($uploadDir)) {
             mkdir($uploadDir, 0777, true);
         }
 
-        $fileName = time() . '_' . basename($_FILES['attachment']['name']);
+        $fileName = time() . '_' . bin2hex(random_bytes(8)) . '.' . $ext;
         $targetFilePath = $uploadDir . $fileName;
 
         if (move_uploaded_file($_FILES['attachment']['tmp_name'], $targetFilePath)) {
@@ -85,7 +95,7 @@ try {
 
     echo json_encode(['success' => true, 'message' => 'Homework assigned successfully']);
 
-} catch(PDOException $e) {
+} catch (PDOException $e) {
     error_log("Homework Store Error: " . $e->getMessage());
     echo json_encode(['success' => false, 'message' => 'Database error']);
-}
+    }

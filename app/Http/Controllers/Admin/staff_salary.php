@@ -176,8 +176,9 @@ try {
     }
 
 } catch (Exception $e) {
+    error_log('Controller exception: ' . $e->getMessage());
     ob_clean();
-    echo json_encode(['success' => false, 'message' => $e->getMessage()]);
-}
+    echo json_encode(['success' => false, 'message' => 'Internal server error']);
+    }
 ob_end_flush();
 exit;

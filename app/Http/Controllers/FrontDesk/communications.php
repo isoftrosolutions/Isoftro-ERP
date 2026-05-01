@@ -212,5 +212,5 @@ try {
 
 } catch (Exception $e) {
     error_log("Communications Controller Error: " . $e->getMessage());
-    echo json_encode(['success' => false, 'message' => $e->getMessage()]);
-}
+    echo json_encode(['success' => false, 'message' => 'Internal server error']);
+    }

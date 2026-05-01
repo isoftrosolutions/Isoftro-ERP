@@ -122,14 +122,14 @@ try {
                 try {
                     $startDate = App\Helpers\DateUtils::bsToAd($startDateBs);
                 } catch (Exception $e) {}
-            }
+    }
         }
         if (empty($endDate) && !empty($endDateBs)) {
             if (class_exists('App\Helpers\DateUtils')) {
                 try {
                     $endDate = App\Helpers\DateUtils::bsToAd($endDateBs);
                 } catch (Exception $e) {}
-            }
+    }
         }
 
         if (empty($startDate)) $startDate = date('Y-m-d');
@@ -194,14 +194,14 @@ try {
                         try {
                             $val = App\Helpers\DateUtils::bsToAd($input['start_date_bs']);
                         } catch (Exception $e) {}
-                    }
+    }
                 }
                 if ($f === 'end_date' && empty($val) && !empty($input['end_date_bs'])) {
                     if (class_exists('App\Helpers\DateUtils')) {
                         try {
                             $val = App\Helpers\DateUtils::bsToAd($input['end_date_bs']);
                         } catch (Exception $e) {}
-                    }
+    }
                 }
 
                 $fields[] = "$f = :$f";
@@ -230,5 +230,6 @@ try {
         echo json_encode(['success' => true, 'message' => 'Batch deleted successfully']);
     }
 } catch (Exception $e) {
-    echo json_encode(['success' => false, 'message' => $e->getMessage()]);
-}
+    error_log('Controller exception: ' . $e->getMessage());
+    echo json_encode(['success' => false, 'message' => 'Internal server error']);
+    }

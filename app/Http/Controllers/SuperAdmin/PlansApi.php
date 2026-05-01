@@ -149,7 +149,7 @@ try {
             } catch (Exception $e) {
                 $db->rollBack();
                 throw $e;
-            }
+    }
             break;
 
         case 'get_system_features':
@@ -193,7 +193,7 @@ try {
             } catch (Exception $e) {
                 $db->rollBack();
                 throw $e;
-            }
+    }
             break;
             
         case 'toggle_system_feature':
@@ -245,5 +245,5 @@ try {
     
 } catch (Exception $e) {
     error_log("[DB-ERROR] PlansApi error: " . $e->getMessage());
-    echo json_encode(['success' => false, 'message' => $e->getMessage()]);
-}
+    echo json_encode(['success' => false, 'message' => 'Internal server error']);
+    }

@@ -44,7 +44,7 @@ class LogController {
             ")->fetchAll();
         } catch (\Exception $e) {
             $logs = [];
-        }
+    }
         include resource_path('views/super-admin/logs-api.php');
     }
 

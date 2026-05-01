@@ -74,8 +74,9 @@ class DatabaseHelper
      */
     private static function logQuery($sql, $params, $duration)
     {
+        $safeParams = self::redactParams($params);
         if ($duration > self::$slowQueryThreshold) {
-            error_log("[DB-SLOW] ({$duration}s) $sql | Params: " . json_encode($params));
+            error_log("[DB-SLOW] ({$duration}s) $sql | Params: " . json_encode($safeParams));
         }
 
         if (defined('DEBUG_MODE') && DEBUG_MODE) {
@@ -85,7 +86,7 @@ class DatabaseHelper
 
     private static function logError($e, $sql, $params)
     {
-        error_log("[DB-ERROR] " . $e->getMessage() . " | SQL: $sql | Params: " . json_encode($params));
+        error_log("[DB-ERROR] Database query failed | SQL: $sql | Params: " . json_encode(self::redactParams($params)));
     }
 
     /**
@@ -96,8 +97,7 @@ class DatabaseHelper
         $response = ['success' => false];
         
         if (defined('APP_ENV') && APP_ENV === 'development' && $exception) {
-            $response['message'] = $exception->getMessage();
-            $response['trace'] = $exception->getTraceAsString();
+            $response['message'] = $message;
         } else {
             $response['message'] = $message;
         }
@@ -105,5 +105,20 @@ class DatabaseHelper
         header('Content-Type: application/json');
         echo json_encode($response);
         exit;
+    }
+
+    private static function redactParams(array $params): array
+    {
+        $sensitive = ['password', 'token', 'secret', 'api_key', 'authorization', 'cookie'];
+        $clean = [];
+        foreach ($params as $k => $v) {
+            $key = strtolower((string)$k);
+            if (in_array($key, $sensitive, true)) {
+                $clean[$k] = '[REDACTED]';
+            } else {
+                $clean[$k] = $v;
+            }
+        }
+        return $clean;
     }
 }

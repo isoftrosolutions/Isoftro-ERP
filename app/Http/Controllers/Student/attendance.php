@@ -240,13 +240,13 @@ try {
     echo json_encode([
         'success' => false, 
         'message' => 'Database error occurred',
-        'debug' => $e->getMessage()
+        'debug' => 'Internal server error'
     ]);
-} catch (Exception $e) {
+    } catch (Exception $e) {
     error_log("Student Attendance Error: " . $e->getMessage());
     echo json_encode([
         'success' => false, 
         'message' => 'An error occurred',
-        'debug' => $e->getMessage()
+        'debug' => 'Internal server error'
     ]);
-}
+    }

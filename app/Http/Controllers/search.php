@@ -127,9 +127,10 @@ try {
                                    $response['counts']['tickets'];
     
 } catch (Exception $e) {
+    error_log('Controller exception: ' . $e->getMessage());
     $response['success'] = false;
-    $response['error'] = $e->getMessage();
-}
+    $response['error'] = 'Internal server error';
+    }
 
 // Return JSON response
 echo json_encode($response);

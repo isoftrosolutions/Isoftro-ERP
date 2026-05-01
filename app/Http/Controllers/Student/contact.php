@@ -119,4 +119,4 @@ try {
 } catch (Exception $e) {
     error_log('Student contact error: ' . $e->getMessage());
     echo json_encode(['success' => false, 'message' => 'An error occurred. Please try again.']);
-}
+    }

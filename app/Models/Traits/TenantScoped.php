@@ -21,9 +21,9 @@ trait TenantScoped
             if (session_status() === PHP_SESSION_NONE) {
                 @session_start();
             }
-            
+
             $tenantId = $_SESSION['userData']['tenant_id'] ?? null;
-            
+
             // Priority 2: Use Laravel Auth only if session is not set AND we are not scoping the User model
             // This prevents the infinite loop when Laravel tries to load the authenticated user
             if ($tenantId === null && !($builder->getModel() instanceof \App\Models\User)) {
@@ -31,10 +31,20 @@ trait TenantScoped
                     $tenantId = auth()->user()->tenant_id;
                 }
             }
-            
+
             // Apply scope if tenant_id is set (Super Admins bypass this if tenant_id is NULL)
             if ($tenantId !== null) {
                 $builder->where($builder->getModel()->getTable() . '.tenant_id', $tenantId);
+            }
+
+            // CRITICAL SECURITY: Validate tenant ownership to prevent bypass
+            if ($tenantId && function_exists('auth') && auth()->guard()->check()) {
+                $user = auth()->user();
+                if ($user && $user->tenant_id && $user->tenant_id !== $tenantId) {
+                    // Log security violation attempt
+                    error_log("SECURITY VIOLATION: User {$user->id} attempted to access tenant {$tenantId} but belongs to tenant {$user->tenant_id}");
+                    abort(403, 'Access denied: Invalid tenant access attempt.');
+                }
             }
         });
 

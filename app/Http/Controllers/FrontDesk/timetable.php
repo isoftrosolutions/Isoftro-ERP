@@ -306,5 +306,6 @@ try {
     }
 
 } catch (Exception $e) {
-    echo json_encode(['success' => false, 'message' => $e->getMessage()]);
-}
+    error_log('Controller exception: ' . $e->getMessage());
+    echo json_encode(['success' => false, 'message' => 'Internal server error']);
+    }

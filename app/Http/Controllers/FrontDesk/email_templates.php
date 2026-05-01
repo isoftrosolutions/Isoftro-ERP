@@ -17,7 +17,7 @@ header('Content-Type: application/json');
 // Ensure any uncaught error returns JSON
 set_exception_handler(function(Throwable $e) {
     http_response_code(500);
-    echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    echo json_encode(['success' => false, 'message' => 'Internal server error']);
     exit;
 });
 set_error_handler(function($errno, $errstr) {
@@ -116,5 +116,6 @@ try {
     throw new Exception('Invalid Request Method');
 
 } catch (Exception $e) {
-    echo json_encode(['success' => false, 'message' => $e->getMessage()]);
-}
+    error_log('Controller exception: ' . $e->getMessage());
+    echo json_encode(['success' => false, 'message' => 'Internal server error']);
+    }

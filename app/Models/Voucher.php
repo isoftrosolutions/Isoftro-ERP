@@ -10,6 +10,27 @@ class Voucher extends Model
 {
     protected $table = 'acc_vouchers';
 
+    /**
+     * Boot the model and add immutable protection for approved vouchers
+     * (NAS compliance - prevent financial data tampering)
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        // Prevent updates to approved vouchers
+        static::updating(function ($voucher) {
+            if ($voucher->getOriginal('status') === 'approved') {
+                throw new \Exception('Approved vouchers cannot be modified for audit compliance.');
+            }
+        });
+
+        // Prevent deletion of vouchers (use reversal entries instead)
+        static::deleting(function ($voucher) {
+            throw new \Exception('Vouchers cannot be deleted. Create a reversal entry instead.');
+        });
+    }
+
     protected $fillable = [
         'tenant_id',
         'voucher_no',

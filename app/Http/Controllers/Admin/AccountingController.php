@@ -67,11 +67,12 @@ class AccountingController
                     throw new Exception("Action '{$action}' not found");
             }
         } catch (Exception $e) {
+            error_log('Controller exception: ' . $e->getMessage());
             return [
                 'success' => false,
-                'message' => $e->getMessage()
+                'message' => 'Internal server error'
             ];
-        }
+    }
     }
 
     /**
@@ -227,7 +228,7 @@ class AccountingController
         } catch (Exception $e) {
             if ($this->db->inTransaction()) {
                 $this->db->rollBack();
-            }
+    }
             throw $e;
         }
     }

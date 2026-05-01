@@ -278,5 +278,5 @@ try {
 } catch (Exception $e) {
     if (isset($db) && $db->inTransaction()) $db->rollBack();
     error_log("Library Controller Error: " . $e->getMessage());
-    echo json_encode(['success' => false, 'message' => $e->getMessage()]);
-}
+    echo json_encode(['success' => false, 'message' => 'Internal server error']);
+    }

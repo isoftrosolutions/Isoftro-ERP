@@ -36,7 +36,7 @@ if (!$teacherId && $userId) {
             $_SESSION['userData']['teacher_id'] = $teacherId;
         }
     } catch (Exception $e) {}
-}
+    }
 
 if (!$teacherId) {
     echo json_encode(['success' => false, 'message' => 'Teacher profile not mapped']);
@@ -102,7 +102,7 @@ try {
 } catch (PDOException $e) {
     error_log("Teacher Classes Error: " . $e->getMessage());
     echo json_encode(['success' => false, 'message' => 'Database error']);
-} catch (Exception $e) {
+    } catch (Exception $e) {
     error_log("Teacher Classes Error: " . $e->getMessage());
     echo json_encode(['success' => false, 'message' => 'System error']);
-}
+    }

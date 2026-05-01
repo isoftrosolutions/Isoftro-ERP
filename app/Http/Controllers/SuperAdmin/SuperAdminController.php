@@ -82,7 +82,7 @@ class SuperAdminController {
             
         } catch (PDOException $e) {
             error_log("Error getting platform stats: " . $e->getMessage());
-        }
+    }
         
         return $stats;
     }
@@ -114,7 +114,7 @@ class SuperAdminController {
         } catch (PDOException $e) {
             error_log("[DB-ERROR] Error getting tenants: " . $e->getMessage());
             return [];
-        }
+    }
     }
     
     /**
@@ -142,8 +142,9 @@ class SuperAdminController {
             
             return ['success' => true, 'tenant_id' => $this->db->lastInsertId()];
         } catch (PDOException $e) {
-            return ['success' => false, 'error' => $e->getMessage()];
-        }
+            error_log('Controller exception: ' . $e->getMessage());
+            return ['success' => false, 'error' => 'Internal server error'];
+    }
     }
     
     /**
@@ -256,7 +257,7 @@ class SuperAdminController {
             
         } catch (PDOException $e) {
             error_log("Error getting revenue data: " . $e->getMessage());
-        }
+    }
         
         return $data;
     }
@@ -289,7 +290,7 @@ class SuperAdminController {
         } catch (PDOException $e) {
             error_log("[DB-ERROR] Error getting system logs: " . $e->getMessage());
             return [];
-        }
+    }
     }
     
     /**
@@ -310,7 +311,7 @@ class SuperAdminController {
         } catch (PDOException $e) {
             error_log("[DB-ERROR] Error getting SMS templates: " . $e->getMessage());
             return [];
-        }
+    }
     }
     
     /**
@@ -335,8 +336,9 @@ class SuperAdminController {
             
             return ['success' => true];
         } catch (PDOException $e) {
-            return ['success' => false, 'error' => $e->getMessage()];
-        }
+            error_log('Controller exception: ' . $e->getMessage());
+            return ['success' => false, 'error' => 'Internal server error'];
+    }
     }
     
     /**
@@ -354,8 +356,9 @@ class SuperAdminController {
             
             return ['success' => true];
         } catch (PDOException $e) {
-            return ['success' => false, 'error' => $e->getMessage()];
-        }
+            error_log('Controller exception: ' . $e->getMessage());
+            return ['success' => false, 'error' => 'Internal server error'];
+    }
     }
     
     /**
@@ -400,8 +403,9 @@ class SuperAdminController {
 
             return ['success' => true, 'token' => $token];
         } catch (Exception $e) {
-            return ['success' => false, 'message' => $e->getMessage()];
-        }
+            error_log('Controller exception: ' . $e->getMessage());
+            return ['success' => false, 'message' => 'Internal server error'];
+    }
     }
 
     /**
@@ -493,7 +497,7 @@ class SuperAdminController {
             exit;
         } catch (Exception $e) {
             die("Impersonation error: " . $e->getMessage());
-        }
+    }
     }
     
     /**
@@ -510,7 +514,7 @@ class SuperAdminController {
                 $stmt->execute(['id' => $_SESSION['impersonation_log_id']]);
             } catch (PDOException $e) {
                 error_log("Error ending impersonation: " . $e->getMessage());
-            }
+    }
         }
         
         // Restore original session and JWT if it exists

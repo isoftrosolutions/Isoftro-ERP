@@ -66,6 +66,9 @@ try {
     
     // Process logo if uploaded
     if (isset($_FILES['logo']) && $_FILES['logo']['error'] === UPLOAD_ERR_OK) {
+        if ($_FILES['logo']['size'] > 5 * 1024 * 1024) {
+            throw new Exception("Logo size exceeds 5MB.");
+        }
         $uploadDir = __DIR__ . '/../../../uploads/logos/';
         if (!is_dir($uploadDir)) {
             mkdir($uploadDir, 0755, true);
@@ -78,6 +81,8 @@ try {
                 $stmtLogo = $pdo->prepare("UPDATE tenants SET logo_path = ? WHERE id = ?");
                 $stmtLogo->execute([$logoPath, $id]);
             }
+        } else {
+            throw new Exception("Invalid logo file type.");
         }
     }
     
@@ -121,6 +126,6 @@ try {
         $pdo->rollBack();
     }
     error_log("[UpdateTenant Error] " . $e->getMessage());
-    echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    echo json_encode(['success' => false, 'message' => 'Internal server error']);
 }
 

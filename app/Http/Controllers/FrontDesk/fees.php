@@ -175,7 +175,7 @@ try {
                         
                     } catch (Exception $e) {
                          if ($db->inTransaction()) $db->rollBack();
-                    }
+    }
                 }
 
                 $response = [
@@ -828,10 +828,11 @@ try {
     }
 
 } catch (\Throwable $e) {
+    error_log('Controller exception: ' . $e->getMessage());
     ob_end_clean(); // Discard any stray output before sending JSON error
     http_response_code(500);
     echo json_encode([
         'success' => false, 
-        'message' => $e->getMessage()
+        'message' => 'Internal server error'
     ]);
-}
+    }

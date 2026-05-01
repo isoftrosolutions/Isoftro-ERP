@@ -312,7 +312,7 @@ class SuperAdminController extends Controller
             } catch (\Exception $e) {
                 // Log email error but don't fail the request
                 \Log::error("Welcome email failed: " . $e->getMessage());
-            }
+    }
 
             return response()->json([
                 'success' => true,
@@ -321,12 +321,13 @@ class SuperAdminController extends Controller
             ]);
 
         } catch (\Exception $e) {
+            error_log('Controller exception: ' . $e->getMessage());
             DB::rollBack();
             return response()->json([
                 'success' => false,
-                'message' => $e->getMessage()
+                'message' => 'Internal server error'
             ], 500);
-        }
+    }
     }
 
     /**
@@ -404,12 +405,13 @@ class SuperAdminController extends Controller
             ]);
 
         } catch (\Exception $e) {
+            error_log('Controller exception: ' . $e->getMessage());
             DB::rollBack();
             return response()->json([
                 'success' => false,
-                'message' => $e->getMessage()
+                'message' => 'Internal server error'
             ], 500);
-        }
+    }
     }
 
     /**
@@ -449,12 +451,13 @@ class SuperAdminController extends Controller
             ]);
 
         } catch (\Exception $e) {
+            error_log('Controller exception: ' . $e->getMessage());
             DB::rollBack();
             return response()->json([
                 'success' => false,
-                'message' => $e->getMessage()
+                'message' => 'Internal server error'
             ], 500);
-        }
+    }
     }
 
     /**
@@ -729,12 +732,13 @@ class SuperAdminController extends Controller
             ]);
 
         } catch (\Exception $e) {
+            error_log('Controller exception: ' . $e->getMessage());
             DB::rollBack();
             return response()->json([
                 'success' => false,
-                'message' => $e->getMessage()
+                'message' => 'Internal server error'
             ], 500);
-        }
+    }
     }
 
     /**
@@ -807,12 +811,13 @@ class SuperAdminController extends Controller
             ]);
 
         } catch (\Exception $e) {
+            error_log('Controller exception: ' . $e->getMessage());
             DB::rollBack();
             return response()->json([
                 'success' => false,
-                'message' => $e->getMessage()
+                'message' => 'Internal server error'
             ], 500);
-        }
+    }
     }
 
     /**

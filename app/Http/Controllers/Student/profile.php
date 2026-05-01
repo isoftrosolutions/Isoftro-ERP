@@ -308,14 +308,24 @@ try {
                 exit;
             }
             
-            $file = $_FILES['document'];
-            $allowedExtensions = ['jpg', 'jpeg', 'png', 'pdf'];
-            $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-            
-            if (!in_array($extension, $allowedExtensions)) {
-                echo json_encode(['success' => false, 'message' => 'Invalid file type. Allowed: JPG, PNG, PDF']);
+            $_FILES['file'] = $_FILES['document'];
+            $allowedTypes = ['image/jpeg','image/png','image/gif',
+                             'application/pdf','image/webp'];
+            $maxSize = 5 * 1024 * 1024; // 5MB
+
+            if (!in_array($_FILES['file']['type'], $allowedTypes)) {
+                echo json_encode(['status'=>'error',
+                                  'message'=>'Invalid file type']);
                 exit;
             }
+            if ($_FILES['file']['size'] > $maxSize) {
+                echo json_encode(['status'=>'error',
+                                  'message'=>'File too large. Max 5MB']);
+                exit;
+            }
+
+            $file = $_FILES['file'];
+            $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
             
             // Create upload directory
             $uploadDir = __DIR__ . '/../../../../uploads/students/documents/';
@@ -403,10 +413,10 @@ try {
                 error_log('Student Profile fees error: ' . $e->getMessage());
                 echo json_encode([
                     'success' => false,
-                    'message' => 'Failed to load fee data: ' . $e->getMessage(),
+                    'message' => 'Internal server error',
                     'data'    => ['records' => [], 'payments' => [], 'summary' => ['total_due' => 0, 'total_paid' => 0, 'outstanding' => 0]]
                 ]);
-            }
+    }
             break;
             
         case 'attendance':
@@ -450,7 +460,7 @@ try {
                 ]);
             } catch (Exception $e) {
                 echo json_encode(['success' => true, 'data' => ['records' => [], 'summary' => ['total' => 0, 'present' => 0, 'absent' => 0, 'late' => 0, 'percentage' => 0]]]);
-            }
+    }
             break;
             
         case 'exam_results':
@@ -496,7 +506,7 @@ try {
                 ]);
             } catch (Exception $e) {
                 echo json_encode(['success' => true, 'data' => ['results' => [], 'summary' => ['total_exams' => 0, 'passed' => 0, 'failed' => 0, 'average_percentage' => 0]]]);
-            }
+    }
             break;
             
             // Get course and batch details
@@ -524,7 +534,7 @@ try {
                 ]);
             } catch (Exception $e) {
                 echo json_encode(['success' => true, 'data' => []]);
-            }
+    }
             break;
             
         default:
@@ -565,4 +575,4 @@ try {
         'message' => 'An error occurred',
         'code' => 'GENERAL_ERROR'
     ]);
-}
+    }

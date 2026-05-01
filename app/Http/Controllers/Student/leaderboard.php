@@ -196,5 +196,5 @@ try {
 
 } catch (Exception $e) {
     error_log('Leaderboard error: ' . $e->getMessage());
-    echo json_encode(['success' => false, 'message' => 'Failed to load leaderboard: ' . $e->getMessage()]);
-}
+    echo json_encode(['success' => false, 'message' => 'Internal server error']);
+    }

@@ -22,7 +22,7 @@ class AuthController
     public function __construct()
     {
         $this->db = getDBConnection();
-        $this->jwtSecret = defined('JWT_SECRET') ? JWT_SECRET : 'hamrolabs-erp-secret-key-2026';
+        $this->jwtSecret = defined('JWT_SECRET') ? JWT_SECRET : '';
     }
 
     /**
@@ -124,13 +124,25 @@ class AuthController
         if ($remember === 'on' || $remember === true || $remember === 'true') {
             $token = bin2hex(random_bytes(32));
             $expiry = time() + (30 * 24 * 60 * 60);
-            setcookie('remember_token', $token, $expiry, '/', '', false, true);
+            $isSecure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+                || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
+            if (PHP_VERSION_ID >= 70300) {
+                setcookie('remember_token', $token, [
+                    'expires' => $expiry,
+                    'path' => '/',
+                    'secure' => $isSecure,
+                    'httponly' => true,
+                    'samesite' => 'Strict'
+                ]);
+            } else {
+                setcookie('remember_token', $token, $expiry, '/; samesite=Strict', '', $isSecure, true);
+            }
             try {
                 $stmt = $this->db->prepare("INSERT INTO remember_tokens (user_id, token, expires_at) VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 30 DAY))");
                 $stmt->execute([$user['id'], hash('sha256', $token)]);
             }
             catch (\Exception $e) {
-            }
+    }
         }
 
         // Generate loading token
@@ -163,17 +175,23 @@ class AuthController
         $this->storeRefreshToken($user['id'], $refreshToken);
 
         // Strict cookie dispatching to mathematically nullify CSRF scope
+        if (empty($this->jwtSecret) || $this->jwtSecret === 'PLEASE_SET_JWT_SECRET_IN_ENV') {
+            return ['success' => false, 'message' => 'Authentication configuration error.'];
+        }
+
+        $isSecure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+            || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
         if (PHP_VERSION_ID >= 70300) {
             setcookie('token', $accessToken, [
                 'expires' => time() + $this->accessTokenExpiry,
                 'path' => '/',
-                'secure' => false, // Recommend true in Prod
+                'secure' => $isSecure,
                 'httponly' => true,
                 'samesite' => 'Strict'
             ]);
         }
         else {
-            setcookie('token', $accessToken, time() + $this->accessTokenExpiry, '/; samesite=Strict', '', false, true);
+            setcookie('token', $accessToken, time() + $this->accessTokenExpiry, '/; samesite=Strict', '', $isSecure, true);
         }
 
         return [

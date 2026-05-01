@@ -76,7 +76,7 @@ try {
             $hasRoomId = ($checkCol->rowCount() > 0);
         } catch (Exception $e) {
             $hasRoomId = false;
-        }
+    }
 
         // Build the query with or without room JOIN based on schema state
         if ($hasRoomId) {
@@ -176,7 +176,7 @@ try {
 
             if (empty($batchId) || empty($teacherId) || empty($subjectId) || empty($dayOfWeek) || empty($startTime) || empty($endTime)) {
                 throw new Exception("Batch, Teacher, Subject, Day, Start Time and End Time are required");
-            }
+    }
 
             if ($startTime >= $endTime) {
                 throw new Exception("Start time must be before end time");
@@ -517,5 +517,6 @@ try {
     }
 
 } catch (Exception $e) {
-    echo json_encode(['success' => false, 'message' => $e->getMessage()]);
-}
+    error_log('Controller exception: ' . $e->getMessage());
+    echo json_encode(['success' => false, 'message' => 'Internal server error']);
+    }

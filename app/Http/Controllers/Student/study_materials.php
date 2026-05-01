@@ -43,7 +43,8 @@ if (in_array($action, $csrfProtectedActions)) {
     try {
         CsrfHelper::requireCsrfToken();
     } catch (Exception $e) {
-        echo json_encode(['success' => false, 'message' => $e->getMessage(), 'code' => 'CSRF_ERROR']);
+        error_log('Controller exception: ' . $e->getMessage());
+        echo json_encode(['success' => false, 'message' => 'Internal server error', 'code' => 'CSRF_ERROR']);
         exit;
     } catch (Throwable $e) {
         // If CSRF helper fails, log and allow
@@ -531,8 +532,9 @@ try {
             ]);
     }
 } catch (Exception $e) {
-    echo json_encode(['success' => false, 'message' => $e->getMessage()]);
-}
+    error_log('Controller exception: ' . $e->getMessage());
+    echo json_encode(['success' => false, 'message' => 'Internal server error']);
+    }
 
 // Helper Functions
 

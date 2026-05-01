@@ -26,7 +26,7 @@ class SupportController {
             ")->fetchAll();
         } catch (\Exception $e) {
             $tickets = [];
-        }
+    }
 
         return view('super-admin.support', ['tickets' => $tickets]);
     }
@@ -43,7 +43,7 @@ class SupportController {
             ")->fetchAll();
         } catch (\Exception $e) {
             $tickets = [];
-        }
+    }
         include resource_path('views/super-admin/support-resolved.php');
     }
 
@@ -60,7 +60,7 @@ class SupportController {
             ")->fetchAll();
         } catch (\Exception $e) {
             $logs = [];
-        }
+    }
         include resource_path('views/super-admin/support-impersonate.php');
     }
 

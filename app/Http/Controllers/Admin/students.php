@@ -692,7 +692,7 @@ try {
             } catch (Throwable $e) {
                 if ($db->inTransaction()) {
                     $db->rollBack();
-                }
+    }
                 throw $e;
             }
             exit;
@@ -781,9 +781,9 @@ try {
 
             if ($dobAd && !$dobBs) {
                 try { $input['dob_bs'] = \App\Helpers\DateUtils::adToBs($dobAd); } catch (\Exception $e) {}
-            } elseif (!$dobAd && $dobBs) {
+    } elseif (!$dobAd && $dobBs) {
                 try { $input['dob_ad'] = \App\Helpers\DateUtils::bsToAd($dobBs); } catch (\Exception $e) {}
-            }
+    }
         }
 
         $fields = [];
@@ -919,17 +919,16 @@ try {
         } catch (\Throwable $e) {
             $db->rollBack();
             throw $e;
-        }
+    }
     }
 } catch (\Throwable $e) {
     if (isset($db) && $db->inTransaction()) {
         $db->rollBack();
     }
+    error_log("Admin Students API error: " . $e->getMessage());
     header('Content-Type: application/json', true, 500);
     echo json_encode([
         'success' => false,
-        'message' => 'Internal Server Error: ' . $e->getMessage(),
-        'file' => basename($e->getFile()),
-        'line' => $e->getLine()
+        'message' => 'Internal Server Error'
     ]);
 }

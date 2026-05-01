@@ -33,13 +33,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $fileTmpPath = $_FILES['screenshot']['tmp_name'];
         $fileName = $_FILES['screenshot']['name'];
         $fileSize = $_FILES['screenshot']['size'];
-        $fileType = $_FILES['screenshot']['type'];
         $fileNameCmps = explode(".", $fileName);
         $fileExtension = strtolower(end($fileNameCmps));
 
         $allowedfileExtensions = array('jpg', 'gif', 'png', 'jpeg', 'webp');
 
-        if (in_array($fileExtension, $allowedfileExtensions)) {
+        if ($fileSize > 5 * 1024 * 1024) {
+            echo json_encode(['success' => false, 'message' => 'Screenshot exceeds 5MB limit']);
+            exit;
+        }
+
+        if (in_array($fileExtension, $allowedfileExtensions, true)) {
             $uploadFileDir = __DIR__ . '/../../../../uploads/feedback/';
             if (!is_dir($uploadFileDir)) {
                 mkdir($uploadFileDir, 0777, true);
@@ -50,6 +54,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if(move_uploaded_file($fileTmpPath, $dest_path)) {
                 $screenshotPath = '/uploads/feedback/' . $newFileName;
             }
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Invalid screenshot type']);
+            exit;
         }
     }
 
@@ -75,7 +82,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             echo json_encode(['success' => false, 'message' => 'Failed to save feedback']);
         }
     } catch (Exception $e) {
-        echo json_encode(['success' => false, 'message' => 'Database error: ' . $e->getMessage()]);
+        error_log('Controller exception: ' . $e->getMessage());
+        echo json_encode(['success' => false, 'message' => 'Internal server error']);
     }
     exit;
 }

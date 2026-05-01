@@ -105,7 +105,13 @@ try {
                 $tStmt->execute(['uid' => $user_id, 'tid' => $tenant_id]);
                 $teacherId = $tStmt->fetchColumn();
 
-                if (!$teacherId || !($db->query("SELECT id FROM batch_subject_allocations WHERE teacher_id = {$teacherId} AND batch_id = {$hw['batch_id']} AND subject_id = {$hw['subject_id']}")->fetch())) {
+                $allocStmt = $db->prepare("SELECT id FROM batch_subject_allocations WHERE teacher_id = :teacher_id AND batch_id = :batch_id AND subject_id = :subject_id LIMIT 1");
+                $allocStmt->execute([
+                    'teacher_id' => (int)$teacherId,
+                    'batch_id' => (int)$hw['batch_id'],
+                    'subject_id' => (int)$hw['subject_id'],
+                ]);
+                if (!$teacherId || !$allocStmt->fetch()) {
                     throw new Exception("Access Denied");
                 }
             }
@@ -152,7 +158,13 @@ try {
                 $tStmt->execute(['uid' => $user_id, 'tid' => $tenant_id]);
                 $teacherId = $tStmt->fetchColumn();
 
-                if (!$teacherId || !($db->query("SELECT id FROM batch_subject_allocations WHERE teacher_id = {$teacherId} AND batch_id = {$hw['batch_id']} AND subject_id = {$hw['subject_id']}")->fetch())) {
+                $allocStmt = $db->prepare("SELECT id FROM batch_subject_allocations WHERE teacher_id = :teacher_id AND batch_id = :batch_id AND subject_id = :subject_id LIMIT 1");
+                $allocStmt->execute([
+                    'teacher_id' => (int)$teacherId,
+                    'batch_id' => (int)$hw['batch_id'],
+                    'subject_id' => (int)$hw['subject_id'],
+                ]);
+                if (!$teacherId || !$allocStmt->fetch()) {
                     throw new Exception("Access Denied");
                 }
             }
@@ -178,5 +190,5 @@ try {
 
 } catch (Exception $e) {
     error_log("Homework API Error: " . $e->getMessage());
-    echo json_encode(['success' => false, 'message' => $e->getMessage()]);
-}
+    echo json_encode(['success' => false, 'message' => 'Internal server error']);
+    }

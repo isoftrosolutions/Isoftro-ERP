@@ -281,4 +281,4 @@ try {
     error_log("[DB-ERROR] SupportApi error: " . $e->getMessage());
     $msg = (defined('APP_ENV') && APP_ENV === 'development') ? $e->getMessage() : 'An internal error occurred. Please try again.';
     echo json_encode(['success' => false, 'message' => $msg]);
-}
+    }

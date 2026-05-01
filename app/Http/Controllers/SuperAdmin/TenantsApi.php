@@ -338,9 +338,10 @@ try {
                 // Clear session cache for this tenant if they are currently logged in? 
                 // Hard to do across all sessions, but next IdentifyTenant call will reload it.
             } catch (Exception $e) {
+                error_log('Controller exception: ' . $e->getMessage());
                 $db->rollBack();
-                echo json_encode(['success' => false, 'message' => 'Failed to update modules: ' . $e->getMessage()]);
-            }
+                echo json_encode(['success' => false, 'message' => 'Internal server error']);
+    }
             break;
 
         case 'stats':
@@ -370,7 +371,9 @@ try {
             $id = (int)($input['id'] ?? $_GET['id'] ?? 0);
             if (!$id) { echo json_encode(['success' => false, 'message' => 'Tenant ID required']); exit; }
 
-            $tenant = $db->query("SELECT name FROM tenants WHERE id = $id")->fetch();
+            $tenantStmt = $db->prepare("SELECT name FROM tenants WHERE id = :id");
+            $tenantStmt->execute(['id' => $id]);
+            $tenant = $tenantStmt->fetch();
             if (!$tenant) { echo json_encode(['success' => false, 'message' => 'Tenant not found']); exit; }
 
             $db->prepare("UPDATE tenants SET status = 'suspended', updated_at = NOW() WHERE id = ?")->execute([$id]);
@@ -388,7 +391,9 @@ try {
             $id = (int)($input['id'] ?? $_GET['id'] ?? 0);
             if (!$id) { echo json_encode(['success' => false, 'message' => 'Tenant ID required']); exit; }
 
-            $tenant = $db->query("SELECT name FROM tenants WHERE id = $id")->fetch();
+            $tenantStmt = $db->prepare("SELECT name FROM tenants WHERE id = :id");
+            $tenantStmt->execute(['id' => $id]);
+            $tenant = $tenantStmt->fetch();
             if (!$tenant) { echo json_encode(['success' => false, 'message' => 'Tenant not found']); exit; }
 
             $db->prepare("UPDATE tenants SET status = 'active', updated_at = NOW() WHERE id = ?")->execute([$id]);
@@ -409,4 +414,4 @@ try {
     error_log("[DB-ERROR] TenantsApi error: " . $e->getMessage());
     $msg = (defined('APP_ENV') && APP_ENV === 'development') ? $e->getMessage() : 'An internal error occurred. Please try again.';
     echo json_encode(['success' => false, 'message' => $msg]);
-}
+    }

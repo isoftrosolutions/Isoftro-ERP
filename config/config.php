@@ -50,6 +50,20 @@ if (!defined('APP_URL')) {
 // Initialize session with secure params - DEPRECATED for JWT
 // But kept as minimal fallback for temporary view-state if absolutely needed.
 if (session_status() === PHP_SESSION_NONE && !headers_sent()) {
+    $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+        || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
+    session_set_cookie_params([
+        'lifetime' => 0,
+        'path' => '/',
+        'domain' => '',
+        'secure' => $isHttps,
+        'httponly' => true,
+        'samesite' => 'Strict',
+    ]);
+    ini_set('session.use_strict_mode', '1');
+    ini_set('session.cookie_httponly', '1');
+    ini_set('session.cookie_secure', $isHttps ? '1' : '0');
+    ini_set('session.cookie_samesite', 'Strict');
     session_start();
 }
 
@@ -81,7 +95,7 @@ if (!defined('APP_VERSION'))
     define('APP_VERSION', '3.0');
 
 if (!defined('APP_ENV'))
-    define('APP_ENV', getenv('APP_ENV') ?: 'development');
+    define('APP_ENV', getenv('APP_ENV') ?: 'production');
 
 if (!defined('APP_DEBUG'))
     define('APP_DEBUG', (getenv('APP_DEBUG') === 'true' || getenv('APP_DEBUG') === '1'));
@@ -157,13 +171,13 @@ if (!defined('SMTP_PORT'))
     define('SMTP_PORT', getenv('MAIL_PORT') ?: ($_ENV['MAIL_PORT'] ?? ($_SERVER['MAIL_PORT'] ?? 465)));
 
 if (!defined('SMTP_USERNAME'))
-    define('SMTP_USERNAME', getenv('MAIL_USERNAME') ?: ($_ENV['MAIL_USERNAME'] ?? ($_SERVER['MAIL_USERNAME'] ?? 'isoftrosolutions@gmail.com')));
+    define('SMTP_USERNAME', getenv('MAIL_USERNAME') ?: ($_ENV['MAIL_USERNAME'] ?? ($_SERVER['MAIL_USERNAME'] ?? '')));
 
 if (!defined('SMTP_PASSWORD'))
     define('SMTP_PASSWORD', getenv('MAIL_PASSWORD') ?: ($_ENV['MAIL_PASSWORD'] ?? ($_SERVER['MAIL_PASSWORD'] ?? '')));
 
 if (!defined('FROM_EMAIL'))
-    define('FROM_EMAIL', getenv('MAIL_FROM_ADDRESS') ?: 'isoftrosolutions@gmail.com');
+    define('FROM_EMAIL', getenv('MAIL_FROM_ADDRESS') ?: '');
 
 if (!defined('FROM_NAME'))
     define('FROM_NAME', getenv('MAIL_FROM_NAME') ?: (defined('APP_NAME') ? APP_NAME : 'iSoftro ERP'));
@@ -334,8 +348,7 @@ if (!function_exists('generateCSRFToken')) {
 if (!function_exists('verifyCSRFToken')) {
     function verifyCSRFToken($token)
     {
-        // JWT is its own security, CSRF is disabled globally in this migration
-        return true; 
+        return \App\Helpers\CsrfHelper::validateCsrfToken($token);
     }
 }
 
@@ -349,14 +362,14 @@ if (!function_exists('getCsrfToken')) {
 if (!function_exists('csrfMetaTag')) {
     function csrfMetaTag()
     {
-        return '<!-- CSRF disabled - Using JWT -->';
+        return \App\Helpers\CsrfHelper::csrfMetaTag();
     }
 }
 
 if (!function_exists('csrfJsHeader')) {
     function csrfJsHeader()
     {
-        return '<!-- CSRF disabled - Using JWT -->';
+        return \App\Helpers\CsrfHelper::csrfJsHeader();
     }
 }
 
@@ -628,9 +641,6 @@ if (!function_exists('hasFeature')) {
  */
 if (!function_exists('enforceFeature')) {
     function enforceFeature($featureKey) {
-        // [RESTRICTION BYPASS FOR DEMO] Allow all features regardless of DB check
-        if (defined('APP_DEBUG') && APP_DEBUG === true) return;
-        
         if (!hasFeature($featureKey)) {
             $message = "Access Denied: The '{$featureKey}' feature is disabled for your institute.";
             
@@ -689,9 +699,6 @@ if (!function_exists('requireAuth')) {
 if (!function_exists('requirePermission')) {
     function requirePermission($permission)
     {
-        // [RESTRICTION BYPASS FOR DEMO] Allow all permissions regardless of DB check
-        if (defined('APP_DEBUG') && APP_DEBUG === true) return;
-
         if (!hasPermission($permission)) {
             $isApi = (strpos($_SERVER['REQUEST_URI'], '/api/') !== false) || (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest');
             
@@ -716,9 +723,6 @@ if (!function_exists('requirePermission')) {
 if (!function_exists('requireModule')) {
     function requireModule($moduleName)
     {
-        // [RESTRICTION BYPASS FOR DEMO] Allow all modules regardless of DB check
-        if (defined('APP_DEBUG') && APP_DEBUG === true) return;
-
         if (!hasFeature($moduleName)) {
             $isApi = (strpos($_SERVER['REQUEST_URI'], '/api/') !== false) || (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest');
             
@@ -744,9 +748,6 @@ if (!function_exists('requireModule')) {
 if (!function_exists('enforceAccess')) {
     function enforceAccess($permission, $feature = null)
     {
-        // [RESTRICTION BYPASS FOR DEMO] Allow all access regardless of DB check
-        if (defined('APP_DEBUG') && APP_DEBUG === true) return;
-
         requirePermission($permission);
         if ($feature) {
             enforceFeature($feature);
@@ -874,10 +875,10 @@ if (APP_ENV === 'development') {
     ini_set('display_errors', 1);
 }
 else {
-    error_reporting(E_ALL);
+    error_reporting(0);
     ini_set('display_errors', 0);
     ini_set('log_errors', 1);
-    ini_set('error_log', 'logs/error.log');
+    ini_set('error_log', APP_ROOT . '/storage/logs/error.log');
 }
 
 // Start output buffering

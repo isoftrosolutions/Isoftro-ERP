@@ -57,7 +57,7 @@ class TenantController {
             ")->fetchAll();
         } catch (\Exception $e) {
             $tenants = [];
-        }
+    }
         include resource_path('views/super-admin/tenants-suspended.php');
     }
 

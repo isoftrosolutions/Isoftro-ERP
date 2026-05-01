@@ -126,5 +126,5 @@ try {
 
 } catch (Exception $e) {
     error_log('Student fees controller error: ' . $e->getMessage());
-    echo json_encode(['success' => false, 'message' => $e->getMessage()]);
-}
+    echo json_encode(['success' => false, 'message' => 'Internal server error']);
+    }

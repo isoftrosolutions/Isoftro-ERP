@@ -18,6 +18,8 @@ return Application::configure(basePath: dirname(__DIR__))
         // Apply tenant identify globally for all routes
         $middleware->append([
              \App\Http\Middleware\IdentifyTenant::class,
+             \App\Http\Middleware\SecurityHeaders::class,
+             \App\Http\Middleware\CorsMiddleware::class,
         ]);
 
         $middleware->alias([
@@ -26,14 +28,19 @@ return Application::configure(basePath: dirname(__DIR__))
             'module' => \App\Http\Middleware\CheckModuleAccess::class,
             'jwt.auth' => \App\Http\Middleware\JwtAuthMiddleware::class,
             'tenant.identify' => \App\Http\Middleware\IdentifyTenant::class,
+            'login.throttle' => \App\Http\Middleware\LoginRateLimitMiddleware::class,
+            'api.throttle' => \App\Http\Middleware\ApiRateLimitMiddleware::class,
+            'role' => \App\Http\Middleware\CheckRole::class,
         ]);
 
         $middleware->encryptCookies(except: [
             'token',
         ]);
 
+        // Enable CSRF protection - only except API routes that use JWT
         $middleware->validateCsrfTokens(except: [
-            '*',
+            'api/*',
+            'sanctum/token',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

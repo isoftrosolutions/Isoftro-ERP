@@ -100,7 +100,7 @@ class JwtAuthMiddleware
         } catch (JWTException $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Token error: ' . $e->getMessage(),
+                'message' => 'Authentication token error.',
                 'code'    => 'TOKEN_ERROR',
             ], 401);
         }

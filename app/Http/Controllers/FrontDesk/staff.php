@@ -267,10 +267,11 @@ try {
     }
 
 } catch (Exception $e) {
+    error_log('Controller exception: ' . $e->getMessage());
     if (isset($db) && $db->inTransaction()) $db->rollBack();
     ob_clean();
-    echo json_encode(['success' => false, 'message' => $e->getMessage()]);
-}
+    echo json_encode(['success' => false, 'message' => 'Internal server error']);
+    }
 
 // Output buffered JSON and exit
 ob_end_flush();

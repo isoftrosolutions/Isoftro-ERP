@@ -62,9 +62,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
             // Handle Avatar Upload
             if (isset($_FILES['avatar']) && $_FILES['avatar']['error'] === 0) {
+                if ($_FILES['avatar']['size'] > 5 * 1024 * 1024) throw new Error('Avatar exceeds 5MB limit');
                 $dir = "public/uploads/avatars/";
                 if (!is_dir(APP_ROOT . '/' . $dir)) mkdir(APP_ROOT . '/' . $dir, 0777, true);
-                $ext = pathinfo($_FILES['avatar']['name'], PATHINFO_EXTENSION);
+                $ext = strtolower(pathinfo($_FILES['avatar']['name'], PATHINFO_EXTENSION));
+                if (!in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp'], true)) throw new Error('Invalid avatar type');
                 $filename = "user_" . $user['id'] . "_" . time() . "." . $ext;
                 if (move_uploaded_file($_FILES['avatar']['tmp_name'], APP_ROOT . '/' . $dir . $filename)) {
                     $sql .= ", avatar = :avatar";
@@ -107,9 +109,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
             // Handle Logo Upload
             if (isset($_FILES['logo']) && $_FILES['logo']['error'] === 0) {
+                if ($_FILES['logo']['size'] > 5 * 1024 * 1024) throw new Error('Logo exceeds 5MB limit');
                 $dir = "public/uploads/logos/";
                 if (!is_dir(APP_ROOT . '/' . $dir)) mkdir(APP_ROOT . '/' . $dir, 0777, true);
-                $ext = pathinfo($_FILES['logo']['name'], PATHINFO_EXTENSION);
+                $ext = strtolower(pathinfo($_FILES['logo']['name'], PATHINFO_EXTENSION));
+                if (!in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'], true)) throw new Error('Invalid logo type');
                 $filename = "tenant_" . $tenantId . "_" . time() . "." . $ext;
                 if (move_uploaded_file($_FILES['logo']['tmp_name'], APP_ROOT . '/' . $dir . $filename)) {
                     $sql .= ", logo_path = :logo";
@@ -141,6 +145,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             ]);
         }
     } catch (Throwable $e) {
-        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+        error_log('Controller exception: ' . $e->getMessage());
+        echo json_encode(['success' => false, 'message' => 'Internal server error']);
     }
 }

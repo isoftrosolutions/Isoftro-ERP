@@ -44,6 +44,7 @@ try {
         echo json_encode(['success' => true, 'data' => $notices]);
     }
 } catch (Exception $e) {
+    error_log('Controller exception: ' . $e->getMessage());
     http_response_code(500);
-    echo json_encode(['success' => false, 'message' => $e->getMessage()]);
-}
+    echo json_encode(['success' => false, 'message' => 'Internal server error']);
+    }

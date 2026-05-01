@@ -197,6 +197,10 @@ class AuthController extends Controller
             }
         }
 
+        $secure = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') || 
+                  (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') ||
+                  (isset($_SERVER['HTTP_FRONT_END_HTTPS']) && $_SERVER['HTTP_FRONT_END_HTTPS'] === 'on');
+
         return response()->json([
             'success'        => true,
             'access_token'   => $token,
@@ -217,10 +221,10 @@ class AuthController extends Controller
             $ttl / 60,   // Laravel cookie() expects minutes
             '/',
             $cookieDomain,
-            isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on',
-            true,        // HttpOnly — prevents JS from reading the token (XSS protection)
-            false,       // Raw
-            'Lax'        // SameSite=Lax — allows cookie on top-level navigations (loading screen redirect)
+            $secure,     // Secure flag - true when HTTPS is detected
+            true,         // HttpOnly — prevents JS from reading the token (XSS protection)
+            false,        // Raw
+            'Strict'      // SameSite=Strict — prevents CSRF attacks
         );
     }
 }

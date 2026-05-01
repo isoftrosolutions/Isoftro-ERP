@@ -100,7 +100,7 @@ try {
 } catch (PDOException $e) {
     error_log("Teacher Profile Error: " . $e->getMessage());
     echo json_encode(['success' => false, 'message' => 'Database error occurred']);
-} catch (Exception $e) {
+    } catch (Exception $e) {
     error_log("Teacher Profile Error: " . $e->getMessage());
     echo json_encode(['success' => false, 'message' => 'An error occurred']);
-}
+    }

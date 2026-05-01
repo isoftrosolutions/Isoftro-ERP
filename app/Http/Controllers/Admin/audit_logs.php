@@ -183,12 +183,12 @@ try {
     error_log("Audit Logs API Error: " . $e->getMessage());
     echo json_encode([
         'success' => false, 
-        'message' => 'Database error: ' . $e->getMessage()
+        'message' => 'Internal server error'
     ]);
-} catch (Exception $e) {
+    } catch (Exception $e) {
     error_log("Audit Logs API Error: " . $e->getMessage());
     echo json_encode([
         'success' => false, 
-        'message' => 'Error: ' . $e->getMessage()
+        'message' => 'Internal server error'
     ]);
-}
+    }

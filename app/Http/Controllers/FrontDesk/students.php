@@ -654,7 +654,7 @@ try {
             } catch (Exception $e) {
                 if ($db->inTransaction()) {
                     $db->rollBack();
-                }
+    }
                 throw $e;
             }
             exit;
@@ -674,9 +674,11 @@ try {
         // 1. Handle File Uploads (Optional)
         $photoUrl = $input['photo_url'] ?? null;
         if (isset($_FILES['profile_image']) && $_FILES['profile_image']['error'] === UPLOAD_ERR_OK) {
+            if ($_FILES['profile_image']['size'] > 5 * 1024 * 1024) throw new Exception('Profile image exceeds 5MB limit');
             $uploadDir = APP_ROOT . '/uploads/students/';
             if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
-            $ext = pathinfo($_FILES['profile_image']['name'], PATHINFO_EXTENSION);
+            $ext = strtolower(pathinfo($_FILES['profile_image']['name'], PATHINFO_EXTENSION));
+            if (!in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp'], true)) throw new Exception('Invalid profile image type');
             $fileName = 'std_' . time() . '_' . uniqid() . '.' . $ext;
             if (move_uploaded_file($_FILES['profile_image']['tmp_name'], $uploadDir . $fileName)) {
                 $photoUrl = APP_URL . '/uploads/students/' . $fileName;
@@ -685,9 +687,11 @@ try {
 
         $identityDocUrl = null;
         if (isset($_FILES['identity_doc']) && $_FILES['identity_doc']['error'] === UPLOAD_ERR_OK) {
+            if ($_FILES['identity_doc']['size'] > 5 * 1024 * 1024) throw new Exception('Identity document exceeds 5MB limit');
             $uploadDir = APP_ROOT . '/uploads/students/';
             if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
-            $ext = pathinfo($_FILES['identity_doc']['name'], PATHINFO_EXTENSION);
+            $ext = strtolower(pathinfo($_FILES['identity_doc']['name'], PATHINFO_EXTENSION));
+            if (!in_array($ext, ['jpg', 'jpeg', 'png', 'pdf'], true)) throw new Exception('Invalid identity document type');
             $fileName = 'id_' . time() . '_' . uniqid() . '.' . $ext;
             if (move_uploaded_file($_FILES['identity_doc']['tmp_name'], $uploadDir . $fileName)) {
                 $identityDocUrl = APP_URL . '/uploads/students/' . $fileName;
@@ -730,18 +734,22 @@ try {
 
         // Handle File Uploads on Update
         if (isset($_FILES['profile_image']) && $_FILES['profile_image']['error'] === UPLOAD_ERR_OK) {
+            if ($_FILES['profile_image']['size'] > 5 * 1024 * 1024) throw new Exception('Profile image exceeds 5MB limit');
             $uploadDir = APP_ROOT . '/uploads/students/';
             if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
-            $ext = pathinfo($_FILES['profile_image']['name'], PATHINFO_EXTENSION);
+            $ext = strtolower(pathinfo($_FILES['profile_image']['name'], PATHINFO_EXTENSION));
+            if (!in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp'], true)) throw new Exception('Invalid profile image type');
             $fileName = 'std_' . time() . '_' . uniqid() . '.' . $ext;
             if (move_uploaded_file($_FILES['profile_image']['tmp_name'], $uploadDir . $fileName)) {
                 $input['photo_url'] = APP_URL . '/uploads/students/' . $fileName;
             }
         }
         if (isset($_FILES['identity_doc']) && $_FILES['identity_doc']['error'] === UPLOAD_ERR_OK) {
+            if ($_FILES['identity_doc']['size'] > 5 * 1024 * 1024) throw new Exception('Identity document exceeds 5MB limit');
             $uploadDir = APP_ROOT . '/uploads/students/';
             if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
-            $ext = pathinfo($_FILES['identity_doc']['name'], PATHINFO_EXTENSION);
+            $ext = strtolower(pathinfo($_FILES['identity_doc']['name'], PATHINFO_EXTENSION));
+            if (!in_array($ext, ['jpg', 'jpeg', 'png', 'pdf'], true)) throw new Exception('Invalid identity document type');
             $fileName = 'id_' . time() . '_' . uniqid() . '.' . $ext;
             if (move_uploaded_file($_FILES['identity_doc']['tmp_name'], $uploadDir . $fileName)) {
                 $input['identity_doc_url'] = APP_URL . '/uploads/students/' . $fileName;
@@ -755,9 +763,9 @@ try {
 
             if ($dobAd && !$dobBs) {
                 try { $input['dob_bs'] = \App\Helpers\DateUtils::adToBs($dobAd); } catch (\Exception $e) {}
-            } elseif (!$dobAd && $dobBs) {
+    } elseif (!$dobAd && $dobBs) {
                 try { $input['dob_ad'] = \App\Helpers\DateUtils::bsToAd($dobBs); } catch (\Exception $e) {}
-            }
+    }
         }
 
         $fields = [];
@@ -874,8 +882,9 @@ try {
         } catch (Exception $e) {
             $db->rollBack();
             throw $e;
-        }
+    }
     }
 } catch (Exception $e) {
-    echo json_encode(['success' => false, 'message' => $e->getMessage()]);
-}
+    error_log('Controller exception: ' . $e->getMessage());
+    echo json_encode(['success' => false, 'message' => 'Internal server error']);
+    }

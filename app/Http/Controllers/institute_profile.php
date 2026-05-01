@@ -69,6 +69,9 @@ try {
         // Handle logo upload
         $logoPath = null;
         if (isset($_FILES['logo']) && $_FILES['logo']['error'] === UPLOAD_ERR_OK) {
+            if ($_FILES['logo']['size'] > 5 * 1024 * 1024) {
+                throw new Exception('Logo size exceeds 5MB limit');
+            }
             $uploadDir = __DIR__ . '/../../../uploads/logos/';
             
             // Create directory if not exists
@@ -86,6 +89,8 @@ try {
                 if (move_uploaded_file($_FILES['logo']['tmp_name'], $targetPath)) {
                     $logoPath = '/uploads/logos/' . $newFileName;
                 }
+            } else {
+                throw new Exception('Invalid logo type');
             }
         }
         
@@ -156,11 +161,12 @@ try {
     }
 
 } catch (Exception $e) {
+    error_log('Controller exception: ' . $e->getMessage());
     echo json_encode([
         'success' => false, 
-        'message' => 'Error: ' . $e->getMessage()
+        'message' => 'Internal server error'
     ]);
-}
+    }
 
 /**
  * Sanitize input

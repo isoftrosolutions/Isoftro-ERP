@@ -45,7 +45,7 @@ try {
             $stmt = $db->prepare("SELECT COUNT(*) FROM inquiries WHERE tenant_id = :tid AND status = 'new' AND created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)");
             $stmt->execute(['tid' => $tenantId]);
             $notifCount += (int)$stmt->fetchColumn();
-        } catch (Exception $e) {}
+    } catch (Exception $e) {}
     }
 
     // 3. Active notices (unread proxy — count notices posted in the last 24 hours)
@@ -60,9 +60,8 @@ try {
         'notifications' => $notifCount,
         'messages'      => 0   // Direct messaging not yet implemented
     ]);
-
-} catch (Exception $e) {
+    } catch (Exception $e) {
     error_log('Notifications count error: ' . $e->getMessage());
     echo json_encode(['success' => true, 'notifications' => 0, 'messages' => 0]);
-}
+    }
 exit;

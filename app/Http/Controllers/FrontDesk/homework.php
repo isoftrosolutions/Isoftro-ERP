@@ -72,7 +72,7 @@ try {
         'homework' => $homework
     ]);
 
-} catch(PDOException $e) {
+} catch (PDOException $e) {
     error_log("Homework Load Error: " . $e->getMessage());
     echo json_encode(['success' => false, 'message' => 'Database error']);
-}
+    }
